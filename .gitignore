@@ -395,3 +395,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+permanal/data/fmm_results1000.csv
+permanal/data/fmm_results10000.csv
+permanal/data/pam_results1000.csv
+permanal/data/pam_results10000.csv
