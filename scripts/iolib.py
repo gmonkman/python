@@ -5,6 +5,16 @@ import sys
 import csv
 from numpy import ndarray as numpy_ndarray
 
+def write_to_eof(filename, thetext):
+    '''(string,string) ->void
+    Write thetext to the end of the file given in filename.
+    '''
+    try:
+        fid = open(filename, 'a')
+        fid.write(thetext)
+    finally:
+        fid.close
+
 def readcsv(filename, cols=1, ignoreheader=False, startrow=0, numericdata=True):
     '''(string, int, bool, int, bool) -> list
     Reads a csv file into a list and returns the list

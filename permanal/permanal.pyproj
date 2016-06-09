@@ -24,9 +24,6 @@
     <Compile Include="..\scripts\funclib.py">
       <Link>funclib.py</Link>
     </Compile>
-    <Compile Include="..\scripts\io.py">
-      <Link>io.py</Link>
-    </Compile>
     <Compile Include="..\scripts\iolib.py">
       <Link>iolib.py</Link>
     </Compile>
@@ -36,15 +33,13 @@
     <Compile Include="main.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="test.py">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="data\all.csv" />
     <Content Include="data\fmm.csv" />
     <Content Include="data\pam.csv" />
     <Content Include="data\score.csv" />
+    <Content Include="pylintrc" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="data" />

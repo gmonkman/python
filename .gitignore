@@ -399,3 +399,7 @@ permanal/data/fmm_results1000.csv
 permanal/data/fmm_results10000.csv
 permanal/data/pam_results1000.csv
 permanal/data/pam_results10000.csv
+permanal/data/fmm_results_i10_No0
+permanal/data/pam_results_i10_No0
+permanal/data/pam_results_i10.0_No0
+*.csv
