@@ -403,3 +403,8 @@ permanal/data/fmm_results_i10_No0
 permanal/data/pam_results_i10_No0
 permanal/data/pam_results_i10.0_No0
 *.csv
+permanal/data/kendall_100000/fmm_results_i100000.xlsx
+permanal/data/kendall_100000/pam_results_i100000_No0.xlsx
+permanal/data/kendall_100000/fmm_results_i100000_No0.xlsx
+permanal/data/kendall_100000/pam_results_i100000.xlsx
+permanal/data/kendall_100000/kendall_100000_master.xlsx

@@ -17,13 +17,14 @@ def read_number(test, default=0):
     '''(any,number) -> number
     Return test if test is a number, or default if s is not a number
     '''
-    if not isinstance(default, numbers.Number):
-        default = 0
-    if isinstance(test, numbers.Number):
+    if isinstance(test, str):
+        if is_float(test):
+            return float(test)
+        else:
+            return default
+    elif isinstance(test, numbers.Number):
         return test
-    elif is_float(test):
-        return float(test)
-    else:
+    else:   #not a string or not a number
         return default
 
 def list_delete_value_pairs(list_a, list_b, match_value=0):
