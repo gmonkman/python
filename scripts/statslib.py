@@ -6,6 +6,7 @@ import copy
 import numbers
 
 # packages
+import pandas
 import numpy
 import scipy
 import scipy.stats
@@ -80,13 +81,44 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, sem_mean_propo
             else:
                 sem_ratio = 1
 
-            pre = '/* sem ratio:' + str(round(sem_ratio,5)) + ' */'
-            funclib.printProgress(cnt, max_iterations,prefix=pre, barLength=30)
+            pre = '/* sem ratio:' + str(round(sem_ratio, 5)) + ' */'
+            funclib.printProgress(cnt, max_iterations, prefix=pre, barLength=30)
             if sem_ratio < sem_mean_proportion:
                 break
         else:
             pre = '/* iter:' + str(cnt) + ' */'
-            funclib.printProgress(cnt, iterations,prefix=pre, barLength=30)
+            funclib.printProgress(cnt, iterations, prefix=pre, barLength=30)
 
     out_final_iters[0] = cnt
     return results
+
+def correlation_test_from_csv(file_name, col_a_name, col_b_name, ignore_paired_zeros=False, test_type=EnumMethod.kendall):
+    ''' (string,string,string,EnumMethod) -> dictionary
+    Assumes that the first row is headers, will fail if this is not the case.
+
+    Returns a dict object with keys 'teststat' and 'p'
+
+    NOTE:This opens file_name each time so dont recommend it for repeating tests.
+    '''
+    assert isinstance(df, pandas.DataFrame)
+    df = pandas.read_csv(file_name)
+    list_a = df[col_a_name].tolist()
+    list_b = df[col_b_name].tolist()
+    if ignore_paired_zeros:
+        funclib.list_delete_value_pairs(list_a, list_b)
+
+    for case in funclib.switch(test_type):
+        if case(EnumMethod.kendall):
+            teststat, pval = scipy.stats.kendalltau(list_a, list_b)
+            break
+        if case(EnumMethod.pearson):
+            teststat, pval = scipy.stats.pearsonr(list_a, list_b)
+            break
+        if case(EnumMethod.spearman):
+            teststat, pval = scipy.stats.spearmanr(list_a, list_b)
+            break
+        if case():
+            raise ValueError('Enumeration member not in e_method')
+
+    return  {'teststat':teststat, 'p':pval}
+

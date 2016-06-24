@@ -2,6 +2,16 @@
 '''My general library of misc functions'''
 import numbers
 import sys
+import time
+
+def datetime_stamp(datetimesep=''):
+    '''(str) -> str
+    Returns clean date-time stamp for file names etc
+    e.g 01 June 2016 11:23 would be 201606011123
+    str is optional seperator between the date and time
+    '''
+    fmtstr = '%Y%m%d' + datetimesep + '%H%m%S'
+    return time.strftime(fmtstr)
 
 def is_float(test):
     '''(any) -> bool

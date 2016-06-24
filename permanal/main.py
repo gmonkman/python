@@ -9,6 +9,8 @@ Kendall's correlation coefficent is used
 import csv
 import subprocess
 import sys
+import datetime
+import copy
 
 #third party
 import scipy
@@ -20,7 +22,6 @@ from enum import Enum
 import statslib
 import funclib
 import iolib
-
 
 class EnumData(Enum):
     '''enum used to tell functions if we have FMM or PAM data'''
@@ -42,7 +43,6 @@ def get_file_name(fmm_or_pam=EnumData.pam):
     else:
         return 'data\\' + 'fmm_results_' + suffix
 
-
 RUN = funclib.read_number(raw_input('Run tests for PAM (1), FMM (2) or Both (3):'), EnumData.pam.value + EnumData.fmm.value)
 if RUN == 0:
     sys.exit()
@@ -62,8 +62,25 @@ MY_DATA = open('data\\allNew.csv', 'rb')
 #MY_DATA = open('data\\tmp.csv', 'rb')
 
 SCORES = []
+
 FMM_SCORES = []
+FMM_SCORES_YEARHWL = []
+FMM_SCORES_VALUE = []
+FMM_SCORES_YEAR = []
+
+FMM_VENUECNT = []
+FMM_VENUECNT_YEARHWL = []
+FMM_VENUECNT_VALUE = []
+FMM_VENUECNT_YEAR = []
+
+FMM_YEARHWL = []
+FMM_VALUE = []
 FMM_YEAR = []
+
+FMM_YEARHWL_VC = []
+FMM_VALUE_VC = []
+FMM_YEAR_VC = []
+
 PAM_SCORES = []
 PAM_DAYS = []
 
@@ -75,7 +92,10 @@ try:
         if funclib.read_number(row['IsFMM']) == 1:
             if funclib.is_float(row['yearhwL']) and funclib.is_float(row['Scores']):
                 FMM_SCORES.append(float(row['Scores']))
-                FMM_YEAR.append(float(row['yearhwL']))
+                FMM_YEARHWL.append(float(row['yearhwL']))
+                FMM_VALUE.append(float(row['VALUE']))
+                FMM_YEAR.append(float(row['YEAR']))
+                FMM_VENUECNT.append(float(row['VenueCnt']))
         #PAM record
         if funclib.read_number(row['IsPaM']) == 1:
             if funclib.is_float(row['Scores']) and funclib.is_float(row['days_pa_km']):
@@ -91,28 +111,73 @@ FINAL_ITERS_PAM = [0]
 FINAL_ITERS_FMM = [0]
 FMM_GREATER = [0]
 PAM_GREATER = [0]
+SUMMARY = [['when', 'stat', 'tau', 'p']]
+
+FMM_SCORES_YEARHWL = copy.deepcopy(FMM_SCORES)
+FMM_SCORES_VALUE = copy.deepcopy(FMM_SCORES)
+FMM_SCORES_YEAR = copy.deepcopy(FMM_SCORES)
+
+FMM_VENUECNT_YEARHWL = copy.deepcopy(FMM_VENUECNT)
+FMM_VENUECNT_VALUE = copy.deepcopy(FMM_VENUECNT)
+FMM_VENUECNT_YEAR = copy.deepcopy(FMM_VENUECNT)
+
+FMM_YEARHWL_VC = copy.deepcopy(FMM_YEARHWL)
+FMM_VALUE_VC = copy.deepcopy(FMM_VALUE)
+FMM_YEAR_VC = copy.deepcopy(FMM_YEAR)
 
 if EXCLUDE_ZEROS:
     funclib.list_delete_value_pairs(PAM_SCORES, PAM_DAYS)
-    funclib.list_delete_value_pairs(FMM_SCORES, FMM_YEAR)
+
+    funclib.list_delete_value_pairs(FMM_SCORES_YEARHWL, FMM_YEARHWL)
+    funclib.list_delete_value_pairs(FMM_SCORES_VALUE, FMM_VALUE)
+    funclib.list_delete_value_pairs(FMM_SCORES_YEAR, FMM_YEAR)
+
+    funclib.list_delete_value_pairs(FMM_VENUECNT_YEAR, FMM_YEAR_VC)
+    funclib.list_delete_value_pairs(FMM_VENUECNT_YEARHWL, FMM_YEARHWL_VC)
+    funclib.list_delete_value_pairs(FMM_VENUECNT_VALUE, FMM_VALUE_VC)
 
 if bool(int(RUN) & EnumData.pam.value):
     TAU, CONF = scipy.stats.kendalltau(PAM_SCORES, PAM_DAYS)
+    SUMMARY.append([funclib.datetime_stamp(), 'PAM Kendall on Scores vs days_pa_km', TAU, CONF])
     PAM_CORRS.append([TAU, CONF])
     PAM_CORRS.extend(statslib.permuted_correlation(PAM_SCORES, PAM_DAYS, test_stat=TAU, out_greater_than_test_stat=PAM_GREATER, iterations=ITERATIONS, sem_mean_proportion=SEM, exclude_zero_pairs=EXCLUDE_ZEROS, out_final_iters=FINAL_ITERS_PAM))
-    PAM_SUMMARY = 'Completed PAM after ' + str(FINAL_ITERS_PAM[0]) + ' iterations. p=' + str(round(PAM_GREATER[0]/FINAL_ITERS_PAM[0], 5))
+    PAM_SUMMARY = 'Completed PAM after ' + str(FINAL_ITERS_PAM[0]) + ' iterations. p=' + str(round(PAM_GREATER[0]/float(FINAL_ITERS_PAM[0]), 5))
     iolib.writecsv(get_file_name(EnumData.pam), PAM_CORRS, inner_as_rows=False)
     iolib.write_to_eof(get_file_name(EnumData.pam), PAM_SUMMARY)
     print PAM_SUMMARY
 
+
 if bool(int(RUN) & EnumData.fmm.value):
-    TAU, CONF = scipy.stats.kendalltau(FMM_SCORES, FMM_YEAR)
+    TAU, CONF = scipy.stats.kendalltau(FMM_SCORES_YEARHWL, FMM_YEARHWL)
+    SUMMARY.append([funclib.datetime_stamp(), 'FMM Kendall on SCORES vs YearHWL', TAU, CONF])
+
+    TAU, CONF = scipy.stats.kendalltau(FMM_SCORES_VALUE, FMM_VALUE)
+    SUMMARY.append([funclib.datetime_stamp(), 'FMM Kendall on SCORES vs Value', TAU, CONF])
+
+    TAU, CONF = scipy.stats.kendalltau(FMM_SCORES_YEAR, FMM_YEAR)
+    SUMMARY.append([funclib.datetime_stamp(), 'FMM Kendall on SCORES vs YEAR', TAU, CONF])
+
     FMM_CORRS.append([TAU, CONF])
-    FMM_CORRS.extend(statslib.permuted_correlation(FMM_SCORES, FMM_YEAR, test_stat=TAU, out_greater_than_test_stat=FMM_GREATER, iterations=ITERATIONS, sem_mean_proportion=SEM, exclude_zero_pairs=EXCLUDE_ZEROS, out_final_iters=FINAL_ITERS_FMM))
-    FMM_SUMMARY = 'Completed FMM after ' + str(FINAL_ITERS_FMM[0]) + ' iterations. p=' + str(round(FMM_GREATER[0]/FINAL_ITERS_FMM[0], 5))
+    #CHANGE THIS LINE TO USE MATRIX OF CHOICE
+    FMM_CORRS.extend(statslib.permuted_correlation(FMM_SCORES_YEAR, FMM_YEAR, test_stat=TAU, out_greater_than_test_stat=FMM_GREATER, iterations=ITERATIONS, sem_mean_proportion=SEM, exclude_zero_pairs=EXCLUDE_ZEROS, out_final_iters=FINAL_ITERS_FMM))
+    FMM_SUMMARY = 'Completed FMM after ' + str(FINAL_ITERS_FMM[0]) + ' iterations. p=' + str(round(FMM_GREATER[0]/float(FINAL_ITERS_FMM[0]), 5))
     print FMM_SUMMARY
     iolib.writecsv(get_file_name(EnumData.fmm), FMM_CORRS, inner_as_rows=False)
     iolib.write_to_eof(get_file_name(EnumData.fmm), FMM_SUMMARY)
+
+    
+#venuecnt correlation to summary
+TAU, CONF = scipy.stats.kendalltau(FMM_VENUECNT_YEARHWL, FMM_YEARHWL_VC)
+SUMMARY.append([funclib.datetime_stamp(), 'FMM Kendall on VenueCnt vs YearHWL', TAU, CONF])
+
+TAU, CONF = scipy.stats.kendalltau(FMM_VENUECNT_VALUE, FMM_VALUE_VC)
+SUMMARY.append([funclib.datetime_stamp(), 'FMM Kendall on VenueCnt vs Value', TAU, CONF])
+
+TAU, CONF = scipy.stats.kendalltau(FMM_VENUECNT_YEAR, FMM_YEAR_VC)
+SUMMARY.append([funclib.datetime_stamp(), 'FMM Kendall on VenueCnt vs Year', TAU, CONF])
+
+STATFILE = '.\\data\\Stats' + funclib.datetime_stamp() + '.csv'
+iolib.writecsv(STATFILE, SUMMARY, inner_as_rows=False)
 
 with fuckit:
     subprocess.check_call(['explorer', '.\\data'])

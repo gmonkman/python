@@ -30,6 +30,9 @@
     <Compile Include="..\scripts\statslib.py">
       <Link>statslib.py</Link>
     </Compile>
+    <Compile Include="corr_tests.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="main.py">
       <SubType>Code</SubType>
     </Compile>
