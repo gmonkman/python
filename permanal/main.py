@@ -16,6 +16,7 @@ import copy
 import scipy
 import scipy.stats
 import fuckit
+import pandas
 
 #My Libs
 from enum import Enum
@@ -47,97 +48,14 @@ RUN = funclib.read_number(raw_input('Run tests for PAM (1), FMM (2) or Both (3):
 if RUN == 0:
     sys.exit()
 
-ITERATIONS = funclib.read_number(raw_input('Input iterations, enter zero to input SEM proportion:'), 0)
-SEM = 0
-
-if ITERATIONS == 0:
-    SEM = funclib.read_number(raw_input('Input standard error of mean proportion (0.01 recommended):'), 0.01)
-    if SEM <= 0:
-        raise ValueError('You must provide sensible values for iteration number or SEM proportion')
-
-EXCLUDE_ZEROS = bool(funclib.read_number(raw_input("Exclude zero pairs (0 = include zero pairs, 1 = exclude zero pairs):"), 0))
-
-#Opend the csv data
-MY_DATA = open('data\\allNew.csv', 'rb')
-#MY_DATA = open('data\\tmp.csv', 'rb')
-
-SCORES = []
-
-FMM_SCORES = []
-FMM_SCORES_YEARHWL = []
-FMM_SCORES_VALUE = []
-FMM_SCORES_YEAR = []
-
-FMM_VENUECNT = []
-FMM_VENUECNT_YEARHWL = []
-FMM_VENUECNT_VALUE = []
-FMM_VENUECNT_YEAR = []
-
-FMM_YEARHWL = []
-FMM_VALUE = []
-FMM_YEAR = []
-
-FMM_YEARHWL_VC = []
-FMM_VALUE_VC = []
-FMM_YEAR_VC = []
-
-PAM_SCORES = []
-PAM_DAYS = []
-
-try:
-    DICT_READER = csv.DictReader(MY_DATA, fieldnames=csv.reader(MY_DATA).next())
-    for row in DICT_READER:
-        SCORES.append(float(row['Scores']))
-        #FMM record
-        if funclib.read_number(row['IsFMM']) == 1:
-            if funclib.is_float(row['yearhwL']) and funclib.is_float(row['Scores']):
-                FMM_SCORES.append(float(row['Scores']))
-                FMM_YEARHWL.append(float(row['yearhwL']))
-                FMM_VALUE.append(float(row['VALUE']))
-                FMM_YEAR.append(float(row['YEAR']))
-                FMM_VENUECNT.append(float(row['VenueCnt']))
-        #PAM record
-        if funclib.read_number(row['IsPaM']) == 1:
-            if funclib.is_float(row['Scores']) and funclib.is_float(row['days_pa_km']):
-                PAM_SCORES.append(float(row['Scores']))
-                PAM_DAYS.append(float(row['days_pa_km']))
-finally:
-    MY_DATA.close
+ITERATIONS = funclib.read_number(raw_input('Input iterations'), 10)
 
 #Now do the stats work
-PAM_CORRS = [['tau', 'p']]
-FMM_CORRS = [['tau', 'p']]
-FINAL_ITERS_PAM = [0]
-FINAL_ITERS_FMM = [0]
-FMM_GREATER = [0]
-PAM_GREATER = [0]
-SUMMARY = [['when', 'stat', 'tau', 'p']]
-
-FMM_SCORES_YEARHWL = copy.deepcopy(FMM_SCORES)
-FMM_SCORES_VALUE = copy.deepcopy(FMM_SCORES)
-FMM_SCORES_YEAR = copy.deepcopy(FMM_SCORES)
-
-FMM_VENUECNT_YEARHWL = copy.deepcopy(FMM_VENUECNT)
-FMM_VENUECNT_VALUE = copy.deepcopy(FMM_VENUECNT)
-FMM_VENUECNT_YEAR = copy.deepcopy(FMM_VENUECNT)
-
-FMM_YEARHWL_VC = copy.deepcopy(FMM_YEARHWL)
-FMM_VALUE_VC = copy.deepcopy(FMM_VALUE)
-FMM_YEAR_VC = copy.deepcopy(FMM_YEAR)
-
-if EXCLUDE_ZEROS:
-    funclib.list_delete_value_pairs(PAM_SCORES, PAM_DAYS)
-
-    funclib.list_delete_value_pairs(FMM_SCORES_YEARHWL, FMM_YEARHWL)
-    funclib.list_delete_value_pairs(FMM_SCORES_VALUE, FMM_VALUE)
-    funclib.list_delete_value_pairs(FMM_SCORES_YEAR, FMM_YEAR)
-
-    funclib.list_delete_value_pairs(FMM_VENUECNT_YEAR, FMM_YEAR_VC)
-    funclib.list_delete_value_pairs(FMM_VENUECNT_YEARHWL, FMM_YEARHWL_VC)
-    funclib.list_delete_value_pairs(FMM_VENUECNT_VALUE, FMM_VALUE_VC)
+results = [['tau', 'p']]
+df =  df = pandas.read_csv('.\\data\\fmm.csv')
 
 if bool(int(RUN) & EnumData.pam.value):
-    TAU, CONF = scipy.stats.kendalltau(PAM_SCORES, PAM_DAYS)
+    TAU, CONF = statslib.correlation_test_from_csv(df,   scipy.stats.kendalltau(PAM_SCORES, PAM_DAYS)
     SUMMARY.append([funclib.datetime_stamp(), 'PAM Kendall on Scores vs days_pa_km', TAU, CONF])
     PAM_CORRS.append([TAU, CONF])
     PAM_CORRS.extend(statslib.permuted_correlation(PAM_SCORES, PAM_DAYS, test_stat=TAU, out_greater_than_test_stat=PAM_GREATER, iterations=ITERATIONS, sem_mean_proportion=SEM, exclude_zero_pairs=EXCLUDE_ZEROS, out_final_iters=FINAL_ITERS_PAM))
@@ -165,7 +83,6 @@ if bool(int(RUN) & EnumData.fmm.value):
     iolib.writecsv(get_file_name(EnumData.fmm), FMM_CORRS, inner_as_rows=False)
     iolib.write_to_eof(get_file_name(EnumData.fmm), FMM_SUMMARY)
 
-    
 #venuecnt correlation to summary
 TAU, CONF = scipy.stats.kendalltau(FMM_VENUECNT_YEARHWL, FMM_YEARHWL_VC)
 SUMMARY.append([funclib.datetime_stamp(), 'FMM Kendall on VenueCnt vs YearHWL', TAU, CONF])

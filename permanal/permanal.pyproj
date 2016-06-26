@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f5610146-4c75-4168-b337-655e29506c56}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>main.py</StartupFile>
+    <StartupFile>corr_tests.py</StartupFile>
     <SearchPath>..\..\..\Anaconda2\Lib\;..\lib\;..\scripts\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -31,9 +31,6 @@
       <Link>statslib.py</Link>
     </Compile>
     <Compile Include="corr_tests.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="main.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

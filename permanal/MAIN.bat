@@ -1,1 +1,1 @@
-c:\anaconda2\python .\main.py
+c:\anaconda2\python .\corr_tests.py

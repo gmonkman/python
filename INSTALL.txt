@@ -1,0 +1,7 @@
+Install anaconda2(Python 2.7)
+Copy main.py and the data folder to the PC.
+Copy funclib.py*,iolib.py*,statslib.py* to C:\Anaconda2\Lib
+
+Open a command prompt
+Set current directory to the location of main.py
+>python main.py
