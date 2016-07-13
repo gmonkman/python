@@ -6,7 +6,7 @@
     <ProjectGuid>{f5610146-4c75-4168-b337-655e29506c56}</ProjectGuid>
     <ProjectHome />
     <StartupFile>corr_tests.py</StartupFile>
-    <SearchPath>..\..\..\Anaconda2\Lib\;..\lib\;..\scripts\</SearchPath>
+    <SearchPath>..\..\..\Anaconda2\Lib\;..\lib\;..\scripts\;..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
@@ -21,15 +21,6 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\scripts\funclib.py">
-      <Link>funclib.py</Link>
-    </Compile>
-    <Compile Include="..\scripts\iolib.py">
-      <Link>iolib.py</Link>
-    </Compile>
-    <Compile Include="..\scripts\statslib.py">
-      <Link>statslib.py</Link>
-    </Compile>
     <Compile Include="corr_tests.py">
       <SubType>Code</SubType>
     </Compile>

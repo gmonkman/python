@@ -21,8 +21,6 @@ def list_delete_value_pairs(list_a, list_b, match_value=0):
             del list_b[ind]
 
 
-
-
 #NUMPY ROUTINES
 def np_permute_2d(np):
     '''(ndarray) -> ndarray
@@ -34,20 +32,21 @@ def np_permute_2d(np):
     mask = numpy.isfinite(np) #create a boolean mask
     assert isinstance(mask, numpy.ndarray)
     np_val_list = np.copy()
-    np_val_list =  nptmp[mask]
+    assert isinstance(np_val_list, numpy.ndarray)
+    np_val_list = np_val_list[mask]
     np_val_list = numpy.random.permutation(np_val_list)
 
     #now we need to reassign our original array for the permuted list where there are non NaNs
     #First get indexes of non NaN values in passed array
     npInds = numpy.nonzero(mask) #mask is still a array of booleans with True values corresponding to non NaNs and Infs
-    assert len(npInds) == len(np_val_list)
     npInds = numpy.transpose(npInds)
     cnt = 0
     npout = np.copy()
     assert isinstance(npout, numpy.ndarray)
     for val in npInds:
-        x,y = val
-        npout[x][y] = np_val_list[cnt]
+        npout[val[0]][val[1]] = np_val_list[cnt]
+        cnt += 1
+
 
     return npout
 
@@ -59,14 +58,46 @@ def np_focal_mean(np, pad=True):
     Radius is currently all adjacent cells
     '''
     assert isinstance(np, numpy.ndarray)
-    
+
     nptmp = np.copy()
-    nptmp = numpy.pad(nptmp, pad_width=1, mode='constant', constant_values=numpy.NaN) #surround with nans so we can ignore edge effects
+
+    if pad:
+        #surround with nans so we can ignore edge effects
+        nptmp = numpy.pad(nptmp, pad_width=1, mode='constant', constant_values=numpy.NaN)
+
     assert isinstance(nptmp, numpy.ndarray)
 
-    kernel = numpy.ones((3,3))
+    kernel = numpy.ones((3, 3))
     assert isinstance(kernel, numpy.ndarray)
     
-    out = ndimage.filters.generic_filter(nptmp, numpy.nanmean, kernel, mode='constant') #create means by kernel
+    #create means by kernel
+    out = ndimage.filters.generic_filter(nptmp, numpy.nanmean, kernel, mode='constant')
     
     return out
+
+def np_paired_zeros_to_nan(npone, nptwo):
+    '''(ndarray, ndarray) -> void
+    removes matched zero value pairs.
+    npone and nptwo are altered.
+    '''
+    assert isinstance(npone, numpy.ndarray)
+    assert isinstance(nptwo, numpy.ndarray)
+    if npone.shape != nptwo.shape:
+        raise ValueError('Arrays must be the same shape')
+    nponebool = numpy.array(npone, dtype=bool)
+    nptwobool = numpy.array(nptwo, dtype=bool)
+
+    #mask now has False where both 'in' arrays have matching zeros
+    mask = numpy.logical_or(nponebool, nptwobool)
+    
+    #npInds now contains indexes of all 'cells' which had zeros 
+    npInds = (mask is False).nonzero()
+    assert isinstance(npInds, numpy.ndarray)
+    
+    npInds = numpy.transpose(npInds)
+    
+    for val in npInds:
+        x, y = val
+        npone[x][y] = numpy.NaN
+        nptwo[x][y] = numpy.NaN
+

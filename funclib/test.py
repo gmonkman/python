@@ -6,5 +6,5 @@ def test():
     '''
     print funclib.stringslib.datetime_stamp
     print funclib.stringslib.read_number('12')
- 
-test() 
+
+test()

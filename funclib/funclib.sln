@@ -9,6 +9,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "arcgis", "..\arcgis\arcgis.
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "focalpermute", "..\focalpermute\focalpermute.pyproj", "{EC5CF372-8145-4757-BA13-3684ACE201FE}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "permanal", "..\permanal\permanal.pyproj", "{F5610146-4C75-4168-B337-655E29506C56}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,8 @@ Global
 		{F860303E-B407-4BAB-9DF5-60583551BC8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC5CF372-8145-4757-BA13-3684ACE201FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EC5CF372-8145-4757-BA13-3684ACE201FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5610146-4C75-4168-B337-655E29506C56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5610146-4C75-4168-B337-655E29506C56}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -113,7 +113,7 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
             if engine == EnumStatsEngine.r:
                 df_r = com.convert_to_r_dataframe(df)
                 ro.globalenv['cordf'] = df_r
-                tmpstr = 'cor.test(cordf$' + col_a_name + ',cordf$' + col_b_name + ', method="kendall")'
+                tmpstr = 'cor.test(cordf$' + col_a_name + ',cordf$' + col_b_name + ', method="pearson")'
                 result = ro.r(tmpstr)
                 teststat = result[3][0]
                 pval = result[2][0]
@@ -124,12 +124,80 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
             if engine == EnumStatsEngine.r:
                 df_r = com.convert_to_r_dataframe(df)
                 ro.globalenv['cordf'] = df_r
-                tmpstr = 'cor.test(cordf$' + col_a_name + ',cordf$' + col_b_name + ', method="kendall")'
+                tmpstr = 'cor.test(cordf$' + col_a_name + ',cordf$' + col_b_name + ', method="spearman")'
                 result = ro.r(tmpstr)
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
                 teststat, pval = scipy.stats.spearmanr(list_a, list_b)
+            break
+        if case():
+            raise ValueError('Enumeration member not in e_method')
+
+    return  {'teststat':teststat, 'p':pval}
+
+def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
+    '''(list|ndarray, list|ndarray, enumeration, enumeration) -> dict
+    Returns a dictionary: {'teststat':teststat, 'p':pval}
+    method: is an enumeration member of EnumMethod
+    engine: is an enumeration method
+    '''
+
+    if isinstance(a, numpy.ndarray) and isinstance(b, numpy.ndarray):
+        if a.shape != b.shape:
+            raise ValueError('Numpy array shapes must match exactly')
+
+    if isinstance(a, numpy.ndarray):
+        lst_a = a.flatten().tolist()
+    else:
+        lst_a = copy.deepcopy(a)
+
+    if isinstance(b, numpy.ndarray):
+        lst_b = b.flatten().tolist()
+    else:
+        lst_b = copy.deepcopy(b)
+
+    if len(lst_a) != len(lst_b):
+        raise ValueError('Array lengths must match exactly')
+    
+    assert isinstance(lst_a, list)
+    assert isinstance(lst_b, list)
+    
+    df = pandas.DataFrame({'a':lst_a, 'b':lst_b})
+
+    for case in funclib.baselib.switch(method):
+        if case(EnumMethod.kendall):
+            if engine == EnumStatsEngine.r:
+                df_r = com.convert_to_r_dataframe(df)
+                ro.globalenv['cordf'] = df_r
+                tmpstr = 'cor.test(cordf$a, cordf$b, method="kendall")'
+                result = ro.r(tmpstr)
+                teststat = result[3][0]
+                pval = result[2][0]
+            else:
+                teststat, pval = scipy.stats.kendalltau(lst_a, lst_b)
+            break
+        if case(EnumMethod.pearson):
+            if engine == EnumStatsEngine.r:
+                df_r = com.convert_to_r_dataframe(df)
+                ro.globalenv['cordf'] = df_r
+                tmpstr = 'cor.test(cordf$a, cordf$b, method="pearson")'
+                result = ro.r(tmpstr)
+                teststat = result[3][0]
+                pval = result[2][0]
+            else:
+                teststat, pval = scipy.stats.pearsonr(lst_a, lst_b)
+            break
+        if case(EnumMethod.spearman):
+            if engine == EnumStatsEngine.r:
+                df_r = com.convert_to_r_dataframe(df)
+                ro.globalenv['cordf'] = df_r
+                tmpstr = 'cor.test(cordf$a, cordf$b, method="spearman")'
+                result = ro.r(tmpstr)
+                teststat = result[3][0]
+                pval = result[2][0]
+            else:
+                teststat, pval = scipy.stats.spearmanr(lst_a, lst_b)
             break
         if case():
             raise ValueError('Enumeration member not in e_method')
