@@ -1,9 +1,16 @@
 #pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled
 
 '''My file input and output library, e.g. for csv handling.'''
-import sys
 import csv
+import os
+import subprocess
+import sys
+
+
 from numpy import ndarray as numpy_ndarray
+
+import fuckit
+
 
 #FILE (CSV) IO
 def write_to_eof(filename, thetext):
@@ -161,3 +168,13 @@ def print_progress(iteration, total, prefix='', suffix='', decimals=2, bar_lengt
     sys.stdout.write('%s [%s] %s%s %s\r' % (prefix, progbar, percents, '%', suffix)), sys.stdout.flush()
     if iteration == total:
         print "\n"
+
+
+
+def folder_open(folder='.'):
+    '''(string) -> void
+    opens a windows folder at path folder'''
+    if os.name == 'nt':
+        folder = folder.replace('/','\\')
+    with fuckit:
+        subprocess.check_call(['explorer', folder])
