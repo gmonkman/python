@@ -28,6 +28,8 @@ def list_delete_value_pairs(list_a, list_b, match_value=0):
 def np_permute_2d(np):
     '''(ndarray) -> ndarray
     Takes a numpy array and permutes the values ignoring NaNs
+    i.e. the array can contain NaNs but a permuted value
+    cannot be permuted into a cell of value NaN
     '''
     assert isinstance(np, numpy.ndarray)
 
@@ -151,7 +153,7 @@ def np_delete_paired_nans_flattened(a, b):
     assert isinstance(b, numpy.ndarray)
     a = a.flatten()
     b = b.flatten()
-    
+
     #set mask values to false where there are nans
     #then use mask for both a and b to filter out all matching
     #nans
@@ -159,3 +161,26 @@ def np_delete_paired_nans_flattened(a, b):
     bmask = numpy.invert(numpy.isnan(b))
     mask = numpy.logical_or(amask, bmask)
     return {'a':a[mask], 'b':b[mask]}
+    
+def np_delete_paired_zeros_flattened(a, b):
+    '''(ndarray, ndarray) -> dictionary
+    'dic is 'a':aOut, 'b':bOut
+    This must first flatten both arrays and both outputs
+    are flattened (but retain matches at a given index
+    '''
+    assert isinstance(a, numpy.ndarray)
+    assert isinstance(b, numpy.ndarray)
+    a = a.flatten()
+    b = b.flatten()
+
+    #set mask values to false where there are zeros
+    #then use mask for both a and b to filter out all matching
+    #zeros
+    amask = numpy.invert(a == 0)
+    bmask = numpy.invert(b == 0)
+    mask = numpy.logical_or(amask, bmask)
+    return {'a':a[mask], 'b':b[mask]}
+
+def np_contains_nan(nd):
+    return numpy.isnan(numpy.sum(nd))
+

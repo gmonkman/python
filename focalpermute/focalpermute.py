@@ -41,9 +41,9 @@ def load_arrays():
 
     #FMM
     global _NP_FMM_VALUE
-    _NP_FMM_VALUE = numpy.load(_PATH + '/NP_FMM_VALUE.np')
+    _NP_FMM_VALUE = numpy.load(_PATH + '/NP_FMM_VALUE.np').astype(float)
     global _NP_FMM_VENUE_FOCAL
-    _NP_FMM_VENUE_FOCAL = numpy.load(_PATH + '/NP_FMM_VENUE_FOCAL.np')
+    _NP_FMM_VENUE_FOCAL = numpy.load(_PATH + '/NP_FMM_VENUE_FOCAL.np').astype(float)
 
     #_NP_FMM_VENUE_FOCAL has an extra column which needs to be deleted so arrays
     #are of same dims
@@ -54,29 +54,33 @@ def load_arrays():
 
     #PAM
     global _NP_PAM_DAYSPAKM
-    _NP_PAM_DAYSPAKM = numpy.load(_PATH + '/' + 'NP_PAM_DAYSPAKM.np')
+    _NP_PAM_DAYSPAKM = numpy.load(_PATH + '/' + 'NP_PAM_DAYSPAKM.np').astype(float)
     global _NP_PAM_VENUE_FOCAL 
-    _NP_PAM_VENUE_FOCAL = numpy.load(_PATH + '/' + 'NP_PAM_VENUE_FOCAL.np')
+    _NP_PAM_VENUE_FOCAL = numpy.load(_PATH + '/' + 'NP_PAM_VENUE_FOCAL.np').astype(float)
     if _NP_PAM_DAYSPAKM.shape != _NP_PAM_VENUE_FOCAL.shape:
         raise ValueError('PAM arrays not of the same shape')
 
 
+
+
 def fmm_all():
     '''do the fmm work including zeros'''
-    outcsv = ([['Tau', 'p']])
+    outcsv = ([['Tau', 'p WRONG!!!']])
 
     for cnt in range(_ITERATIONS-1):       
         pre = '/* iter:' + str(cnt) + ' */'
 
         cor = funclib.arraylib.np_permute_2d(_NP_FMM_VALUE)
-        dic = funclib.statslib.correlation(cor, _NP_FMM_VENUE_FOCAL, engine=funclib.statslib.EnumStatsEngine.r)
+
+        #use scipy - p will be wrong, but the taus will be right
+        dic = funclib.statslib.correlation(cor, _NP_FMM_VENUE_FOCAL, engine=funclib.statslib.EnumStatsEngine.scipy)
         outcsv.append([dic['teststat'], dic['p']])
 
         funclib.iolib.print_progress(cnt, _ITERATIONS, prefix=pre, bar_length=30)
 
     filename = _PATH + '/fmm_0_' + funclib.stringslib.datetime_stamp + '.csv'
     funclib.iolib.writecsv(filename, outcsv, inner_as_rows=False)
-
+    
 
 
 
@@ -86,17 +90,18 @@ def unpermuted_corr():
     results = dict()
 
     #we NaN pad all arrays to stop the problem of calculating edge effects
+    #(although after mod this is now redundant)
 
 
     #FMM /w zeros
     nd_fmm_value_focal = numpy.copy(_NP_FMM_VALUE)
-    numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_fmm_value.csv', nd_fmm_value_focal, delimiter=',')
+    #numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_fmm_value.csv', nd_fmm_value_focal, delimiter=',')
     nd_fmm_value_focal = funclib.arraylib.np_focal_mean(nd_fmm_value_focal, True)
-    numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_fmm_value_focal.csv', nd_fmm_value_focal, delimiter=',')
+    #numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_fmm_value_focal.csv', nd_fmm_value_focal, delimiter=',')
 
     nd_venuefmm = numpy.copy(_NP_FMM_VENUE_FOCAL).astype(float)
     nd_venuefmm = funclib.arraylib.np_pad_nan(nd_venuefmm)
-    numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_venuefmm.csv', nd_venuefmm, delimiter=',')
+    #numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_venuefmm.csv', nd_venuefmm, delimiter=',')
 
     if nd_fmm_value_focal.shape != nd_venuefmm.shape:
         raise ValueError('FMM arrays with zeros not of the same shape')
@@ -144,10 +149,14 @@ def unpermuted_corr():
 
     filename = _PATH + '/unpermuted_' + funclib.stringslib.datetime_stamp() + '.csv'
     funclib.iolib.writecsv(filename, outcsv, inner_as_rows=False)
-    funclib.iolib.folder_open(_PATH)
+
+
+
 
 
 load_arrays()
-unpermuted_corr()
-#fmm_all()
+#unpermuted_corr()
+fmm_all()
+
+funclib.iolib.folder_open(_PATH)
 sys.exit()

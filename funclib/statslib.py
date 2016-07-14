@@ -141,20 +141,39 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
     Returns a dictionary: {'teststat':teststat, 'p':pval}
     method: is an enumeration member of EnumMethod
     engine: is an enumeration method
+    scipy cant cope with nans. Matched nans will be removed if a and b are numpy arrays
     '''
+    
+    if isinstance(a, numpy.ndarray) or isinstance(b, numpy.ndarray):
+        if  isinstance(a, numpy.ndarray) is False or isinstance(b, numpy.ndarray) is False:
+            raise ValueError('If numpy arrays are used, both must be ndarray types')
 
-    if isinstance(a, numpy.ndarray) and isinstance(b, numpy.ndarray):
         if a.shape != b.shape:
             raise ValueError('Numpy array shapes must match exactly')
 
-    if isinstance(a, numpy.ndarray):
-        lst_a = a.flatten().tolist()
-    else:
-        lst_a = copy.deepcopy(a)
+        #scipy doesnt like nans. We drop out paired nans, leaving
+        #all other pairings the same
+        if funclib.arraylib.np_contains_nan(a) and funclib.arraylib.np_contains_nan(b):
+            dic = funclib.arraylib.np_delete_paired_nans_flattened(a, b)
+        else:
+            dic = {'a':a, 'b':b}
 
-    if isinstance(b, numpy.ndarray):
-        lst_b = b.flatten().tolist()
+        #we have unmatched nans, ie a nan in one array
+        #with a scalar in the other
+        #this is an error state - could modify later to exclude
+        #all values from both arrays where there is any nan
+        if funclib.arraylib.np_contains_nan(dic['a']):
+            raise ValueError('Numpy array a contains NaNs')
+
+        if funclib.arraylib.np_contains_nan(dic['b']):
+            raise ValueError('Numpy array b contains NaNs')
+
+        lst_a = dic['a'].flatten().tolist()
+        lst_b = dic['b'].flatten().tolist()
     else:
+        if  isinstance(a, list) is False or isinstance(b, list) is False:
+            raise ValueError('If lists are used, both must be list types')
+        lst_a = copy.deepcopy(a)
         lst_b = copy.deepcopy(b)
 
     if len(lst_a) != len(lst_b):
@@ -162,12 +181,11 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
     
     assert isinstance(lst_a, list)
     assert isinstance(lst_b, list)
-    
-    df = pandas.DataFrame({'a':lst_a, 'b':lst_b})
 
     for case in funclib.baselib.switch(method):
         if case(EnumMethod.kendall):
             if engine == EnumStatsEngine.r:
+                df = pandas.DataFrame({'a':lst_a, 'b':lst_b})
                 df_r = com.convert_to_r_dataframe(df)
                 ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="kendall")'
@@ -179,6 +197,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
             break
         if case(EnumMethod.pearson):
             if engine == EnumStatsEngine.r:
+                df = pandas.DataFrame({'a':lst_a, 'b':lst_b})
                 df_r = com.convert_to_r_dataframe(df)
                 ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="pearson")'
@@ -190,6 +209,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
             break
         if case(EnumMethod.spearman):
             if engine == EnumStatsEngine.r:
+                df = pandas.DataFrame({'a':lst_a, 'b':lst_b})
                 df_r = com.convert_to_r_dataframe(df)
                 ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="spearman")'
