@@ -6,7 +6,8 @@
     <ProjectGuid>f860303e-b407-4bab-9df5-60583551bc8e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>test.py</StartupFile>
-    <SearchPath>..\</SearchPath>
+    <SearchPath>
+    </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>arcgis</Name>

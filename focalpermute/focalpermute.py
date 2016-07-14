@@ -12,20 +12,22 @@ import funclib.statslib
 import funclib.arraylib
 import funclib.stringslib
 
-NP_FMM_VALUE = numpy.array([])
-assert isinstance(NP_FMM_VALUE, numpy.ndarray)
+_NP_FMM_VALUE = numpy.array([])
+assert isinstance(_NP_FMM_VALUE, numpy.ndarray)
 
-NP_FMM_VENUE_FOCAL = numpy.array([])
-assert isinstance(NP_FMM_VENUE_FOCAL, numpy.ndarray)
+_NP_FMM_VENUE_FOCAL = numpy.array([])
+assert isinstance(_NP_FMM_VENUE_FOCAL, numpy.ndarray)
 
-NP_PAM_DAYSPAKM = numpy.array([])
-assert isinstance(NP_PAM_DAYSPAKM, numpy.ndarray)
+_NP_PAM_DAYSPAKM = numpy.array([])
+assert isinstance(_NP_PAM_DAYSPAKM, numpy.ndarray)
 
-NP_PAM_VENUE_FOCAL = numpy.array([])
-assert isinstance(NP_PAM_VENUE_FOCAL, numpy.ndarray)
+_NP_PAM_VENUE_FOCAL = numpy.array([])
+assert isinstance(_NP_PAM_VENUE_FOCAL, numpy.ndarray)
 
-ITERATIONS = 100000
-PATH = 'C:\\Users\\Graham Monkman\\OneDrive\\Documents\\PHD\\My Papers\\WalesRSA-MSP\\data\\focalcorr'
+_ITERATIONS = 100000
+_PATH = 'C:\\Users\\Graham Monkman\\OneDrive\\Documents\\PHD\\My Papers\\WalesRSA-MSP\\data\\focalcorr'
+
+
 
 def load_arrays():
     '''() -> void
@@ -37,41 +39,89 @@ def load_arrays():
     '''
 
     #FMM
-    global NP_FMM_VALUE
-    NP_FMM_VALUE = numpy.load(PATH + '\\NP_FMM_VALUE.np')
-    global NP_FMM_VENUE_FOCAL
-    NP_FMM_VENUE_FOCAL = numpy.load(PATH + '\\NP_FMM_VENUE_FOCAL.np')
-    #NP_FMM_VENUE_FOCAL has an extra column which should be deleted
-    NP_FMM_VENUE_FOCAL = numpy.delete(NP_FMM_VENUE_FOCAL, 69, 1)
-    if NP_FMM_VALUE.shape != NP_FMM_VENUE_FOCAL.shape:
+    global _NP_FMM_VALUE
+    _NP_FMM_VALUE = numpy.load(_PATH + '\\_NP_FMM_VALUE.np')
+    global _NP_FMM_VENUE_FOCAL
+    _NP_FMM_VENUE_FOCAL = numpy.load(_PATH + '\\_NP_FMM_VENUE_FOCAL.np')
+
+    #_NP_FMM_VENUE_FOCAL has an extra column which needs to be deleted so arrays
+    #are of same dims
+    _NP_FMM_VENUE_FOCAL = numpy.delete(_NP_FMM_VENUE_FOCAL, 69, 1)
+
+    if _NP_FMM_VALUE.shape != _NP_FMM_VENUE_FOCAL.shape:
         raise ValueError('FMM arrays not of the same shape')
 
     #PAM
-    global NP_PAM_DAYSPAKM
-    NP_PAM_DAYSPAKM = numpy.load(PATH + '\\' + 'NP_PAM_DAYSPAKM.np')
-    global NP_PAM_VENUE_FOCAL 
-    NP_PAM_VENUE_FOCAL = numpy.load(PATH + '\\' + 'NP_PAM_VENUE_FOCAL.np')
-    if NP_PAM_DAYSPAKM.shape != NP_PAM_VENUE_FOCAL.shape:
+    global _NP_PAM_DAYSPAKM
+    _NP_PAM_DAYSPAKM = numpy.load(_PATH + '\\' + '_NP_PAM_DAYSPAKM.np')
+    global _NP_PAM_VENUE_FOCAL 
+    _NP_PAM_VENUE_FOCAL = numpy.load(_PATH + '\\' + '_NP_PAM_VENUE_FOCAL.np')
+    if _NP_PAM_DAYSPAKM.shape != _NP_PAM_VENUE_FOCAL.shape:
         raise ValueError('PAM arrays not of the same shape')
 
 
 def fmm_all():
     '''do the fmm work including zeros'''
-    results = (['Tau', 'p'])
+    outcsv = (['Tau', 'p'])
 
-    for cnt in range(ITERATIONS-1):       
+    for cnt in range(_ITERATIONS-1):       
         pre = '/* iter:' + str(cnt) + ' */'
 
-        cor = funclib.arraylib.np_permute_2d(NP_FMM_VALUE)
-        dic = funclib.statslib.correlation(cor, NP_FMM_VENUE_FOCAL, engine=funclib.statslib.EnumStatsEngine.r)
-        results.append([dic['teststat'], dic['p']])
+        cor = funclib.arraylib.np_permute_2d(_NP_FMM_VALUE)
+        dic = funclib.statslib.correlation(cor, _NP_FMM_VENUE_FOCAL, engine=funclib.statslib.EnumStatsEngine.r)
+        outcsv.append([dic['teststat'], dic['p']])
 
-        funclib.iolib.print_progress(cnt, ITERATIONS, prefix=pre, bar_length=30)
-    
-        filename = PATH + '\\' + fmm_all_funclib.stringslib.datetime_stamp + '.csv'
-    
-    funclib.iolib.writecsv(filename, results, ['Tau','p'], False)
+        funclib.iolib.print_progress(cnt, _ITERATIONS, prefix=pre, bar_length=30)
 
+    filename = _PATH + '\\fmm_0_' + funclib.stringslib.datetime_stamp + '.csv'
+    funclib.iolib.writecsv(filename, outcsv, ['Tau', 'p'], False)
+
+
+
+
+def unpermuted_corr():
+    '''calculate kendall tau for unpermuted values'''
+    outcsv = ['Test', 'Tau', 'p']
+    results = dict()
+    filename = _PATH + '\\' + funclib.stringslib.datetime_stamp + '.csv'
+
+    #we NaN pad all arrays to stop the problem of calculating edge effects
+
+    #FMM /w zeros
+    nd_fmm_value_focal = numpy.copy(_NP_FMM_VALUE)
+    funclib.arraylib.np_pad_nan(nd_fmm_value_focal)
+    nd_fmm_value_focal = funclib.arraylib.np_focal_mean(nd_fmm_value_focal, False)
+
+    nd_venuefmm = numpy.copy(_NP_FMM_VENUE_FOCAL)
+    funclib.arraylib.np_pad_nan(nd_venuefmm)
+
+    if nd_fmm_value_focal.shape != nd_venuefmm.shape:
+        raise ValueError('FMM arrays not of the same shape')
+
+    results = funclib.statslib.correlation(nd_fmm_value_focal, nd_venuefmm, engine=funclib.statslib.EnumStatsEngine.r)
+    outcsv.append(['FMM Focal with Zeros', results['teststat'], results['p']])
+
+    #PAM /w zeros
+    nd_pam_dayspa_focal = numpy.copy(_NP_PAM_DAYSPAKM)
+    funclib.arraylib.np_pad_nan(nd_pam_dayspa_focal)
+    nd_pam_dayspa_focal = funclib.arraylib.np_focal_mean(nd_pam_dayspa_focal, False)
+
+    nd_venuepam = numpy.copy(_NP_FMM_VENUE_FOCAL)
+    funclib.arraylib.np_pad_nan(nd_venuepam)
+
+    if nd_pam_dayspa_focal.shape != nd_venuepam.shape:
+        raise ValueError('PAM arrays not of the same shape')
+
+    results = funclib.statslib.correlation(nd_pam_dayspa_focal, nd_venuepam, engine=funclib.statslib.EnumStatsEngine.r)
+    outcsv.append(['PAM Focal with Zeros', results['teststat'], results['p']])
+
+    filename = _PATH + '\\unpermuted_' + funclib.stringslib.datetime_stamp + '.csv'
+    funclib.iolib.writecsv(filename, outcsv, inner_as_rows=False)
+
+
+
+
+unpermuted_corr()
 load_arrays()
 fmm_all()
 sys.exit()

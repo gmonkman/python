@@ -4,6 +4,7 @@ import numpy.ma
 import numpy.random
 import scipy.ndimage as ndimage
 
+
 #list stuff
 def list_delete_value_pairs(list_a, list_b, match_value=0):
     '''(list,list,str|number) -> void
@@ -101,3 +102,7 @@ def np_paired_zeros_to_nan(npone, nptwo):
         npone[x][y] = numpy.NaN
         nptwo[x][y] = numpy.NaN
 
+def np_pad_nan(nd):
+    '''(ndarray) -> void
+    pads nd with nans'''
+    nd = numpy.pad(nd, pad_width=1, mode='constant', constant_values=numpy.NaN)

@@ -6,7 +6,7 @@
     <ProjectGuid>ec5cf372-8145-4757-ba13-3684ace201fe</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>focalpermute.py</StartupFile>
-    <SearchPath>..\</SearchPath>
+    <SearchPath>..\funclib\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>focalpermute</Name>
