@@ -22,6 +22,8 @@ def list_delete_value_pairs(list_a, list_b, match_value=0):
             del list_b[ind]
 
 
+
+
 #NUMPY ROUTINES
 def np_permute_2d(np):
     '''(ndarray) -> ndarray
@@ -48,8 +50,22 @@ def np_permute_2d(np):
         npout[val[0]][val[1]] = np_val_list[cnt]
         cnt += 1
 
-
     return npout
+
+
+
+
+def _focal_mean_filter(arg):
+    '''(array) -> scalar(float)
+    Function used by np_focal_mean by the ndimage.filters.generic_filter
+    to calculate per element focal values.
+    In particular we want to return NaN when the original element is NaN
+    '''
+    if numpy.isnan(arg[4]):
+        return numpy.NaN
+    else:
+        return numpy.nanmean(arg)
+
 
 
 def np_focal_mean(np, pad=True):
@@ -59,34 +75,43 @@ def np_focal_mean(np, pad=True):
     Radius is currently all adjacent cells
     '''
     assert isinstance(np, numpy.ndarray)
-
-    nptmp = np.copy()
-
+    if np.dtype != 'float':
+        raise ValueError('ndarray is not of dtype float')
+    
     if pad:
         #surround with nans so we can ignore edge effects
-        nptmp = numpy.pad(nptmp, pad_width=1, mode='constant', constant_values=numpy.NaN)
+        np = numpy.pad(np, pad_width=1, mode='constant', constant_values=numpy.NaN)
 
-    assert isinstance(nptmp, numpy.ndarray)
+    assert isinstance(np, numpy.ndarray)
 
     kernel = numpy.ones((3, 3))
     assert isinstance(kernel, numpy.ndarray)
     
     #create means by kernel
-    out = ndimage.filters.generic_filter(nptmp, numpy.nanmean, kernel, mode='constant')
-    
+    out = ndimage.filters.generic_filter(np, _focal_mean_filter, footprint=kernel, mode='constant', cval=numpy.NaN)
+
     return out
 
-def np_paired_zeros_to_nan(npone, nptwo):
-    '''(ndarray, ndarray) -> void
-    removes matched zero value pairs.
-    npone and nptwo are altered.
+
+
+
+def np_paired_zeros_to_nan(a, b):
+    '''(ndarray, ndarray) -> dictionary
+    returns  'a':a, 'b':b
+    replaces matched zero value pairs with nans, retaining
+    the shape of the array
     '''
-    assert isinstance(npone, numpy.ndarray)
-    assert isinstance(nptwo, numpy.ndarray)
-    if npone.shape != nptwo.shape:
+    assert isinstance(a, numpy.ndarray)
+    assert isinstance(b, numpy.ndarray)
+    if a.dtype != 'float':
+        raise ValueError('ndarray a is not of dtype float')
+    if b.dtype != 'float':
+        raise ValueError('ndarray b is not of dtype float')
+
+    if a.shape != b.shape:
         raise ValueError('Arrays must be the same shape')
-    nponebool = numpy.array(npone, dtype=bool)
-    nptwobool = numpy.array(nptwo, dtype=bool)
+    nponebool = numpy.array(a, dtype=bool)
+    nptwobool = numpy.array(b, dtype=bool)
 
     #mask now has False where both 'in' arrays have matching zeros
     mask = numpy.logical_or(nponebool, nptwobool)
@@ -99,10 +124,38 @@ def np_paired_zeros_to_nan(npone, nptwo):
     
     for val in npInds:
         x, y = val
-        npone[x][y] = numpy.NaN
-        nptwo[x][y] = numpy.NaN
+        a[x][y] = numpy.NaN
+        b[x][y] = numpy.NaN
+    
+    return {'a':a, 'b':b}
+
+
 
 def np_pad_nan(nd):
-    '''(ndarray) -> void
+    '''(ndarray) -> ndarray
     pads nd with nans'''
-    nd = numpy.pad(nd, pad_width=1, mode='constant', constant_values=numpy.NaN)
+    if nd.dtype != 'float':
+        raise ValueError('ndarray is not of dtype float')
+    return numpy.pad(nd, pad_width=1, mode='constant', constant_values=numpy.NaN)
+
+
+
+
+def np_delete_paired_nans_flattened(a, b):
+    '''(ndarray, ndarray) -> dictionary
+    'dic is 'a':aOut, 'b':bOut
+    This must first flatten both arrays and both outputs
+    are flattened (but retain matches at a given index
+    '''
+    assert isinstance(a, numpy.ndarray)
+    assert isinstance(b, numpy.ndarray)
+    a = a.flatten()
+    b = b.flatten()
+    
+    #set mask values to false where there are nans
+    #then use mask for both a and b to filter out all matching
+    #nans
+    amask = numpy.invert(numpy.isnan(a))
+    bmask = numpy.invert(numpy.isnan(b))
+    mask = numpy.logical_or(amask, bmask)
+    return {'a':a[mask], 'b':b[mask]}

@@ -29,6 +29,7 @@ _PATH = 'C:\\Users\\Graham Monkman\\OneDrive\\Documents\\PHD\\My Papers\\WalesRS
 
 
 
+
 def load_arrays():
     '''() -> void
     Load data previously exported as numpy arrays
@@ -40,9 +41,9 @@ def load_arrays():
 
     #FMM
     global _NP_FMM_VALUE
-    _NP_FMM_VALUE = numpy.load(_PATH + '\\_NP_FMM_VALUE.np')
+    _NP_FMM_VALUE = numpy.load(_PATH + '\\NP_FMM_VALUE.np')
     global _NP_FMM_VENUE_FOCAL
-    _NP_FMM_VENUE_FOCAL = numpy.load(_PATH + '\\_NP_FMM_VENUE_FOCAL.np')
+    _NP_FMM_VENUE_FOCAL = numpy.load(_PATH + '\\NP_FMM_VENUE_FOCAL.np')
 
     #_NP_FMM_VENUE_FOCAL has an extra column which needs to be deleted so arrays
     #are of same dims
@@ -53,9 +54,9 @@ def load_arrays():
 
     #PAM
     global _NP_PAM_DAYSPAKM
-    _NP_PAM_DAYSPAKM = numpy.load(_PATH + '\\' + '_NP_PAM_DAYSPAKM.np')
+    _NP_PAM_DAYSPAKM = numpy.load(_PATH + '\\' + 'NP_PAM_DAYSPAKM.np')
     global _NP_PAM_VENUE_FOCAL 
-    _NP_PAM_VENUE_FOCAL = numpy.load(_PATH + '\\' + '_NP_PAM_VENUE_FOCAL.np')
+    _NP_PAM_VENUE_FOCAL = numpy.load(_PATH + '\\' + 'NP_PAM_VENUE_FOCAL.np')
     if _NP_PAM_DAYSPAKM.shape != _NP_PAM_VENUE_FOCAL.shape:
         raise ValueError('PAM arrays not of the same shape')
 
@@ -83,17 +84,19 @@ def unpermuted_corr():
     '''calculate kendall tau for unpermuted values'''
     outcsv = ['Test', 'Tau', 'p']
     results = dict()
-    filename = _PATH + '\\' + funclib.stringslib.datetime_stamp + '.csv'
 
     #we NaN pad all arrays to stop the problem of calculating edge effects
 
+
     #FMM /w zeros
     nd_fmm_value_focal = numpy.copy(_NP_FMM_VALUE)
-    funclib.arraylib.np_pad_nan(nd_fmm_value_focal)
+    nd_fmm_value_focal = funclib.arraylib.np_pad_nan(nd_fmm_value_focal)
     nd_fmm_value_focal = funclib.arraylib.np_focal_mean(nd_fmm_value_focal, False)
+    numpy.savetxt('C:\\Users\\Graham Monkman\\OneDrive\\Documents\\PHD\\My Papers\\WalesRSA-MSP\\data\\focalcorr\\nd_fmm_value_focal.csv', nd_fmm_value_focal, delimiter=',')
 
     nd_venuefmm = numpy.copy(_NP_FMM_VENUE_FOCAL)
-    funclib.arraylib.np_pad_nan(nd_venuefmm)
+    nd_venuefmm = funclib.arraylib.np_pad_nan(nd_venuefmm)
+    numpy.savetxt('C:\\Users\\Graham Monkman\\OneDrive\\Documents\\PHD\\My Papers\\WalesRSA-MSP\\data\\focalcorr\\nd_venuefmm.csv', nd_venuefmm, delimiter=',')
 
     if nd_fmm_value_focal.shape != nd_venuefmm.shape:
         raise ValueError('FMM arrays not of the same shape')
@@ -103,11 +106,11 @@ def unpermuted_corr():
 
     #PAM /w zeros
     nd_pam_dayspa_focal = numpy.copy(_NP_PAM_DAYSPAKM)
-    funclib.arraylib.np_pad_nan(nd_pam_dayspa_focal)
+    nd_pam_dayspa_focal = funclib.arraylib.np_pad_nan(nd_pam_dayspa_focal)
     nd_pam_dayspa_focal = funclib.arraylib.np_focal_mean(nd_pam_dayspa_focal, False)
 
     nd_venuepam = numpy.copy(_NP_FMM_VENUE_FOCAL)
-    funclib.arraylib.np_pad_nan(nd_venuepam)
+    nd_venuepam = funclib.arraylib.np_pad_nan(nd_venuepam)
 
     if nd_pam_dayspa_focal.shape != nd_venuepam.shape:
         raise ValueError('PAM arrays not of the same shape')
@@ -120,8 +123,7 @@ def unpermuted_corr():
 
 
 
-
-unpermuted_corr()
 load_arrays()
-fmm_all()
+unpermuted_corr()
+#fmm_all()
 sys.exit()
