@@ -1,4 +1,4 @@
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods,too-many-statements
 
 '''My library of statistics based functions'''
 

@@ -5,6 +5,7 @@ import sys
 
 #custom
 import numpy
+import xlwings
 
 #mine
 import funclib.iolib
@@ -70,9 +71,13 @@ def fmm_all():
     for cnt in range(_ITERATIONS-1):       
         pre = '/* iter:' + str(cnt) + ' */'
 
+        X = funclib.arraylib.np_unmatched_nans(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL)
+        xlwings.view(X)
         cor = funclib.arraylib.np_permute_2d(_NP_FMM_VALUE)
-
         #use scipy - p will be wrong, but the taus will be right
+        
+        X = funclib.arraylib.np_unmatched_nans(cor, _NP_FMM_VENUE_FOCAL)
+        xlwings.view(X)
         dic = funclib.statslib.correlation(cor, _NP_FMM_VENUE_FOCAL, engine=funclib.statslib.EnumStatsEngine.scipy)
         outcsv.append([dic['teststat'], dic['p']])
 

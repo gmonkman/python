@@ -23,6 +23,9 @@
   <ItemGroup>
     <Compile Include="arraylib.py" />
     <Compile Include="baselib.py" />
+    <Compile Include="excellib.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="iolib.py" />
     <Compile Include="matplotliblib.py" />
     <Compile Include="numericslib.py" />

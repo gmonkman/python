@@ -1,6 +1,6 @@
-'''test code'''
-import sys
+# pylint: disable=too-few-public-methods,too-many-statements,bad-whitespace
 
+'''test code'''
 import numpy
 
 import funclib.stringslib as stringslib
@@ -19,21 +19,24 @@ def test_stringslib():
 
 
 def test_arraylib():
-    a = numpy.arange(9).reshape(3,3).astype(float)
+    '''test shit
+    '''
+    #CREATE SOME ARRAYS
+    #a = numpy.arange(9).reshape(3,3).astype(float)
+    a = numpy.array([[1, 2, 3], [numpy.nan, numpy.nan, 99]])
+    b = numpy.array([[1, 2, 3], [numpy.nan, 99, numpy.nan]])
     assert isinstance(a, numpy.ndarray)
-
-    a = arraylib.np_pad_nan(a)
-    b = numpy.copy(a)
-
-    dic = arraylib.np_delete_paired_nans_flattened(a,b)
+    assert isinstance(b, numpy.ndarray)
+    dic  = arraylib.np_unmatched_nans_to_zero(a, b)
     print dic['a']
     print dic['b']
-
-    #a = arraylib.np_focal_mean(a, False)
-    #print a
+    
+    
 
 
 def test_statslib():
+    '''test stats
+    '''
     a = numpy.array([numpy.NaN,1,2,3])
     b = numpy.array([numpy.NaN,1,2,3])
     results = statslib.correlation(a, b, engine=statslib.EnumStatsEngine.r)

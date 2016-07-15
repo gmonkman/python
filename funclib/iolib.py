@@ -175,6 +175,6 @@ def folder_open(folder='.'):
     '''(string) -> void
     opens a windows folder at path folder'''
     if os.name == 'nt':
-        folder = folder.replace('/','\\')
+        folder = folder.replace('/', '\\')
     with fuckit:
         subprocess.check_call(['explorer', folder])

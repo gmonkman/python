@@ -3,7 +3,7 @@ import numpy
 import numpy.ma
 import numpy.random
 import scipy.ndimage as ndimage
-
+import xlwings
 
 #list stuff
 def list_delete_value_pairs(list_a, list_b, match_value=0):
@@ -144,10 +144,10 @@ def np_pad_nan(nd):
 
 
 def np_delete_paired_nans_flattened(a, b):
-    '''(ndarray, ndarray) -> dictionary
-    'dic is 'a':aOut, 'b':bOut
+    '''(ndarray, ndarray) -> ndarray
+    Array types are float
     This must first flatten both arrays and both outputs
-    are flattened (but retain matches at a given index
+    are FLATTENED (but retain matches at a given index)
     '''
     assert isinstance(a, numpy.ndarray)
     assert isinstance(b, numpy.ndarray)
@@ -157,11 +157,77 @@ def np_delete_paired_nans_flattened(a, b):
     #set mask values to false where there are nans
     #then use mask for both a and b to filter out all matching
     #nans
+    a = a.astype(float)
+    b = b.astype(float)
+
     amask = numpy.invert(numpy.isnan(a))
     bmask = numpy.invert(numpy.isnan(b))
     mask = numpy.logical_or(amask, bmask)
-    return {'a':a[mask], 'b':b[mask]}
+
+    return mask
+
+
+
+
+def np_unmatched_nans_to_zero(a, b):
+    '''(ndarray, ndarray) -> dict
+    Where there are unmatched nans by position in ndarrays
+    a and b, zero will be substituted.
+    a and b will be converted to dtype=float
+    returns {'a':a,'b':b}
+    '''
+    assert isinstance(a, numpy.ndarray)
+    assert isinstance(b, numpy.ndarray)
+    if a.shape != b.shape:
+        raise ValueError('Arrays must be same shape')
     
+    a = a.astype(float)
+    b = b.astype(float)
+    mask = np_unmatched_nans(a, b)
+
+    #this gets the indexes of cells with unmatched nans
+    inds = numpy.nonzero(mask)   
+    #inds looks like [(11,1),(5,4) ...] 
+    inds = zip(inds[0], inds[1])
+    for ind in inds:
+        if numpy.isnan(a[ind[0]][ind[1]]):
+            a[ind[0]][ind[1]] = 0
+        else:
+            b[ind[0]][ind[1]] = 0
+
+    return {'a':a, 'b':b}
+
+
+
+
+def np_unmatched_nans(a, b):
+    '''(ndarray, ndarray) -> ndarray
+    Creates a new array where nans do not match position in each array
+     
+    nan<->nan = False
+    nan<->1.2 = True
+    1.2<->1.2 = False
+
+    Arrays must be of the dimensions
+
+    Returned ndarray has True where nans are unmatched
+    '''
+    assert isinstance(a, numpy.ndarray)
+    assert isinstance(b, numpy.ndarray)
+    if a.shape != b.shape:
+        raise ValueError('Arrays must be same shape')
+
+    a = a.astype(float)
+    b = b.astype(float)
+
+    amask = numpy.isnan(a)
+    bmask = numpy.isnan(b)
+    mask = numpy.logical_xor(amask, bmask)
+    return mask
+
+
+
+
 def np_delete_paired_zeros_flattened(a, b):
     '''(ndarray, ndarray) -> dictionary
     'dic is 'a':aOut, 'b':bOut
@@ -181,6 +247,12 @@ def np_delete_paired_zeros_flattened(a, b):
     mask = numpy.logical_or(amask, bmask)
     return {'a':a[mask], 'b':b[mask]}
 
+
+
+
 def np_contains_nan(nd):
+    '''(ndarray) -> bool
+    Global check if array contains numpy.nan anywhere
+    '''
     return numpy.isnan(numpy.sum(nd))
 
