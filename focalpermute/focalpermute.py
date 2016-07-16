@@ -95,7 +95,7 @@ def fmm_all():
     funclib.iolib.writecsv(filename, outcsv, inner_as_rows=False)
     
 def fmm_no_zero():
-    '''do the fmm work including zeros'''
+    '''do the fmm work excluding zeros'''
     outcsv = ([['Tau', 'p WRONG!!!']])
     a = numpy.copy(_NP_FMM_VALUE)
     b = numpy.copy(_NP_FMM_VENUE_FOCAL)
