@@ -22,7 +22,7 @@ _NP_PAM_VENUE_FOCAL = numpy.array([])
 assert isinstance(_NP_PAM_VENUE_FOCAL, numpy.ndarray)
 
 _ITERATIONS = 20
-_PATH = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr'
+_PATH = './data'
 
 
 
@@ -73,7 +73,7 @@ def test_all(permute, focal, file_prefix=''):
     outcsv = ([['Tau', 'p WRONG!!!']])
     
     for cnt in range(_ITERATIONS):       
-        pre = '/* iter:' + str(cnt) + ' */'
+        pre = '/* iter:' + str(cnt+1) + ' */'
 
         cor = funclib.arraylib.np_permute_2d(permute)
         cor = funclib.arraylib.np_focal_mean(cor, False)
@@ -97,7 +97,7 @@ def test_no_zero(permute, focal, file_prefix=''):
     lst = funclib.arraylib.np_paired_zeros_to_nan(a, b)
 
     for cnt in range(_ITERATIONS):       
-        pre = '/* iter:' + str(cnt) + ' */'
+        pre = '/* iter:' + str(cnt+1) + ' */'
 
         cor = funclib.arraylib.np_permute_2d(lst['a'])
         cor = funclib.arraylib.np_focal_mean(cor, False)
@@ -142,8 +142,8 @@ def unpermuted_corr():
     #FMM /wo zeros
     dic = funclib.arraylib.np_delete_paired_nans_flattened(nd_fmm_value_focal, nd_venuefmm)
     dic = funclib.arraylib.np_delete_paired_zeros_flattened(dic['a'], dic['b'])
-    numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_fmm_value_focal.csv', dic['a'], delimiter=',')
-    numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_venuefmm.csv', dic['b'], delimiter=',')
+    #numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_fmm_value_focal.csv', dic['a'], delimiter=',')
+    #numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_venuefmm.csv', dic['b'], delimiter=',')
 
     if dic['a'].shape != dic['b'].shape:
         raise ValueError('FMM arrays witout zeros not of the same shape')
