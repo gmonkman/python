@@ -1,11 +1,7 @@
 '''Main entry module to perform the permutation analysis'''
 
-#base
-import sys
-
 #custom
 import numpy
-import xlwings
 
 #mine
 import funclib.iolib
@@ -72,37 +68,35 @@ def load_arrays():
     _NP_PAM_VENUE_FOCAL = dic['b']
 
 
-
-
-def fmm_all():
+def test_all(permute, focal, file_prefix=''):
     '''do the fmm work including zeros'''
     outcsv = ([['Tau', 'p WRONG!!!']])
     
-    for cnt in range(_ITERATIONS-1):       
+    for cnt in range(_ITERATIONS):       
         pre = '/* iter:' + str(cnt) + ' */'
 
-        cor = funclib.arraylib.np_permute_2d(_NP_FMM_VALUE)
+        cor = funclib.arraylib.np_permute_2d(permute)
         cor = funclib.arraylib.np_focal_mean(cor, False)
 
         #use scipy - p will be wrong, but the taus will be right
-        res = funclib.statslib.correlation(cor, _NP_FMM_VENUE_FOCAL, engine=funclib.statslib.EnumStatsEngine.scipy)
+        res = funclib.statslib.correlation(cor, focal, engine=funclib.statslib.EnumStatsEngine.scipy)
         
         outcsv.append([res['teststat'], res['p']])
 
         funclib.iolib.print_progress(cnt+1, _ITERATIONS, prefix=pre, bar_length=30)
 
-    filename = _PATH + '/fmm_0_' + funclib.stringslib.datetime_stamp() + '.csv'
+    filename = _PATH + '/' + file_prefix + funclib.stringslib.datetime_stamp() + '.csv'
     funclib.iolib.writecsv(filename, outcsv, inner_as_rows=False)
     
-def fmm_no_zero():
+def test_no_zero(permute, focal, file_prefix=''):
     '''do the fmm work excluding zeros'''
     outcsv = ([['Tau', 'p WRONG!!!']])
-    a = numpy.copy(_NP_FMM_VALUE)
-    b = numpy.copy(_NP_FMM_VENUE_FOCAL)
+    a = numpy.copy(permute)
+    b = numpy.copy(focal)
 
     lst = funclib.arraylib.np_paired_zeros_to_nan(a, b)
 
-    for cnt in range(_ITERATIONS-1):       
+    for cnt in range(_ITERATIONS):       
         pre = '/* iter:' + str(cnt) + ' */'
 
         cor = funclib.arraylib.np_permute_2d(lst['a'])
@@ -115,7 +109,7 @@ def fmm_no_zero():
 
         funclib.iolib.print_progress(cnt+1, _ITERATIONS, prefix=pre, bar_length=30)
 
-    filename = _PATH + '/fmm_No0_' + funclib.stringslib.datetime_stamp() + '.csv'
+    filename = _PATH + '/' + file_prefix + funclib.stringslib.datetime_stamp() + '.csv'
     funclib.iolib.writecsv(filename, outcsv, inner_as_rows=False)
 
 
@@ -190,9 +184,11 @@ def unpermuted_corr():
 
 
 load_arrays()
-#unpermuted_corr()
-#fmm_all()
-fmm_no_zero()
+test_all(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL, 'fmm_0_')
+test_no_zero(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL, 'fmm_no0_')
+
+test_all(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE_FOCAL, 'pam_0_')
+test_no_zero(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE_FOCAL, 'pam_No0_')
 
 funclib.iolib.folder_open(_PATH)
-sys.exit()
+print 'Done'
