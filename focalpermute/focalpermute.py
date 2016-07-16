@@ -25,7 +25,7 @@ assert isinstance(_NP_PAM_DAYSPAKM, numpy.ndarray)
 _NP_PAM_VENUE_FOCAL = numpy.array([])
 assert isinstance(_NP_PAM_VENUE_FOCAL, numpy.ndarray)
 
-_ITERATIONS = 100000
+_ITERATIONS = 20
 _PATH = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr'
 
 
@@ -61,32 +61,62 @@ def load_arrays():
     if _NP_PAM_DAYSPAKM.shape != _NP_PAM_VENUE_FOCAL.shape:
         raise ValueError('PAM arrays not of the same shape')
 
+    #there were a small number of cells which existed in one but not the other
+    #decided to resolve globally than on a 'per use' basis
+    dic = funclib.arraylib.np_unmatched_nans_to_zero(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL)
+    _NP_FMM_VALUE = dic['a']
+    _NP_FMM_VENUE_FOCAL = dic['b']
+
+    dic = funclib.arraylib.np_unmatched_nans_to_zero(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE_FOCAL)
+    _NP_PAM_DAYSPAKM = dic['a']
+    _NP_PAM_VENUE_FOCAL = dic['b']
+
 
 
 
 def fmm_all():
     '''do the fmm work including zeros'''
     outcsv = ([['Tau', 'p WRONG!!!']])
+    
+    for cnt in range(_ITERATIONS-1):       
+        pre = '/* iter:' + str(cnt) + ' */'
+
+        cor = funclib.arraylib.np_permute_2d(_NP_FMM_VALUE)
+        cor = funclib.arraylib.np_focal_mean(cor, False)
+
+        #use scipy - p will be wrong, but the taus will be right
+        res = funclib.statslib.correlation(cor, _NP_FMM_VENUE_FOCAL, engine=funclib.statslib.EnumStatsEngine.scipy)
+        
+        outcsv.append([res['teststat'], res['p']])
+
+        funclib.iolib.print_progress(cnt+1, _ITERATIONS, prefix=pre, bar_length=30)
+
+    filename = _PATH + '/fmm_0_' + funclib.stringslib.datetime_stamp() + '.csv'
+    funclib.iolib.writecsv(filename, outcsv, inner_as_rows=False)
+    
+def fmm_no_zero():
+    '''do the fmm work including zeros'''
+    outcsv = ([['Tau', 'p WRONG!!!']])
+    a = numpy.copy(_NP_FMM_VALUE)
+    b = numpy.copy(_NP_FMM_VENUE_FOCAL)
+
+    lst = funclib.arraylib.np_paired_zeros_to_nan(a, b)
 
     for cnt in range(_ITERATIONS-1):       
         pre = '/* iter:' + str(cnt) + ' */'
 
-        X = funclib.arraylib.np_unmatched_nans(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL)
-        xlwings.view(X)
-        cor = funclib.arraylib.np_permute_2d(_NP_FMM_VALUE)
+        cor = funclib.arraylib.np_permute_2d(lst['a'])
+        cor = funclib.arraylib.np_focal_mean(cor, False)
+
         #use scipy - p will be wrong, but the taus will be right
+        res = funclib.statslib.correlation(cor, lst['b'], engine=funclib.statslib.EnumStatsEngine.scipy)
         
-        X = funclib.arraylib.np_unmatched_nans(cor, _NP_FMM_VENUE_FOCAL)
-        xlwings.view(X)
-        dic = funclib.statslib.correlation(cor, _NP_FMM_VENUE_FOCAL, engine=funclib.statslib.EnumStatsEngine.scipy)
-        outcsv.append([dic['teststat'], dic['p']])
+        outcsv.append([res['teststat'], res['p']])
 
-        funclib.iolib.print_progress(cnt, _ITERATIONS, prefix=pre, bar_length=30)
+        funclib.iolib.print_progress(cnt+1, _ITERATIONS, prefix=pre, bar_length=30)
 
-    filename = _PATH + '/fmm_0_' + funclib.stringslib.datetime_stamp + '.csv'
+    filename = _PATH + '/fmm_No0_' + funclib.stringslib.datetime_stamp() + '.csv'
     funclib.iolib.writecsv(filename, outcsv, inner_as_rows=False)
-    
-
 
 
 def unpermuted_corr():
@@ -161,7 +191,8 @@ def unpermuted_corr():
 
 load_arrays()
 #unpermuted_corr()
-fmm_all()
+#fmm_all()
+fmm_no_zero()
 
 funclib.iolib.folder_open(_PATH)
 sys.exit()

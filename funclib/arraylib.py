@@ -75,10 +75,11 @@ def np_focal_mean(np, pad=True):
     If pad is true, adds a NaN border all around the input array
     Calculates focal mean on elements of numpy array which are not NaN
     Radius is currently all adjacent cells
+
+    May get unexpected results if ndarray is not of type float
     '''
     assert isinstance(np, numpy.ndarray)
-    if np.dtype != 'float':
-        raise ValueError('ndarray is not of dtype float')
+    np = np.astype(float)
     
     if pad:
         #surround with nans so we can ignore edge effects
@@ -116,11 +117,13 @@ def np_paired_zeros_to_nan(a, b):
     nptwobool = numpy.array(b, dtype=bool)
 
     #mask now has False where both 'in' arrays have matching zeros
-    mask = numpy.logical_or(nponebool, nptwobool)
+    #we the invert so matched zero positions are set to True
+    #checked and nan is converted to True during above casting
+    mask = numpy.invert(numpy.logical_or(nponebool, nptwobool))
     
     #npInds now contains indexes of all 'cells' which had zeros 
-    npInds = (mask is False).nonzero()
-    assert isinstance(npInds, numpy.ndarray)
+    npInds = numpy.nonzero(mask)
+    assert isinstance(npInds, tuple)
     
     npInds = numpy.transpose(npInds)
     
@@ -163,8 +166,10 @@ def np_delete_paired_nans_flattened(a, b):
     amask = numpy.invert(numpy.isnan(a))
     bmask = numpy.invert(numpy.isnan(b))
     mask = numpy.logical_or(amask, bmask)
+    a = a[mask]
+    b = b[mask]
 
-    return mask
+    return {'a':a, 'b':b}
 
 
 

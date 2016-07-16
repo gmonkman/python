@@ -23,11 +23,12 @@ def test_arraylib():
     '''
     #CREATE SOME ARRAYS
     #a = numpy.arange(9).reshape(3,3).astype(float)
-    a = numpy.array([[1, 2, 3], [numpy.nan, numpy.nan, 99]])
-    b = numpy.array([[1, 2, 3], [numpy.nan, 99, numpy.nan]])
+    a = numpy.array([[numpy.nan, 0, 3], [0, numpy.nan, 99]])
+    b = numpy.array([[numpy.nan, 0, 3], [0, 99, numpy.nan]])
     assert isinstance(a, numpy.ndarray)
     assert isinstance(b, numpy.ndarray)
-    dic  = arraylib.np_unmatched_nans_to_zero(a, b)
+    #dic  = arraylib.np_unmatched_nans_to_zero(a, b)
+    dic  = arraylib.np_paired_zeros_to_nan(a, b)
     print dic['a']
     print dic['b']
     
