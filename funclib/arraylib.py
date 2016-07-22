@@ -261,3 +261,16 @@ def np_contains_nan(nd):
     '''
     return numpy.isnan(numpy.sum(nd))
 
+
+
+def np_pickled_in_excel(pickle_name, silent_save=False):
+    '''(str, bool) -> void
+    opens the pickled nd array as a new excel spreadsheet
+
+    If silent_save is true, then the file is saved as an excel file
+    to the same directory (and name) as the pickled nd array
+
+    Currently assumes a 1D or 2D array. Unknown behaviour with >2 axis.
+    '''
+    arr = numpy.load(pickle_name)
+    xlwings.view(arr)

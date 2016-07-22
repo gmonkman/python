@@ -18,6 +18,7 @@ import rpy2.robjects as ro
 # mine
 from enum import Enum
 import funclib.baselib
+import funclib.iolib as iolib
 
 class EnumMethod(Enum):
     '''enum used to select the type of correlation analysis'''
@@ -29,6 +30,9 @@ class EnumStatsEngine(Enum):
     '''enum used to select the engine used to calculate stats'''
     r = 1
     scipy = 2
+
+
+
 
 def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMethod.kendall, out_greater_than_test_stat=0):
     '''(list, list, float, int, enumeration, list[byref], list[byref], enumeration) -> list
@@ -79,6 +83,9 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMet
         funclib.iolib.print_progress(cnt, iterations, prefix=pre, bar_length=30)
 
     return results
+
+
+
 
 def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, test_type=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
     ''' (string|pandas.dataframe,string,string,EnumMethod,EnumStatsEngine) -> dictionary
@@ -135,6 +142,9 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
             raise ValueError('Enumeration member not in e_method')
 
     return  {'teststat':teststat, 'p':pval}
+
+
+
 
 def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
     '''(list|ndarray, list|ndarray, enumeration, enumeration) -> dict
@@ -223,3 +233,29 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
             raise ValueError('Enumeration member not in e_method')
 
     return  {'teststat':teststat, 'p':pval}
+
+
+
+
+def permuted_teststat_check(csvfile, test_col, stat_value_to_check):
+    '''(str, int, int, float) -> dic ({'p', 'n', 'more_extreme_n'})
+    csvfile: full data file file name
+    start_row: row with first line of data (0 based!), pass None if there is are no headers
+    test_col: column with test stats, note this is a 0 based index, first column would be indexed as 0.
+    stat_value_to_check: the unpermuted test stat result
+
+    Returns a dictionary object:
+    'p':   probability of getting this result by chance alone
+    'n':   number of values checked
+    'more_extreme_n': number of values more extreme than stat_value_to_check
+    '''
+    col = [test_col]
+    df = pandas.read_csv(csvfile, usecols=col)
+    assert isinstance(df, pandas.DataFrame)
+    
+    if stat_value_to_check >= 0:
+        res = (df.iloc[0:] > stat_value_to_check).sum()
+    else:
+        res = (df.iloc[0:] < stat_value_to_check).sum()
+
+    return {'p':res[0]/(df.iloc[0:]).count()[0], 'n':(df.iloc[0:]).count()[0], 'more_extreme_n':res[0]}

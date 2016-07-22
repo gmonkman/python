@@ -24,7 +24,7 @@ assert isinstance(_NP_PAM_VENUE_FOCAL, numpy.ndarray)
 _ITERATIONS = 20
 _PATH = './data'
 
-
+_RESULT_PATH = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr'
 
 
 def load_arrays():
@@ -182,13 +182,49 @@ def unpermuted_corr():
 
 
 
+def calculate_p():
+    '''calculate permuted p values
+    '''
+        
+    #header row
+    res = [['test', 'n', 'more_extreme_n', 'p']]
+
+    #FMM Focal with zeros
+    tau = 0.38099216491130256
+    test = 'FMM Focal with zeros'
+    dic = funclib.statslib.permuted_teststat_check(_RESULT_PATH + '/fmm_0_20160716180726.csv', 0, tau)
+    res.append([test, dic['n'], dic['more_extreme_n'], dic['p']])
+
+    #FMM Focal without zeros
+    tau = 0.3288618472771732
+    test = 'FMM Focal without zeros'
+    dic = funclib.statslib.permuted_teststat_check(_RESULT_PATH + '/fmm_no0_20160716200708.csv', 0, tau)
+    res.append([test, dic['n'], dic['more_extreme_n'], dic['p']])
+
+    #PAM Focal with Zeros
+    tau = 0.4231406182294665
+    test = 'PAM Focal with zeros'
+    dic = funclib.statslib.permuted_teststat_check(_RESULT_PATH + '/pam_0_20160716230733.csv', 0, tau)
+    res.append([test, dic['n'], dic['more_extreme_n'], dic['p']])
+
+    #PAM Focal Without Zeros
+    tau = 0.33891790966357166
+    test = 'PAM Focal without zeros'
+    dic = funclib.statslib.permuted_teststat_check(_RESULT_PATH + '/pam_No0_20160717020723.csv', 0, tau)
+    res.append([test, dic['n'], dic['more_extreme_n'], dic['p']])
+
+    funclib.iolib.writecsv(_RESULT_PATH + '/permStats_' + funclib.stringslib.datetime_stamp() + '.csv', res, inner_as_rows=False)
+
 
 load_arrays()
-test_all(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL, 'fmm_0_')
-test_no_zero(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL, 'fmm_no0_')
+unpermuted_corr()
+#calculate_p()
 
-test_all(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE_FOCAL, 'pam_0_')
-test_no_zero(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE_FOCAL, 'pam_No0_')
+
+#test_all(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL, 'fmm_0_')
+#test_no_zero(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL, 'fmm_no0_')
+#test_all(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE_FOCAL, 'pam_0_')
+#test_no_zero(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE_FOCAL, 'pam_No0_')
 
 funclib.iolib.folder_open(_PATH)
 print 'Done'

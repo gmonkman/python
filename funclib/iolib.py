@@ -23,9 +23,12 @@ def write_to_eof(filename, thetext):
     finally:
         fid.close
 
-def readcsv(filename, cols=1, ignoreheader=False, startrow=0, numericdata=True):
+def readcsv(filename, cols=1, startrow=0, numericdata=True):
     '''(string, int, bool, int, bool) -> list
     Reads a csv file into a list and returns the list
+    Set cols to the number of cols in the csv.
+
+    If you want to skip the first row (eg if you have a header row, set startrow to 1.
     '''
     data = [0] * (cols)
     for i in range(cols):
@@ -35,8 +38,6 @@ def readcsv(filename, cols=1, ignoreheader=False, startrow=0, numericdata=True):
             csvdata = csv.reader(csvfile)   #tell python that the file is a csv
             for i in range(0, startrow): #skip to the startrow
                 csvdata.next()
-            if ignoreheader and startrow != 0:
-                csvdata.next() #if ignoring header, advance one row
             for row in csvdata:     #iterate over the rows in the csv
                 #Assign the cols of each row to a variable
                 for items in range(cols):   #read in the text values as floats in the array
@@ -49,8 +50,6 @@ def readcsv(filename, cols=1, ignoreheader=False, startrow=0, numericdata=True):
             csvdata = csv.reader(csvfile)   #tell python that the file is a csv
             for i in range(0, startrow): #skip to the startrow
                 csvdata.next()
-            if ignoreheader and startrow != 0:
-                csvdata.next() #if ignoring header, advance one row
             for row in csvdata:     #iterate over the rows in the csv
                 #Assign the cols of each row to a variable
                 for items in range(cols):   #read in the text values as floats in the array

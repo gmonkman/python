@@ -38,16 +38,12 @@ def test_arraylib():
 def test_statslib():
     '''test stats
     '''
-    a = numpy.array([numpy.NaN,1,2,3])
-    b = numpy.array([numpy.NaN,1,2,3])
-    results = statslib.correlation(a, b, engine=statslib.EnumStatsEngine.r)
-    print results
-    results = statslib.correlation(a, b, engine=statslib.EnumStatsEngine.scipy)
-    print results
+    res = statslib.permuted_teststat_check(r"C:\Users\Graham Monkman\OneDrive\Documents\PHD\My Papers\WalesRSA-MSP\data\focalcorr\fmm_0_20160716180726.csv", 0, 0)
 
 
 
 
-test_arraylib()
-#test_statslib()
+
+#test_arraylib()
+test_statslib()
 #sys.exit()
