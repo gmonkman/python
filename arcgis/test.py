@@ -32,11 +32,11 @@ def dump_msp_paper_arrays():
     print 'Dumped PAM_dayspakm'
 
     #118x77
-    pam_venue_focal = arcpy.Raster(_GDBPATH + '\\VenueCnt3x3PAMExtentClip')
+    pam_venue_focal = arcpy.Raster(_GDBPATH + '\\VenueCnt3x3PAMSansPAMClip1')
     np_pam_venue_focal = arcpy.RasterToNumPyArray(pam_venue_focal, nodata_to_value=numpy.nan)
     assert isinstance(np_pam_venue_focal, numpy.ndarray)
     np_pam_venue_focal.dump(_OUTPUT_PATH + '\\' + 'np_pam_venue_focal.np')
-    print 'Dumped VenueCnt3x3PAMExtentClip'
+    print 'Dumped VenueCnt3x3PAMSansPAMClip'
     print 'Finished'
 
 def dump_pam_fix():
@@ -49,6 +49,6 @@ def dump_pam_fix():
     pamarr.dump(_OUTPUT_PATH + '\\' + 'PAMFix.np')
     print 'Dumped'
 
-#dump_msp_paper_arrays()
+dump_msp_paper_arrays()
 print 'Dumping ................'
-dump_pam_fix()
+#dump_pam_fix()

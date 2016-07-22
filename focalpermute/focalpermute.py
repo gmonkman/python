@@ -52,7 +52,7 @@ def load_arrays():
     #PAM
     global _NP_PAM_DAYSPAKM
     _NP_PAM_DAYSPAKM = numpy.load(_PATH + '/' + 'NP_PAM_DAYSPAKM.np').astype(float)
-    global _NP_PAM_VENUE_FOCAL 
+    global _NP_PAM_VENUE_FOCAL
     _NP_PAM_VENUE_FOCAL = numpy.load(_PATH + '/' + 'NP_PAM_VENUE_FOCAL.np').astype(float)
     if _NP_PAM_DAYSPAKM.shape != _NP_PAM_VENUE_FOCAL.shape:
         raise ValueError('PAM arrays not of the same shape')
