@@ -238,7 +238,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
 
 
 def permuted_teststat_check(csvfile, test_col, stat_value_to_check):
-    '''(str, int, int, float) -> dic ({'p', 'n', 'more_extreme_n'})
+    '''(str, int, int, float) -> dic ({'p', 'n', 'more_extreme_n', 'teststat'})
     csvfile: full data file file name
     start_row: row with first line of data (0 based!), pass None if there is are no headers
     test_col: column with test stats, note this is a 0 based index, first column would be indexed as 0.
@@ -257,5 +257,56 @@ def permuted_teststat_check(csvfile, test_col, stat_value_to_check):
         res = (df.iloc[0:] > stat_value_to_check).sum()
     else:
         res = (df.iloc[0:] < stat_value_to_check).sum()
+    
+    return {'p':float(res[0])/(df.iloc[0:]).count()[0], 'n':(df.iloc[0:]).count()[0], 'more_extreme_n':res[0]}
 
-    return {'p':res[0]/(df.iloc[0:]).count()[0], 'n':(df.iloc[0:]).count()[0], 'more_extreme_n':res[0]}
+
+
+
+def permuted_teststat_check1(teststats, stat_value_to_check):
+    '''(tuple|list) -> dic ({'p', 'n', 'more_extreme_n', 'teststat'})
+    teststats is an iterable 
+    stat_value_to_check: the unpermuted test stat result
+
+    Returns a dictionary object:
+    'p':   probability of getting this result by chance alone
+    'n':   number of values checked
+    'more_extreme_n': number of values more extreme than stat_value_to_check
+    '''
+JUST CODING THIS
+    if stat_value_to_check >= 0:
+        res = (df.iloc[0:] > stat_value_to_check).sum()
+    else:
+        res = (df.iloc[0:] < stat_value_to_check).sum()
+    
+    return {'p':float(res[0])/(df.iloc[0:]).count()[0], 'n':(df.iloc[0:]).count()[0], 'more_extreme_n':res[0]}
+
+
+
+
+def focal_permutation(x, y, teststat, iters=1000):
+    '''(ndarray, ndarray) -> dic
+    Perform 3x3 mean and then a permutation correlation test on two 2D arrays
+    Calculates p
+    dic  {'p':,'extreme':}
+    '''
+    
+    taus = []
+    for cnt in range(iters):       
+        pre = '/* iter:' + str(cnt+1) + ' */'
+
+        #just permute one of them
+        x = funclib.arraylib.np_permute_2d(permute)
+        x = funclib.arraylib.np_focal_mean(x, False)
+
+        y = funclib.arraylib.np_focal_mean(y, False)
+
+        #use scipy - p will be wrong, but the taus will be right
+        res = funclib.statslib.correlation(x, focal, engine=funclib.statslib.EnumStatsEngine.scipy)
+        taus.append(res['teststat'])
+
+
+
+        funclib.iolib.print_progress(cnt+1, _ITERATIONS, prefix=pre, bar_length=30)
+
+  

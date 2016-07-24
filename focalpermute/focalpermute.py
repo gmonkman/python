@@ -21,7 +21,7 @@ assert isinstance(_NP_PAM_DAYSPAKM, numpy.ndarray)
 _NP_PAM_VENUE_FOCAL = numpy.array([])
 assert isinstance(_NP_PAM_VENUE_FOCAL, numpy.ndarray)
 
-_ITERATIONS = 20
+_ITERATIONS = 100000
 _PATH = './data'
 
 _RESULT_PATH = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr'
@@ -69,7 +69,9 @@ def load_arrays():
 
 
 def test_all(permute, focal, file_prefix=''):
-    '''do the fmm work including zeros'''
+    '''test with zeros
+    writes results to csv file
+    '''
     outcsv = ([['Tau', 'p WRONG!!!']])
     
     for cnt in range(_ITERATIONS):       
@@ -87,9 +89,10 @@ def test_all(permute, focal, file_prefix=''):
 
     filename = _PATH + '/' + file_prefix + funclib.stringslib.datetime_stamp() + '.csv'
     funclib.iolib.writecsv(filename, outcsv, inner_as_rows=False)
+
     
 def test_no_zero(permute, focal, file_prefix=''):
-    '''do the fmm work excluding zeros'''
+    '''test without zeros'''
     outcsv = ([['Tau', 'p WRONG!!!']])
     a = numpy.copy(permute)
     b = numpy.copy(focal)
@@ -187,44 +190,69 @@ def calculate_p():
     '''
         
     #header row
-    res = [['test', 'n', 'more_extreme_n', 'p']]
+    res = [['test', 'n', 'more_extreme_n', 'p', 'teststat']]
 
     #FMM Focal with zeros
     tau = 0.38099216491130256
     test = 'FMM Focal with zeros'
     dic = funclib.statslib.permuted_teststat_check(_RESULT_PATH + '/fmm_0_20160716180726.csv', 0, tau)
-    res.append([test, dic['n'], dic['more_extreme_n'], dic['p']])
+    res.append([test, dic['n'], dic['more_extreme_n'], dic['p'], tau])
 
     #FMM Focal without zeros
     tau = 0.3288618472771732
     test = 'FMM Focal without zeros'
     dic = funclib.statslib.permuted_teststat_check(_RESULT_PATH + '/fmm_no0_20160716200708.csv', 0, tau)
-    res.append([test, dic['n'], dic['more_extreme_n'], dic['p']])
+    res.append([test, dic['n'], dic['more_extreme_n'], dic['p'], tau])
 
     #PAM Focal with Zeros
-    tau = 0.4231406182294665
+    tau = 0.2504477456968775
     test = 'PAM Focal with zeros'
-    dic = funclib.statslib.permuted_teststat_check(_RESULT_PATH + '/pam_0_20160716230733.csv', 0, tau)
-    res.append([test, dic['n'], dic['more_extreme_n'], dic['p']])
+    dic = funclib.statslib.permuted_teststat_check(_RESULT_PATH + '/pam_No0_20160723200744.csv', 0, tau)
+    res.append([test, dic['n'], dic['more_extreme_n'], dic['p'], tau])
 
     #PAM Focal Without Zeros
-    tau = 0.33891790966357166
+    tau = 0.14656599127578984
     test = 'PAM Focal without zeros'
-    dic = funclib.statslib.permuted_teststat_check(_RESULT_PATH + '/pam_No0_20160717020723.csv', 0, tau)
-    res.append([test, dic['n'], dic['more_extreme_n'], dic['p']])
+    dic = funclib.statslib.permuted_teststat_check(_RESULT_PATH + '/pam_No0_20160723200744.csv', 0, tau)
+    res.append([test, dic['n'], dic['more_extreme_n'], dic['p'], tau])
 
     funclib.iolib.writecsv(_RESULT_PATH + '/permStats_' + funclib.stringslib.datetime_stamp() + '.csv', res, inner_as_rows=False)
 
 
+
+
+def permute_test_with_random():
+    '''test how tau is affected by focal with normal random data
+    '''
+    #first copy our original matrices and fill them with data where not NaN
+    out = open('./random' + funclib.stringslib.datetime_stamp(), 'w+')
+    out.write('Test,tau,p')
+    y = numpy.random.normal(size=[100,100])
+    x = numpy.random.normal(size=[100,100])
+    dic = funclib.statslib.correlation(x, y, funclib.statslib.EnumMethod.kendall, funclib.statslib.EnumStatsEngine.r)
+    tau = dic(['teststat'])
+    p = dic(['p'])
+    out.write('unpermuted,%d,%d\n' % (tau, p))
+
+
+    
+
 load_arrays()
-unpermuted_corr()
+#unpermuted_corr()
+
+#Change the file names of the permuted results and run this to calculate p values
 #calculate_p()
 
 
+
+#CALL FOR FMM STUFF
 #test_all(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL, 'fmm_0_')
 #test_no_zero(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL, 'fmm_no0_')
+
+#CALL FOR PAM STUFF
 #test_all(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE_FOCAL, 'pam_0_')
 #test_no_zero(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE_FOCAL, 'pam_No0_')
 
-funclib.iolib.folder_open(_PATH)
+#funclib.iolib.folder_open(_PATH)
+
 print 'Done'
