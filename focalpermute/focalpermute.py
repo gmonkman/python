@@ -222,7 +222,7 @@ def calculate_p():
 
 
 
-def permute_test_with_random(iter=100):
+def permute_test_with_random(iter=10):
     '''test how tau is affected by focal with normal random data
     '''
     #first copy our original matrices and fill them with data where not NaN
@@ -230,11 +230,6 @@ def permute_test_with_random(iter=100):
     #out = open(stringslib.add_right(_RESULT_PATH, '/') + fname, 'w+')
     #out.write('unpermuted,%f,%f\n' % (tau))
     #print 'unpermuted,%f,%f\n' % (tau, p)
-    mt = lambda tau, tau_focal : int(tau_focal > tau)
-    lt = lambda tau, tau_focal : int(tau_focal < tau)
-
-    more_than = 0
-    less_than = 0
     lst = []
     cnt = 0
     for i in range(iter):
@@ -248,13 +243,13 @@ def permute_test_with_random(iter=100):
         x = arraylib.np_focal_mean(x, False).flatten()
         tau_focal = scipy.stats.pearsonr(x.flatten(), y.flatten())[0]
         lst.append([tau,tau_focal])
-        iolib.print_progress(cnt, iter, 'iter:%d' % (cnt), bar_length=30)
+        iolib.print_progress(cnt+1, iter, 'iter:%d' % (cnt), bar_length=30)
         cnt += 1
 
     np = numpy.array(lst)
     p = (np[:,0]>np[:,1]).sum()/float(len(np))
     print '\n'
-    print 'test tau = %f, p[tau_focal > tau] = %f' % (tau, p)
+    print 'p[tau_focal > tau] = %f' % (p)
 
 #load_arrays()
 #unpermuted_corr()
