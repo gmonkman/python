@@ -26,10 +26,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="data\all.csv" />
     <Content Include="data\fmm.csv" />
+    <Content Include="data\fmmnonzero.csv" />
     <Content Include="data\pam.csv" />
-    <Content Include="data\score.csv" />
+    <Content Include="data\pamnonzero.csv" />
     <Content Include="pylintrc" />
   </ItemGroup>
   <ItemGroup>

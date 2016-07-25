@@ -29,3 +29,13 @@ def read_number(test, default=0):
         return test
     else:   #not a string or not a number
         return default
+
+def add_right(s, char = '/'):
+    '''(str, str) -> str
+    Appends suffix to string if it doesnt exist
+    '''
+    s = str(s)
+    if not s.endswith(char):
+        return s + char
+    else:
+        return s

@@ -273,13 +273,15 @@ def permuted_teststat_check1(teststats, stat_value_to_check):
     'n':   number of values checked
     'more_extreme_n': number of values more extreme than stat_value_to_check
     '''
-JUST CODING THIS
+    v = 0
     if stat_value_to_check >= 0:
-        res = (df.iloc[0:] > stat_value_to_check).sum()
+        for v in teststats:
+            if v > teststats: p +=1
     else:
-        res = (df.iloc[0:] < stat_value_to_check).sum()
+        for v in teststats:
+            if v < teststats: p += 1
     
-    return {'p':float(res[0])/(df.iloc[0:]).count()[0], 'n':(df.iloc[0:]).count()[0], 'more_extreme_n':res[0]}
+    return {'p':float(p)/len(teststats), 'n':len(teststats), 'more_extreme_n':p}
 
 
 
@@ -288,25 +290,27 @@ def focal_permutation(x, y, teststat, iters=1000):
     '''(ndarray, ndarray) -> dic
     Perform 3x3 mean and then a permutation correlation test on two 2D arrays
     Calculates p
-    dic  {'p':,'extreme':}
+    dic  {'p':,'more_extreme_n':}
     '''
     
     taus = []
+    #only need to do focal mean once on y as this doesnt need to be permuted each time
+    y = funclib.arraylib.np_focal_mean(y, False)
+
     for cnt in range(iters):       
         pre = '/* iter:' + str(cnt+1) + ' */'
 
         #just permute one of them
-        x = funclib.arraylib.np_permute_2d(permute)
-        x = funclib.arraylib.np_focal_mean(x, False)
-
-        y = funclib.arraylib.np_focal_mean(y, False)
+        a = funclib.arraylib.np_permute_2d(x)
+        a = funclib.arraylib.np_focal_mean(a, False)
 
         #use scipy - p will be wrong, but the taus will be right
-        res = funclib.statslib.correlation(x, focal, engine=funclib.statslib.EnumStatsEngine.scipy)
+        res = funclib.statslib.correlation(a, y, engine=funclib.statslib.EnumStatsEngine.scipy)
         taus.append(res['teststat'])
 
+        funclib.iolib.print_progress(cnt+1, iters, prefix=pre, bar_length=30)
 
-
-        funclib.iolib.print_progress(cnt+1, _ITERATIONS, prefix=pre, bar_length=30)
+    dic = funclib.statslib.permuted_teststat_check1(taus, teststat)
+    return {'p':dic['p'],'more_extreme_n':dic['more_extreme_n']}
 
   
