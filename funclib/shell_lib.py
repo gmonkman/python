@@ -35,5 +35,5 @@ def find_file(filename):
                         ,filename])
     matches_str = execute(command)
     if matches_str:
-        return matches_str.split("\n",1)[0]
+        return matches_str.split("\n", 1)[0]
     return None

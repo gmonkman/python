@@ -151,6 +151,7 @@ def np_delete_paired_nans_flattened(a, b):
     Array types are float
     This must first flatten both arrays and both outputs
     are FLATTENED (but retain matches at a given index)
+    {'a':a, 'b':b}
     '''
     assert isinstance(a, numpy.ndarray)
     assert isinstance(b, numpy.ndarray)
@@ -263,7 +264,7 @@ def np_contains_nan(nd):
 
 
 
-def np_pickled_in_excel(pickle_name, silent_save=False):
+def np_pickled_in_excel(pickle_name):
     '''(str, bool) -> void
     opens the pickled nd array as a new excel spreadsheet
 
@@ -274,3 +275,5 @@ def np_pickled_in_excel(pickle_name, silent_save=False):
     '''
     arr = numpy.load(pickle_name)
     xlwings.view(arr)
+
+    

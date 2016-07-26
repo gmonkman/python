@@ -274,12 +274,15 @@ def permuted_teststat_check1(teststats, stat_value_to_check):
     'more_extreme_n': number of values more extreme than stat_value_to_check
     '''
     v = 0
+    p = 0
     if stat_value_to_check >= 0:
         for v in teststats:
-            if v > teststats: p +=1
+            if v > stat_value_to_check:
+                p += 1
     else:
         for v in teststats:
-            if v < teststats: p += 1
+            if v < stat_value_to_check:
+                p += 1
     
     return {'p':float(p)/len(teststats), 'n':len(teststats), 'more_extreme_n':p}
 
@@ -311,6 +314,6 @@ def focal_permutation(x, y, teststat, iters=1000):
         funclib.iolib.print_progress(cnt+1, iters, prefix=pre, bar_length=30)
 
     dic = funclib.statslib.permuted_teststat_check1(taus, teststat)
-    return {'p':dic['p'],'more_extreme_n':dic['more_extreme_n']}
+    return {'p':dic['p'], 'more_extreme_n':dic['more_extreme_n']}
 
   

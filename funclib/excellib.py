@@ -1,3 +1,4 @@
+import numpy
 import xlwings
 
 def export(a):

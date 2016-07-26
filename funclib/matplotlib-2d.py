@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 import networkx as nx
 import numpy as np
-import util
+import utils
 import itertools
 
 # Set font, globally
@@ -51,7 +51,7 @@ def remove_empty(d1, d2):
             posns.append(i)
     return xs, ys, posns
 
-def bar(xvalues, yvalues, title, xlabel, ylabel, alpha=1, color='royalblue', xlabels=None, width=0.8,output=None, xmax=None, ymax=None, vlines=None):
+def bar(xvalues, yvalues, title, xlabel, ylabel, alpha=1, color='royalblue', xlabels=None, width=0.8, output=None, xmax=None, ymax=None, vlines=None):
     """
         Create and save a bar plot.
         Args:
@@ -156,11 +156,12 @@ def line(xbounds, y_funs, title=None, xlabel=None, ylabel=None, linelabels=None,
     return output
 
 def histogram(values, title, xlabel, ylabel, num_bins, xmax, ymax, output, alpha=0.8, color='royalblue'):
+    '''stuff'''
     minval = min(values)
     maxval = max(values)
     bkt_width = (maxval - minval) / num_bins
     xvals = [(bkt_width * i) + minval for i in range(num_bins)]
-    yvals = [sum((1 for val in values if lo <= val <= (lo + bkt_width) ))
+    yvals = [sum((1 for val in values if lo <= val <= (lo + bkt_width)))
              for lo in xvals]
     # print("Plotting with vals %s" % yvals)
     return bar(xvals, yvals, title, xlabel, ylabel, xmax=xmax, ymax=ymax, alpha=alpha, color=color, width=bkt_width, output=output)
@@ -300,7 +301,7 @@ def draw_violin(dataset, posns, alpha=1, color='royalblue', meanmarker="*"):
         plt.plot(posns[i], [np.average(dataset[i])], color='w', marker=meanmarker, markeredgecolor='k')
     # Draw confidence interval (should be optional)
     for i in range(len(dataset)):
-        stat = util.stats_of_row(dataset[i])
+        stat = utils.stats_of_row(dataset[i])
         plt.errorbar(posns[i], stat["mean"], yerr=stat["ci"][1] - stat["mean"], ecolor="magenta", capthick=4)
     return
 

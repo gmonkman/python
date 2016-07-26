@@ -37,18 +37,28 @@ def dump_msp_paper_arrays():
     assert isinstance(np_pam_venue_focal, numpy.ndarray)
     np_pam_venue_focal.dump(_OUTPUT_PATH + '\\' + 'np_pam_venue_focal.np')
     print 'Dumped VenueCnt3x3PAMSansPAMClip'
-    print 'Finished'
 
+
+    
+
+    
 def dump_pam_fix():
     '''dump pam venue count data with pam venuecount contributions deleted
     in preparation for a manual review/fix
     '''
-    pam_fix = arcpy.Raster(_GDBPATH + '\\PAMFix')
+    pam_fix = arcpy.Raster(_GDBPATH + '\\PAMSansPAMVCntRaster')
     pamarr = arcpy.RasterToNumPyArray(pam_fix, nodata_to_value=numpy.nan)
     assert isinstance(pamarr, numpy.ndarray)
-    pamarr.dump(_OUTPUT_PATH + '\\' + 'PAMFix.np')
-    print 'Dumped'
+    pamarr.dump(_OUTPUT_PATH + '\\' + 'PAMSansPAMVCntRaster.np')
+    print 'Dumped PAMSansPAMClip'
 
-dump_msp_paper_arrays()
+
+
+
 print 'Dumping ................'
-#dump_pam_fix()
+
+#dump_msp_paper_arrays()
+dump_pam_fix()
+
+
+print 'Finished'

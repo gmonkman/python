@@ -8,11 +8,14 @@ import sys
 
 
 from numpy import ndarray as numpy_ndarray
-
 import fuckit
 
+import funclib.stringslib as stringslib
 
-#FILE (CSV) IO
+_NOTEPADPP_PATH = 'C:\\Program Files (x86)\\Notepad++\\notepad++.exe'
+
+
+#region CSV IO
 def write_to_eof(filename, thetext):
     '''(string,string) ->void
     Write thetext to the end of the file given in filename.
@@ -141,9 +144,65 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
 
     #close the csv file to save
     csvfile.close()
+#endregion
 
-#TERMINAL IO
-# Print iterations progress
+
+
+
+#region file system
+def folder_open(folder='.'):
+    '''(string) -> void
+    opens a windows folder at path folder'''
+    if os.name == 'nt':
+        folder = folder.replace('/', '\\')
+    with fuckit:
+        subprocess.check_call(['explorer', folder])
+
+
+
+def notepadpp_open_file(filename):
+    '''(str) -> void
+    opens filename in notepad++
+
+    File name should be in the C:\\dirA\\dirB\\xx.txt format
+    '''
+    with fuckit:
+        openpth = _NOTEPADPP_PATH + ' ' + '"' + filename + '"'
+        subprocess.Popen(openpth)
+
+
+def write_to_file(result_text, prefix=''):
+    '''
+    (text) -> str
+    Takes result_text and writes it to a file in the cwd.
+    Prints out the file name at the end and opens the folder location
+
+    Returns the fully qualified filename written
+
+    Use to quickly right single results set to a file
+    '''
+    filename = os.getcwd() + '\\RESULT' + prefix + stringslib.datetime_stamp() + '.txt'
+    f = open(filename, 'w+')
+    f.write(result_text)
+    f.close()
+    print result_text
+    print filename
+    notepadpp_open_file(filename)
+    return filename
+
+#endregion
+
+
+
+
+#region console stuff
+def input_int(prompt='Input number', default=0):
+    '''get console input from user and force to int'''
+    return int(stringslib.read_number(raw_input(prompt), default))
+
+
+
+
 def print_progress(iteration, total, prefix='', suffix='', decimals=2, bar_length=50):
     """
     Call in a loop to create terminal progress bar
@@ -167,13 +226,4 @@ def print_progress(iteration, total, prefix='', suffix='', decimals=2, bar_lengt
     sys.stdout.write('%s [%s] %s%s %s\r' % (prefix, progbar, percents, '%', suffix)), sys.stdout.flush()
     if iteration == total:
         print "\n"
-
-
-
-def folder_open(folder='.'):
-    '''(string) -> void
-    opens a windows folder at path folder'''
-    if os.name == 'nt':
-        folder = folder.replace('/', '\\')
-    with fuckit:
-        subprocess.check_call(['explorer', folder])
+#endregion
