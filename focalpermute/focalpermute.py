@@ -137,14 +137,25 @@ def permutation(a, b, omit_paired_zeros=False):
     else:
         dic = {'a':a, 'b':b}
     
-    tau = scipy.stats.kendalltau(a.flatten(), b.flatten(), nan_policy='omit')[0]
+    dic = arraylib.np_unmatched_nans_to_zero(dic['a'], dic['b'])
+    dic = arraylib.np_delete_paired_nans_flattened(dic['a'], dic['b'])
+    if arraylib.np_contains_nan(dic['a']):
+        raise ValueError('array "a" contains nans')
+
+    if arraylib.np_contains_nan(dic['b']):
+        raise ValueError('array "b" contains nans')
+
+    tau = scipy.stats.kendalltau(dic['a'], dic['b'], nan_policy='propagate')[0]
+
     taus = []
     for cnt in range(_ITERATIONS):       
         pre = '/* iter:' + str(cnt+1) + ' */'
-        dic['a'] = arraylib.np_permute_2d(dic['a'])
+
+        #use general permute as we have flattened the array and should have no nans in it now
+        dic['a'] = numpy.random.permutation(dic['a'])
 
         #use scipy - p will be wrong, but the taus will be right
-        res = scipy.stats.kendalltau(dic['a'].flatten(), dic['b'].flatten(), nan_policy='omit')[0]
+        res = scipy.stats.kendalltau(dic['a'], dic['b'], nan_policy='propagate')[0]
         taus.append(res)
 
         iolib.print_progress(cnt+1, _ITERATIONS, prefix=pre, bar_length=30)
@@ -345,12 +356,31 @@ def run_pam_permutation():
     '''
     permutation(_NP_PAM_VENUE, _NP_PAM_DAYSPAKM, False)
     permutation(_NP_PAM_VENUE, _NP_PAM_DAYSPAKM, True)
+
+#region Time tests
+def omit():
+    tau = scipy.stats.kendalltau(_NP_PAM_VENUE, _NP_PAM_DAYSPAKM, nan_policy='omit')[0]
+    print tau
+
+def propogate():
+    x = numpy.arange(118*77).reshape(118,77)
+    y = numpy.arange(118*77).reshape(118,77)
+    tau = scipy.stats.kendalltau(x, y, nan_policy='propagate')[0]
+    print tau
+
+def test_speed():
+    omit()
+    propogate()
+#end region
+    
+    
 #endregion
 
 
 #region Init
 set_iter()
 load_arrays()
+#test_speed()
 run_pam_permutation()
 #endregion
 
