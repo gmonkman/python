@@ -3,6 +3,7 @@
 #base imports
 import time
 import numbers
+import os
 
 #my imports
 import funclib.numericslib
@@ -30,6 +31,9 @@ def read_number(test, default=0):
     else:   #not a string or not a number
         return default
 
+
+#region files and paths related
+
 def add_right(s, char = '/'):
     '''(str, str) -> str
     Appends suffix to string if it doesnt exist
@@ -39,3 +43,4 @@ def add_right(s, char = '/'):
         return s + char
     else:
         return s
+#endregion

@@ -27,10 +27,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="iolib.py" />
-    <Compile Include="matplotlib-2d.py" />
-    <Compile Include="matplotlib-3d.py" />
-    <Compile Include="matplotliblib.py" />
     <Compile Include="numericslib.py" />
+    <Compile Include="plotlib\matplotlib-2d.py" />
+    <Compile Include="plotlib\matplotlib-3d.py" />
+    <Compile Include="plotlib\matplotliblib.py" />
+    <Compile Include="plotlib\seabornlib.py" />
+    <Compile Include="plotlib\__init__.py" />
     <Compile Include="shell_lib.py" />
     <Compile Include="statslib.py" />
     <Compile Include="stringslib.py" />
@@ -44,6 +46,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="pylintrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="plotlib\" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />

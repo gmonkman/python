@@ -4,4 +4,9 @@
     <TargetProject>ec5cf372-8145-4757-ba13-3684ace201fe</TargetProject>
     <FriendlyName>focalpermute</FriendlyName>
   </ProjectTarget>
+  <Reports>
+    <Report>
+      <Filename>C:\Users\Graham Monkman\AppData\Local\Temp\focalpermute3_20160727.vsp</Filename>
+    </Report>
+  </Reports>
 </ProfilingTarget>

@@ -6,7 +6,7 @@ import numpy
 import funclib.stringslib as stringslib
 import funclib.arraylib as arraylib
 import funclib.statslib as statslib
-
+import funclib.plotlib.seabornlib as seabornlib
 
 
 
@@ -18,6 +18,9 @@ def test_stringslib():
     #print funclib.stringslib.read_number('12')
 
 
+
+
+#region arraylib
 def test_arraylib():
     '''test shit
     '''
@@ -30,20 +33,40 @@ def test_arraylib():
     #dic  = arraylib.np_unmatched_nans_to_zero(a, b)
     dic  = arraylib.np_paired_zeros_to_nan(a, b)
     print dic['a']
-    print dic['b']
-    
-    
+    print dic['b']    
+#endregion
 
 
+
+
+#region statslib
 def test_statslib():
     '''test stats
     '''
     res = statslib.permuted_teststat_check(r"C:\Users\Graham Monkman\OneDrive\Documents\PHD\My Papers\WalesRSA-MSP\data\focalcorr\fmm_0_20160716180726.csv", 0, 0)
+#endregion
 
 
 
 
+#region plots
+def test_plots():
+    '''test plots
+    '''
+    seabornlib.bivariate_histogram()
+#endregion
 
+
+
+
+#region arraylib
 #test_arraylib()
 test_statslib()
 #sys.exit()
+#endregion
+
+
+
+#region Top Level
+test_plots()
+#endregion

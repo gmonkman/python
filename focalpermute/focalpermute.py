@@ -3,7 +3,7 @@
 #custom
 import numpy
 import scipy.stats
-import xlwings
+import xlwings #dont delete this - call it from immediate sometimes
 
 #mine
 import funclib.iolib as iolib
@@ -17,6 +17,9 @@ assert isinstance(_NP_FMM_VALUE, numpy.ndarray)
 _NP_FMM_VENUE_FOCAL = numpy.array([])
 assert isinstance(_NP_FMM_VENUE_FOCAL, numpy.ndarray)
 
+_NP_FMM_VENUE = numpy.array([])
+assert isinstance(_NP_FMM_VENUE, numpy.ndarray)
+
 _NP_PAM_DAYSPAKM = numpy.array([])
 assert isinstance(_NP_PAM_DAYSPAKM, numpy.ndarray)
 
@@ -28,7 +31,6 @@ assert isinstance(_NP_PAM_VENUE, numpy.ndarray)
 
 _ITERATIONS = 100000
 _PATH = './data'
-
 _RESULT_PATH = './data' # '.C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr'
 
 
@@ -48,12 +50,18 @@ def load_arrays():
     _NP_FMM_VALUE = numpy.load(_PATH + '/NP_FMM_VALUE.np').astype(float)
     global _NP_FMM_VENUE_FOCAL
     _NP_FMM_VENUE_FOCAL = numpy.load(_PATH + '/NP_FMM_VENUE_FOCAL.np').astype(float)
+    global _NP_FMM_VENUE
+    _NP_FMM_VENUE = numpy.load(_PATH + '/NP_FMM_VENUE.np').astype(float)
 
     #_NP_FMM_VENUE_FOCAL has an extra column which needs to be deleted so arrays
     #are of same dims
     _NP_FMM_VENUE_FOCAL = numpy.delete(_NP_FMM_VENUE_FOCAL, 69, 1)
-
     if _NP_FMM_VALUE.shape != _NP_FMM_VENUE_FOCAL.shape:
+        raise ValueError('FMM arrays not of the same shape')
+    # same for _NP_FMM_VENUE but with an example of slicing
+    _NP_FMM_VENUE = _NP_FMM_VENUE[0:56, 0:69]
+
+    if not _NP_FMM_VENUE.shape == _NP_FMM_VALUE.shape == _NP_FMM_VENUE_FOCAL.shape:
         raise ValueError('FMM arrays not of the same shape')
 
     #PAM
@@ -71,6 +79,14 @@ def load_arrays():
     dic = arraylib.np_unmatched_nans_to_zero(_NP_FMM_VALUE, _NP_FMM_VENUE_FOCAL)
     _NP_FMM_VALUE = dic['a']
     _NP_FMM_VENUE_FOCAL = dic['b']
+
+    dic = arraylib.np_unmatched_nans_to_zero(_NP_FMM_VALUE, _NP_FMM_VENUE)
+    _NP_FMM_VALUE = dic['a']
+    _NP_FMM_VENUE = dic['b']
+
+    dic = arraylib.np_unmatched_nans_to_zero(_NP_FMM_VENUE_FOCAL, _NP_FMM_VENUE)
+    _NP_FMM_VENUE_FOCAL = dic['a']
+    _NP_FMM_VENUE = dic['b']
 
     dic = arraylib.np_unmatched_nans_to_zero(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE_FOCAL)
     _NP_PAM_DAYSPAKM = dic['a']
@@ -170,46 +186,53 @@ def permutation(a, b, omit_paired_zeros=False):
     iolib.write_to_file(results)
 
 
+#this also dumps out the data
 def unpermuted_corr():
     '''calculate kendall tau for unpermuted values'''
     outcsv = [['Test', 'Tau', 'p']]
     results = dict()
+    path = r'C:\development\python\focalpermute\data\cleaned'
 
     #we NaN pad all arrays to stop the problem of calculating edge effects
     #(although after mod this is now redundant)
 
     #region FOCAL
+
     #region FMM /w zeros
     nd_fmm_value_focal = numpy.copy(_NP_FMM_VALUE)
-    #numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_fmm_value.csv', nd_fmm_value_focal, delimiter=',')
     nd_fmm_value_focal = arraylib.np_focal_mean(nd_fmm_value_focal, True)
-    #numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_fmm_value_focal.csv', nd_fmm_value_focal, delimiter=',')
 
-    nd_venuefmm = numpy.copy(_NP_FMM_VENUE_FOCAL).astype(float)
-    nd_venuefmm = arraylib.np_pad_nan(nd_venuefmm)
-    #numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_venuefmm.csv', nd_venuefmm, delimiter=',')
+    nd_venuefmm_focal = numpy.copy(_NP_FMM_VENUE_FOCAL).astype(float)
+    nd_venuefmm_focal = arraylib.np_pad_nan(nd_venuefmm_focal)
 
-    if nd_fmm_value_focal.shape != nd_venuefmm.shape:
+    if nd_fmm_value_focal.shape != nd_venuefmm_focal.shape:
         raise ValueError('FMM arrays with zeros not of the same shape')
 
-    results = statslib.correlation(nd_fmm_value_focal, nd_venuefmm, engine=statslib.EnumStatsEngine.r)
+
+    dic = arraylib.np_delete_paired_nans_flattened(nd_fmm_value_focal, nd_venuefmm_focal)
+    dic['a'].dump(path + r'\nd_fmm_value_focal_0_cleaned.np')
+    dic['b'].dump(path + r'\nd_fmm_venue_focal_0_cleaned.np')
+
+    results = statslib.correlation(dic['a'], dic['b'], engine=statslib.EnumStatsEngine.r)
     outcsv.append(['FMM Focal with Zeros', results['teststat'], results['p']])
     #endregion
 
     #region FMM /wo zeros
-    dic = arraylib.np_delete_paired_nans_flattened(nd_fmm_value_focal, nd_venuefmm)
     dic = arraylib.np_delete_paired_zeros_flattened(dic['a'], dic['b'])
-    #numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_fmm_value_focal.csv', dic['a'], delimiter=',')
-    #numpy.savetxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr/nd_venuefmm.csv', dic['b'], delimiter=',')
 
     if dic['a'].shape != dic['b'].shape:
         raise ValueError('FMM arrays witout zeros not of the same shape')
+
+    dic['a'].dump(path + r'\nd_fmm_value_focal_No0_cleaned.np')
+    dic['b'].dump(path + r'\nd_fmm_venue_focal_No0_cleaned.np')
 
     results = statslib.correlation(dic['a'], dic['b'], engine=statslib.EnumStatsEngine.r)
     outcsv.append(['FMM Focal without Zeros', results['teststat'], results['p']])
     #endregion
     
     #region PAM /w zeros
+
+    #calculate this oneon the fly, others focals are loaded from already exported data
     nd_pam_dayspa_focal = numpy.copy(_NP_PAM_DAYSPAKM).astype(float)
     nd_pam_dayspa_focal = arraylib.np_focal_mean(nd_pam_dayspa_focal, True)
 
@@ -220,24 +243,64 @@ def unpermuted_corr():
     if nd_pam_dayspa_focal.shape != nd_venuepam_focal.shape:
         raise ValueError('PAM arrays not of the same shape')
 
-    results = statslib.correlation(nd_pam_dayspa_focal, nd_venuepam_focal, engine=statslib.EnumStatsEngine.r)
+    dic = arraylib.np_delete_paired_nans_flattened(nd_pam_dayspa_focal, nd_venuepam_focal)
+    dic['a'].dump(path + r'\nd_pam_dayspa_focal_0_cleaned.np')
+    dic['b'].dump(path + r'\nd_pam_venue_focal_0_cleaned.np')
+
+    results = statslib.correlation(dic['a'], dic['b'], engine=statslib.EnumStatsEngine.r)
     outcsv.append(['PAM Focal with Zeros', results['teststat'], results['p']])
     #endregion
 
     #region PAM /wo zeros
-    dic = arraylib.np_delete_paired_nans_flattened(nd_pam_dayspa_focal, nd_venuepam_focal)
     dic = arraylib.np_delete_paired_zeros_flattened(dic['a'], dic['b'])
     if dic['a'].shape != dic['b'].shape:
         raise ValueError('PAM arrays witout zeros not of the same shape')
     
+    dic['a'].dump(path + r'\nd_pam_dayspa_focal_No0_cleaned.np')
+    dic['b'].dump(path + r'\nd_pam_venue_focal_No0_cleaned.np')
+
     results = statslib.correlation(dic['a'], dic['b'], engine=statslib.EnumStatsEngine.r)
     outcsv.append(['PAM Focal without Zeros', results['teststat'], results['p']])
     #endregion
     #endregion
 
 
-    #region NONFOCAL STUFF
-    # Only PAM as FMM did not require correction
+    #region CRISP STUFF
+
+    #region FMM /w zeros
+    nd_fmm_value = numpy.copy(_NP_FMM_VALUE).astype(float)
+    nd_fmm_venue = numpy.copy(_NP_FMM_VENUE).astype(float)
+
+    dic = arraylib.np_delete_paired_nans_flattened(nd_fmm_value, nd_fmm_venue)
+
+    if dic['a'].shape != dic['b'].shape:
+        raise ValueError('FMM non focal arrays with zeros not of the same shape')
+
+    if arraylib.np_contains_nan(dic['a']):
+        raise ValueError('nd_fmm_value has nans')
+
+    if arraylib.np_contains_nan(dic['b']):
+        raise ValueError('nd_fmm_venue has nans')
+
+    dic['a'].dump(path + r'\nd_fmm_value_0_cleaned.np')
+    dic['b'].dump(path + r'\nd_fmm_venue_0_cleaned.np')
+
+    results = statslib.correlation(dic['a'], dic['b'], engine=statslib.EnumStatsEngine.r)
+    outcsv.append(['FMM NON FOCAL with Zeros', results['teststat'], results['p']])
+    #endregion
+    
+
+    #region FMM /wo zeros
+    dic = arraylib.np_delete_paired_zeros_flattened(dic['a'], dic['b'])
+    if dic['a'].shape != dic['b'].shape:
+        raise ValueError('FMM non focal arrays without zeros not of the same shape')
+
+    dic['a'].dump(path + r'\nd_fmm_value_No0_cleaned.np')
+    dic['b'].dump(path + r'\nd_fmm_venue_No0_cleaned.np')    
+      
+    results = statslib.correlation(dic['a'], dic['b'], engine=statslib.EnumStatsEngine.r)
+    outcsv.append(['FMM NON FOCAL without Zeros', results['teststat'], results['p']])
+    #endregion
 
     #region PAM /w zeros
     nd_pam_dayspa = numpy.copy(_NP_PAM_DAYSPAKM).astype(float)
@@ -247,21 +310,33 @@ def unpermuted_corr():
     if dic['a'].shape != dic['b'].shape:
         raise ValueError('PAM arrays not of the same shape')
 
+    if arraylib.np_contains_nan(dic['a']):
+        raise ValueError('nd_pam_dayspa has nans')
+
+    if arraylib.np_contains_nan(dic['b']):
+        raise ValueError('nd_venuepam has nans')
+
+    dic['a'].dump(path + r'\nd_pam_dayspa_0_cleaned.np')
+    dic['b'].dump(path + r'\nd_pam_venue_0_cleaned.np')
+
     results = statslib.correlation(dic['a'], dic['b'], engine=statslib.EnumStatsEngine.r)
     outcsv.append(['PAM NON FOCAL with Zeros', results['teststat'], results['p']])
     #endregion
 
     #region PAM /wo zeros
-    #dic = arraylib.np_delete_paired_nans_flattened(nd_pam_dayspa, nd_venuepam)
     dic = arraylib.np_delete_paired_zeros_flattened(dic['a'], dic['b'])
     if dic['a'].shape != dic['b'].shape:
         raise ValueError('PAM non focal arrays without zeros not of the same shape')
-    
+
+    dic['a'].dump(path + r'\nd_pam_dayspa_No0_cleaned.np')
+    dic['b'].dump(path + r'\nd_pam_venue_No0_cleaned.np')    
+      
     results = statslib.correlation(dic['a'], dic['b'], engine=statslib.EnumStatsEngine.r)
     outcsv.append(['PAM NON FOCAL without Zeros', results['teststat'], results['p']])
     #endregion
     #endregion
-             
+    
+        
     filename = _PATH + '/unpermuted_' + stringslib.datetime_stamp() + '.csv'
     iolib.writecsv(filename, outcsv, inner_as_rows=False)
 
@@ -359,16 +434,19 @@ def run_pam_permutation():
 
 #region Time tests
 def omit():
+    '''test'''
     tau = scipy.stats.kendalltau(_NP_PAM_VENUE, _NP_PAM_DAYSPAKM, nan_policy='omit')[0]
     print tau
 
 def propogate():
-    x = numpy.arange(118*77).reshape(118,77)
-    y = numpy.arange(118*77).reshape(118,77)
+    '''test'''
+    x = numpy.arange(118*77).reshape(118, 77)
+    y = numpy.arange(118*77).reshape(118, 77)
     tau = scipy.stats.kendalltau(x, y, nan_policy='propagate')[0]
     print tau
 
 def test_speed():
+    '''test performance'''
     omit()
     propogate()
 #end region
@@ -378,13 +456,15 @@ def test_speed():
 
 
 #region Init
-set_iter()
-load_arrays()
+#set_iter()
+#load_arrays()
+#unpermuted_corr()
 #test_speed()
-run_pam_permutation()
+#run_pam_permutation()
 #endregion
+#run_pam_focal()
 
-#region End of program housekeeping
-iolib.folder_open(_RESULT_PATH)
-print 'Done'
+#reg1ion End of program housekeeping
+#iolib.folder_open(_RESULT_PATH)
+#print 'Done'
 #endregion

@@ -24,7 +24,7 @@ def list_delete_value_pairs(list_a, list_b, match_value=0):
 
 
 
-#NUMPY ROUTINES
+#region NUMPY
 def np_permute_2d(np):
     '''(ndarray) -> ndarray
     Takes a numpy array and permutes the values ignoring NaNs
@@ -155,6 +155,9 @@ def np_delete_paired_nans_flattened(a, b):
     '''
     assert isinstance(a, numpy.ndarray)
     assert isinstance(b, numpy.ndarray)
+    if a.shape != b.shape:
+        raise ValueError('arrays are of different shape')
+
     a = a.flatten()
     b = b.flatten()
 
@@ -275,5 +278,5 @@ def np_pickled_in_excel(pickle_name):
     '''
     arr = numpy.load(pickle_name)
     xlwings.view(arr)
-
+#endregion
     
