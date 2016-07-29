@@ -17,6 +17,7 @@ import focalpermute as fp
 
 
 _PATH = r'C:\development\python\focalpermute\data\cleaned'
+_EXCEL_DATA_PATH = r'C:\development\python\focalpermute\data\pam_fmm_for_plots.xlsx'
 
 
 #region class enums
@@ -97,13 +98,29 @@ def get_crisp_dataframe():
     y = dic['directed']
     survey = numpy.array(['fmm']*len(mine))
     spatial_method = numpy.array(['crisp']*len(mine))
-    df_pam = pandas.DataFrame({hdrs[0]:survey, hdrs[1]:spatial_method, hdrs[2]:mine, hdrs[3]:y})
+    df_fmm = pandas.DataFrame({hdrs[0]:survey, hdrs[1]:spatial_method, hdrs[2]:mine, hdrs[3]:y})
 
     dic = get_paired_data(EnumSurvey.pam, EnumSpatial.crisp)
     mine = dic['mine']
     y = dic['directed']
     survey = numpy.array(['pam']*len(mine))
     spatial_method = numpy.array(['crisp']*len(mine))
-    df_pam = pandas.concat([df_pam, pandas.DataFrame({hdrs[0]:survey, hdrs[1]:spatial_method, hdrs[2]:mine, hdrs[3]:y})])
-    return df_pam
+    df_crisp = pandas.concat([df_fmm, pandas.DataFrame({hdrs[0]:survey, hdrs[1]:spatial_method, hdrs[2]:mine, hdrs[3]:y})])
+    return df_crisp
 #endregion
+
+def get_all_data_from_excel():
+    '''() -> pandas.DataFrame
+    Returns the entire datasetin a single dataframe
+    from previously exported excel dataset
+    Includes column with 3.29 winsorized values by the
+    4 stratifications fmm-focal fmm-crisp pam-focal pam-crisp
+    '''
+    return pandas.read_excel(_EXCEL_DATA_PATH)
+
+
+
+#df_focal = get_focal_dataframe()
+#df_crisp = get_crisp_dataframe()
+#df_all = pandas.concat([df_focal, df_crisp])
+#df = get_all_data_from_excel()
