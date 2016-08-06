@@ -1,3 +1,6 @@
+#pylint: skip-file
+'''3d matplot lib plot wrapper'''
+
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 import matplotlib.pyplot as plt

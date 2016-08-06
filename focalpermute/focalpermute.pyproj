@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>ec5cf372-8145-4757-ba13-3684ace201fe</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>plots.py</StartupFile>
+    <StartupFile>test.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -22,7 +22,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="focalpermute.py" />
+    <Compile Include="mediandistance.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="plots.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="quantile_regression_demo.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="__init__.py" />

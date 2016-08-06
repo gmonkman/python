@@ -1,9 +1,10 @@
-# pylint: disable=too-few-public-methods,too-many-statements
+# pylint: disable=too-few-public-methods,too-many-statements, unused-import, unused-variable, no-member,dangerous-default-value
 
 '''My library of statistics based functions'''
 
 # base imports
 import copy
+import itertools
 import numbers
 
 # packages
@@ -14,11 +15,11 @@ import scipy
 import scipy.stats
 import rpy2.robjects as ro
 
-
 # mine
 from enum import Enum
-import funclib.baselib
+import funclib.baselib as baselib
 import funclib.iolib as iolib
+import funclib.arraylib as arraylib
 
 class EnumMethod(Enum):
     '''enum used to select the type of correlation analysis'''
@@ -61,7 +62,7 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMet
         cnt += 1
         permuted = numpy.random.permutation(permuted)
 
-        for case in funclib.baselib.switch(method):
+        for case in baselib.switch(method):
             if case(EnumMethod.kendall):
                 teststat, pval = scipy.stats.kendalltau(list_a, permuted)
                 break
@@ -80,7 +81,7 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMet
         results.append([teststat, pval])
         justtest.append([teststat])
         pre = '/* iter:' + str(cnt) + ' */'
-        funclib.iolib.print_progress(cnt, iterations, prefix=pre, bar_length=30)
+        iolib.print_progress(cnt, iterations, prefix=pre, bar_length=30)
 
     return results
 
@@ -104,7 +105,7 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
     list_a = df[col_a_name].tolist()
     list_b = df[col_b_name].tolist()
 
-    for case in funclib.baselib.switch(test_type):
+    for case in baselib.switch(test_type):
         if case(EnumMethod.kendall):
             if engine == EnumStatsEngine.r:
                 df_r = com.convert_to_r_dataframe(df)
@@ -163,8 +164,8 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
 
         #scipy doesnt like nans. We drop out paired nans, leaving
         #all other pairings the same
-        if funclib.arraylib.np_contains_nan(a) and funclib.arraylib.np_contains_nan(b):
-            dic = funclib.arraylib.np_delete_paired_nans_flattened(a, b)
+        if arraylib.np_contains_nan(a) and arraylib.np_contains_nan(b):
+            dic = arraylib.np_delete_paired_nans_flattened(a, b)
         else:
             dic = {'a':a, 'b':b}
 
@@ -172,10 +173,10 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
         #with a scalar in the other
         #this is an error state - could modify later to exclude
         #all values from both arrays where there is any nan
-        if funclib.arraylib.np_contains_nan(dic['a']):
+        if arraylib.np_contains_nan(dic['a']):
             raise ValueError('Numpy array a contains NaNs')
 
-        if funclib.arraylib.np_contains_nan(dic['b']):
+        if arraylib.np_contains_nan(dic['b']):
             raise ValueError('Numpy array b contains NaNs')
 
         lst_a = dic['a'].flatten().tolist()
@@ -192,7 +193,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
     assert isinstance(lst_a, list)
     assert isinstance(lst_b, list)
 
-    for case in funclib.baselib.switch(method):
+    for case in baselib.switch(method):
         if case(EnumMethod.kendall):
             if engine == EnumStatsEngine.r:
                 df = pandas.DataFrame({'a':lst_a, 'b':lst_b})
@@ -298,22 +299,113 @@ def focal_permutation(x, y, teststat, iters=1000):
     
     taus = []
     #only need to do focal mean once on y as this doesnt need to be permuted each time
-    y = funclib.arraylib.np_focal_mean(y, False)
+    y = arraylib.np_focal_mean(y, False)
 
     for cnt in range(iters):       
         pre = '/* iter:' + str(cnt+1) + ' */'
 
         #just permute one of them
-        a = funclib.arraylib.np_permute_2d(x)
-        a = funclib.arraylib.np_focal_mean(a, False)
+        a = arraylib.np_permute_2d(x)
+        a = arraylib.np_focal_mean(a, False)
 
         #use scipy - p will be wrong, but the taus will be right
-        res = funclib.statslib.correlation(a, y, engine=funclib.statslib.EnumStatsEngine.scipy)
+        res = correlation(a, y, engine=EnumStatsEngine.scipy)
         taus.append(res['teststat'])
 
-        funclib.iolib.print_progress(cnt+1, iters, prefix=pre, bar_length=30)
+        iolib.print_progress(cnt+1, iters, prefix=pre, bar_length=30)
 
-    dic = funclib.statslib.permuted_teststat_check1(taus, teststat)
+    dic = permuted_teststat_check1(taus, teststat)
     return {'p':dic['p'], 'more_extreme_n':dic['more_extreme_n']}
 
-  
+
+def _get_quantile_ranges(nd, percentiles, exclude_zeros=False):
+    '''(ndarray like, listlike, bool) -> list
+    get the full intervals
+    percentiles=[25,50,75] would give quartiles
+
+    Returns array of arrays size percentiles+1 x 3.
+    [[0,1.1,bins[0]
+      1.1,2.2,bins[1]]
+      where the first two figures in the inner list of the numerical ranges
+      for the data in array nd. The last figure is a number which represents the percentile
+      to which the range belongs (starts at 1).
+      For example: percentiles=[25,50,75] 
+      0%-25%=1 25%-50%=2 50%-75%=3 75%-100%=4
+
+      If zeros are excluded they are assigned as 0.
+
+
+    if exclue_zeros is true, then zeros will be excluded from quantile calculations
+    '''
+    assert isinstance(percentiles, list)
+    #assert isinstance(nd, numpy.ndarray)
+    
+    ret = []
+    a = numpy.array(nd).flatten() #default dtype is float
+    assert isinstance(a, numpy.ndarray)
+
+    if exclude_zeros:
+        numpy.place(a, a == 0, numpy.nan)
+
+    a = arraylib.np_delete_zeros(a)
+    labels = range(1, len(percentiles)+2) #[25,50,75] -> [1,2,3,4]
+
+    percentiles.sort()
+    ranges = numpy.percentile(a, percentiles)
+
+    for ind, item in enumerate(ranges):
+        if ind == 0:
+            ret.append([a.min() - 0.00001, item, labels[ind]])
+        else:
+            ret.append([ranges[ind-1], item, labels[ind]])
+    
+    #add last category
+    ret.append([ranges[-1], a.max() + 0.00001, len(labels)])
+
+    return ret
+
+
+def _get_bin_label(x, ranges, zero_as_zero=False):
+    '''(numeric, list, bool) -> string
+    Uses the structure return by _get_quantile_ranges
+
+    Zero as zero forces zeros to be excluded from all
+    quantile calculations and put under their own label of 0
+    '''
+    assigned = False
+    for ind, item in enumerate(ranges):
+        if x == 0 and zero_as_zero:
+            ret = 0
+            assigned = True
+            break
+        elif numpy.isnan(x):
+            ret = numpy.nan
+            assigned = True
+            break
+        elif item[0] < x <= item[1]:
+            ret = item[2] #this is the label index eg 'High'
+            assigned = True
+            break
+    
+    if not assigned:
+        raise ValueError('Failed to assign bin label')
+    return ret
+
+
+#region Binning and recoding
+def quantile_bin(nd, percentiles=[25, 50, 100], zero_as_zero=False):
+    '''(ndarray, list, list, boolean) -> ndarray
+    
+    Returned array has elements with labels substituted.
+    Array of floats, nans ignored in calculations and returned as nans
+    '''
+    if nd.dtype != float:
+        raise ValueError('Array should be of type float. Try recasting using ndarray.astype(float)')
+
+    qr = _get_quantile_ranges(nd, percentiles, zero_as_zero)
+    out = numpy.copy(nd)
+    func = numpy.vectorize(_get_bin_label, excluded=['ranges', 'zero_as_zero'])
+    out = func(out, ranges=qr, zero_as_zero=zero_as_zero)
+    
+    return out
+#endregion

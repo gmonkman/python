@@ -1,4 +1,4 @@
-#pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled
+#pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled, not-context-manager
 
 '''My file input and output library, e.g. for csv handling.'''
 import csv

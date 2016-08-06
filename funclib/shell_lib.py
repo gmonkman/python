@@ -1,3 +1,4 @@
+#pylint:
 """
 Wrapper for executing system commands and returning the result as a string.
 """
@@ -12,7 +13,6 @@ def execute(command, on_failure=None):
         If the subprocess fails, `on_failure` is called with the resulting
         exception.
     """
-    output = None
     # Try to run the command, watch for failures
     # Need to close pipe in a finally block? I think not but leaving note just.in.case
     try:
@@ -29,10 +29,11 @@ def execute(command, on_failure=None):
     return output
 
 def find_file(filename):
+    '''unsure what this does1'''
     command = " ".join(["find"
-                        ,"."
-                        ,"-name"
-                        ,filename])
+                        , "."
+                        , "-name"
+                        , filename])
     matches_str = execute(command)
     if matches_str:
         return matches_str.split("\n", 1)[0]

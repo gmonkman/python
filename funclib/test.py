@@ -1,4 +1,4 @@
-# pylint: disable=too-few-public-methods,too-many-statements,bad-whitespace
+# pylint: disable=too-few-public-methods,too-many-statements,bad-whitespace,unused-import,missing-docstring,unused-variable
 
 '''test code'''
 import numpy
@@ -10,14 +10,13 @@ import funclib.plotlib.seabornlib as seabornlib
 
 
 
-
+#region stringslib
 def test_stringslib():
     '''test stuff () <- void
     '''
     #print funclib.stringslib.datetime_stamp
     #print funclib.stringslib.read_number('12')
-
-
+#endregion
 
 
 #region arraylib
@@ -37,26 +36,26 @@ def test_arraylib():
 #endregion
 
 
-
-
 #region statslib
 def test_statslib():
     '''test stats
     '''
     res = statslib.permuted_teststat_check(r"C:\Users\Graham Monkman\OneDrive\Documents\PHD\My Papers\WalesRSA-MSP\data\focalcorr\fmm_0_20160716180726.csv", 0, 0)
+
+def testbinning():
+    a = numpy.random.rand(100)
+    a[0] = numpy.nan
+    a[99] = numpy.nan
+    aout = statslib.quantile_bin(a, percentiles=[25,50,75], zero_as_zero=True)
 #endregion
-
-
 
 
 #region plots
 def test_plots():
     '''test plots
     '''
-    seabornlib.bivariate_histogram()
+   # seabornlib.bivariate_histogram()
 #endregion
-
-
 
 
 #region arraylib
@@ -67,6 +66,8 @@ test_statslib()
 
 
 
+
 #region Top Level
-test_plots()
+#test_plots()
+#testbinning()
 #endregion

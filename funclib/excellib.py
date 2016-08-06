@@ -1,3 +1,5 @@
+'''excel functions with xlwings'''
+
 import numpy
 import xlwings
 

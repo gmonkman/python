@@ -1,3 +1,4 @@
+#pylint: skip-file
 """
 Wrapper for matplotlib.
 Takes care of common-case, pretty graphs.
@@ -72,7 +73,7 @@ def bar(xvalues, yvalues, title, xlabel, ylabel, alpha=1, color='royalblue', xla
         - ymax    = max y-value
         - width   = width of bars
     """
-    fig,ax1 = plt.subplots()
+    fig, ax1 = plt.subplots()
     # Size
     if xmax:
         xmin,_ = ax1.get_xlim()

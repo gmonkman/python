@@ -1,3 +1,4 @@
+#pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled, not-context-manager
 '''routines to manipulate array like objects like lists, tuples etc'''
 import numpy
 import numpy.ma
@@ -94,8 +95,6 @@ def np_focal_mean(np, pad=True):
     out = ndimage.filters.generic_filter(np, _focal_mean_filter, footprint=kernel, mode='constant', cval=numpy.NaN)
 
     return out
-
-
 
 
 def np_paired_zeros_to_nan(a, b):
@@ -257,7 +256,25 @@ def np_delete_paired_zeros_flattened(a, b):
     return {'a':a[mask], 'b':b[mask]}
 
 
+def np_delete_zeros(a):
+    '''(arraylike) -> ndarray
+    delete zeros from an array.
+    **Note that this will reshape the array**
+    '''
+    aa = numpy.array(a).astype(float)
+    numpy.place(aa, aa == 0, numpy.nan)
+    return np_delete_nans(aa)
 
+
+def np_delete_nans(a):
+    '''(arraylike) -> ndarray
+
+    Takes an array like and removes all nans.
+
+    **Note that this will change the location of values in the array**
+    '''
+    nd = numpy.array(a).astype(float)
+    return nd[numpy.invert(numpy.isnan(nd))]
 
 def np_contains_nan(nd):
     '''(ndarray) -> bool

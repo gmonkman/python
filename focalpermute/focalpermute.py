@@ -235,7 +235,7 @@ def unpermuted_corr():
     #calculate this oneon the fly, others focals are loaded from already exported data
     nd_pam_dayspa_focal = numpy.copy(_NP_PAM_DAYSPAKM).astype(float)
     nd_pam_dayspa_focal = arraylib.np_focal_mean(nd_pam_dayspa_focal, True)
-
+    
     nd_venuepam_focal = numpy.copy(_NP_PAM_VENUE_FOCAL).astype(float)
     #pad to make same dimensions as dayspa, padding is not included in corr anal
     nd_venuepam_focal = arraylib.np_pad_nan(nd_venuepam_focal)
@@ -384,7 +384,7 @@ def permute_test_with_random(iterations=10):
     #out.write('unpermuted,%f,%f\n' % (tau))
     #print 'unpermuted,%f,%f\n' % (tau, p)
     lst = []
-    cnt = 0
+
     for i in range(iterations):
         y = numpy.random.normal(size=[50, 50])
         x = numpy.random.normal(size=[50, 50])
@@ -396,8 +396,7 @@ def permute_test_with_random(iterations=10):
         x = arraylib.np_focal_mean(x, False).flatten()
         tau_focal = scipy.stats.pearsonr(x.flatten(), y.flatten())[0]
         lst.append([tau, tau_focal])
-        iolib.print_progress(cnt+1, iterations, 'iter:%d' % (cnt), bar_length=30)
-        cnt += 1
+        iolib.print_progress(i, iterations, 'iter:%d' % (cnt), bar_length=30)
 
     np = numpy.array(lst)
     p = (np[:, 0] > np[:, 1]).sum()/float(len(np))
@@ -434,12 +433,12 @@ def run_pam_permutation():
 
 #region Time tests
 def omit():
-    '''test'''
+    '''omit time test'''
     tau = scipy.stats.kendalltau(_NP_PAM_VENUE, _NP_PAM_DAYSPAKM, nan_policy='omit')[0]
     print tau
 
 def propogate():
-    '''test'''
+    '''prop test'''
     x = numpy.arange(118*77).reshape(118, 77)
     y = numpy.arange(118*77).reshape(118, 77)
     tau = scipy.stats.kendalltau(x, y, nan_policy='propagate')[0]
