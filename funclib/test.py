@@ -1,4 +1,4 @@
-# pylint: disable=too-few-public-methods,too-many-statements,bad-whitespace,unused-import,missing-docstring,unused-variable
+# pylint: disable=too-few-public-methods,too-many-statements,bad-whitespace,unused-import,missing-docstring,unused-variable,no-member
 
 '''test code'''
 import numpy

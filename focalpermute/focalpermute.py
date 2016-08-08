@@ -1,3 +1,4 @@
+#pylint: disable=unused-import
 '''Main entry module to perform the permutation analysis'''
 
 #custom
@@ -396,7 +397,7 @@ def permute_test_with_random(iterations=10):
         x = arraylib.np_focal_mean(x, False).flatten()
         tau_focal = scipy.stats.pearsonr(x.flatten(), y.flatten())[0]
         lst.append([tau, tau_focal])
-        iolib.print_progress(i, iterations, 'iter:%d' % (cnt), bar_length=30)
+        iolib.print_progress(i, iterations, 'iter:%d' % (i), bar_length=30)
 
     np = numpy.array(lst)
     p = (np[:, 0] > np[:, 1]).sum()/float(len(np))

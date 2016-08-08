@@ -1,3 +1,3 @@
 '''main init for funclib'''
 
-__all__ = ['plots']
+__all__ = ['focalpermute', 'mediandistance', 'plots', 'quantile_regression_demo', 'test']

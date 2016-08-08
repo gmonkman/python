@@ -1,4 +1,4 @@
-#pylint:
+#pylint: disable=redefined-variable-type
 """
 Wrapper for executing system commands and returning the result as a string.
 """

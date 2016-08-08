@@ -2,20 +2,24 @@
 '''test stuff focalpermute'''
 
 import numpy as np
-import focalpermute.mediandistance
-import focalpermute as fp
+import mediandistance as md
 
 #region mediandistance
 def median_distance():
-    a = numpy.arange(25).reshape(5,5).astype(float)
-    a[0][0] = numpy.nan
+    a = np.arange(25).reshape(5,5).astype(float)
+    a[0][0] = np.nan
     a[0][1] = 0
-    focalpermute.mediandistance.bin_array_quartile(a)
+    a = md.bin_array_quartile(a)
     print a
     z=1
+
+def md_get_results():
+    md.get_results()
+    z = 1
 #endregion
 
 
 
 
-median_distance()
+#median_distance()
+md_get_results()

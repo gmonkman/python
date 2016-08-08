@@ -349,10 +349,10 @@ def _get_quantile_ranges(nd, percentiles, exclude_zeros=False):
 
     a = arraylib.np_delete_zeros(a)
     labels = range(1, len(percentiles)+2) #[25,50,75] -> [1,2,3,4]
-
+    
     percentiles.sort()
     ranges = numpy.percentile(a, percentiles)
-
+    
     for ind, item in enumerate(ranges):
         if ind == 0:
             ret.append([a.min() - 0.00001, item, labels[ind]])
