@@ -23,6 +23,9 @@
   <ItemGroup>
     <Compile Include="arraylib.py" />
     <Compile Include="baselib.py" />
+    <Compile Include="configlib.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="excellib.py">
       <SubType>Code</SubType>
     </Compile>

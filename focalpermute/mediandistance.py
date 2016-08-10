@@ -1,4 +1,4 @@
-#pylint: disable=unused-import
+#pylint: disable=unused-import, multiple-statements
 '''Calculate the all median distances'''
 
 #region Imports
@@ -52,6 +52,13 @@ class EnumData(Enum):
     ''' my data or directed survey data'''
     mine = 1
     directed = 2
+
+class EnumDataFormat(Enum):
+    '''data format to specify returned data in some functions
+    '''
+    wide = 1 #also called unstacked
+    narrow = 2 #also called stacked
+    cross_matrix = 3
 #endregion
 
 
@@ -73,7 +80,7 @@ def get_data(survey=EnumSurvey.fmm, spatial=EnumSpatial.crisp, data=EnumData.dir
         else:
             if data == EnumData.directed:
                 a = np.load(_PATH + '/np_fmm_value_focal.np').astype(float) #FMM FOCAL DIRECTED
-                a = a[1:57,1:70] #fix array size to match other fmm arrays
+                a = a[1:57, 1:70] #fix array size to match other fmm arrays
             else:
                 a = np.load(_PATH + '/NP_FMM_VENUE_FOCAL.np').astype(float) #FMM FOCAL MINE
                 a = np.delete(a, 69, 1)
@@ -86,7 +93,7 @@ def get_data(survey=EnumSurvey.fmm, spatial=EnumSpatial.crisp, data=EnumData.dir
         else:
             if data == EnumData.directed:
                 a = np.load(_PATH + '/' + 'np_pam_dayspa_focal.np').astype(float) #PAM FOCAL DIRECTED
-                a = a[1:78,1:119] #fix array size to match other fmm arrays
+                a = a[1:78, 1:119] #fix array size to match other fmm arrays
             else:
                 a = np.load(_PATH + '/' + 'NP_PAM_VENUE_FOCAL.np').astype(float) #PAM FOCAL MINE
 
@@ -132,11 +139,10 @@ def _bin_excel_data():
 def _bin_array_quartile(nd):
     '''(ndarray) -> ndarray
     puts array values into quartile bins, leaving zeros as zero
-    nd is 'byref'
     '''
     a = np.copy(nd)
-    return statslib.quantile_bin(a, [(float(1)/3)*100, (float(2)/3)*100], zero_as_zero=True)
-
+    #return statslib.quantile_bin(a, [(float(1)/3)*100, (float(2)/3)*100], zero_as_zero=True)
+    return statslib.quantile_bin(a, [25, 50, 75], zero_as_zero=True)
 
 def _difference(a, b):
     '''(ndarray, ndarray) -> ndarray
@@ -157,6 +163,36 @@ def _check_array(a, b):
 
 
 def _make_matrices():
+    '''() -> dic
+    creates the quartile matrices for all combinations of
+    directed and my survey data
+
+    It returns a dictionary of dictionaries with the distance matrices (ie quantile deviation counts)
+    of tpye ndarray
+    fmm_distance, pam_distance
+
+    and the frequencies in quantile classes between the two quartile matrices: This is a dataframe
+    fmm_freq, pam_freq
+
+    Low level keys are to the underlying ndarrays:
+    FMM
+    crispDirected_crispMine
+    focalDirected_focalMine
+    crispDirected_focalMine
+    focalDirected_crispMine
+    focalDirected_crispDirected
+    focalMine_crispMine
+
+    PAM
+    crispDirected_crispMine
+    focalDirected_focalMine
+    crispDirected_focalMine
+    focalDirected_crispMine
+    focalDirected_crispDirected
+    focalMine_crispMine
+
+    So dic['fmm_freq']['crispDirected_crispMine'] is ndarray of freq
+    '''
     results = collection(dict)
     fmm_distance = {}
     pam_distance = {}
@@ -169,37 +205,49 @@ def _make_matrices():
     b = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.mine))
     _check_array(a, b)
     fmm_distance['crispDirected_crispMine'] = _difference(a, b)
-    fmm_freq['crispDirected_crispMine'] = _class_frequency(a, b) #directed should be rows
+    fmm_freq['crispDirected_crispMine'] = _class_frequency(a, b, 
+                    cola='directed', colb='this', col_value='frequency', label='crispDirected_crispMine'
+                    )
     
     a = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.directed))
     b = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.mine))
     _check_array(a, b)
     fmm_distance['focalDirected_focalMine'] = _difference(a, b)
-    fmm_freq['focalDirected_focalMine'] = _class_frequency(a, b)
+    fmm_freq['focalDirected_focalMine'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='focalDirected_focalMine'
+                    )
 
     a = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.directed))
     b = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.mine))
     _check_array(a, b)
     fmm_distance['crispDirected_focalMine'] = _difference(a, b)
-    fmm_freq['crispDirected_focalMine'] = _class_frequency(a, b)
+    fmm_freq['crispDirected_focalMine'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='crispDirected_focalMine'
+                    )
 
     a = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.directed))
     b = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.mine))
     _check_array(a, b)
     fmm_distance['focalDirected_crispMine'] = _difference(a, b)
-    fmm_freq['focalDirected_crispMine'] = _class_frequency(a, b)
+    fmm_freq['focalDirected_crispMine'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='focalDirected_crispMine'
+                    )
 
     a = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.directed))
     b = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.directed))
     _check_array(a, b)
     fmm_distance['focalDirected_crispDirected'] = _difference(a, b)
-    fmm_freq['focalDirected_crispDirected'] = _class_frequency(a, b)
+    fmm_freq['focalDirected_crispDirected'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='focalDirected_crispDirected'
+                    )
 
     a = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.mine))
     b = _bin_array_quartile(get_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.mine))
     _check_array(a, b)
     fmm_distance['focalMine_crispMine'] = _difference(a, b)
-    fmm_freq['focalMine_crispMine'] = _class_frequency(a, b)
+    fmm_freq['focalMine_crispMine'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='focalMine_crispMine'
+                    )
 
     results['fmm_distance'] = fmm_distance
     results['fmm_freq'] = fmm_freq
@@ -209,45 +257,58 @@ def _make_matrices():
     b = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.mine))
     _check_array(a, b)
     pam_distance['crispDirected_crispMine'] = _difference(a, b)
-    pam_freq['crispDirected_crispMine'] = _class_frequency(a, b)
+    pam_freq['crispDirected_crispMine'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='crispDirected_crispMine'
+                    )
 
     a = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.directed))
     b = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.mine))
     _check_array(a, b)
     pam_distance['focalDirected_focalMine'] = _difference(a, b)
-    pam_freq['focalDirected_focalMine'] = _class_frequency(a, b)
+    pam_freq['focalDirected_focalMine'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='focalDirected_focalMine'
+                    )
 
     a = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.directed))
     b = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.mine))
     _check_array(a, b)
     pam_distance['crispDirected_focalMine'] = _difference(a, b)
-    pam_freq['crispDirected_focalMine'] = _class_frequency(a, b)
+    pam_freq['crispDirected_focalMine'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='crispDirected_focalMine'
+                    )
 
     a = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.directed))
     b = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.mine))
     _check_array(a, b)
     pam_distance['focalDirected_crispMine'] = _difference(a, b)
-    pam_freq['focalDirected_crispMine'] = _class_frequency(a, b)
+    pam_freq['focalDirected_crispMine'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='crispDirected_focalMine'
+                    )
 
     a = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.directed))
     b = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.directed))
     _check_array(a, b)
     pam_distance['focalDirected_crispDirected'] = _difference(a, b)
-    pam_freq['focalDirected_crispDirected'] = _class_frequency(a, b)
+    pam_freq['focalDirected_crispDirected'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='focalDirected_crispDirected'
+                    )
 
     a = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.mine))
     b = _bin_array_quartile(get_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.mine))
     _check_array(a, b)
     pam_distance['focalMine_crispMine'] = _difference(a, b)
-    pam_freq['focalMine_crispMine'] = _class_frequency(a, b)
+    pam_freq['focalMine_crispMine'] = _class_frequency(a, b,
+                    cola='directed', colb='this', col_value='frequency', label='focalMine_crispMine'
+                    )
 
     results['pam_distance'] = pam_distance
     results['pam_freq'] = pam_freq
+
     return results
 
 
-def _class_frequency(a, b):
-    '''(ndarray, ndarray) -> pandas.dataframe, pandas.dataframe
+def _class_frequency(a, b, fmt=EnumDataFormat.narrow, drop_nans=True, **kwargs):
+    '''(ndarray, ndarray, Enum, str) -> pandas.dataframe
     Takes arrays a and b (expected to be integer arrays) and
     calulates the frequency of corresponding values so:
     a=[1,2,3]
@@ -256,24 +317,73 @@ def _class_frequency(a, b):
     ['2,2',1]
     ['3,3',1]]
 
-    It then returns two pandas dataframes, the first is the frequency of the items
-    
-    Rows correspond to array a, cols to row b.
+    It then returns the frequency of the items in a cross matrix 
+    format or narrow format.
+
+    Note that the wide format is not yet supported.
+
+    CROSS MATRIX FORMAT
+    In the matrix format rows correspond to array a, cols to row b.
+    Label is ignored when cross matrix is used.
+
+    NARROW FORMAT
+    If kwargs contains label, then this will be used to label entries
+    in a new pandas column called 'group'.
+    Columns are 'group', 'a', 'b', 'value' if label != ''
+    Columns are 'a', 'b', 'value' if label == ''
+
+    KWARGS (only used for narrow format)
+    label: group label for narrow format
+    cola: label used for first column name
+    colb: label used for second column name
+    col_value:label used for value
     '''
+    if fmt == EnumDataFormat.wide:
+        raise ValueError('Wide data format not supported yet')
+
     assert isinstance(a, np.ndarray)
     assert isinstance(b, np.ndarray)
 
     x = a.copy().astype(str)
     y = b.copy().astype(str)
 
+    cola = kwargs.get('cola') 
+    if cola  is None: cola = 'a'
+
+    colb = kwargs.get('colb') 
+    if colb is None: colb = 'b'
+
+    col_value = kwargs.get('col_value') 
+    if col_value is None: col_value = 'value'
+
+    label = kwargs.get('label')
+
     z = np.char.add(np.char.add(x, [',']), y)
     freq = arraylib.np_frequencies(z) # [[val1 freq1],[val2 freq2] ...]
+            
 
-    df = _create_freq_dataframe(freq) #row, col
-
+    if fmt == EnumDataFormat.cross_matrix:
+        df = _create_freq_dataframe(freq) #row, col
+    elif fmt == EnumDataFormat.narrow:
+        if label is None:
+            df = pd.DataFrame(columns=(cola, colb, col_value))
+        else:
+            df = pd.DataFrame(columns=('group', cola, colb, col_value))
+    else:
+        raise ValueError('Unsupported data format specified.')
+    row = ''
+    col = ''
     for coords, n in freq:
         row, col = coords.split(',')
-        df[col][row] = n #dataframe is col row
+        if fmt == EnumDataFormat.cross_matrix:
+            df[col][row] = n #dataframe is col row, preallocated dataframe size
+        else:
+            if not drop_nans or (drop_nans and (col + row).lower().find('nan') == -1):
+                if label is None:
+                    build_row = [row, col, n]
+                else:
+                    build_row = [label, row, col, n]
+                df.loc[len(df)] = build_row #dataframe rows added dynamically
 
     return df
 
