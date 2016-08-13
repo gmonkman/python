@@ -18,8 +18,11 @@ def md_get_results():
     z = 1
 #endregion
 
+def kappas():
+    md.kappas()
 
 
-
-#median_distance()
-md_get_results()
+#region Module Level Calls
+#md_get_results()
+kappas()
+#endregion

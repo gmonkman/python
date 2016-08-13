@@ -171,23 +171,30 @@ def notepadpp_open_file(filename):
         subprocess.Popen(openpth)
 
 
-def write_to_file(result_text, prefix=''):
+def write_to_file(results, prefix='', open_in_npp=True):
     '''
-    (text) -> str
+    (str|iterable) -> str
     Takes result_text and writes it to a file in the cwd.
     Prints out the file name at the end and opens the folder location
 
     Returns the fully qualified filename written
 
     Use to quickly right single results set to a file
+
+    If results is a string then it writes out the string, otherwise it iterates through
+    results writing all elements to the file.
     '''
     filename = os.getcwd() + '\\RESULT' + prefix + stringslib.datetime_stamp() + '.txt'
-    f = open(filename, 'w+')
-    f.write(result_text)
-    f.close()
-    print result_text
+    with open(filename, 'w+') as f:
+        if isinstance(results, str):
+            f.write(results)
+        else:
+            for s in results:
+                f.write(str(s) + '\r\n')
+
+    print results
     print filename
-    notepadpp_open_file(filename)
+    if open_in_npp: notepadpp_open_file(filename)
     return filename
 
 #endregion

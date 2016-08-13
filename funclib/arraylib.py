@@ -3,6 +3,7 @@
 import numpy as np
 import numpy.ma as ma
 import numpy.random
+import pandas as pd
 import scipy.ndimage as ndimage
 import xlwings
 
@@ -163,6 +164,25 @@ def np_delete_paired_nans_flattened(a, b):
     return {'a':a, 'b':b}
 
 
+def np_nans_to_zero(a):
+    '''(ndarray, ndarray) -> dict
+    Where there are unmatched nans by position in ndarrays
+    a and b, zero will be substituted.
+    a and b will be converted to dtype=float
+    returns {'a':a,'b':b}
+    '''
+    assert isinstance(a, np.ndarray)
+    
+    out = a.copy().astype(float)
+    mask = numpy.isnan(out)
+    inds = np.nonzero(mask)   #inds where isnan is true, looks like [(11,1),(5,4) ...] 
+    inds = zip(inds[0], inds[1])
+    for x, y in inds:
+        if np.isnan(out[x][y]): out[x][y] = 0
+
+    return out
+
+
 def np_unmatched_nans_to_zero(a, b):
     '''(ndarray, ndarray) -> dict
     Where there are unmatched nans by position in ndarrays
@@ -292,5 +312,23 @@ def np_frequencies(a):
     unq, cnt = np.unique(a, return_counts=True)
     return np.asarray((unq, cnt)).T
 
+def np_difference(a, b):
+    '''(ndarray, ndarray) -> ndarray
+    get absolute difference between two matrices.
+    Effectively one from the other then abs it.
+    '''
+    x = np.copy(a)
+    y = np.copy(b)
+    return np.abs(x - y)
+#endregion
+
+
+
+#region Pandas
+def pd_df_to_ndarray(df):
+    '''(dataframe)->ndarray
+    Return a dataframe as a numpy array
+    '''
+    return df.as_matrix([x for x in df.columns])
 #endregion
     

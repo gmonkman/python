@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>switch</Title>
+      <Author>Graham Monkman</Author>
+      <Description>
+      </Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>
+      </Shortcut>
+    </Header>
+    <Snippet>
+      <Code Language="Python" Delimiter="$"><![CDATA[
+    for case in switch(method):
+        #from funclib.baselib import switch
+        if case(VAL):
+            break
+        if case():
+            break
+        if case():
+            break
+        if case():
+            raise ValueError('Switch value case not found')]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
