@@ -10,11 +10,10 @@ import numbers
 # packages
 import pandas
 import pandas.rpy.common as com
-import numpy
+import numpy as np
 import scipy
 import scipy.stats
 import rpy2.robjects as ro
-import statsmodels.stats
 
 # mine
 from enum import Enum
@@ -65,7 +64,7 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMet
     cnt = 0
     for counter in range(0, int(iterations)):
         cnt += 1
-        permuted = numpy.random.permutation(permuted)
+        permuted = np.random.permutation(permuted)
 
         for case in switch(method):
             if case(EnumMethod.kendall):
@@ -160,8 +159,8 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
     scipy cant cope with nans. Matched nans will be removed if a and b are numpy arrays
     '''
     
-    if isinstance(a, numpy.ndarray) or isinstance(b, numpy.ndarray):
-        if  isinstance(a, numpy.ndarray) is False or isinstance(b, numpy.ndarray) is False:
+    if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+        if  isinstance(a, np.ndarray) is False or isinstance(b, np.ndarray) is False:
             raise ValueError('If numpy arrays are used, both must be ndarray types')
 
         if a.shape != b.shape:
@@ -360,17 +359,17 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
         #assert isinstance(nd, numpy.ndarray)
     
         ret = []
-        a = numpy.array(nd).flatten() #default dtype is float
-        assert isinstance(a, numpy.ndarray)
+        a = np.array(nd).flatten() #default dtype is float
+        assert isinstance(a, np.ndarray)
 
         if exclude_zeros:
-            numpy.place(a, a == 0, numpy.nan)
+            np.place(a, a == 0, np.nan)
 
         a = arraylib.np_delete_zeros(a)
         labels = range(1, len(percentiles)+2) #[25,50,75] -> [1,2,3,4]
     
         percentiles.sort()
-        ranges = [scipy.stats.scoreatpercentile(a, x) for x in percentiles] if use_scipy else numpy.percentile(a, percentiles)
+        ranges = [scipy.stats.scoreatpercentile(a, x) for x in percentiles] if use_scipy else np.percentile(a, percentiles)
     
         for ind, item in enumerate(ranges):
             if ind == 0:
@@ -397,8 +396,8 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
                 ret = 0
                 assigned = True
                 break
-            elif numpy.isnan(x):
-                ret = numpy.nan
+            elif np.isnan(x):
+                ret = np.nan
                 assigned = True
                 break
             elif item[0] < x <= item[1]:
@@ -416,8 +415,8 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
         raise ValueError('Array should be of type float. Try recasting using ndarray.astype(float)')
 
     qr = get_quantile_ranges(nd, percentiles, zero_as_zero)
-    out = numpy.copy(nd)
-    func = numpy.vectorize(get_bin_label, excluded=['ranges', 'zero_as_zero'])
+    out = np.copy(nd)
+    func = np.vectorize(get_bin_label, excluded=['ranges', 'zero_as_zero'])
     out = func(out, ranges=qr, zero_as_zero=zero_as_zero)
     
     return out
@@ -437,14 +436,14 @@ def contingency_conditional(a, bycol=True):
     assert isinstance(a, np.ndarray)
     b = contigency_joint(a)
     assert isinstance(b, np.ndarray)
-    marg_rows, marg_cols = stats.contingency.margins(b)   
+    marg_rows, marg_cols = scipy.stats.contingency.margins(b)   
 
     if bycol:
-        b[:,:-1] = marg_cols #add marginal col
+        b = np.vstack([b, marg_cols]) #add marginal col
         for i in range(int(b.shape[1])-1): #loop through each col and use the column marginal to calculate conditional
             b[0:-1, i:i+1] = b[0:-1, i:i+1]/b[-1, i:i+1]
     else:
-        b[:-1,:] = marg_rows
+        b = np.hstack(b, marg_rows)
         for i in range(int(b.shape[0])-1):
             b[i:i+1, 0:-1] = b[i:i+1, 0:-1]/b[i:i+1, -1]
     return b
@@ -457,5 +456,5 @@ def contigency_joint(a):
     '''
     assert isinstance(a, np.ndarray)
     b = a.astype(float)
-    return b/sum(b)
+    return b/np.sum(b)
 #endregion

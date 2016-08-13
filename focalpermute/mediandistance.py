@@ -37,7 +37,7 @@ import funclib.stringslib as stringslib
 _PATH = './data'
 _EXCEL_DATA_PATH = r'C:\development\python\focalpermute\data\pam_fmm_for_plots.xlsx'
 _OUTPATH = r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\My Papers\WalesRSA-MSP\matplotlib'
-_MATRICES = {}
+_MATRICES = collection(dict)
 #endregion
 
 
@@ -157,14 +157,6 @@ def bin_and_merge_excel_data():
 
 
 #region Core Functions
-def _array_trim_zeros(a):
-    '''(ndarray)->ndarray
-    ugly fix to trim zero row and column from contingency ndarrays
-    since refactoring code
-    '''
-    return a[1:,1:]
-
-
 def get_matrix_data(datatype=EnumResultsType.freq, survey=EnumSurvey.fmm, results_key=EnumKeys.crispDirected_crispMine):
     '''(enum, enum,enum)->ndarray or dataframe
     return data from the main matrix as defined by the enums
@@ -196,7 +188,7 @@ def get_matrix_data(datatype=EnumResultsType.freq, survey=EnumSurvey.fmm, result
         if case():
             raise ValueError('Switch value case not found')
 
-        fmm_distance = {}
+
 
     for case in switch(survey):
         if case(EnumSurvey.fmm):
@@ -260,8 +252,6 @@ def make_matrices():
     So dic['fmm_freq']['crispDirected_crispMine'] is ndarray of freq
     '''
 
-
-    #region Nested Functions
     def get_contingency(df_freq, include_zero=True):
         '''(dataframe, bool)->ndarray
         Takes frequency dataframe and creates a contingency table
@@ -278,11 +268,12 @@ def make_matrices():
         df = df.pivot(index='this', columns='directed', values='frequency')
         df = df[df.columns].astype(float)
         out = df.as_matrix([x for x in df.columns])
-        if not include_zero: out = out[1:,1:]
+        if not include_zero: out = out[1:, 1:]
         out = arraylib.np_nans_to_zero(out)
         return out
 
 
+    #region Nested Functions
     def class_frequency(a, b, fmt=EnumDataFormat.narrow, drop_nans=True, **kwargs):
         '''(ndarray, ndarray, Enum, str) -> pandas.dataframe
         Takes arrays a and b (expected to be integer arrays) and
@@ -423,7 +414,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.directed))
     b = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.mine))
     check_array(a, b)
-    fmm_distance['crispDirected_crispMine'] = np_difference(a, b)
+    fmm_distance['crispDirected_crispMine'] = arraylib.np_difference(a, b)
     fmm_freq['crispDirected_crispMine'] = class_frequency(a, b, 
                     cola='directed', colb='this', col_value='frequency', label='crispDirected_crispMine'
                     )
@@ -433,7 +424,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.directed))
     b = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.mine))
     check_array(a, b)
-    fmm_distance['focalDirected_focalMine'] = np_difference(a, b)
+    fmm_distance['focalDirected_focalMine'] = arraylib.np_difference(a, b)
     fmm_freq['focalDirected_focalMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalDirected_focalMine'
                     )
@@ -443,7 +434,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.directed))
     b = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.mine))
     check_array(a, b)
-    fmm_distance['crispDirected_focalMine'] = np_difference(a, b)
+    fmm_distance['crispDirected_focalMine'] = arraylib.np_difference(a, b)
     fmm_freq['crispDirected_focalMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='crispDirected_focalMine'
                     )
@@ -453,7 +444,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.directed))
     b = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.mine))
     check_array(a, b)
-    fmm_distance['focalDirected_crispMine'] = np_difference(a, b)
+    fmm_distance['focalDirected_crispMine'] = arraylib.np_difference(a, b)
     fmm_freq['focalDirected_crispMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalDirected_crispMine'
                     )
@@ -463,7 +454,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.directed))
     b = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.directed))
     check_array(a, b)
-    fmm_distance['focalDirected_crispDirected'] = np_difference(a, b)
+    fmm_distance['focalDirected_crispDirected'] = arraylib.np_difference(a, b)
     fmm_freq['focalDirected_crispDirected'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalDirected_crispDirected'
                     )
@@ -473,7 +464,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.focal, EnumData.mine))
     b = bin_array_quartile(get_pickled_data(EnumSurvey.fmm, EnumSpatial.crisp, EnumData.mine))
     check_array(a, b)
-    fmm_distance['focalMine_crispMine'] = np_difference(a, b)
+    fmm_distance['focalMine_crispMine'] = arraylib.np_difference(a, b)
     fmm_freq['focalMine_crispMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalMine_crispMine'
                     )
@@ -482,12 +473,13 @@ def make_matrices():
 
     results['fmm_distance'] = fmm_distance
     results['fmm_freq'] = fmm_freq
+    results['fmm_contingency'] = fmm_contingency
 
     #PAM 
     a = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.directed), tertile) #Tertile as not enough of my crisp classes
     b = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.mine), tertile)
     check_array(a, b)
-    pam_distance['crispDirected_crispMine'] = np_difference(a, b)
+    pam_distance['crispDirected_crispMine'] = arraylib.np_difference(a, b)
     pam_freq['crispDirected_crispMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='crispDirected_crispMine'
                     )
@@ -497,7 +489,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.directed))
     b = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.mine))
     check_array(a, b)
-    pam_distance['focalDirected_focalMine'] = np_difference(a, b)
+    pam_distance['focalDirected_focalMine'] = arraylib.np_difference(a, b)
     pam_freq['focalDirected_focalMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalDirected_focalMine'
                     )
@@ -507,7 +499,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.directed))
     b = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.mine))
     check_array(a, b)
-    pam_distance['crispDirected_focalMine'] = np_difference(a, b)
+    pam_distance['crispDirected_focalMine'] = arraylib.np_difference(a, b)
     pam_freq['crispDirected_focalMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='crispDirected_focalMine'
                     )
@@ -518,7 +510,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.directed), tertile)
     b = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.mine), tertile)
     check_array(a, b)
-    pam_distance['focalDirected_crispMine'] = np_difference(a, b)
+    pam_distance['focalDirected_crispMine'] = arraylib.np_difference(a, b)
     pam_freq['focalDirected_crispMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalDirected_crispMine'
                     )
@@ -528,7 +520,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.directed))
     b = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.directed))
     check_array(a, b)
-    pam_distance['focalDirected_crispDirected'] = np_difference(a, b)
+    pam_distance['focalDirected_crispDirected'] = arraylib.np_difference(a, b)
     pam_freq['focalDirected_crispDirected'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalDirected_crispDirected'
                     )
@@ -538,7 +530,7 @@ def make_matrices():
     a = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.mine), tertile)
     b = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.mine), tertile)
     check_array(a, b)
-    pam_distance['focalMine_crispMine'] = np_difference(a, b)
+    pam_distance['focalMine_crispMine'] = arraylib.np_difference(a, b)
     pam_freq['focalMine_crispMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalMine_crispMine'
                     )
@@ -547,7 +539,7 @@ def make_matrices():
 
     results['pam_distance'] = pam_distance
     results['pam_freq'] = pam_freq
-
+    results['pam_contingency'] = pam_contingency
     return results
 
 
@@ -561,44 +553,50 @@ def kappas():
     focalDirected_focalMine
     '''
 
+    def trim_zeros(a):
+        '''(ndarray)->ndarray
+        ugly fix to trim zero row and column from contingency ndarrays
+        since refactoring code
+        '''
+        return a[1:, 1:]
 
     res = []
     
     #FMM
     res.append('FMM FREQ - crispDirected_crispMine - Has Zero')
-    data = get_contingency('fmm_freq', 'crispDirected_crispMine')
+    data = get_matrix_data(EnumResultsType.contingency, EnumSurvey.fmm, EnumKeys.crispDirected_crispMine)
     res.append(str(ir.cohens_kappa(data, wt='linear', return_results=True)))
     
     res.append('FMM FREQ - crispDirected_crispMine - No Zero')
-    data = get_contingency('fmm_freq', 'crispDirected_crispMine', include_zero=False)
+    data = trim_zeros(get_matrix_data(EnumResultsType.contingency, EnumSurvey.fmm, EnumKeys.crispDirected_crispMine))
     res.append(str(ir.cohens_kappa(data, wt='linear', return_results=True)))
 
     res.append('FMM FREQ - focalDirected_focalMine - Has Zero')
-    data = get_contingency('fmm_freq', 'focalDirected_focalMine')
+    data = get_matrix_data(EnumResultsType.contingency, EnumSurvey.fmm, EnumKeys.focalDirected_focalMine)
     res.append(str(ir.cohens_kappa(data, wt='linear', return_results=True)))
 
     res.append('FMM FREQ - focalDirected_focalMine - No Zero')
-    data = get_contingency('fmm_freq', 'focalDirected_focalMine', include_zero=False)
+    data = trim_zeros(get_matrix_data(EnumResultsType.contingency, EnumSurvey.fmm, EnumKeys.focalDirected_focalMine))
     res.append(str(ir.cohens_kappa(data, wt='linear', return_results=True)))
 
 
     #PAM
     res.append('PAM FREQ - crispDirected_crispMine - Has Zero')
-    data = get_contingency('pam_freq', 'crispDirected_crispMine')
+    data = get_matrix_data(EnumResultsType.contingency, EnumSurvey.pam, EnumKeys.crispDirected_crispMine)
     res.append(str(ir.cohens_kappa(data, wt='linear', return_results=True)))
 
     res.append('PAM FREQ - crispDirected_crispMine - No Zero')
-    data = get_contingency('pam_freq', 'crispDirected_crispMine', include_zero=False)
+    data = trim_zeros(get_matrix_data(EnumResultsType.contingency, EnumSurvey.pam, EnumKeys.crispDirected_crispMine))
     res.append(str(ir.cohens_kappa(data, wt='linear', return_results=True)))
 
     res.append('PAM FREQ - focalDirected_focalMine - Has Zero')
-    data = get_contingency('pam_freq', 'focalDirected_focalMine')
+    data = get_matrix_data(EnumResultsType.contingency, EnumSurvey.pam, EnumKeys.focalDirected_focalMine)
     res.append(str(ir.cohens_kappa(data, wt='linear', return_results=True)))
 
     res.append('PAM FREQ - focalDirected_focalMine - No Zero')
-    data = get_contingency('pam_freq', 'focalDirected_focalMine', include_zero=False)
+    data = trim_zeros(get_matrix_data(EnumResultsType.contingency, EnumSurvey.pam, EnumKeys.focalDirected_focalMine))
     res.append(str(ir.cohens_kappa(data, wt='linear', return_results=True)))
-    
+
     iolib.write_to_file(res, prefix='Kappa', open_in_npp=True)
 #endregion
 

@@ -2,7 +2,9 @@
 '''test stuff focalpermute'''
 
 import numpy as np
+
 import mediandistance as md
+import funclib.statslib as statslib
 
 #region mediandistance
 def median_distance():
@@ -21,8 +23,13 @@ def md_get_results():
 def kappas():
     md.kappas()
 
+def contingency():
+    tbl = md.get_matrix_data(md.EnumResultsType.contingency, md.EnumSurvey.fmm, md.EnumKeys.crispDirected_crispMine)
+    #x = statslib.contingency_conditional(tbl, bycol=True)
+    y = statslib.contingency_conditional(tbl, bycol=False)
 
 #region Module Level Calls
 #md_get_results()
-kappas()
+#kappas()
+contingency()
 #endregion
