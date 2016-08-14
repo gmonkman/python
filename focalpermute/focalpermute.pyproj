@@ -25,6 +25,9 @@
     <Compile Include="heatmap.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="heatmap_conditionals.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="mediandistance.py">
       <SubType>Code</SubType>
     </Compile>

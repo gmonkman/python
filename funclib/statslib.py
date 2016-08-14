@@ -1,4 +1,4 @@
-# pylint: disable=too-few-public-methods,too-many-statements, unused-import, unused-variable, no-member,dangerous-default-value
+# pylint: disable=too-few-public-methods,too-many-statements, unused-import, unused-variable, no-member,dangerous-default-value,unbalanced-tuple-unpacking
 
 '''My library of statistics based functions'''
 
@@ -14,6 +14,7 @@ import numpy as np
 import scipy
 import scipy.stats
 import rpy2.robjects as ro
+import xlwings
 
 # mine
 from enum import Enum
@@ -440,11 +441,11 @@ def contingency_conditional(a, bycol=True):
 
     if bycol:
         b = np.vstack([b, marg_cols]) #add marginal col
-        for i in range(int(b.shape[1])-1): #loop through each col and use the column marginal to calculate conditional
+        for i in range(int(b.shape[1])): #loop through each col and use the column marginal to calculate conditional
             b[0:-1, i:i+1] = b[0:-1, i:i+1]/b[-1, i:i+1]
     else:
-        b = np.hstack(b, marg_rows)
-        for i in range(int(b.shape[0])-1):
+        b = np.hstack([b, marg_rows])
+        for i in range(int(b.shape[0])):
             b[i:i+1, 0:-1] = b[i:i+1, 0:-1]/b[i:i+1, -1]
     return b
 

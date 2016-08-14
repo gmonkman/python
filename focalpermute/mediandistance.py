@@ -34,7 +34,7 @@ import funclib.stringslib as stringslib
 
 
 #region Globals
-_PATH = './data'
+_PATH = 'C:/development/python/focalpermute/data'
 _EXCEL_DATA_PATH = r'C:\development\python\focalpermute\data\pam_fmm_for_plots.xlsx'
 _OUTPATH = r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\My Papers\WalesRSA-MSP\matplotlib'
 _MATRICES = collection(dict)
@@ -187,8 +187,6 @@ def get_matrix_data(datatype=EnumResultsType.freq, survey=EnumSurvey.fmm, result
             break
         if case():
             raise ValueError('Switch value case not found')
-
-
 
     for case in switch(survey):
         if case(EnumSurvey.fmm):
@@ -483,7 +481,7 @@ def make_matrices():
     pam_freq['crispDirected_crispMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='crispDirected_crispMine'
                     )
-    pam_contingency['crispDirected_crispMine'] = get_contingency(fmm_freq['crispDirected_crispMine'], True)
+    pam_contingency['crispDirected_crispMine'] = get_contingency(pam_freq['crispDirected_crispMine'], True)
 
 
     a = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.directed))
@@ -493,7 +491,7 @@ def make_matrices():
     pam_freq['focalDirected_focalMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalDirected_focalMine'
                     )
-    pam_contingency['focalDirected_focalMine'] = get_contingency(fmm_freq['focalDirected_focalMine'], True)
+    pam_contingency['focalDirected_focalMine'] = get_contingency(pam_freq['focalDirected_focalMine'], True)
 
 
     a = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.crisp, EnumData.directed))
@@ -503,7 +501,7 @@ def make_matrices():
     pam_freq['crispDirected_focalMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='crispDirected_focalMine'
                     )
-    pam_contingency['crispDirected_focalMine'] = get_contingency(fmm_freq['crispDirected_focalMine'], True)
+    pam_contingency['crispDirected_focalMine'] = get_contingency(pam_freq['crispDirected_focalMine'], True)
 
 
     #use tertile for pam crisp mine otherwise quantile gives blank for 2nd quantile
@@ -514,7 +512,7 @@ def make_matrices():
     pam_freq['focalDirected_crispMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalDirected_crispMine'
                     )
-    pam_contingency['focalDirected_crispMine'] = get_contingency(fmm_freq['focalDirected_crispMine'], True)
+    pam_contingency['focalDirected_crispMine'] = get_contingency(pam_freq['focalDirected_crispMine'], True)
 
 
     a = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.directed))
@@ -524,7 +522,7 @@ def make_matrices():
     pam_freq['focalDirected_crispDirected'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalDirected_crispDirected'
                     )
-    pam_contingency['focalDirected_crispDirected'] = get_contingency(fmm_freq['focalDirected_crispDirected'], True)
+    pam_contingency['focalDirected_crispDirected'] = get_contingency(pam_freq['focalDirected_crispDirected'], True)
 
 
     a = bin_array_quartile(get_pickled_data(EnumSurvey.pam, EnumSpatial.focal, EnumData.mine), tertile)
@@ -534,7 +532,7 @@ def make_matrices():
     pam_freq['focalMine_crispMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalMine_crispMine'
                     )
-    pam_contingency['focalMine_crispMine'] = get_contingency(fmm_freq['focalMine_crispMine'], True)
+    pam_contingency['focalMine_crispMine'] = get_contingency(pam_freq['focalMine_crispMine'], True)
 
 
     results['pam_distance'] = pam_distance

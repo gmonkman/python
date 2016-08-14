@@ -31,8 +31,8 @@ _NP_PAM_VENUE = numpy.array([])
 assert isinstance(_NP_PAM_VENUE, numpy.ndarray)
 
 _ITERATIONS = 100000
-_PATH = './data'
-_RESULT_PATH = './data' # '.C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr'
+_PATH = 'C:/development/python/focalpermute/data'
+_RESULT_PATH = 'C:/development/python/focalpermute/data' # '.C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/focalcorr'
 
 
 

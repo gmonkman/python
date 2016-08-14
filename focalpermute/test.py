@@ -5,6 +5,7 @@ import numpy as np
 
 import mediandistance as md
 import funclib.statslib as statslib
+import heatmap_conditionals as hc
 
 #region mediandistance
 def median_distance():
@@ -18,18 +19,18 @@ def median_distance():
 def md_get_results():
     md.get_results()
     z = 1
-#endregion
 
 def kappas():
     md.kappas()
 
-def contingency():
-    tbl = md.get_matrix_data(md.EnumResultsType.contingency, md.EnumSurvey.fmm, md.EnumKeys.crispDirected_crispMine)
-    #x = statslib.contingency_conditional(tbl, bycol=True)
-    y = statslib.contingency_conditional(tbl, bycol=False)
+def heatmap_conditionals():
+    hc.plot()
+#endregion
+
+
 
 #region Module Level Calls
 #md_get_results()
 #kappas()
-contingency()
+heatmap_conditionals()
 #endregion

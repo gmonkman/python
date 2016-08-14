@@ -1,5 +1,8 @@
 #pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled, not-context-manager, unused-import
 '''routines to manipulate array like objects like lists, tuples etc'''
+import warnings
+
+
 import numpy as np
 import numpy.ma as ma
 import numpy.random
@@ -320,6 +323,35 @@ def np_difference(a, b):
     x = np.copy(a)
     y = np.copy(b)
     return np.abs(x - y)
+
+
+def np_conditional_array_split(a, has_by_column, has_by_row):
+    '''(ndarray, bool, bool)->ndarray, ndarray, ndarray
+    Given an array of conditional probabilities returns
+    marginals and the conditionals as seperate matrices
+    [body, col_marginals, row_marginals]
+    '''
+    
+    warnings.warn('arraylib.np_conditional_array_split needs testing')
+
+    rows = int(a.shape[0])
+    cols = int(a.shape[1])
+
+    if has_by_column and has_by_row:
+        body = a[0:a.shape[1]-1, 0:int(a.shape[0])-1]
+        row_marginals = a[0:row_marginals-1, a.shape[0]-1:a.shape[0]]
+        col_marginals = a[int(a.shape[0])-1:int(a.shape[0]), 0:rows-1]
+    elif has_by_row:
+        body = a[0:a.shape[1], 0:a.shape[0]-1]
+        row_marginals = a[:, a.shape[0]-1:a.shape[0]]
+        col_marginals = []
+    elif has_by_column:
+        body = a[0:a.shape[0]-1, 0:a.shape[1]]
+        col_marginals = a[a.shape[0]-1:a.shape[0], :]
+        row_marginals = []
+    return [body, col_marginals, row_marginals]
+                
+
 #endregion
 
 
