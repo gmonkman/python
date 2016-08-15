@@ -331,23 +331,21 @@ def np_conditional_array_split(a, has_by_column, has_by_row):
     marginals and the conditionals as seperate matrices
     [body, col_marginals, row_marginals]
     '''
-    
-    warnings.warn('arraylib.np_conditional_array_split needs testing')
 
     rows = int(a.shape[0])
     cols = int(a.shape[1])
 
     if has_by_column and has_by_row:
-        body = a[0:a.shape[1]-1, 0:int(a.shape[0])-1]
-        row_marginals = a[0:row_marginals-1, a.shape[0]-1:a.shape[0]]
-        col_marginals = a[int(a.shape[0])-1:int(a.shape[0]), 0:rows-1]
+        body = a[0:cols-1, 0:rows-1]
+        row_marginals = a[0:rows-1, rows-1:rows]
+        col_marginals = a[rows-1:rows, 0:rows-1]
     elif has_by_row:
-        body = a[0:a.shape[1], 0:a.shape[0]-1]
-        row_marginals = a[:, a.shape[0]-1:a.shape[0]]
+        body = a[0:cols, 0:rows-1]
+        row_marginals = a[:, rows-1:rows]
         col_marginals = []
     elif has_by_column:
-        body = a[0:a.shape[0]-1, 0:a.shape[1]]
-        col_marginals = a[a.shape[0]-1:a.shape[0], :]
+        body = a[0:rows-1, 0:cols]
+        col_marginals = a[rows-1:rows, :]
         row_marginals = []
     return [body, col_marginals, row_marginals]
                 

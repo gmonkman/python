@@ -437,7 +437,7 @@ def contingency_conditional(a, bycol=True):
     assert isinstance(a, np.ndarray)
     b = contigency_joint(a)
     assert isinstance(b, np.ndarray)
-    marg_rows, marg_cols = scipy.stats.contingency.margins(b)   
+    marg_rows, marg_cols = scipy.stats.contingency.margins(b)
 
     if bycol:
         b = np.vstack([b, marg_cols]) #add marginal col

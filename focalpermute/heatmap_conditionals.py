@@ -16,6 +16,7 @@ import matplotlib.gridspec as gridspec
 #region Mine
 import mediandistance as md
 import funclib.statslib as statslib
+import funclib.arraylib as arraylib
 from funclib.stringslib import add_right
 from enum import Enum
 #endregion
@@ -32,6 +33,14 @@ def plot():
     '''
     sns.set(font_scale=1, style='white')
 
+    def zeros(a):
+        '''(iterable)->dic {'zero':zero cnt, 'nonzero':nonzero cnt}
+        '''
+        b = a.flatten()
+        zero = b[-1]
+        nonzero = sum(x for x in b)
+        return {'zero':zero, 'nonzero':nonzero}
+
     def save_plot(fname):
         '''(str)->void
         Save plot with fname name.
@@ -41,22 +50,34 @@ def plot():
         plt.savefig(s, bbox_inches='tight', dpi=300)
     
 
-    def get_data(a):
-        '''(ndarray)->ndarrays
-        a is contingency with row and col marginals
-        which we need to chop out to plot
-        returns [conditionals, bycol_marginals]
+    def process_array(a):
+        '''(ndarray)->ndarray, ndarray, ndarray, dic
+        processing prior to display
 
-        Currently im only passing in arrays with marginals by columns
+        we want conditional grid probs. by row - ie by directed data
+        we want the marginals by column, ie my data as marginals by directed data are all equal because of median
+        we want the row marginals to break down into frequency of zeros vs. everything else
+
+        [conditionals, marginals by row, marginals by column, {'zero':x 'nonzero':y}]
         '''
-        rows = a.shape[0]
-        cols = a.shape[1]
-        
-        conditionals = a[0:int(a.shape[0])-1, 0:int(a.shape[1])]
-        bycol_marginals = a[int(a.shape[0])-1:int(a.shape[0]), :]
-        return [conditionals, bycol_marginals]
+        b = a.T #Directed is now on the Y axis
+        b = b.reindex(index=data.index[::-1]) #for aesthetic reasons 0,0 at the origin of axis
+        #Now
+        # 0 1 2 3 4 Mine
+        #4          
+        #3          
+        #2          
+        #1          
+        #0          
+        #Dir
 
-    raise ValueError('Check your marginals they dont look right')
+        x = statslib.contingency_conditional(b, bycol=True)
+        empty, col_marg, empty1 = arraylib.np_conditional_array_split(x, has_by_column=True, has_by_row=False)
+        y = statslib.contingency_conditional(b, bycol=False)
+        conditionals, empty, row_marg = arraylib.np_conditional_array_split(x, has_by_column=True, has_by_row=False)
+        zero_proportions = zeros(row_marg)                         
+        return conditionals, row_marg, col_marg, zero_proportions
+
 
     plt.close('all')
 
@@ -75,8 +96,7 @@ def plot():
 
     # From here we can plot using inner_grid's SubplotSpecs
     nd_data = md.get_matrix_data(md.EnumResultsType.contingency, md.EnumSurvey.fmm, md.EnumKeys.crispDirected_crispMine)
-    nd_data = statslib.contingency_conditional(nd_data, bycol=True)
-    conditionals, col_marg = get_data(nd_data)
+    conditionals, row_marg, col_marg, zero = process_array(nd_data)
     ax00_0 = plt.subplot(tlc_inner[0, :])
     ax00_1 = plt.subplot(tlc_inner[1, 0])
     sns.heatmap(conditionals, annot=False, fmt='0.2f', square=True, cbar=True, ax=ax00_0)
@@ -88,10 +108,11 @@ def plot():
     ax00_1.axes.get_yaxis().set_ticks([0.2])
     ax00_1.axes.get_yaxis().set_ticklabels(['Marg.'])
 
-
+    jkjkj(
     nd_data = md.get_matrix_data(md.EnumResultsType.contingency, md.EnumSurvey.fmm, md.EnumKeys.focalDirected_focalMine)
+    #nd_data = data.reindex(index=data.index[::-1]) #for aesthetic reasons
     nd_data = statslib.contingency_conditional(nd_data, bycol=True)
-    conditionals, col_marg = get_data(nd_data)
+    conditionals, col_marg = process_array(nd_data)
     ax01_0 = plt.subplot(trc_inner[0, :])
     ax01_1 = plt.subplot(trc_inner[1, 0])
     sns.heatmap(conditionals, annot=False, fmt='0.2f', square=True, ax=ax01_0)
@@ -105,8 +126,9 @@ def plot():
 
 
     nd_data = md.get_matrix_data(md.EnumResultsType.contingency, md.EnumSurvey.pam, md.EnumKeys.crispDirected_crispMine)
+    #nd_data = data.reindex(index=data.index[::-1]) #for aesthetic reasons
     nd_data = statslib.contingency_conditional(nd_data, bycol=True)
-    conditionals, col_marg = get_data(nd_data)
+    conditionals, col_marg = process_array(nd_data)
     ax10_0 = plt.subplot(blc_inner[0, :])
     ax10_1 = plt.subplot(blc_inner[1, 0])
     sns.heatmap(conditionals, annot=False, fmt='0.2f', square=True, ax=ax10_0)
@@ -119,8 +141,9 @@ def plot():
 
 
     nd_data = md.get_matrix_data(md.EnumResultsType.contingency, md.EnumSurvey.pam, md.EnumKeys.focalDirected_focalMine)
+    #nd_data = data.reindex(index=data.index[::-1]) #for aesthetic reasons
     nd_data = statslib.contingency_conditional(nd_data, bycol=True)
-    conditionals, col_marg = get_data(nd_data)
+    conditionals, col_marg = process_array(nd_data)
     ax11_0 = plt.subplot(brc_inner[0, :])
     ax11_1 = plt.subplot(brc_inner[1, 0])
     sns.heatmap(conditionals, annot=False, fmt='0.2f', square=True, ax=ax11_0)
