@@ -9,7 +9,7 @@ import math
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-
+import matplotlib as mpl
 import numpy
 import pandas
 
@@ -162,13 +162,6 @@ def get_all_data_from_excel():
 
 
 
-
-#df_focal = get_focal_dataframe()
-#df_crisp = get_crisp_dataframe()
-#df_all = pandas.concat([df_focal, df_crisp])
-#df = get_all_data_from_excel()
-
-
 #region Show Graphs
 def plot_crisp():
     df_all = get_all_data_from_excel()
@@ -236,11 +229,16 @@ def quantile():
     print(res.summary())
 
 
-#sns.set(style="ticks", palette="pastel", color_codes=True, font_scale=1.5)
 
-tmp  = get_all_data_from_excel()
-xlwings.view(tmp)
+#fig = plt.figure(figsize=(1, 4))
+#ax = fig.add_axes([0.09, 0.06, 0.2, 0.84])
+#cmap = mpl.colors.ListedColormap(['#555555','#999999'])
+#bounds = [0.00001, 50,100]
+#norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+#cb2 = mpl.colorbar.ColorbarBase(ax, cmap=cmap, norm=norm, spacing='proportional', orientation='vertical')
+#ax.text(0.2,0.9,'Test', fontsize=12, transform=ax.transAxes, rotation=90)
 
-#quantile()
-#plot_focal()
 #plt.show()
+
+
+

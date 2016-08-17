@@ -35,6 +35,9 @@
     <Compile Include="plotlib\matplotlib-3d.py" />
     <Compile Include="plotlib\matplotliblib.py" />
     <Compile Include="plotlib\seabornlib.py" />
+    <Compile Include="plotlib\stackedbargraph.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="plotlib\__init__.py" />
     <Compile Include="shell_lib.py" />
     <Compile Include="statslib.py" />

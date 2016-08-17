@@ -337,11 +337,11 @@ def np_conditional_array_split(a, has_by_column, has_by_row):
 
     if has_by_column and has_by_row:
         body = a[0:cols-1, 0:rows-1]
-        row_marginals = a[0:rows-1, rows-1:rows]
-        col_marginals = a[rows-1:rows, 0:rows-1]
+        row_marginals = a[0:rows-1, cols-1:cols]
+        col_marginals = a[rows-1:rows, 0:cols-1]
     elif has_by_row:
-        body = a[0:cols, 0:rows-1]
-        row_marginals = a[:, rows-1:rows]
+        body = a[0:rows, 0:cols-1]
+        row_marginals = a[0:rows, cols-1:cols]
         col_marginals = []
     elif has_by_column:
         body = a[0:rows-1, 0:cols]
@@ -361,4 +361,15 @@ def pd_df_to_ndarray(df):
     '''
     return df.as_matrix([x for x in df.columns])
 #endregion
-    
+
+
+#region lists
+def list_flatten(test_list):
+    if isinstance(test_list, list):
+        if len(test_list) == 0:
+            return []
+        first, rest = test_list[0], test_list[1:]
+        return flatten(first) + flatten(rest)
+    else:
+        raise ValueError("Couldn't flatten object. Expected a list, but object not a list")
+#endregion    
