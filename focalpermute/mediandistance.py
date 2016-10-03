@@ -37,7 +37,69 @@ import funclib.stringslib as stringslib
 _PATH = 'C:/development/python/focalpermute/data'
 _EXCEL_DATA_PATH = r'C:\development\python\focalpermute\data\pam_fmm_for_plots.xlsx'
 _OUTPATH = r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\My Papers\WalesRSA-MSP\matplotlib'
+_KAPPA_RESULT_PATH = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/kappa_permute' 
+
+
 _MATRICES = collection(dict)
+_ITERATIONS = 10
+
+_NP_FMM_VALUE = np.array([])
+assert isinstance(_NP_FMM_VALUE, np.ndarray)
+
+_NP_FMM_VENUE = np.array([])
+assert isinstance(_NP_FMM_VENUE, np.ndarray)
+
+_NP_PAM_DAYSPAKM = np.array([])
+assert isinstance(_NP_PAM_DAYSPAKM, np.ndarray)
+
+_NP_PAM_VENUE = np.array([])
+assert isinstance(_NP_PAM_VENUE, np.ndarray)
+
+
+#loading original data for use in the kappa permutation calculation
+def load_arrays():
+    '''() -> void
+    Load data previously exported as numpy arrays
+    from arcgis for both FMM and PAM data.
+
+    We will permute the study data then calculate 3x3 sliding windowed means
+    then run a correlation against the already permuted data
+    '''
+
+    #FMM
+    global _NP_FMM_VALUE
+    _NP_FMM_VALUE = np.load(_PATH + '/NP_FMM_VALUE.np').astype(float)
+
+    global _NP_FMM_VENUE
+    _NP_FMM_VENUE = np.load(_PATH + '/NP_FMM_VENUE.np').astype(float)
+
+    # slight mismatch in size owing to messing around with a pad in original data. Fix using slicing
+    _NP_FMM_VENUE = _NP_FMM_VENUE[0:56, 0:69]
+
+    if not _NP_FMM_VENUE.shape == _NP_FMM_VALUE.shape:
+        raise ValueError('FMM arrays not of the same shape')
+
+    #PAM
+    global _NP_PAM_DAYSPAKM
+    _NP_PAM_DAYSPAKM = np.load(_PATH + '/' + 'NP_PAM_DAYSPAKM.np').astype(float)
+
+    global _NP_PAM_VENUE
+    _NP_PAM_VENUE = np.load(_PATH + '/' + 'PAMSansPAMVCntRaster.np').astype(float)
+    if not _NP_PAM_DAYSPAKM.shape == _NP_PAM_VENUE.shape:
+        raise ValueError('PAM arrays not of the same shape')
+
+
+    #there were a small number of cells which existed in one but not the other
+    #decided to resolve globally than on a 'per use' basis
+    dic = arraylib.np_unmatched_nans_to_zero(_NP_FMM_VALUE, _NP_FMM_VENUE)
+    _NP_FMM_VALUE = dic['a']
+    _NP_FMM_VENUE = dic['b']
+
+    dic = arraylib.np_unmatched_nans_to_zero(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE)
+    _NP_PAM_DAYSPAKM = dic['a']
+    _NP_PAM_VENUE = dic['b']
+
+
 #endregion
 
 
@@ -157,6 +219,150 @@ def bin_and_merge_excel_data():
 
 
 #region Core Functions
+
+#region used in iter rater kappa and joint probability historgrams
+def trim_zeros(a):
+    '''(ndarray)->ndarray
+    ugly fix to trim zero row and column from contingency ndarrays
+    since refactoring code
+    '''
+    return a[1:, 1:]
+
+def bin_array_quartile(nd, quantile=None):
+    '''(ndarray) -> ndarray
+    puts array values into quartile bins, leaving zeros as zero
+    '''
+    if quantile is None: quantile = [25, 50, 75] 
+    a = np.copy(nd)
+    return statslib.quantile_bin(a, quantile, zero_as_zero=True)
+
+def get_contingency(df_freq, include_zero=True):
+    '''(dataframe, bool)->ndarray
+    Takes frequency dataframe and creates a contingency table
+    which is used as the basic matrix for kappa inter-rater calculations
+    The contingency table is an ndarray.
+
+    Include zero will leave in the 0 column and row.
+        
+    This routine is used to build up contingency tables for
+    the global dictionary _MATRICES
+    '''
+    df = df_freq.copy()
+    assert isinstance(df, pd.DataFrame)
+    df = df.pivot(index='this', columns='directed', values='frequency')
+    df = df[df.columns].astype(float)
+    out = df.as_matrix([x for x in df.columns])
+    if not include_zero: out = out[1:, 1:]
+    out = arraylib.np_nans_to_zero(out)
+    return out
+
+def class_frequency(a, b, fmt=EnumDataFormat.narrow, drop_nans=True, **kwargs):
+    '''(ndarray, ndarray, Enum, str) -> pandas.dataframe
+    Takes arrays a and b (expected to be integer arrays) and
+    calulates the frequency of corresponding values so:
+    a=[1,2,3]
+    b=[1,2,3]
+    [['1,1',1]
+    ['2,2',1]
+    ['3,3',1]]
+
+    It then returns the frequency of the items in a cross matrix 
+    format or narrow format.
+
+    Note that the wide format is not yet supported.
+
+    CROSS MATRIX FORMAT
+    In the matrix format rows correspond to array a, cols to row b.
+    Label is ignored when cross matrix is used.
+
+    NARROW FORMAT
+    If kwargs contains label, then this will be used to label entries
+    in a new pandas column called 'group'.
+    Columns are 'group', 'a', 'b', 'value' if label != ''
+    Columns are 'a', 'b', 'value' if label == ''
+
+    KWARGS (only used for narrow format)
+    label: group label for narrow format
+    cola: label used for first column name
+    colb: label used for second column name
+    col_value:label used for value
+    '''
+
+
+    def create_freq_dataframe(freq_counts):
+        '''(ndarray)->dataframe
+        takes an ndarray of frequency counts and creates empty dataframe
+        to populate with frequency values for further processing.
+
+        Example of freq_counts:
+        [['0.0,0.0', '124'],
+        ['0.0,1.0', '29'],
+        ['0.0,2.0', '6'],
+        ['0.0,3.0', '2'],
+        ['0.0,4.0', '2']]
+        '''
+        v = []
+        for coords, freq in freq_counts:
+            x, y = coords.split(',')
+            v.append(x)
+            v.append(y)
+
+        a = np.unique(np.array(v))
+        df = pd.DataFrame(index=a, columns=a) #row, col
+        return df
+
+
+    if fmt == EnumDataFormat.wide:
+        raise ValueError('Wide data format not supported yet')
+
+    assert isinstance(a, np.ndarray)
+    assert isinstance(b, np.ndarray)
+
+    x = a.copy().astype(str)
+    y = b.copy().astype(str)
+
+    cola = kwargs.get('cola') 
+    if cola  is None: cola = 'a'
+
+    colb = kwargs.get('colb') 
+    if colb is None: colb = 'b'
+
+    col_value = kwargs.get('col_value') 
+    if col_value is None: col_value = 'value'
+
+    label = kwargs.get('label')
+
+    z = np.char.add(np.char.add(x, [',']), y)
+    freq = arraylib.np_frequencies(z) # [[val1 freq1],[val2 freq2] ...]
+            
+
+    if fmt == EnumDataFormat.cross_matrix:
+        df = create_freq_dataframe(freq) #row, col
+    elif fmt == EnumDataFormat.narrow:
+        if label is None:
+            df = pd.DataFrame(columns=(cola, colb, col_value))
+        else:
+            df = pd.DataFrame(columns=('group', cola, colb, col_value))
+    else:
+        raise ValueError('Unsupported data format specified.')
+    row = ''
+    col = ''
+    for coords, n in freq:
+        row, col = coords.split(',')
+        if fmt == EnumDataFormat.cross_matrix:
+            df[col][row] = n #dataframe is col row, preallocated dataframe size
+        else:
+            if not drop_nans or (drop_nans and (col + row).lower().find('nan') == -1):
+                if label is None:
+                    build_row = [row, col, n]
+                else:
+                    build_row = [label, row, col, n]
+                df.loc[len(df)] = build_row #dataframe rows added dynamically
+
+    return df
+#endregion
+
+
 def get_matrix_data(datatype=EnumResultsType.freq, survey=EnumSurvey.fmm, results_key=EnumKeys.crispDirected_crispMine):
     '''(enum, enum,enum)->ndarray or dataframe
     return data from the main matrix as defined by the enums
@@ -250,132 +456,10 @@ def make_matrices():
     So dic['fmm_freq']['crispDirected_crispMine'] is ndarray of freq
     '''
 
-    def get_contingency(df_freq, include_zero=True):
-        '''(dataframe, bool)->ndarray
-        Takes frequency dataframe and creates a contingency table
-        which is used as the basic matrix for kappa inter-rater calculations
-        The contingency table is an ndarray.
-
-        Include zero will leave in the 0 column and row.
-        
-        This routine is used to build up contingency tables for
-        the global dictionary _MATRICES
-        '''
-        df = df_freq.copy()
-        assert isinstance(df, pd.DataFrame)
-        df = df.pivot(index='this', columns='directed', values='frequency')
-        df = df[df.columns].astype(float)
-        out = df.as_matrix([x for x in df.columns])
-        if not include_zero: out = out[1:, 1:]
-        out = arraylib.np_nans_to_zero(out)
-        return out
-
-
     #region Nested Functions
-    def class_frequency(a, b, fmt=EnumDataFormat.narrow, drop_nans=True, **kwargs):
-        '''(ndarray, ndarray, Enum, str) -> pandas.dataframe
-        Takes arrays a and b (expected to be integer arrays) and
-        calulates the frequency of corresponding values so:
-        a=[1,2,3]
-        b=[1,2,3]
-        [['1,1',1]
-        ['2,2',1]
-        ['3,3',1]]
-
-        It then returns the frequency of the items in a cross matrix 
-        format or narrow format.
-
-        Note that the wide format is not yet supported.
-
-        CROSS MATRIX FORMAT
-        In the matrix format rows correspond to array a, cols to row b.
-        Label is ignored when cross matrix is used.
-
-        NARROW FORMAT
-        If kwargs contains label, then this will be used to label entries
-        in a new pandas column called 'group'.
-        Columns are 'group', 'a', 'b', 'value' if label != ''
-        Columns are 'a', 'b', 'value' if label == ''
-
-        KWARGS (only used for narrow format)
-        label: group label for narrow format
-        cola: label used for first column name
-        colb: label used for second column name
-        col_value:label used for value
-        '''
 
 
-        def create_freq_dataframe(freq_counts):
-            '''(ndarray)->dataframe
-            takes an ndarray of frequency counts and creates empty dataframe
-            to populate with frequency values for further processing.
 
-            Example of freq_counts:
-            [['0.0,0.0', '124'],
-            ['0.0,1.0', '29'],
-            ['0.0,2.0', '6'],
-            ['0.0,3.0', '2'],
-            ['0.0,4.0', '2']]
-            '''
-            v = []
-            for coords, freq in freq_counts:
-                x, y = coords.split(',')
-                v.append(x)
-                v.append(y)
-
-            a = np.unique(np.array(v))
-            df = pd.DataFrame(index=a, columns=a) #row, col
-            return df
-
-
-        if fmt == EnumDataFormat.wide:
-            raise ValueError('Wide data format not supported yet')
-
-        assert isinstance(a, np.ndarray)
-        assert isinstance(b, np.ndarray)
-
-        x = a.copy().astype(str)
-        y = b.copy().astype(str)
-
-        cola = kwargs.get('cola') 
-        if cola  is None: cola = 'a'
-
-        colb = kwargs.get('colb') 
-        if colb is None: colb = 'b'
-
-        col_value = kwargs.get('col_value') 
-        if col_value is None: col_value = 'value'
-
-        label = kwargs.get('label')
-
-        z = np.char.add(np.char.add(x, [',']), y)
-        freq = arraylib.np_frequencies(z) # [[val1 freq1],[val2 freq2] ...]
-            
-
-        if fmt == EnumDataFormat.cross_matrix:
-            df = create_freq_dataframe(freq) #row, col
-        elif fmt == EnumDataFormat.narrow:
-            if label is None:
-                df = pd.DataFrame(columns=(cola, colb, col_value))
-            else:
-                df = pd.DataFrame(columns=('group', cola, colb, col_value))
-        else:
-            raise ValueError('Unsupported data format specified.')
-        row = ''
-        col = ''
-        for coords, n in freq:
-            row, col = coords.split(',')
-            if fmt == EnumDataFormat.cross_matrix:
-                df[col][row] = n #dataframe is col row, preallocated dataframe size
-            else:
-                if not drop_nans or (drop_nans and (col + row).lower().find('nan') == -1):
-                    if label is None:
-                        build_row = [row, col, n]
-                    else:
-                        build_row = [label, row, col, n]
-                    df.loc[len(df)] = build_row #dataframe rows added dynamically
-
-        return df
 
 
     def check_array(a, b):
@@ -386,13 +470,7 @@ def make_matrices():
             raise ValueError('Array shapes did not match.')
 
 
-    def bin_array_quartile(nd, quantile=None):
-        '''(ndarray) -> ndarray
-        puts array values into quartile bins, leaving zeros as zero
-        '''
-        if quantile is None: quantile = [25, 50, 75] 
-        a = np.copy(nd)
-        return statslib.quantile_bin(a, quantile, zero_as_zero=True)
+
     #endregion
 
 
@@ -550,14 +628,6 @@ def kappas():
     crispDirected_crispMine
     focalDirected_focalMine
     '''
-
-    def trim_zeros(a):
-        '''(ndarray)->ndarray
-        ugly fix to trim zero row and column from contingency ndarrays
-        since refactoring code
-        '''
-        return a[1:, 1:]
-
     res = []
     
     #FMM
@@ -599,7 +669,139 @@ def kappas():
 #endregion
 
 
+#region kappa permutation
+def kappa_permute():
+    '''do the kappa permutation test
+    '''
+    def kappa_with_iqr(x, y, omit_paired_zeros=False, use_tertile=False):
+        '''(ndarray, ndarray,bool,bool,bool) -> dic
+        Bins the two matrices using IQR (quartiles) or optionally tertiles
+        Then calculates the contingency matrix (iter rater agreement frequencies for quartiles)
+        Finally returns the kappa statistic from the contingency matrix
+   
+        If use_tertile is false will default to quartile
+        If omit_paired_zeros is false then the 0 values are ommitted
+        '''
+        assert isinstance(x, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        arraylib.check_array(x, y)
+
+        out = []
+        tertile = [float(100)/3, float(200)/3]
+
+        a = x.copy()
+        b = y.copy()
+    
+        #Bin the two data sets
+        if use_tertile:
+            a_bins = bin_array_quartile(a, tertile)
+            b_bins = bin_array_quartile(b, tertile)
+        else:
+            a_bins = bin_array_quartile(a)
+            b_bins = bin_array_quartile(b)
+
+        arraylib.check_array(a_bins, b_bins) 
+    
+    
+        freq = class_frequency(a_bins, b_bins,
+                        cola='directed', colb='this', col_value='frequency', label='freq'
+                        )
+        contingency = get_contingency(freq, True)
+        if omit_paired_zeros:
+            contingency = trim_zeros(contingency)
+    
+        return ir.cohens_kappa(contingency, wt='linear', return_results=False) #return just kappa
+    
+    def kappa_iter_work(directed, mine, is_focal, omit_paired_zeros=False, use_tertile=False):
+        '''(ndarray,ndarray,bool,bool,bool)->dic
+        returns {'p'=, 'n'=, 'more_extreme_n'=, 'teststat'=]
+        '''
+        assert isinstance(directed, np.ndarray)
+        assert isinstance(mine, np.ndarray)
+        arraylib.check_array(directed, mine)
+        kappa_values = []
+
+        a = directed.copy()
+        b = mine.copy()
+        
+        if is_focal:
+            a = arraylib.np_focal_mean(a, False)
+            b = arraylib.np_focal_mean(b, False)
+        arraylib.check_array(a, b)
+        
+        kappa = kappa_with_iqr(a, b, omit_paired_zeros, use_tertile) #get original kappa to test later
+        for cnt in range(_ITERATIONS):       
+            pre = '/* iter:' + str(cnt+1) + ' */'
+
+            if is_focal: #just do 1 if we want focal results, the directed one (a) will be focalled and doesnt need to be permuted
+                b = arraylib.np_permute_2d(mine)
+                b = arraylib.np_focal_mean(b, False)
+
+            kappa_values.append(kappa_with_iqr(a, b, omit_paired_zeros, use_tertile))
+            iolib.print_progress(cnt+1, _ITERATIONS, prefix=pre, bar_length=30)
+        
+        out = statslib.permuted_teststat_check1(kappa_values, kappa)
+        out['teststat'] = kappa
+        return out
+        
+    #region FMM
+    out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=False)
+    s = 'FMM Crisp with Zeros'
+    results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+    
+    out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=True)
+    s = 'FMM Focal with Zeros'
+    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+
+    out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=False, omit_paired_zeros=True)
+    s = 'FMM Crisp without Zeros'
+    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+
+    out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=True, omit_paired_zeros=True)
+    s = 'FMM Focal without Zeros'
+    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+    #endregion
+
+    #region PAM
+    out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=False, use_tertile=True)
+    s = 'PAM Crisp with Zeros'
+    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+    
+    out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=True)
+    s = 'PAM Focal with Zeros'
+    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+
+    out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=False, omit_paired_zeros=True, use_tertile=True)
+    s = 'PAM Crisp without Zeros'
+    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+
+    out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=True, omit_paired_zeros=True)
+    s = 'PAM Focal without Zeros'
+    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+    #endregion
+
+    iolib.write_to_file(results, prefix='KappaPermute')
+
+
+    #crisp vs crisp PAM - Tertile
+    
+    
+#end region
+
+
+def set_iter():
+    '''get user to input number of iterations'''
+    global _ITERATIONS
+    _ITERATIONS = iolib.input_int(prompt='Input number of interations :')
+
+def do_kappa_permutation():
+    '''main entry point to do the big kappa permutation test'''
+    set_iter()
+    load_arrays() #load the data from the dumped pickled numpy arrays
+    kappa_permute()
+
 
 #Tier-0
-_MATRICES = make_matrices()
+#_MATRICES = make_matrices()
 #endregion
+do_kappa_permutation()

@@ -93,9 +93,9 @@ def load_arrays():
     _NP_PAM_DAYSPAKM = dic['a']
     _NP_PAM_VENUE_FOCAL = dic['b']
 
-
 def permutation_focal_all(permute, focal, file_prefix=''):
-    '''test with zeros
+    '''(ndarray,ndarray,str) -> void
+    test with zeros
     writes results to csv file
     '''
     outcsv = ([['Tau', 'p WRONG!!!']])
@@ -432,6 +432,7 @@ def run_pam_permutation():
     permutation(_NP_PAM_VENUE, _NP_PAM_DAYSPAKM, False)
     permutation(_NP_PAM_VENUE, _NP_PAM_DAYSPAKM, True)
 
+
 #region Time tests
 def omit():
     '''omit time test'''
@@ -458,6 +459,7 @@ def test_speed():
 #region Init
 #set_iter()
 #load_arrays()
+
 #unpermuted_corr()
 #test_speed()
 #run_pam_permutation()

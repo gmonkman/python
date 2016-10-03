@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>ec5cf372-8145-4757-ba13-3684ace201fe</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>heatmap_conditionals.py</StartupFile>
+    <StartupFile>mediandistance.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

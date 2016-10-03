@@ -28,6 +28,13 @@ def list_delete_value_pairs(list_a, list_b, match_value=0):
 
 
 #region NUMPY
+def check_array(a, b):
+    '''(ndarray,ndarray)
+    perform array checks raising error if problem
+    '''
+    if a.shape != b.shape:
+        raise ValueError('Array shapes did not match.')
+
 def np_permute_2d(a):
     '''(ndarray) -> ndarray
     Takes a numpy array and permutes the values ignoring NaNs
@@ -348,8 +355,6 @@ def np_conditional_array_split(a, has_by_column, has_by_row):
         col_marginals = a[rows-1:rows, :]
         row_marginals = []
     return [body, col_marginals, row_marginals]
-                
-
 #endregion
 
 

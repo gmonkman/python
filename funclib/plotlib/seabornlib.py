@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import kendalltau
 import seaborn as sns
-
+from funclib.baselib import switch
 from enum import Enum
 
 
@@ -33,6 +33,18 @@ def palette(palette=EnumPalette.grey1):
         if case():
             return default
 
+def cubhelix_cmap(palette=EnumPalette.grey1, reverse=False):
+    '''(EnumPalette)->cubehelix_palette cmap
+    Returns a seaborn cubehelix_palette cmap
+    '''
+    default = sns.cubehelix_palette(n_colors=16, start=0.3, rot=0, 
+                                gamma=0.5, hue=0, light=0.1, dark=1, 
+                                reverse=reverse, as_cmap=True)
+    for case in switch(palette):
+        if case(EnumPalette.grey1):
+            return default
+        if case():
+            return default
 
 #region graphs
 

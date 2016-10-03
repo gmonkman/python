@@ -270,7 +270,7 @@ def permuted_teststat_check(csvfile, test_col, stat_value_to_check):
 
 
 def permuted_teststat_check1(teststats, stat_value_to_check):
-    '''(tuple|list) -> dic ({'p', 'n', 'more_extreme_n', 'teststat'})
+    '''(tuple|list) -> dic ({'p', 'n', 'more_extreme_n'})
     teststats is an iterable 
     stat_value_to_check: the unpermuted test stat result
 
