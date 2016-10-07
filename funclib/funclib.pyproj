@@ -29,6 +29,9 @@
     <Compile Include="excellib.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="inifile.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="iolib.py" />
     <Compile Include="numericslib.py" />
     <Compile Include="plotlib\matplotlib-2d.py" />

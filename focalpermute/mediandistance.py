@@ -3,6 +3,8 @@
 
 #region Imports
 #region base
+import os
+import ConfigParser as cp
 import math
 from collections import defaultdict as collection
 #endregion
@@ -673,6 +675,11 @@ def kappas():
 def kappa_permute():
     '''do the kappa permutation test
     '''
+    config_path = os.path.dirname(os.path.realpath(__file__))
+    inifile = config_path + '\\mediandistance.ini'
+
+    filename = os.getcwd() + '\\kappa_' + stringslib.datetime_stamp() + '.txt'
+    
     def kappa_with_iqr(x, y, omit_paired_zeros=False, use_tertile=False):
         '''(ndarray, ndarray,bool,bool,bool) -> dic
         Bins the two matrices using IQR (quartiles) or optionally tertiles
@@ -745,43 +752,62 @@ def kappa_permute():
         return out
         
     #region FMM
-    out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=False)
-    s = 'FMM Crisp with Zeros'
-    results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
-    
-    out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=True)
-    s = 'FMM Focal with Zeros'
-    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+    config = cp.ConfigParser()
+    config.read(inifile)
 
-    out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=False, omit_paired_zeros=True)
-    s = 'FMM Crisp without Zeros'
-    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+    if config.getboolean('RUN','fmm_crisp_with_zeros'):
+        out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=False)
+        s = 'FMM Crisp with Zeros'
+        results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+        iolib.write_to_eof(filename, results)
 
-    out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=True, omit_paired_zeros=True)
-    s = 'FMM Focal without Zeros'
-    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+    if config.getboolean('RUN','fmm_focal_with_zeros'):
+        out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=True)
+        s = 'FMM Focal with Zeros'
+        results =  '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+        iolib.write_to_eof(filename, results)
+
+    if config.getboolean('RUN','fmm_crisp_without_zeros'):
+        out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=False, omit_paired_zeros=True)
+        s = 'FMM Crisp without Zeros'
+        results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+        iolib.write_to_eof(filename, results)
+
+    if config.getboolean('RUN','fmm_focal_without_zeros'):
+        out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=True, omit_paired_zeros=True)
+        s = 'FMM Focal without Zeros'
+        results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+        iolib.write_to_eof(filename, results)
     #endregion
 
     #region PAM
-    out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=False, use_tertile=True)
-    s = 'PAM Crisp with Zeros'
-    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+    if config.getboolean('RUN','pam_crisp_with_zeros'):
+        out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=False, use_tertile=True)
+        s = 'PAM Crisp with Zeros'
+        results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+        iolib.write_to_eof(filename, results)
+
+    if config.getboolean('RUN','pam_focal_with_zeros'):
+        out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=True)
+        s = 'PAM Focal with Zeros'
+        results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+        iolib.write_to_eof(filename, results)
+
+    if config.getboolean('RUN','pam_crisp_without_zeros'):
+        out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=False, omit_paired_zeros=True, use_tertile=True)
+        s = 'PAM Crisp without Zeros'
+        results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+        iolib.write_to_eof(filename, results)
     
-    out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=True)
-    s = 'PAM Focal with Zeros'
-    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
-
-    out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=False, omit_paired_zeros=True, use_tertile=True)
-    s = 'PAM Crisp without Zeros'
-    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
-
-    out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=True, omit_paired_zeros=True)
-    s = 'PAM Focal without Zeros'
-    results = results + '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+    if config.getboolean('RUN','pam_focal_without_zeros'):
+        out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=True, omit_paired_zeros=True)
+        s = 'PAM Focal without Zeros'
+        results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+        iolib.write_to_eof(filename, results)
     #endregion
 
     iolib.write_to_file(results, prefix='KappaPermute')
-
+    iolib.write_to_eof
 
     #crisp vs crisp PAM - Tertile
     

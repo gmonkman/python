@@ -3,14 +3,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>ec5cf372-8145-4757-ba13-3684ace201fe</ProjectGuid>
+    <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>mediandistance.py</StartupFile>
-    <SearchPath>..\</SearchPath>
+    <StartupFile>opencvlib.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>focalpermute</Name>
-    <RootNamespace>focalpermute</RootNamespace>
+    <Name>opencvlib</Name>
+    <RootNamespace>opencvlib</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,30 +22,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="focalpermute.py" />
-    <Compile Include="heatmap.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="heatmap_conditionals.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="mediandistance.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="plots.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="quantile_regression_demo.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="test.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="__init__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="mediandistance.ini" />
-    <Content Include="pylintrc" />
+    <Compile Include="opencvlib.py" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
