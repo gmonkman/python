@@ -739,9 +739,9 @@ def kappa_permute():
         kappa = kappa_with_iqr(a, b, omit_paired_zeros, use_tertile) #get original kappa to test later
         for cnt in range(_ITERATIONS):       
             pre = '/* iter:' + str(cnt+1) + ' */'
+            b = arraylib.np_permute_2d(mine)
 
             if is_focal: #just do 1 if we want focal results, the directed one (a) will be focalled and doesnt need to be permuted
-                b = arraylib.np_permute_2d(mine)
                 b = arraylib.np_focal_mean(b, False)
 
             kappa_values.append(kappa_with_iqr(a, b, omit_paired_zeros, use_tertile))
