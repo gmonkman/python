@@ -1,3 +1,4 @@
+#pylint: skip-file
 #!/usr/bin/env python
 ###############################################################################
 #                                                                             #
@@ -30,7 +31,6 @@ __email__ = "mike@mikeimelfort.com"
 __status__ = "Development"
 
 ###############################################################################
-
 import numpy as np
 from matplotlib import pyplot as plt
 

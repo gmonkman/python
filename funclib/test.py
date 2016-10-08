@@ -1,13 +1,15 @@
-# pylint: disable=too-few-public-methods,too-many-statements,bad-whitespace,unused-import,missing-docstring,unused-variable,no-member
+#pylint: skip-file
 
 '''test code'''
 import numpy
+import os
+import sys
 
 import funclib.stringslib as stringslib
 import funclib.arraylib as arraylib
 import funclib.statslib as statslib
 import funclib.plotlib.seabornlib as seabornlib
-
+import funclib.inifilelib as inifilelib
 
 
 #region stringslib
@@ -64,7 +66,15 @@ test_statslib()
 #sys.exit()
 #endregion
 
+#region inifile
+ini_name = os.path.abspath(__file__) + '.ini'
+ini = inifilelib.configfile(ini_name)
+s = ini.tryread('test', 'timeout', True, 60)
+ini.trywrite('test','NEWTEST','666')
+ini.trywrite('TRYWRITE','magic','8ball')
+pass
 
+#endregion
 
 
 #region Top Level

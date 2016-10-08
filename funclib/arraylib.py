@@ -1,4 +1,4 @@
-#pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled, not-context-manager, unused-import
+#pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled, not-context-manager, unused-import, undefined-variable
 '''routines to manipulate array like objects like lists, tuples etc'''
 import warnings
 
@@ -370,6 +370,9 @@ def pd_df_to_ndarray(df):
 
 #region lists
 def list_flatten(test_list):
+    '''(list) -> list
+    returns flattened list
+    '''
     if isinstance(test_list, list):
         if len(test_list) == 0:
             return []
@@ -377,4 +380,4 @@ def list_flatten(test_list):
         return flatten(first) + flatten(rest)
     else:
         raise ValueError("Couldn't flatten object. Expected a list, but object not a list")
-#endregion    
+#endregion

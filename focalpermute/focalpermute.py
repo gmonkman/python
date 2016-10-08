@@ -12,6 +12,8 @@ import funclib.statslib as statslib
 import funclib.arraylib as arraylib
 import funclib.stringslib as stringslib
 
+ini_name = os.path.abspath(__file__) + '\\' + os.path.basename(sys.argv[0])
+
 _NP_FMM_VALUE = numpy.array([])
 assert isinstance(_NP_FMM_VALUE, numpy.ndarray)
 

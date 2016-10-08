@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ec8e1821-0c22-445e-af07-22bbe247f71e}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>arraylib.py</StartupFile>
+    <StartupFile>test.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -29,7 +29,7 @@
     <Compile Include="excellib.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="inifile.py">
+    <Compile Include="inifilelib.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="iolib.py" />

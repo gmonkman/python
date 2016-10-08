@@ -197,6 +197,18 @@ def write_to_file(results, prefix='', open_in_npp=True):
     if open_in_npp: notepadpp_open_file(filename)
     return filename
 
+def create_file(file_name):
+    '''(str) -> void
+    creates file if it doesnt exist
+    '''
+    if not os.path.isfile(file_name):
+        write_to_eof(file_name, '')        
+
+def file_exists(file_name):
+    '''(str) -> bool
+    Returns true if file exists
+    '''
+    return os.path.isfile(file_name)        
 #endregion
 
 
