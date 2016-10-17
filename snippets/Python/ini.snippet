@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>File Imports and Ini</Title>
+      <Author>Graham Monkman</Author>
+      <Description>
+      </Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>
+      </Shortcut>
+    </Header>
+    <Snippet>
+      <Code Language="Python" Delimiter="$"><![CDATA[
+# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, unused-import, no-member
+'''MODULE COMMENTS HERE
+'''
+
+#region imports
+#region base imports
+import itertools
+import math	
+import os
+#end region
+
+#region 3rd party imports
+import numpy as np
+import pandas as pd
+import scipy
+import scipy.stats
+import xlwings
+#endregion
+
+#region my imports
+import funclib.arraylib as arraylib
+import funclib.iolib as iolib
+#import funclib.statslib as statslib #includes rpy which takes ages to load
+from funclib.stringslib import add_right
+import funclib.inifilelib as inifilelib
+from enum import Enum
+from funclib.baselib import switch
+#endregion
+#endregion
+
+#initiate an inifile for the module
+_ini_name = os.path.abspath(__file__) + '.ini'
+_ini = inifilelib.configfile(ini_name)
+
+	  ]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

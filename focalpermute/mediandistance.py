@@ -806,9 +806,6 @@ def kappa_permute():
         iolib.write_to_eof(filename, results)
     #endregion
 
-    iolib.write_to_file(results, prefix='KappaPermute')
-    iolib.write_to_eof
-
     #crisp vs crisp PAM - Tertile
     
     
