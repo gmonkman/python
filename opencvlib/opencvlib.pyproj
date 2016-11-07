@@ -5,14 +5,15 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>
-    </StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <StartupFile>lenscorrection.py</StartupFile>
+    <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <CommandLineArguments>-m calibrate -c NEXTBASE512G</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,9 +28,61 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="common.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="lenscorrection.py">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="calibration\" />
+    <Folder Include="calibration\nextbase512g\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="calibration\nextbase512g\2016_1011_132058_001.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132114_002.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132300_003.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132337_005.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132344_006.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132353_007.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132358_008.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132419_009.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132441_010.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132451_011.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132459_012.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132503_013.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132510_014.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132519_015.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132522_016.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132529_017.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132535_018.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132540_019.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132558_020.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132612_021.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132615_022.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132619_023.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132624_024.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132630_025.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132637_026.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132645_027.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132650_028.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132655_029.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132658_030.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132708_031.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132712_032.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132714_033.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132720_034.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132730_035.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132733_036.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132737_037.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132739_038.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132746_039.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132754_040.JPG" />
+    <Content Include="calibration\nextbase512g\2016_1011_132758_041.JPG" />
+    <Content Include="calibration\pattern.png" />
+    <Content Include="lenscorrection.py.ini" />
+    <Content Include="pylintrc" />
   </ItemGroup>
   <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />
   <Import Condition="!Exists($(PtvsTargetsFile))" Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />

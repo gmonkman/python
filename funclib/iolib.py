@@ -2,15 +2,18 @@
 
 '''My file input and output library, e.g. for csv handling.'''
 import csv
+from glob import glob
+import itertools
 import os
+import pickle
 import subprocess
 import sys
 
-
 from numpy import ndarray as numpy_ndarray
 import fuckit
-
 import funclib.stringslib as stringslib
+from funclib.stringslib import add_right
+from funclib.stringslib import add_left
 
 _NOTEPADPP_PATH = 'C:\\Program Files (x86)\\Notepad++\\notepad++.exe'
 
@@ -147,9 +150,62 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
 #endregion
 
 
-
-
 #region file system
+def exit():
+    if get_platform == 'windows':
+        os.system("pause")
+    else:
+        os.system('read -s -n 1 -p "Press any key to continue..."')
+    sys.exit()
+
+def get_platform():
+    '''-> str
+    returns windows, mac, linux
+    '''
+    s = sys.platform.lower()
+    if s == "linux" or s == "linux2":
+       return 'linux'
+    elif s == "darwin":
+       return 'mac'
+    elif s == "win32":
+       return 'windows'
+
+def file_list_generator(paths, wildcards):
+    '''(iterable, iterable) -> tuple
+    Takes a list of paths and wildcards and creates a
+    generator which can be used to iterate through
+    the generated file list so:
+    paths = ('c:/','d:/')     wildcards=('*.ini','*.txt')
+    Will generate: c:/*.ini, c:/*.txt, d:/*.ini, d:/*.txt
+    '''
+    for vals in (add_right(x[0]) + x[1] for x in itertools.product(paths, wildcards)):
+        yield os.path.normpath(vals)
+
+def file_list_generator1(paths, wildcards):
+    '''(iterable, iterable) -> tuple
+    Takes a list of paths and wildcards and creates a
+    generator which iterates through all the files found
+    in the paths matching the wildcards.
+    the generated file list so:
+    '''
+    for vals in (add_right(x[0]) + x[1] for x in itertools.product(paths, wildcards)):
+        for myfile in glob(vals):
+            yield os.path.normpath(myfile)
+
+def get_file_name(path='', prefix='', ext='.txt'):
+    '''(str, str, str) -> str
+    returns a filename, based on a datetime stamp
+
+    If path is not specified then the CWD is used.
+
+    generally used to quickly writeout results to a new file
+    '''
+    if path == '':
+        path = os.getcwd()
+
+    return os.path.normpath(os.path.join(path, prefix + stringslib.datetime_stamp() + add_left(ext, os.path.extsep)))
+
+
 def folder_open(folder='.'):
     '''(string) -> void
     opens a windows folder at path folder'''
@@ -202,13 +258,31 @@ def create_file(file_name):
     creates file if it doesnt exist
     '''
     if not os.path.isfile(file_name):
-        write_to_eof(file_name, '')        
+        write_to_eof(file_name, '')
 
 def file_exists(file_name):
     '''(str) -> bool
     Returns true if file exists
     '''
-    return os.path.isfile(file_name)        
+    return os.path.isfile(file_name)
+
+def create_folder(folder_name):
+    '''(str) -> void
+    creates a folder
+    '''
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
+
+def unpickle(path):
+    '''(str) -> unpickled stuff
+    attempts to load a pickled object named path
+    Returns None if file doesnt exist
+    '''
+    if file_exists(path):
+        with open(path, 'rb') as f:
+            return pickle.load(f)
+    else:
+        return None
 #endregion
 
 

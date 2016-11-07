@@ -18,12 +18,12 @@ class configfile(object):
 
         if not os.path.isfile(ini_file):
             iolib.create_file(ini_file)
-        self.__config = cp.ConfigParser()        
-        self.__config.read(ini_file)
+        self._config = cp.ConfigParser()        
+        self._config.read(ini_file)
         
     def __str__(self):
-        assert isinstance(self.__config, cp.ConfigParser)
-        return str(self.__config.options)
+        assert isinstance(self._config, cp.ConfigParser)
+        return str(self._config.options)
     
     def tryread(self, section, option, force_create=True, value_on_create=''):
         '''(str,str) -> str
@@ -33,19 +33,19 @@ class configfile(object):
         Returns the value read, which will default to value_on_create if no section or option is found.
         Saves to disk if new option created.
         '''
-        assert isinstance(self.__config, cp.ConfigParser)
-        if self.__config.has_section(section):
-            if self.__config.has_option(section, option):
-                return self.__config.get(section, option)
+        assert isinstance(self._config, cp.ConfigParser)
+        if self._config.has_section(section):
+            if self._config.has_option(section, option):
+                return self._config.get(section, option)
             else:
                 if force_create: 
-                    self.__config.set(section, option, value_on_create)
+                    self._config.set(section, option, value_on_create)
                     self.save()
                 return value_on_create
         else:
             if force_create:
-                self.__config.add_section(section)
-                self.__config.set(section, option, value_on_create)
+                self._config.add_section(section)
+                self._config.set(section, option, value_on_create)
                 self.save()
             return value_on_create
     
@@ -55,12 +55,18 @@ class configfile(object):
         the section doesnt already exist
         Saves to disk once done
         '''
-        if not self.__config.has_section(section):
-            self.__config.add_section(section)
-        self.__config.set(section, option, value)
+        if not self._config.has_section(section):
+            self._config.add_section(section)
+        self._config.set(section, option, value)
         self.save()
 
     def save(self):
         '''save the config to disk'''
         with open(self.ini_file, 'w') as configfile:
-            self.__config.write(configfile)
+            self._config.write(configfile)
+
+def iniexists(file):
+    '''(str) -> bool
+    Checks if the file exists
+    '''
+    return iolib.file_exists(file)

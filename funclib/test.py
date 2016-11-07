@@ -4,6 +4,7 @@
 import numpy
 import os
 import sys
+import itertools
 
 import funclib.stringslib as stringslib
 import funclib.arraylib as arraylib
@@ -81,3 +82,20 @@ pass
 #test_plots()
 #testbinning()
 #endregion
+
+
+def file_list_generator(paths, wildcards):
+    '''(iterable, iterable) -> tuple
+    Takes a list of paths and wildcards and creates a
+    generator which can be used to iterate through
+    the generated file list
+    '''
+    yield [zip(x,paths) for x in itertools.permutations(paths,len(wildcards))]
+
+paths = ('c:/','d:/','C:/development/python/')
+wildcards=('*.ini','*.txt','*.bat','*.zip','*.pdf')
+
+gen = file_list_generator(paths,wildcards)
+
+for v in gen:
+    print v

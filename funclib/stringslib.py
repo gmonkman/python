@@ -42,4 +42,14 @@ def add_right(s, char='/'):
         return s + char
     else:
         return s
+
+def add_left(s, char):
+    '''(str, str) -> str
+    Appends prefix to string if it doesnt exist
+    '''
+    s = str(s)
+    if not s.startswith(char):
+        return char + s
+    else:
+        return s
 #endregion
