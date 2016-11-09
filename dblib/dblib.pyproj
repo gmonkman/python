@@ -3,15 +3,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>e4814df1-815d-440a-a9d6-333c531a628e</ProjectGuid>
+    <ProjectGuid>357f2f6c-b6bf-4bb9-b3a3-e6b0130467a2</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>crustacean.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <StartupFile>dblib.py</StartupFile>
+    <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>crustacean</Name>
-    <RootNamespace>crustacean</RootNamespace>
+    <Name>dblib</Name>
+    <RootNamespace>dblib</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,15 +21,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="colorspaces.py" />
-    <Compile Include="crustacean.py" />
+    <Compile Include="dblib.py" />
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="crustacean.py.ini" />
-    <Content Include="pylintrc" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

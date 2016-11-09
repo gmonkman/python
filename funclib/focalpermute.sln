@@ -15,6 +15,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "opencvlib", "..\opencvlib\o
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "crustacean", "..\crustacean\crustacean.pyproj", "{E4814DF1-815D-440A-A9D6-333C531A628E}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "dblib", "..\dblib\dblib.pyproj", "{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,8 @@ Global
 		{3791C3EB-165F-4A04-83E2-956959C15823}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4814DF1-815D-440A-A9D6-333C531A628E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E4814DF1-815D-440A-A9D6-333C531A628E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

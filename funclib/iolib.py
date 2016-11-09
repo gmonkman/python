@@ -5,7 +5,12 @@ import csv
 from glob import glob
 import itertools
 import os
-import pickle
+
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
 import subprocess
 import sys
 
@@ -170,6 +175,50 @@ def get_platform():
     elif s == "win32":
        return 'windows'
 
+def drive_get_uuid(drive='C:',strip=['-'], make_lcase=True, return_when_unidentified='??'):
+    drive = os.popen('vol %s' % drive).readlines()[1].split()[-1]
+    if len(drive) == 0: drive = return_when_unidentified
+    if make_lcase: drive = drive.lower()
+    for char in strip:
+        drive = drive.replace(char, '')
+    return drive
+
+def get_available_drives(strip=['-'], make_lcase=True, return_when_unidentified='??'):
+    '''->dictionary
+    gets a list of available drives as the key, with uuids as the values
+    eg. {'c:':'abcd1234','d:':'12345678'}
+    '''
+    drives = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+    uuids = [drive_get_uuid(drv, strip, make_lcase, return_when_unidentified) for drv in drives]
+    return dict(zip(drives, uuids))
+
+def get_available_drive_uuids(strip=['-'], make_lcase=True, return_when_unidentified='??'):
+    '''->dictionary
+    gets a list of available drives with uuids as the key
+    eg. {'c:':'abcd1234','d:':'12345678'}
+    '''
+    drives = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+    uuids = [drive_get_uuid(drv, strip, make_lcase, return_when_unidentified) for drv in drives]
+    return dict(zip(uuids, drives))
+
+def get_drive_from_uuid(uuid, strip=['-'], make_lcase=True):
+    '''str, str iterable, bool->str | None
+    given a uuid get the drive letter
+    uuid is expected to be lower case
+
+    Returns None if not found
+    '''
+    if make_lcase: uuid = uuid.lower()
+    for char in strip:
+        uuid = drive.replace(char, '')
+    drives = get_available_drive_uuids(strip, make_lcase) #first val is drive, second is the uuid
+    assert isinstance(drives, dict)
+    if drives.has_key[uuid]:
+        return drives[uuid]
+    else:
+        return None
+
+
 def file_list_generator(paths, wildcards):
     '''(iterable, iterable) -> tuple
     Takes a list of paths and wildcards and creates a
@@ -273,14 +322,22 @@ def create_folder(folder_name):
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
 
+def pickleit(full_file_name, obj):
+    '''(str) -> void
+    Takes full_file path and pickles (dumps) obj to the file system.
+    Does a normpath on full_file_name
+    '''
+    with open(os.path.normpath(full_file_name), 'wb') as myfile:
+        pickle.dump(obj, myfile)
+
 def unpickle(path):
     '''(str) -> unpickled stuff
     attempts to load a pickled object named path
     Returns None if file doesnt exist
     '''
     if file_exists(path):
-        with open(path, 'rb') as f:
-            return pickle.load(f)
+        with open(path, 'rb') as myfile:
+            return pickle.load(myfile)
     else:
         return None
 #endregion

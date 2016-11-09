@@ -18,9 +18,7 @@ from glob import glob
 import argparse
 import itertools
 import os
-import pickle
 import sys
-
 #end region
 
 #region 3rd party imports
@@ -32,6 +30,7 @@ import xlwings
 #endregion
 
 #region my imports
+import opencvlib.digikamlib as digikamlib
 import funclib.arraylib as arraylib
 import funclib.iolib as iolib
 import funclib.inifilelib as inifilelib
@@ -86,7 +85,7 @@ class CalibrationParams(object):
         '''the arguments are the vector values, not a calibration_param object.
         Path is the directory to which parameters are pickled/unpickled.
         '''
-        self._path = path
+        self._path = os.path.normpath(path)
         self._rms = CalibrationParam('rms.pkl', rms)
         self._camera_matrix = CalibrationParam('camera_matrix.pkl', camera_matrix)
         self._distortion_coefficients = CalibrationParam('distortion_coefficients.pkl', distortion_coefficients)
@@ -172,7 +171,7 @@ class CalibrationParams(object):
         '''(str, [cls]calibration_param) -> void
         pickle the parameter value to the file system
         '''
-        pickle.dump(param.value, os.path.normpath(os.path.join(folder, param.filename)))
+        iolib.pickleit(os.path.join(folder, param.filename), param.value)
     #endregion
 
     def load(self):
@@ -195,7 +194,7 @@ class CalibrationParams(object):
             if self._rms.value is None: success = False
             if self._rotational_vectors.value is None: success = False
             if self._translation_vectors.value is None: success = False
-        finally:
+        except Exception:
             success = False
         self.last_load = success
         return success
@@ -213,9 +212,10 @@ class CalibrationParams(object):
             CalibrationParams._save_param(self.path, self._rms)
             CalibrationParams._save_param(self.path, self._rotational_vectors)
             CalibrationParams._save_param(self.path, self._translation_vectors)
-        finally:
+        except Exception:
             success = False
         self.last_save = success
+        self.last_load = success #save is an implicit load, so flag we have good values
         return success
 
 class Camera(object):
@@ -232,7 +232,10 @@ class Camera(object):
         self._image_file_mask = image_file_mask
         self._square_size = square_size
         self._debugdir = ''
-        self._calibration_params = None
+        self.digikam_camera_tag = ''
+        self.digikam_measured_tag = ''
+        self.digikam_connection_string = ''
+        self._calibration_params = CalibrationParams(self._calibration_path)
 
         if not os.path.exists(self.calibration_path):
             raise IOError('Calibration path %s does not exist.' % self.calibration_path)
@@ -346,7 +349,7 @@ def get_camera(model):
 
     calpath = ini.tryread(model, 'CALIBRATION_PATH', force_create=False)
     if not os.path.exists(calpath):
-        raise IOError('Calibration path %s not found.' % (cam.calibration_path))
+        raise IOError('Calibration path %s not found.' % (calpath))
 
     cam = Camera(model=model, calibration_path=calpath)
 
@@ -357,6 +360,9 @@ def get_camera(model):
         raise ValueError('Image pattern (option IMAGE_PATTERN) could not be read from lenscorrection.py.ini')
 
     cam.square_size = int(ini.tryread(model, 'square_size', force_create=False))
+    cam.digikam_camera_tag = ini.tryread(model, 'DIGIKAM_CAMERA_TAG', force_create=False)
+    cam.digikam_measured_tag = ini.tryread(model, 'DIGIKAM_MEASURED_TAG', force_create=False)
+    cam.digikam_connection_string = ini.tryread(model, 'DIGIKAM_CONNECTION_STRING', force_create=False)
 
     return cam
 
@@ -382,36 +388,33 @@ def calibrate(cam, debug=False):
     print('Logging to %s' % calpath)
     iolib.create_file(calpath)
 
+    foundcnt = 0
     img_names = glob(cam.get_full_path())
     for fn in img_names:
         img = cv2.imread(os.path.normpath(fn), 0)
         if img is None:
-            iolib.write_to_eof(calpath, 'Failed to load image %s' % (fn))
-            continue
+            iolib.write_to_eof(calpath, 'Failed to load image %s\n' % (fn))
+        else:
+            h, w = img.shape[:2]
+            found, corners = cv2.findChessboardCorners(img, pattern_size)
 
-        h, w = img.shape[:2]
-        found, corners = cv2.findChessboardCorners(img, pattern_size)
+            if found:
+                term = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 30, 0.1)
+                cv2.cornerSubPix(img, corners, (5, 5), (-1, -1), term)
+                img_points.append(corners.reshape(-1, 2))
+                obj_points.append(pattern_points)
+                foundcnt += 1
+            else:
+                iolib.write_to_eof(calpath, 'Chessboard not found in %s\n' % (fn))
 
-        if found:
-            term = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 30, 0.1)
-            cv2.cornerSubPix(img, corners, (5, 5), (-1, -1), term)
+            if debug:
+                vis = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                cv2.drawChessboardCorners(vis, pattern_size, corners, found)
+                path, name, ext = splitfn(fn)
+                outfile = os.path.normpath(os.path.join(cam.calibration_path_debug, name + '_chess.png'))
+                cv2.imwrite(outfile, vis)
 
-        if debug:
-            vis = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-            cv2.drawChessboardCorners(vis, pattern_size, corners, found)
-            path, name, ext = splitfn(fn)
-            outfile = os.path.join(cam.calibration_path_debug, name + '_chess.png')
-
-            cv2.imwrite(outfile, vis)
-
-        if not found:
-            iolib.write_to_eof(calpath, 'Chessboard not found')
-            continue
-
-        img_points.append(corners.reshape(-1, 2))
-        obj_points.append(pattern_points)
-
-        iolib.print_progress(i, len(img_names), prefix='Processed %i of %i' % (i, len(img_names)), bar_length=30)
+        iolib.print_progress(i, len(img_names), prefix='%i of %i [found:%i]' % (i, len(img_names), foundcnt), bar_length=30)
         i += 1
 
     # calculate camera distortion
@@ -423,53 +426,89 @@ def calibrate(cam, debug=False):
     cam.calibration_params.translational_vectors = tvecs
     cam.save_params()
 
-    iolib.write_to_eof(calpath, 'Camera correction parameters pickled to %s' % (cam.calibration_output_path))
-    iolib.write_to_eof(calpath, 'Was the pickling a success?: %s' % (str(cam.calibration_params.last_save)))
-    iolib.write_to_eof(calpath, 'RMS: %d' % rms)
-    iolib.write_to_eof(calpath, ('camera matrix:', camera_matrix))
-    iolib.write_to_eof(calpath, ('distortion coefficients: ', dist_coefs.ravel()))
+    iolib.write_to_eof(calpath, '\nCamera correction parameters pickled to %s' % (cam.calibration_output_path))
+    iolib.write_to_eof(calpath, '\nWas the pickling a success?: %s' % (str(cam.calibration_params.last_save)))
+    iolib.write_to_eof(calpath, '\nRMS: %d' % rms)
 
     cv2.destroyAllWindows()
 
 def _undistort(cam, img, crop=True):
-    '''[c]Camera, ndarray (image), bool -> ndarray (image)
+    '''[c]Camera, ndarray (image), bool -> ndarray (image) | None
     Undistorts an image based on the lens profile loaded into the Camera class cam.
+
+    Returns None if an exception occurs
     '''
     assert isinstance(cam, Camera)
     assert isinstance(img, np.ndarray)
+    try:
+        h, w = img.shape[:2]
+        newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cam.calibration_params.camera_matrix, cam.calibration_params.distortion_coefficients, (w, h), 1, (w, h))
+        dst = cv2.undistort(img, cam.calibration_params.camera_matrix, cam.calibration_params.distortion_coefficients, None, newcameramtx)
+        if crop:
+            x, y, w, h = roi
+            dst = dst[y:y+h, x:x+w]
+    except Exception:
+        dst = None
+    finally:
+        return dst
 
-    h, w = img.shape[:2]
-    newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cam.calibration_params.camera_matrix, cam.calibration_params.distortion_coefficients, (w, h), 1, (w, h))
-
-    dst = cv2.undistort(img, cam.calibration_params.camera_matrix, cam.calibration_params.distortion_coefficients, None, newcameramtx)
-
-    # crop and save the image
-    if crop:
-        x, y, w, h = roi
-        dst = dst[y:y+h, x:x+w]
-    return dst
-
-def undistort(model, imgpaths, outpath, label='_UND', crop=True):
-    '''str, str|iterable, str, str, bool -> ndarray (image)
-    Bulk undistort, reading in the camera profile from according to model as matched in lenscorrection.py.ini
+def undistort_using_paths(cam, imgpaths_or_imagelist, outpath, label='_UND', crop=True):
+    '''(Camera, str|iterable, str, str, bool) -> void
+    Bulk undistort, reading in the camera profile according to model name as matched in lenscorrection.py.ini
     Multiple paths can be provided
+
+    imgpaths_or_imagelist can be an iterable of paths or a list. If appears to be paths,
+    then glob will be cobined with known image extensions to list all files in paths
+    which appear to be images. If a single directory string is passed in, this
+    will also be valid and globbed.
 
     Converted images are saved to outpath, with label appended to the original file name.
     '''
-    if isinstance(imgpaths, str):
-        imgpaths = [imgpaths]
 
-    cam = get_camera(model)
-    if not cam.load_params():
-        raise StandardError('Failed to load camera correction parameters for camera model %s.\n\nHave you created a camera profile yet?' % model)
+    useglob = True
+    if isinstance(imgpaths_or_imagelist, str):
+        imgpaths_or_imagelist = [imgpaths_or_imagelist]
 
-    globlist = iolib.file_list_generator(imgpaths, _IMAGE_EXTENSIONS)
-    for wildcards in globlist:
-        for fil in glob(wildcards):
+    #look to see if the list is mostly (50%) valid files rather than directories
+    validcnt = 0.0
+    for myfiles in imgpaths_or_imagelist:
+        validcnt += os.path.isfile(os.path.normpath(myfiles))
+
+    if validcnt/len(myfiles) > 0.5: useglob = False
+
+    if useglob:
+        globlist = iolib.file_list_generator(imgpaths_or_imagelist, _IMAGE_EXTENSIONS)
+    else:
+        newlist = imgpaths_or_imagelist
+
+    if useglob:
+        newlist = []
+        for wildcards in globlist:
+            for fil in glob(wildcards):
+                newlist.append(fil)
+
+    cnt = 0
+    success = 0
+    logfilename = iolib.get_file_name(outpath)
+    for fil in newlist:
+        try:
             path, name, ext = splitfn(fil)
             outfile = os.path.join(outpath, name + label + '.png')
             img = _undistort(cam, cv2.imread(fil), crop)
-            cv2.imwrite(outfile, img)
+            if img is None:
+                iolib.write_to_eof(logfilename, 'File %s failed in _undistort.' % (fil, Exception.message))
+            else:
+                cv2.imwrite(outfile, img)
+                success += 1
+                with fuckit:
+                    iolib.write_to_eof(logfilename, 'Success:%s' % (fil))
+        except Exception:
+            iolib.write_to_eof(logfilename, 'Failed:%s, Exception:%s' % (fil, Exception.message))
+        finally:
+            with fuckit:
+                iolib.print_progress(cnt, len(fil), '%i of %i [Successes: %i]' % (cnt, len(fil), success), bar_length=30)
+                cnt += 1
+
 
 #region main
 def main():
@@ -482,31 +521,37 @@ def main():
     '''
 
     cmdline = argparse.ArgumentParser(description='Description if script is executed with -h option')
-    cmdline.add_argument('-m', '--mode', action='store', help='The mode, values are:\nundistort - undistorts images in path\ncalibrate - create lens calibration values', required=True)
-    cmdline.add_argument('-p', '--path', action='store', help='Path to images to undistort. Must be provided in undistort mode', required=False)
+    cmdline.add_argument('-m', '--mode', action='store', help='The mode, values are:\nUNDISTORT - undistorts images in path\nCALIBRATE - create lens calibration values', required=True)
+    cmdline.add_argument('-p', '--path', action='store', help='Path to images to undistort. Pass DIGIKAM to use digikam database with options provided in the ini file. This is required in UNDISTORT mode.', required=False)
     cmdline.add_argument('-o', '--outpath', action='store', help='Path to store undistorted images. Must be provided in undistort mode', required=False)
     cmdline.add_argument('-c', '--camera', action='store', help='Camera model key in the ini file which defines the camera calibration parameters for the camera model specified', required=True)
-    cmdline.add_argument('-d', '--debug', action='store_true', help='Run in debug mode', default=False, required=False)
+    cmdline.add_argument('-d', '--debug', action='store_true', help='Run in DEBUG mode', default=False, required=False)
     cmdargs = cmdline.parse_args()
     if cmdargs.mode == 'undistort' and (cmdargs.path == '' or cmdargs.path is None):
         print('\nMode was undistort but no path argument was specified.')
         iolib.exit()
 
-
+    cam = get_camera(cmdargs.camera)
     if cmdargs.mode == 'undistort':
-        if not os.path.exists(cmdargs.path):
-            print('\nPath ' + cmdargs.path + ' does not exists')
+        if cmdargs.path != 'digikam' and not os.path.exists(os.path.normpath(cmdargs.path)):
+            print('Path ' + os.path.normpath(cmdargs.path) + ' does not exists')
         elif cmdargs.outpath == '':
-            print('\nOutput path not specified')
+            print('Output path not specified')
         else:
-            iolib.create_folder(cmdargs.outpath)
-            undistort(cmdargs.camera, cmdargs.path, cmdargs.outpath)
-            print('Undistort completed.')
+            iolib.create_folder(os.path.normpath(cmdargs.outpath))
+            if cmdargs.path == 'digikam':
+
+
+                undistort_using_paths(cmdargs.camera, os.path.normpath(cmdargs.path), os.path.normpath(cmdargs.outpath))
+            else:
+                undistort_using_paths(cam, os.path.normpath(cmdargs.path), os.path.normpath(cmdargs.outpath))
+            print('Undistort completed. Undistorted images saved to %s' % (os.path.normpath(cmdargs.outpath)))
     elif cmdargs.mode == 'calibrate':
-        cam = get_camera(cmdargs.camera)
         calibrate(cam)
-        if not cam.calibration_params.last_load:
-            print('\nCamera calibration was attempted but appears to have failed.')
+        if cam.calibration_params.last_load:
+            print('Camera calibration was successful.')
+        else:
+            print('Camera calibration was attempted but appears to have failed.')
     else:
         print('\nInvalid or missing mode argument. Valid values are undistort or calibrate')
         iolib.exit()
