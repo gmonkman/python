@@ -1,3 +1,3 @@
 '''opencvlib'''
 
-__all__ = ['common', 'digikamlib', 'lenscorrection']
+__all__ = ['common', 'digikamlib', 'lenscorrection', 'lenscorrectiondb']

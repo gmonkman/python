@@ -7,6 +7,7 @@ From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 # Python 2/3 compatibility
 from __future__ import print_function
 import sys
+from glob import glob
 PY3 = sys.version_info[0] == 3
 
 if PY3:
@@ -14,6 +15,8 @@ if PY3:
 
 import numpy as np
 import cv2
+import imghdr
+import fuckit
 
 # built-in modules
 import os
@@ -22,10 +25,43 @@ from contextlib import contextmanager
 
 import funclib.iolib as iolib
 
-_IMAGE_EXTENSIONS = ['.bmp', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
-_IMAGE_EXTENSIONS_AS_WILDCARDS = ['*.bmp', '*.jpg', '*.jpeg', '*.png', '*.tif', '*.tiff', '*.pbm', '*.pgm', '*.ppm']
+IMAGE_EXTENSIONS = ['.bmp', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
+IMAGE_EXTENSIONS_AS_WILDCARDS = ['*.bmp', '*.jpg', '*.jpeg', '*.png', '*.tif', '*.tiff', '*.pbm', '*.pgm', '*.ppm']
 
-def image_iterator(paths, wildcards, flags=None):
+def get_image_resolutions(glob_str):
+    '''(str)->list of lists
+    Takes paths and using wildcards globs through all images
+    Returns all unique image resolutions (row, column) as
+    list of lists
+    [[800,600],[1024,768]]
+    '''
+    dims = []
+    for pic in glob(glob_str):
+        if is_image(pic):
+            with fuckit:
+                img = cv2.imread(pic)
+            if isinstance(img, np.ndarray):
+                if not img.shape in dims:
+                    dims.append(img.shape)
+    return dims
+
+def is_image(file_path, try_load=False):
+    '''(str)->bool
+    Pass in a file string and see if it looks like an image.
+    If try_load is true, we try and load the file using cv2.imread (costly)
+    '''
+    ret = False
+    if not imghdr.what(file_path) is None:
+        ret = True
+        if try_load:
+            with fuckit:
+                ret = False
+                img = cv2.imread(file_path)
+                if isinstance(img, np.ndarray):
+                    ret = True
+    return ret
+
+def image_generator(paths, wildcards, flags=None):
     '''(iterable, iterable)->ndarray (an image)
     Globs through every file in paths matching wildcards returning
     the image as an ndarray

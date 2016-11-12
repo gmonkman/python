@@ -1,4 +1,4 @@
-# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, unused-import, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable
+# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, unused-import, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager
 '''
 various routines to work with the digikam library, stored in sqlite
 '''
@@ -30,10 +30,11 @@ class MeasuredImages(object):
             self.digikam_camera_tag = digikam_camera_tag
             self._image_names = None
             self._invalid_images = []
-            self._get_measured_images()
             MeasuredImages._ENGINE = sqlalchemy.create_engine(cn_str, strategy='threadlocal')
+            self._get_measured_images()
         except Exception:
-            pass
+            MeasuredImages.close()
+            raise
 
     def __del__(self):
         with fuckit:
@@ -108,8 +109,8 @@ class MeasuredImages(object):
         sql = ('select distinct Images.id, AlbumRoots.identifier, AlbumRoots.specificPath, Albums.relativePath, images.name '
                 'from Images '
                     ' inner join Albums on albums.id=images.album '
-                    ' inner join AlbumRoots on AlbumRoots.id=Albums.albumRoot'
-                ' where'
+                    ' inner join AlbumRoots on AlbumRoots.id=Albums.albumRoot '
+                'where '
                 'Images.id in ( '
                 'select '
                     'Images.id '
@@ -132,15 +133,16 @@ class MeasuredImages(object):
                 'from images '
                 'inner join ImageTags on images.id=ImageTags.imageid '
                 'inner join Tags on Tags.id=ImageTags.tagid '
-                'where Tags.name="' + self.digikam_camera_tag + '"')
+                'where Tags.name="' + self.digikam_camera_tag + '")')
 
         image_paths = []
         res = MeasuredImages._ENGINE.execute(sql)
         for row in res:
-            drive = iolib.get_drive_from_uuid(row['identifier'], strip=['-', 'volumeid:?uuid=']) + os.sep
-            spath = row['specificPath']
-            rpath = row['relativePath']
-            name = os.sep + row['name']
+            drive = iolib.get_drive_from_uuid(row['identifier'].encode('ascii', 'ignore'), strip=['-', 'volumeid:?uuid=']) + os.sep
+            spath = row['specificPath'].encode('ascii', 'ignore')
+            rpath = row['relativePath'].encode('ascii', 'ignore')
+            name = os.sep + row['name'].encode('ascii', 'ignore')
             full_path = os.path.normpath(drive + spath + rpath + name)
-            image_paths.append([full_path])
+            image_paths.append(full_path)
         self._image_names = image_paths
+        self._set_invalid_images()

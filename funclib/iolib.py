@@ -5,6 +5,7 @@ import csv
 from glob import glob
 import itertools
 import os
+import string
 
 try:
     import cPickle as pickle
@@ -208,16 +209,15 @@ def get_drive_from_uuid(uuid, strip=['-'], make_lcase=True):
 
     Returns None if not found
     '''
+    uuid = uuid.encode('ascii', 'ignore')
     if make_lcase: uuid = uuid.lower()
     for char in strip:
-        uuid = drive.replace(char, '')
+        uuid = uuid.replace(char, '')
     drives = get_available_drive_uuids(strip, make_lcase) #first val is drive, second is the uuid
-    assert isinstance(drives, dict)
-    if drives.has_key[uuid]:
+    if drives.has_key(uuid):
         return drives[uuid]
     else:
         return None
-
 
 def file_list_generator(paths, wildcards):
     '''(iterable, iterable) -> tuple
@@ -254,7 +254,6 @@ def get_file_name(path='', prefix='', ext='.txt'):
 
     return os.path.normpath(os.path.join(path, prefix + stringslib.datetime_stamp() + add_left(ext, os.path.extsep)))
 
-
 def folder_open(folder='.'):
     '''(string) -> void
     opens a windows folder at path folder'''
@@ -262,8 +261,6 @@ def folder_open(folder='.'):
         folder = folder.replace('/', '\\')
     with fuckit:
         subprocess.check_call(['explorer', folder])
-
-
 
 def notepadpp_open_file(filename):
     '''(str) -> void
@@ -274,7 +271,6 @@ def notepadpp_open_file(filename):
     with fuckit:
         openpth = _NOTEPADPP_PATH + ' ' + '"' + filename + '"'
         subprocess.Popen(openpth)
-
 
 def write_to_file(results, prefix='', open_in_npp=True):
     '''

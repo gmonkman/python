@@ -6,8 +6,7 @@
     <ProjectGuid>e4814df1-815d-440a-a9d6-333c531a628e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>crustacean.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>crustacean</Name>

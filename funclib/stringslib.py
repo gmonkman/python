@@ -30,6 +30,9 @@ def read_number(test, default=0):
     else:   #not a string or not a number
         return default
 
+def toASCII(str_val):
+    '''(str)->(str)'''
+    return str_val.encode('ascii', 'ignore')
 
 #region files and paths related
 
