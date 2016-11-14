@@ -45,6 +45,13 @@ def get_image_resolutions(glob_str):
                     dims.append(img.shape)
     return dims
 
+def resolution(img):
+    '''ndarray
+    width,height
+    '''
+    assert isinstance(img, np.ndarray)
+    return [img.shape[1],img.shape[0]]
+
 def is_image(file_path, try_load=False):
     '''(str)->bool
     Pass in a file string and see if it looks like an image.

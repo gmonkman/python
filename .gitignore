@@ -6,6 +6,14 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.txt
+*.MP4
+*.jpg
+*.png
+*.gif
+*.jpeg
+*.JPG
+*.pkl
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -410,11 +418,3 @@ permanal/data/kendall_100000/pam_results_i100000.xlsx
 permanal/data/kendall_100000/kendall_100000_master.xlsx
 *.xlsx
 focalpermute/RESULT20161003181026.txt
-*.txt
-*.MP4
-*.jpg
-*.png
-*.gif
-*.jpeg
-*.JPG
-*.pkl

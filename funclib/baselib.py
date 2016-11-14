@@ -44,3 +44,21 @@ class switch(object):
             return True
         else:
             return False
+
+def dic_merge_two(x, y):
+    '''Given two dicts, merge them into a new dict as a shallow copy.'''
+    z = x.copy()
+    z.update(y)
+    return z
+
+def list_flatten(test_list):
+    '''(list) -> list
+    returns flattened list
+    '''
+    if isinstance(test_list, list):
+        if len(test_list) == 0:
+            return []
+        first, rest = test_list[0], test_list[1:]
+        return flatten(first) + flatten(rest)
+    else:
+        raise ValueError("Couldn't flatten object. Expected a list, but object not a list")

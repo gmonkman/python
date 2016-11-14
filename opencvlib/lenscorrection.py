@@ -39,6 +39,7 @@ import funclib.inifilelib as inifilelib
 import funclib.stringslib as stringslib
 import opencvlib.common as common
 import opencvlib.lenscorrectiondb as lenscorrectiondb
+from opencvlib.common import resolution
 from funclib.stringslib import add_right
 from enum import Enum
 from funclib.baselib import switch
@@ -275,7 +276,7 @@ def calibrate(cam, debug=False):
     rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (w, h), None, None)
 
     #dimensions of all processed images, calculated earlier.
-    width=dims[0][1], height=dims[0][0]
+    width = int(dims[0][1]); height = int(dims[0][0])
     cm = cPickle.dumps(camera_matrix, cPickle.HIGHEST_PROTOCOL)
     dc = cPickle.dumps(dist_coefs, cPickle.HIGHEST_PROTOCOL)
     rv = cPickle.dumps(rvecs, cPickle.HIGHEST_PROTOCOL)
@@ -283,16 +284,18 @@ def calibrate(cam, debug=False):
 
     #write out to db
     db = lenscorrectiondb.DB(cnstr=_CALIBRATION_CONNECTION_STRING)
-    db.crud_camera_upsert(cam.model)
-    db.crud_calibration_upsert(cam.model, width, height, cm, dc, rms, rv, tv)
-    db.close()
+    modelid = db.crud_camera_upsert(cam.model)
+    db.crud_calibration_upsert(modelid, width, height, cm, dc, rms, rv, tv)
+    db.close(commit=True)
     iolib.write_to_eof(calpath, '\nParameters saved to database for camera model %s of resolution %s' % (cam.model, str(width) + 'x' + str(height)))
     iolib.write_to_eof(calpath, '\nRMS: %d' % rms)
     cv2.destroyAllWindows()
 
-def _undistort(cam, img, crop=True):
-    '''[c]Camera, ndarray (image), bool -> ndarray (image) | None
+def _undistort(cam, img, mats, crop=True):
+    '''[c]Camera, ndarray (image), dic, bool -> ndarray (image) | None
     Undistorts an image based on the lens profile loaded into the Camera class cam.
+    dic is a dictionary containing the undistortion matrices
+    {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
 
     Returns None if an exception occurs
     '''
@@ -300,8 +303,8 @@ def _undistort(cam, img, crop=True):
     assert isinstance(img, np.ndarray)
     try:
         h, w = img.shape[:2]
-        newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cam.calibration_params.camera_matrix, cam.calibration_params.distortion_coefficients, (w, h), 1, (w, h))
-        dst = cv2.undistort(img, cam.calibration_params.camera_matrix, cam.calibration_params.distortion_coefficients, None, newcameramtx)
+        newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mats['cmat'], mats['dcoef'], (w, h), 1, (w, h))
+        dst = cv2.undistort(img, mats['cmat'], mats['dcoef'], None, newcameramtx)
         if crop:
             x, y, w, h = roi
             dst = dst[y:y+h, x:x+w]
@@ -323,6 +326,9 @@ def undistort(cam, imgpaths_or_imagelist, outpath, label='_UND', crop=True):
 
     Converted images are saved to outpath, with label appended to the original file name.
     '''
+
+    blobs = {}
+    db = lenscorrectiondb.DB(cnstr=_CALIBRATION_CONNECTION_STRING)
 
     useglob = True
     if isinstance(imgpaths_or_imagelist, str):
@@ -349,14 +355,22 @@ def undistort(cam, imgpaths_or_imagelist, outpath, label='_UND', crop=True):
         try:
             path, name, ext = common.splitfn(fil)
             outfile = os.path.join(outpath, name + label + '.png')
-            img = _undistort(cam, cv2.imread(fil), crop)
-            if img is None:
-                iolib.write_to_eof(logfilename, 'File %s failed in _undistort.\n' % (fil))
+
+            orig_img = cv2.imread(fil)
+            width, height = resolution(orig_img)
+            blobs = db.crud_read_calibration_blobs(cam.model, height, width)
+            if blobs is None:
+                iolib.write_to_eof(logfilename, 'No calibration data for image %s, resolution [%sx%s]' % (fil, width, height))
             else:
-                cv2.imwrite(outfile, img)
-                success += 1
-                with fuckit:
-                    iolib.write_to_eof(logfilename, 'Success:%s\n' % (fil))
+                #{'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
+                img = _undistort(cam, cv2.imread(orig_img), blobs, crop)
+                if img is None:
+                    iolib.write_to_eof(logfilename, 'File %s failed in _undistort.\n' % (fil))
+                else:
+                    cv2.imwrite(outfile, img)
+                    success += 1
+                    with fuckit:
+                        iolib.write_to_eof(logfilename, 'Success:%s\n' % (fil))
         except Exception:
             iolib.write_to_eof(logfilename, 'Failed:%s, Exception:%s\n' % (fil, Exception.message))
         finally:
@@ -415,6 +429,7 @@ def main():
                 print('Some or all calibration parameters could not be loaded. Try running a calibration.')
     elif cmdargs.mode == 'calibrate':
         calibrate(cam, cmdargs.debug)
+        print('Calibration saved.')
     else:
         print('\nInvalid or missing mode argument. Valid values are undistort or calibrate')
         iolib.exit()
