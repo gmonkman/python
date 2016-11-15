@@ -1,12 +1,11 @@
-# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, unused-import, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager
+# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager
 '''
 various routines to work with the digikam library, stored in sqlite
 '''
 import os
-import sys
 
 import cv2
-import sqlalchemy
+import sqlite3
 import fuckit
 
 import funclib.iolib as iolib
@@ -20,7 +19,9 @@ class MeasuredImages(object):
 
     The list is created from a view in the digikamlib.
     '''
-    _ENGINE = None
+    cConn = sqlite3.connect(':memory:') #set in memory, simply so intellisense works
+    cConn.row_factory = sqlite3.Row
+    assert isinstance(cConn, sqlite3.Connection)
 
     def __init__(self, cn_str, digikam_measured_tag, digikam_camera_tag):
         '''initialise the class'''
@@ -30,7 +31,8 @@ class MeasuredImages(object):
             self.digikam_camera_tag = digikam_camera_tag
             self._image_names = None
             self._invalid_images = []
-            MeasuredImages._ENGINE = sqlalchemy.create_engine(cn_str, strategy='threadlocal')
+            MeasuredImages.cConn = sqlite3.connect(cn_str)
+            MeasuredImages.cConn.row_factory = sqlite3.Row
             self._get_measured_images()
         except Exception:
             MeasuredImages.close()
@@ -38,14 +40,7 @@ class MeasuredImages(object):
 
     def __del__(self):
         with fuckit:
-            self.close()
-
-    @classmethod
-    def close(cls):
-        '''cleanup'''
-        with fuckit:
-            cls._ENGINE.contextual_connect.close()
-            cls._ENGINE.close()
+            MeasuredImages.close()
 
     def _set_invalid_images(self):
         '''create a list of images which look invalid'''
@@ -54,10 +49,6 @@ class MeasuredImages(object):
             if not os.path.isfile(images):
                 if not iolib.file_exists(images):
                     self._invalid_images.append(images)
-    @property
-    def connection(self):
-        '''connection getter'''
-        return self._ENGINE
 
     @property
     def invalid_image_count(self):
@@ -136,13 +127,37 @@ class MeasuredImages(object):
                 'where Tags.name="' + self.digikam_camera_tag + '")')
 
         image_paths = []
-        res = MeasuredImages._ENGINE.execute(sql)
-        for row in res:
-            drive = iolib.get_drive_from_uuid(row['identifier'].encode('ascii', 'ignore'), strip=['-', 'volumeid:?uuid=']) + os.sep
-            spath = row['specificPath'].encode('ascii', 'ignore')
-            rpath = row['relativePath'].encode('ascii', 'ignore')
-            name = os.sep + row['name'].encode('ascii', 'ignore')
+        cur = MeasuredImages.cConn.cursor()
+        cur.execute(sql)
+        row = cur.fetchall()
+        for res in row:
+            drive = iolib.get_drive_from_uuid(res['identifier'].encode('ascii', 'ignore'), strip=['-', 'volumeid:?uuid=']) + os.sep
+            spath = res['specificPath'].encode('ascii', 'ignore')
+            rpath = res['relativePath'].encode('ascii', 'ignore')
+            name = os.sep + res['name'].encode('ascii', 'ignore')
             full_path = os.path.normpath(drive + spath + rpath + name)
             image_paths.append(full_path)
         self._image_names = image_paths
         self._set_invalid_images()
+
+    @staticmethod
+    def close(commit=False):
+        '''close the engine'''
+        with fuckit:
+            if commit:
+                MeasuredImages.cConn.commit()
+            else:
+                MeasuredImages.cConn.rollback()
+            MeasuredImages.cConn.close()
+
+    @staticmethod
+    def commit():
+        '''try a commit'''
+        with fuckit:
+            MeasuredImages.cConn.commit()
+
+    @staticmethod
+    def rollback():
+        '''try a rollback'''
+        with fuckit:
+            MeasuredImages.cConn.rollback()

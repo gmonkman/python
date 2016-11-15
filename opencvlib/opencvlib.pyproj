@@ -12,7 +12,7 @@
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments> -m calibrate -c NEXTBASE512G</CommandLineArguments>
+    <CommandLineArguments>-m undistort -c NEXTBASE512G -o C:/temp/pics -p C:/development/python/opencvlib/calibration/nextbase512g/images</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

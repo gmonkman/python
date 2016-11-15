@@ -1,4 +1,4 @@
-# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, unused-import, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager
+# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager
 '''deals with database operations related to lenscorrecton.py'''
 
 #region imports
@@ -51,6 +51,7 @@ class DB(object):
         with fuckit:
             DB.cConn.commit()
 
+    @staticmethod
     def rollback():
         '''try a rollback'''
         with fuckit:
@@ -129,20 +130,23 @@ class DB(object):
         3) {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
         4) Returns None if no match.
         '''
-        sql = DB._sql_read('calibration', camera_model=camera_model, height=height, width=width)
+        cameramodelid = DB._lookup('camera_model', 'camera_model', 'camera_modelid', camera_model)
+        if cameramodelid is None:
+            raise ValueError('cameramodelid could not be read for %s' % camera_model)
+
+        sql = DB._sql_read('calibration', camera_modelid=cameramodelid, height=height, width=width)
         cur = DB.cConn.cursor()
         res = cur.execute(sql)
-        res.fetchall()
         assert isinstance(res, sqlite3.Cursor)
-        if len(res) == 0:
-            return None
-        else:
-            for row in res:
-                cmat = cPickle.loads(str(row['camera_martrix']))
+        for row in res:
+            if len(row) == 0:
+                return None
+            else:
+                cmat = cPickle.loads(str(row['camera_matrix']))
                 dcoef = cPickle.loads(str(row['distortion_coefficients']))
                 rvect = cPickle.loads(str(row['rotational_vectors']))
                 tvect = cPickle.loads(str(row['translational_vectors']))
-            return {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
+                return {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
 
     @staticmethod
     def executeSQL(sql):
@@ -178,13 +182,35 @@ class DB(object):
         cur = DB.cConn.cursor()
         cur.execute(sql)
         row = cur.fetchall()
-        if len(row)==0:
+        return DB._read_col(row, 'seq')
+
+    @staticmethod
+    def _read_col(cur, colname):
+        '''cursor, str->basetype
+        reads a cursor row column value
+        returns None if there is no row
+        First row only
+        '''
+        if len(cur) == 0:
             return None
         else:
-            for results in row:
-                return results['seq']
+            for results in cur:
+                return results[colname]
 
+    @staticmethod
+    def _lookup(table_name, col_to_search, col_with_value_we_want, value):
+        '''(str, str, str, basetype)->basetype
+        1) Returns lookup value, typically based on a primary key value
+        2) Returns None if no matches found
+        '''
+        sql = 'SELECT %s FROM %s WHERE %s="%s" LIMIT 1;' % \
+                    (col_with_value_we_want, table_name, col_to_search, value)
+        cur = DB.cConn.cursor()
+        cur.execute(sql)
+        row = cur.fetchall()
+        return DB._read_col(row, col_with_value_we_want)
 
+    @staticmethod
     def _sql_read(table, **kwargs):
         ''' Generates SQL for a SELECT statement matching the kwargs passed. '''
         sql = list()

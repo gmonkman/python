@@ -241,6 +241,10 @@ def file_list_generator1(paths, wildcards):
         for myfile in glob(vals):
             yield os.path.normpath(myfile)
 
+def file_list_glob_generator(wilded_path):
+    for file in glob(wilded_path):
+        yield file
+
 def get_file_name(path='', prefix='', ext='.txt'):
     '''(str, str, str) -> str
     returns a filename, based on a datetime stamp

@@ -1,22 +1,23 @@
-#pylint: skip-file
+# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, not-context-manager, missing-docstring, unused-argument,bad-builtin
 '''
 This module contains some common routines used by other samples.
 From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 '''
 
-# Python 2/3 compatibility
 from __future__ import print_function
 import sys
 from glob import glob
-PY3 = sys.version_info[0] == 3
-
-if PY3:
-    from functools import reduce
 
 import numpy as np
 import cv2
 import imghdr
 import fuckit
+
+PY3 = sys.version_info[0] == 3
+#if PY3:
+#    from functools import reduce
+
+
 
 # built-in modules
 import os
@@ -42,7 +43,9 @@ def get_image_resolutions(glob_str):
                 img = cv2.imread(pic)
             if isinstance(img, np.ndarray):
                 if not img.shape in dims:
-                    dims.append(img.shape)
+                    h, w = img.shape[:2]
+                    h = int(h); w = int(w)
+                    dims.append([w, h])
     return dims
 
 def resolution(img):
@@ -50,7 +53,7 @@ def resolution(img):
     width,height
     '''
     assert isinstance(img, np.ndarray)
-    return [img.shape[1],img.shape[0]]
+    return [img.shape[1], img.shape[0]]
 
 def is_image(file_path, try_load=False):
     '''(str)->bool
@@ -80,6 +83,7 @@ def image_generator(paths, wildcards, flags=None):
             yield cv2.imread(images, flags)
 
 class Bunch(object):
+    '''bunch'''
     def __init__(self, **kw):
         self.__dict__.update(kw)
     def __str__(self):
@@ -94,14 +98,16 @@ def splitfn(fn):
     return path, name, ext
 
 def anorm2(a):
+    '''anorm2'''
     return (a*a).sum(-1)
 def anorm(a):
-    return np.sqrt( anorm2(a) )
+    '''anorm'''
+    return np.sqrt(anorm2(a))
 
 def homotrans(H, x, y):
     xs = H[0, 0]*x + H[0, 1]*y + H[0, 2]
     ys = H[1, 0]*x + H[1, 1]*y + H[1, 2]
-    s  = H[2, 0]*x + H[2, 1]*y + H[2, 2]
+    s = H[2, 0]*x + H[2, 1]*y + H[2, 2]
     return xs/s, ys/s
 
 def to_rect(a):
@@ -114,13 +120,11 @@ def rect2rect_mtx(src, dst):
     src, dst = to_rect(src), to_rect(dst)
     cx, cy = (dst[1] - dst[0]) / (src[1] - src[0])
     tx, ty = dst[0] - src[0] * (cx, cy)
-    M = np.float64([[ cx,  0, tx],
-                    [  0, cy, ty],
-                    [  0,  0,  1]])
+    M = np.float64([[cx, 0, tx], [0, cy, ty], [0, 0, 1]])
     return M
 
 
-def lookat(eye, target, up = (0, 0, 1)):
+def lookat(eye, target, up=(0, 0, 1)):
     fwd = np.asarray(target, np.float64) - eye
     fwd /= anorm(fwd)
     right = np.cross(fwd, up)
@@ -132,7 +136,7 @@ def lookat(eye, target, up = (0, 0, 1)):
 
 def mtx2rvec(R):
     w, u, vt = cv2.SVDecomp(R - np.eye(3))
-    p = vt[0] + u[:,0]*w[0]    # same as np.dot(R, vt[0])
+    p = vt[0] + u[:, 0]*w[0]    # same as np.dot(R, vt[0])
     c = np.dot(vt[0], p)
     s = np.dot(vt[1], p)
     axis = np.cross(vt[0], vt[1])
@@ -140,10 +144,10 @@ def mtx2rvec(R):
 
 def draw_str(dst, target, s):
     x, y = target
-    cv2.putText(dst, s, (x+1, y+1), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness = 2, lineType=cv2.LINE_AA)
+    cv2.putText(dst, s, (x+1, y+1), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
     cv2.putText(dst, s, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=cv2.LINE_AA)
 
-class Sketcher:
+class Sketcher(object):
     def __init__(self, windowname, dests, colors_func):
         self.prev_pt = None
         self.windowname = windowname
@@ -170,16 +174,15 @@ class Sketcher:
             self.prev_pt = pt
             self.show()
 
-
 # palette data from matplotlib/_cm.py
-_jet_data =   {'red':   ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89,1, 1),
+_jet_data = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1),
                          (1, 0.5, 0.5)),
-               'green': ((0., 0, 0), (0.125,0, 0), (0.375,1, 1), (0.64,1, 1),
-                         (0.91,0,0), (1, 0, 0)),
-               'blue':  ((0., 0.5, 0.5), (0.11, 1, 1), (0.34, 1, 1), (0.65,0, 0),
+               'green': ((0., 0, 0), (0.125, 0, 0), (0.375, 1, 1), (0.64, 1, 1),
+                         (0.91, 0, 0), (1, 0, 0)),
+               'blue': ((0., 0.5, 0.5), (0.11, 1, 1), (0.34, 1, 1), (0.65, 0, 0),
                          (1, 0, 0))}
 
-cmap_data = { 'jet' : _jet_data }
+cmap_data = {'jet' : _jet_data}
 
 def make_cmap(name, n=256):
     data = cmap_data[name]
@@ -196,9 +199,6 @@ def make_cmap(name, n=256):
         channels.append(ch)
     return np.uint8(np.array(channels).T*255)
 
-def nothing(*arg, **kw):
-    pass
-
 def clock():
     return cv2.getTickCount() / cv2.getTickFrequency()
 
@@ -211,8 +211,8 @@ def Timer(msg):
     finally:
         print("%.2f ms" % ((clock()-start)*1000))
 
-class StatValue:
-    def __init__(self, smooth_coef = 0.5):
+class StatValue(object):
+    def __init__(self, smooth_coef=0.5):
         self.value = None
         self.smooth_coef = smooth_coef
     def update(self, v):
@@ -222,7 +222,7 @@ class StatValue:
             c = self.smooth_coef
             self.value = c * self.value + (1.0-c) * v
 
-class RectSelector:
+class RectSelector(object):
     def __init__(self, win, callback):
         self.win = win
         self.callback = callback
@@ -287,10 +287,10 @@ def getsize(img):
     h, w = img.shape[:2]
     return w, h
 
-def mdot(*args):
-    return reduce(np.dot, args)
+#def mdot(*args):
+   # return reduce(np.dot, args)
 
-def draw_keypoints(vis, keypoints, color = (0, 255, 255)):
+def draw_keypoints(vis, keypoints, color=(0, 255, 255)):
     for kp in keypoints:
         x, y = kp.pt
         cv2.circle(vis, (int(x), int(y)), 2, color)

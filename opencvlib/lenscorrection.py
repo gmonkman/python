@@ -1,4 +1,4 @@
-# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, unused-import, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager
+# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager,lost-exception
 '''
 camera calibration for distorted images with chess board samples
 reads distorted images, calculates the calibration and write undistorted images
@@ -17,32 +17,22 @@ from __future__ import print_function
 from glob import glob
 import argparse
 import cPickle
-import itertools
 import os
-import sys
-import warnings
 #end region
 
 #region 3rd party imports
 import cv2
 import fuckit
 import numpy as np
-import scipy
-import xlwings
 #endregion
 
 #region my imports
 import opencvlib.digikamlib as digikamlib
-import funclib.arraylib as arraylib
 import funclib.iolib as iolib
 import funclib.inifilelib as inifilelib
-import funclib.stringslib as stringslib
 import opencvlib.common as common
 import opencvlib.lenscorrectiondb as lenscorrectiondb
 from opencvlib.common import resolution
-from funclib.stringslib import add_right
-from enum import Enum
-from funclib.baselib import switch
 #endregion
 #endregion
 
@@ -50,8 +40,22 @@ from funclib.baselib import switch
 _INIFILE = './lenscorrection.py.ini'
 _DIGIKAM_CONNECTION_STRING = ''
 _CALIBRATION_CONNECTION_STRING = ''
+_PrintProgress = None #will be set to the printprogress class
 
 #region Class Declarations
+class PrintProgress(object):
+    '''DOS progressbar'''
+    def __init__(self, maximum, bar_length=30):
+        self.max = maximum
+        self.bar_length = bar_length
+        self.iteration = 0
+
+    def increment(self):
+        '''tick the progress bar'''
+        self.iteration += 1
+        iolib.print_progress(self.iteration, self.max, prefix='%i of %i' % (self.iteration, self.max), bar_length=self.bar_length)
+
+
 class CalibrationGrid(object):
     '''representation of checker board x and y vertices'''
     def __init__(self, x_vertices=9, y_vertices=6):
@@ -91,7 +95,7 @@ class CameraIni(object):
         self._image_file_mask = image_file_mask
         self._square_size = square_size
         self._debugdir = ''
-        self.digikam_camera_tag = ''
+        self.digikam_camera_tag = '' #currently set in def main
         self.digikam_measured_tag = ''
 
         self._calibration_path_debug = os.path.normpath(os.path.join(self.calibration_path, 'debug'))
@@ -150,16 +154,6 @@ class CameraIni(object):
     def square_size(self, square_size):
         '''square_size setter'''
         self._square_size = square_size
-
-    @property
-    def calibration_params(self):
-        '''calibration_params getter'''
-        return self._calibration_params
-
-    @property
-    def params_loaded(self):
-        '''returns true if parameters were loaded successfully'''
-        return self._calibration_params.last_load
     #endregion
 
 
@@ -179,7 +173,68 @@ class CameraIni(object):
         s = os.path.normpath(os.path.join(self._calibration_path, 'debug'))
         iolib.create_folder(s)
         return s
+
+
+class Calibration(object):
+    '''container for a camera calibration at a specific resolution'''
+
+    DB = lenscorrectiondb.DB(cnstr=_CALIBRATION_CONNECTION_STRING)
+
+    def __init__(self, camera_model, wildcarded_images_path, height, width, pattern_size=(9, 6), square_size=1):
+        '''(str, int, int, tuple)
+        (camera model name, image height, image width, tuple:(x vertices, y vertices), square_size)
+        of the calibration images.
+        '''
+        self.height = height
+        self.width = width
+        self.camera_model = camera_model
+        self.wildcarded_images_path = wildcarded_images_path
+        self.pattern_size = pattern_size
+        self.square_size = square_size
+
+    @property
+    def _pattern_points(self):
+        '''pattern_points getter'''
+        pattern_points = np.zeros((np.prod(self.pattern_size), 3), np.float32)
+        pattern_points[:, :2] = np.indices(self.pattern_size).T.reshape(-1, 2)
+        pattern_points *= self.square_size
+        return pattern_points
+
+    def calibrate(self):
+        '''main calibration entry point'''
+        obj_points = []
+        img_points = []
+      #  for fn in iolib.file_list_glob_generator(self.path_to_calibration_images):
+        for fn in iolib.file_list_glob_generator(self.wildcarded_images_path):
+            if common.is_image(fn):
+                img = cv2.imread(os.path.normpath(fn), 0)
+                w, h = common.resolution(img)
+                if w == self.width and h == self.height:
+                    found, corners = cv2.findChessboardCorners(img, self.pattern_size)
+                    if found:
+                        term = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 30, 0.1)
+                        cv2.cornerSubPix(img, corners, (5, 5), (-1, -1), term)
+                        img_points.append(corners.reshape(-1, 2))
+                        obj_points.append(self._pattern_points)
+                    else:
+                        print('Chessboard vertices not found in %s\n' % (fn))
+
+                    _PrintProgress.increment()
+
+    # calculate camera distortion
+        rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (self.width, self.height), None, None)
+
+        cm = cPickle.dumps(self.camera_matrix, cPickle.HIGHEST_PROTOCOL)
+        dc = cPickle.dumps(self.dist_coefs, cPickle.HIGHEST_PROTOCOL)
+        rv = cPickle.dumps(self.rvecs, cPickle.HIGHEST_PROTOCOL)
+        tv = cPickle.dumps(self.tvecs, cPickle.HIGHEST_PROTOCOL)
+
+        modelid = Calibration.DB.crud_camera_upsert(self.camera_model)
+        Calibration.DB.crud_calibration_upsert(modelid, self.width, self.height, cm, dc, rms, rv, tv)
+        Calibration.DB.commit()
 #endregion
+
+
 
 def get_camera(model):
     '''(str)-> [class] camera
@@ -218,78 +273,31 @@ def _ini_set_database_strings():
     global _CALIBRATION_CONNECTION_STRING
     _CALIBRATION_CONNECTION_STRING = ini.tryread('DATABASE', 'CALIBRATION_CONNECTION_STRING', force_create=False)
 
-def calibrate(cam, debug=False):
+
+def calibrate(cam):
     '''(camera[class])
     Pass in a camera class object, initialised from the ini file
     by calling get_camera
     '''
     assert isinstance(cam, CameraIni)
 
-    pattern_size = (cam.grid.x_vertices, cam.grid.y_vertices)
-    pattern_points = np.zeros((np.prod(pattern_size), 3), np.float32)
-    pattern_points[:, :2] = np.indices(pattern_size).T.reshape(-1, 2)
-    pattern_points *= cam.square_size
-
-    obj_points = []
-    img_points = []
-    h, w = 0, 0
-    img_names_undistort = []
-    i = 1
-
     calpath = iolib.get_file_name(path=cam.calibration_path)
-    print('Logging to %s' % calpath)
-    iolib.create_file(calpath)
-    foundcnt = 0
-
     dims = common.get_image_resolutions(cam.get_full_calibration_image_path())
-    if len(dims) > 1:
-        raise Exception('Calibration images in %s have different resolutions.' % (cam.get_full_calibration_image_path()))
 
-    img_names = glob(cam.get_full_calibration_image_path())
-    for fn in img_names:
-        img = cv2.imread(os.path.normpath(fn), 0)
-        if img is None:
-            iolib.write_to_eof(calpath, 'Failed to load image %s\n' % (fn))
-        else:
-            h, w = img.shape[:2]
-            found, corners = cv2.findChessboardCorners(img, pattern_size)
-            if found:
-                term = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 30, 0.1)
-                cv2.cornerSubPix(img, corners, (5, 5), (-1, -1), term)
-                img_points.append(corners.reshape(-1, 2))
-                obj_points.append(pattern_points)
-                foundcnt += 1
-            else:
-                iolib.write_to_eof(calpath, 'Chessboard not found in %s\n' % (fn))
+    Calibration.DB = lenscorrectiondb.DB(cnstr=_CALIBRATION_CONNECTION_STRING)
 
-            if debug:
-                vis = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-                cv2.drawChessboardCorners(vis, pattern_size, corners, found)
-                path, name, ext = common.splitfn(fn)
-                outfile = os.path.normpath(os.path.join(cam.calibration_path_debug, name + '_chess.png'))
-                cv2.imwrite(outfile, vis)
+    img_path = cam.get_full_calibration_image_path()
 
-        iolib.print_progress(i, len(img_names), prefix='%i of %i [found:%i]' % (i, len(img_names), foundcnt), bar_length=30)
-        i += 1
+    #set up a list of classes for the different resolutions of calibration images
+    calibrations = [Calibration(cam.model, img_path, h, w, (cam.grid.x_vertices, cam.grid.y_vertices), cam.square_size) for w, h in dims]
 
-    # calculate camera distortion
-    rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (w, h), None, None)
+    _PrintProgress.max = len(glob(img_path))
+    _PrintProgress.iteration = 1
 
-    #dimensions of all processed images, calculated earlier.
-    width = int(dims[0][1]); height = int(dims[0][0])
-    cm = cPickle.dumps(camera_matrix, cPickle.HIGHEST_PROTOCOL)
-    dc = cPickle.dumps(dist_coefs, cPickle.HIGHEST_PROTOCOL)
-    rv = cPickle.dumps(rvecs, cPickle.HIGHEST_PROTOCOL)
-    tv = cPickle.dumps(tvecs, cPickle.HIGHEST_PROTOCOL)
+    for Cal in calibrations:
+        Cal.calibrate()
 
-    #write out to db
-    db = lenscorrectiondb.DB(cnstr=_CALIBRATION_CONNECTION_STRING)
-    modelid = db.crud_camera_upsert(cam.model)
-    db.crud_calibration_upsert(modelid, width, height, cm, dc, rms, rv, tv)
-    db.close(commit=True)
-    iolib.write_to_eof(calpath, '\nParameters saved to database for camera model %s of resolution %s' % (cam.model, str(width) + 'x' + str(height)))
-    iolib.write_to_eof(calpath, '\nRMS: %d' % rms)
-    cv2.destroyAllWindows()
+    Calibration.DB.close()
 
 def _undistort(cam, img, mats, crop=True):
     '''[c]Camera, ndarray (image), dic, bool -> ndarray (image) | None
@@ -358,12 +366,13 @@ def undistort(cam, imgpaths_or_imagelist, outpath, label='_UND', crop=True):
 
             orig_img = cv2.imread(fil)
             width, height = resolution(orig_img)
+
             blobs = db.crud_read_calibration_blobs(cam.model, height, width)
             if blobs is None:
                 iolib.write_to_eof(logfilename, 'No calibration data for image %s, resolution [%sx%s]' % (fil, width, height))
             else:
                 #{'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
-                img = _undistort(cam, cv2.imread(orig_img), blobs, crop)
+                img = _undistort(cam, orig_img, blobs, crop)
                 if img is None:
                     iolib.write_to_eof(logfilename, 'File %s failed in _undistort.\n' % (fil))
                 else:
@@ -392,7 +401,9 @@ def main():
 
     cmdline = argparse.ArgumentParser(description='Examples:\n'
                                       'Undistort images in digikam database to c:/temp/pics\n'
-                                      'lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics  -p DIGIKAM\n\n'
+                                      'lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p DIGIKAM\n\n'
+                                      'Undistort images in a path and output to c:/temp/pics\n'
+                                      'lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p c:/path/to/images/to/undistort \n\n'
                                       'Calibrate lens using images in CALIBRATION_PATH\n'
                                       'lenscorrection.py -m calibrate -c NEXTBASE512G\n\n'
                                       'Calibrate lens using images in CALIBRATION_PATH. Saves vertex detection images to the debug folder\n'
@@ -417,18 +428,15 @@ def main():
             print('Output path not specified')
         else:
             iolib.create_folder(os.path.normpath(cmdargs.outpath))
-            if cam.params_loaded:
-                if cmdargs.path.lower() == 'digikam':
-                    digikam = digikamlib.MeasuredImages(cam.digikam_connection_string, cam.digikam_measured_tag, cam.digikam_camera_tag)
-                    lst = digikam.valid_images
-                    undistort(cam, lst, os.path.normpath(cmdargs.outpath))
-                else:
-                    undistort(cam, os.path.normpath(cmdargs.path), os.path.normpath(cmdargs.outpath))
-                print('Undistort completed. Undistorted images saved to %s' % (os.path.normpath(cmdargs.outpath)))
+            if cmdargs.path.lower() == 'digikam':
+                digikam = digikamlib.MeasuredImages(_DIGIKAM_CONNECTION_STRING, cam.digikam_measured_tag, cam.digikam_camera_tag)
+                lst = digikam.valid_images
+                undistort(cam, lst, os.path.normpath(cmdargs.outpath))
             else:
-                print('Some or all calibration parameters could not be loaded. Try running a calibration.')
+                undistort(cam, os.path.normpath(cmdargs.path), os.path.normpath(cmdargs.outpath))
+            print('Undistort completed. Undistorted images saved to %s' % (os.path.normpath(cmdargs.outpath)))
     elif cmdargs.mode == 'calibrate':
-        calibrate(cam, cmdargs.debug)
+        calibrate(cam)
         print('Calibration saved.')
     else:
         print('\nInvalid or missing mode argument. Valid values are undistort or calibrate')
