@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>cdlgYesNo</Title>
+      <Author>Graham Monkman</Author>
+      <Description></Description>
+      <HelpUrl></HelpUrl>
+      <Shortcut>cdlgYesNo</Shortcut>
+    </Header>
+    <Snippet>
+    <Declarations>
+        <Literal>
+            <ID>title</ID>
+            <ToolTip>title</ToolTip>
+            <Default>Please Respond</Default>
+        </Literal>    
+        <Literal>
+            <ID>msg</ID>
+            <ToolTip>Question</ToolTip>
+            <Default>What do you want to do?</Default>
+        </Literal>
+    </Declarations>
+    <Code Language="Python" Delimiter="$"><![CDATA[
+    title = '$title$'
+    msg = '$msg$'
+    default = msgbox.QMessageBox.No
+    result = msgbox.question(title, msg, default, msgbox.QMessageBox.Yes, msgbox.QMessageBox.No)
+    if result == msgbox.QMessageBox.Yes:
+        pass
+    elif result == msgbox.QMessageBox.No:
+        pass
+    else:
+        pass
+$end$]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

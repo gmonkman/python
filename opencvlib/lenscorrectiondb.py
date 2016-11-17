@@ -9,69 +9,66 @@ import cPickle
 import funclib.baselib as baselib
 #endregion
 
+class Conn(object):
+    '''connection to database'''
+    def __init__(self, cnstr=':memory:'):
+        self.cnstr = cnstr
+        self.conn = None
 
-class DB(object):
-    '''everything to do with the db
-    '''
-    cConn = sqlite3.connect(':memory:') #set in memory, simply so intellisense works
-    cConn.row_factory = sqlite3.Row
-    assert isinstance(cConn, sqlite3.Connection)
+    def __enter__(self):
+        self.conn = sqlite3.connect(self.cnstr)
+        self.conn.row_factory = sqlite3.Row
+        return self.conn
 
-    def __init__(self, cnstr):
-        '''(cnstr)
-        open the connection using cnstr
-        '''
-        DB.open(cnstr)
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.conn.close()
 
-    def __del__(self):
-        with fuckit:
-            DB.close()
-
-    @staticmethod
-    def open(cnstr):
+    def open(self, cnstr):
         '''str->void
         file path location of the db
+        open a connection, closing existing one
         '''
-        DB.cConn = sqlite3.connect(cnstr)
-        DB.cConn.row_factory = sqlite3.Row
+        self.close()
+        self.conn = sqlite3.connect(cnstr)
+        self._conn.row_factory = sqlite3.Row
 
-    @staticmethod
-    def close(commit=False):
-        '''close the engine'''
+    def close(self, commit=False):
+        '''close the db'''
         with fuckit:
             if commit:
-                DB.cConn.commit()
+                self.conn.commit()
             else:
-                DB.cConn.rollback()
-            DB.cConn.close()
+                self.conn.rollback()
+            self.conn.close()
 
-    @staticmethod
-    def commit():
-        '''try a commit'''
-        with fuckit:
-            DB.cConn.commit()
+    def commit(self):
+        '''commit'''
+        self._conn.commit()
 
-    @staticmethod
-    def rollback():
-        '''try a rollback'''
-        with fuckit:
-            DB.cConn.rollback()
+
+class CalibrationCRUD(object):
+    '''everything to do with the db
+    '''
+    def __init__(self, dbconn):
+        '''(cnstr)
+        pass in an open dbconn
+        '''
+        self.conn = dbconn
+        assert isinstance(self.conn, sqlite3.Connection)
 
     #region exists stuff
-    @staticmethod
-    def exists_by_primarykey(table, keyid):
+    def exists_by_primarykey(self, table, keyid):
         '''(str,id)->bool
         return bool indicating if  id exists in table
         '''
-        cur = DB.cConn.cursor()
+        cur = self.conn.cursor()
         sql = 'SELECT EXISTS(SELECT 1 as one FROM ' + table + ' WHERE ' + table + 'id="' + str(keyid) + '" LIMIT 1) as res;'
         cur.execute(sql)
         row = cur.fetchall()
         for res in row:
             return bool(row['res'])
 
-    @staticmethod
-    def exists_by_compositekey(table, dic):
+    def exists_by_compositekey(self, table, dic):
         '''(str, dic)->bool
         Return true or false if a record exists in table based on multiple values
         so dic would be for e.g.
@@ -84,58 +81,54 @@ class DB(object):
         sql.append("".join(where))
         sql.append('LIMIT 1);')
         query = "".join(sql)
-        cur = DB.cConn.cursor()
+        cur = self.conn.cursor()
         cur.execute(query)
         row = cur.fetchall()
         return bool(row[0][0])
     #endregion
 
     #region correction.db specific
-    @staticmethod
-    def crud_camera_upsert(camera_model):
+    def crud_camera_upsert(self, camera_model):
         '''(str)-> int
         add a camera
         '''
         keys = {'camera_model':camera_model}
-        sql = DB._sql_upsert('camera_model', keys)
-        DB.executeSQL(sql)
-        return DB._get_last_id('camera_model')
+        sql = self._sql_upsert('camera_model', keys)
+        self.executeSQL(sql)
+        return self._get_last_id('camera_model')
 
-    @staticmethod
-    def crud_calibration_upsert(camera_modelid, width, height, camera_matrix, dcoef, rms, rvect, tvect):
+    def crud_calibration_upsert(self, camera_modelid, width, height, camera_matrix, dcoef, rms, rvect, tvect):
         '''update/insert calibration record'''
         assert isinstance(camera_modelid, int)
         keys = {'camera_modelid':camera_modelid, 'width':width, 'height':height}
-        sql = DB._sql_upsert('calibration', keys, width=width, height=height, rms=rms)
-        DB.executeSQL(sql)
-        calibrationid = DB._get_last_id('calibration')
-        DB._blobs(calibrationid, camera_matrix, dcoef, rvect, tvect)
+        sql = self._sql_upsert('calibration', keys, width=width, height=height, rms=rms)
+        self.executeSQL(sql)
+        calibrationid = self._get_last_id('calibration')
+        self._blobs(calibrationid, camera_matrix, dcoef, rvect, tvect)
 
-    @staticmethod
-    def crud_calibration_delete_by_composite(camera_modelid, height, width):
+    def crud_calibration_delete_by_composite(self, camera_modelid, height, width):
         '''delete calibration by unique key
         kargs should be:
         width: height: camera_model:
         '''
         assert isinstance(camera_modelid, int)
-        cur = DB.cConn.cursor()
-        sql = DB._sql_delete('calibration', camera_modelid=camera_modelid, height=height, width=width)
-        DB.executeSQL(sql)
+        cur = self.conn.cursor()
+        sql = CalibrationCRUD._sql_delete('calibration', camera_modelid=camera_modelid, height=height, width=width)
+        self.executeSQL(sql)
 
-    @staticmethod
-    def crud_read_calibration_blobs(camera_model, height, width):
+    def crud_read_calibration_blobs(self, camera_model, height, width):
         '''(str, int, int)-> dic
         1) Using the key for table calibrtion
         2) Returns the calibration blobs from the db as a dictionary
         3) {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
         4) Returns None if no match.
         '''
-        cameramodelid = DB._lookup('camera_model', 'camera_model', 'camera_modelid', camera_model)
+        cameramodelid = self._lookup('camera_model', 'camera_model', 'camera_modelid', camera_model)
         if cameramodelid is None:
             raise ValueError('cameramodelid could not be read for %s' % camera_model)
 
-        sql = DB._sql_read('calibration', camera_modelid=cameramodelid, height=height, width=width)
-        cur = DB.cConn.cursor()
+        sql = CalibrationCRUD._sql_read('calibration', camera_modelid=cameramodelid, height=height, width=width)
+        cur = self.conn.cursor()
         res = cur.execute(sql)
         assert isinstance(res, sqlite3.Cursor)
         for row in res:
@@ -148,19 +141,17 @@ class DB(object):
                 tvect = cPickle.loads(str(row['translational_vectors']))
                 return {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
 
-    @staticmethod
-    def executeSQL(sql):
+    def executeSQL(self, sql):
         '''execute sql against the db'''
-        cur = DB.cConn.cursor()
+        cur = self.conn.cursor()
         cur.execute(sql)
 
-    @staticmethod
-    def _blobs(calibrationid, camera_matrix, dcoef, rvect, tvect):
+    def _blobs(self, calibrationid, camera_matrix, dcoef, rvect, tvect):
         '''add the blobs seperately, easier because we let upsert generator deal with the insert/update
         but then just pass the composite key to edit the record
         '''
         assert isinstance(calibrationid, int)
-        cur = DB.cConn.cursor()
+        cur = self.conn.cursor()
         cm_b = sqlite3.Binary(camera_matrix)
         dcoef_b = sqlite3.Binary(dcoef)
         rvect_b = sqlite3.Binary(rvect)
@@ -168,21 +159,48 @@ class DB(object):
         sql = 'UPDATE calibration SET camera_matrix=?, distortion_coefficients=?, rotational_vectors=?, translational_vectors=?' \
                 ' WHERE calibrationid=?'
         cur.execute(sql, (cm_b, dcoef_b, rvect_b, tvect_b, calibrationid))
+
+    def blobs_get_nearest_aspect_match(self, camera_model, height, width):
+        '''(str, int, int)->dict
+        Returns the calibration matrices for the nearest matching
+         aspect for which we have correction matrices
+        {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect, 'matched_resolution_w_by_h':(w,h), 'new_aspect':w/h)}
+        '''
+
+        aspect = width / float(height)
+        sql = 'SELECT calibration.height, calibration.width, calibration.camera_matrix, calibration.distortion_coefficients=?,' \
+            ' calibration.rotational_vectors, calibration.translational_vectors, width/cast(height as float) as aspect' \
+            ' FROM calibration' \
+            ' INNER JOIN camera_model ON calibration.camera_modelid=camera_model.camera_modelid' \
+            ' WHERE calibration.camera_model=?' \
+            ' ORDER BY ABS(? - width/cast(height as float)) LIMIT 1'
+        cur = self.conn.cursor()
+        res = cur.execute(sql, camera_model, aspect)
+        assert isinstance(res, sqlite3.Cursor)
+        for row in res:
+            if len(row) == 0:
+                return None
+            else:
+                cmat = cPickle.loads(str(row['camera_matrix']))
+                dcoef = cPickle.loads(str(row['distortion_coefficients']))
+                rvect = cPickle.loads(str(row['rotational_vectors']))
+                tvect = cPickle.loads(str(row['translational_vectors']))
+                w = row('width'); h = row('height'); aspect = w/float(h)
+                return {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect, 'matched_resolution_w_by_h':(width, height), new_aspect:aspect}
     #endregion
 
 
-    #private helpers
-    @staticmethod
-    def _get_last_id(table_name):
+    #helpers
+    def _get_last_id(self, table_name):
         '''str->int
         1) Returns last added id in table table_name
         2) Returns None if no id
         '''
         sql = 'select seq from sqlite_sequence where name="%s"' % table_name
-        cur = DB.cConn.cursor()
+        cur = self.conn.cursor()
         cur.execute(sql)
         row = cur.fetchall()
-        return DB._read_col(row, 'seq')
+        return CalibrationCRUD._read_col(row, 'seq')
 
     @staticmethod
     def _read_col(cur, colname):
@@ -197,18 +215,17 @@ class DB(object):
             for results in cur:
                 return results[colname]
 
-    @staticmethod
-    def _lookup(table_name, col_to_search, col_with_value_we_want, value):
+    def _lookup(self, table_name, col_to_search, col_with_value_we_want, value):
         '''(str, str, str, basetype)->basetype
         1) Returns lookup value, typically based on a primary key value
         2) Returns None if no matches found
         '''
         sql = 'SELECT %s FROM %s WHERE %s="%s" LIMIT 1;' % \
                     (col_with_value_we_want, table_name, col_to_search, value)
-        cur = DB.cConn.cursor()
+        cur = self.conn.cursor()
         cur.execute(sql)
         row = cur.fetchall()
-        return DB._read_col(row, col_with_value_we_want)
+        return self._read_col(row, col_with_value_we_want)
 
     @staticmethod
     def _sql_read(table, **kwargs):
@@ -220,8 +237,7 @@ class DB(object):
         sql.append(";")
         return "".join(sql)
 
-    @staticmethod
-    def _sql_upsert(table, keylist, **kwargs):
+    def _sql_upsert(self, table, keylist, **kwargs):
         '''(str, dict, **kwargs)->void
         keylist is dictionary of key fields and their values used
         to build the where.
@@ -230,7 +246,7 @@ class DB(object):
         allargs = baselib.dic_merge_two(keylist, kwargs)
         sql_insert = []
         sql_update = []
-        if DB.exists_by_compositekey(table, keylist):
+        if self.exists_by_compositekey(table, keylist):
             where = [" %s='%s' " % (j, k) for j, k in keylist.iteritems()]
 
             update = ["%s='%s'" % (j, k) for j, k in allargs.iteritems()]
@@ -264,11 +280,6 @@ def main():
     '''run when executed directly'''
 
     pass
-#    db = DB()
- #   cam = db.camera_model(camera_model='NEXTBASE512G')
-  #  DB.session.add(cam)
-  #  DB.session.commit()
-   # engine_close()
 
 
 #This only executes if this script was the entry point

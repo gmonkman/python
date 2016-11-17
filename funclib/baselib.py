@@ -62,3 +62,11 @@ def list_flatten(test_list):
         return flatten(first) + flatten(rest)
     else:
         raise ValueError("Couldn't flatten object. Expected a list, but object not a list")
+
+def list_append_unique(list_in, val):
+    '''(list, type)->void
+    Appends val to list_in if it isnt already in the list
+    List is by ref
+    '''
+    if not val in list_in:
+        list_in.append(val)

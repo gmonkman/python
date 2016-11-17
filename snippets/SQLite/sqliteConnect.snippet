@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>sqliteConnect</Title>
+      <Author>Graham Monkman</Author>
+      <Description>Connect to an sqlite db</Description>
+      <HelpUrl></HelpUrl>
+      <Shortcut>sqliteConnect</Shortcut>
+    </Header>
+    <Snippet>
+      <Code Language="Python" Delimiter="$"><![CDATA[
+    cConn = sqlite3.connect(':memory:') #set in memory, simply so intellisense works
+    cConn.row_factory = sqlite3.Row
+    assert isinstance(cConn, sqlite3.Connection)$end$]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

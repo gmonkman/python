@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>sqliteCursorRead</Title>
+      <Author>Graham Monkman</Author>
+      <Description>Loop through a read cursor</Description>
+      <HelpUrl></HelpUrl>
+      <Shortcut>sqliteConnect</Shortcut>
+    </Header>
+    <Snippet>
+      <Code Language="Python" Delimiter="$"><![CDATA[
+    cur = cConn.cursor(sql)
+    cur.execute(sql)
+    row = cur.fetchall()
+    for res in row:
+        y = res['record']$end$]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

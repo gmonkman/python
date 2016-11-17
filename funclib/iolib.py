@@ -5,6 +5,7 @@ import csv
 from glob import glob
 import itertools
 import os
+import shutil
 import string
 
 try:
@@ -245,6 +246,20 @@ def file_list_glob_generator(wilded_path):
     for file in glob(wilded_path):
         yield file
 
+def files_delete(folder, delsubdirs=False):
+    '''(str)->void'''
+    folder = os.path.normpath(folder)
+    for the_file in os.listdir(folder):
+        file_path = os.path.join(folder, the_file)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                if delsubdirs:
+                        shutil.rmtree(file_path)
+        except Exception as e:
+            print(e)
+
 def get_file_name(path='', prefix='', ext='.txt'):
     '''(str, str, str) -> str
     returns a filename, based on a datetime stamp
@@ -302,7 +317,7 @@ def write_to_file(results, prefix='', open_in_npp=True):
     if open_in_npp: notepadpp_open_file(filename)
     return filename
 
-def create_file(file_name):
+def file_create(file_name):
     '''(str) -> void
     creates file if it doesnt exist
     '''

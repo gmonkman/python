@@ -17,7 +17,7 @@ class configfile(object):
             raise ValueError('Expected ini file to have extension ini or cfg')
 
         if not os.path.isfile(ini_file):
-            iolib.create_file(ini_file)
+            iolib.file_create(ini_file)
         self._config = cp.ConfigParser()        
         self._config.read(ini_file)
         

@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ec8e1821-0c22-445e-af07-22bbe247f71e}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test.py</StartupFile>
+    <StartupFile>pyqtlib.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -42,6 +42,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="plotlib\__init__.py" />
+    <Compile Include="pyqtlib.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="shell_lib.py" />
     <Compile Include="statslib.py" />
     <Compile Include="stringslib.py" />

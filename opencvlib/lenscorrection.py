@@ -1,4 +1,4 @@
-# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager,lost-exception
+# pylint: disable=C0302, no-member, not-context-manager
 '''
 camera calibration for distorted images with chess board samples
 reads distorted images, calculates the calibration and write undistorted images
@@ -30,9 +30,13 @@ import numpy as np
 import opencvlib.digikamlib as digikamlib
 import funclib.iolib as iolib
 import funclib.inifilelib as inifilelib
+import funclib.pyqtlib as msgbox
 import opencvlib.common as common
 import opencvlib.lenscorrectiondb as lenscorrectiondb
 from opencvlib.common import resolution
+from funclib.baselib import list_append_unique
+
+#from opencvlib.common import is_image
 #endregion
 #endregion
 
@@ -40,7 +44,7 @@ from opencvlib.common import resolution
 _INIFILE = './lenscorrection.py.ini'
 _DIGIKAM_CONNECTION_STRING = ''
 _CALIBRATION_CONNECTION_STRING = ''
-_PrintProgress = None #will be set to the printprogress class
+_PrintProgress = None
 
 #region Class Declarations
 class PrintProgress(object):
@@ -52,8 +56,8 @@ class PrintProgress(object):
 
     def increment(self):
         '''tick the progress bar'''
-        self.iteration += 1
         iolib.print_progress(self.iteration, self.max, prefix='%i of %i' % (self.iteration, self.max), bar_length=self.bar_length)
+        self.iteration += 1
 
 
 class CalibrationGrid(object):
@@ -178,8 +182,6 @@ class CameraIni(object):
 class Calibration(object):
     '''container for a camera calibration at a specific resolution'''
 
-    DB = lenscorrectiondb.DB(cnstr=_CALIBRATION_CONNECTION_STRING)
-
     def __init__(self, camera_model, wildcarded_images_path, height, width, pattern_size=(9, 6), square_size=1):
         '''(str, int, int, tuple)
         (camera model name, image height, image width, tuple:(x vertices, y vertices), square_size)
@@ -191,6 +193,9 @@ class Calibration(object):
         self.wildcarded_images_path = wildcarded_images_path
         self.pattern_size = pattern_size
         self.square_size = square_size
+        self.img_used_count = 0
+        self.img_total_count = 0
+        self.messages = []
 
     @property
     def _pattern_points(self):
@@ -204,37 +209,46 @@ class Calibration(object):
         '''main calibration entry point'''
         obj_points = []
         img_points = []
+        fcnt = 0; cnt = 0
       #  for fn in iolib.file_list_glob_generator(self.path_to_calibration_images):
         for fn in iolib.file_list_glob_generator(self.wildcarded_images_path):
             if common.is_image(fn):
                 img = cv2.imread(os.path.normpath(fn), 0)
                 w, h = common.resolution(img)
                 if w == self.width and h == self.height:
+                    cnt += 1
                     found, corners = cv2.findChessboardCorners(img, self.pattern_size)
                     if found:
+                        fcnt += 1
                         term = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 30, 0.1)
                         cv2.cornerSubPix(img, corners, (5, 5), (-1, -1), term)
                         img_points.append(corners.reshape(-1, 2))
                         obj_points.append(self._pattern_points)
                     else:
-                        print('Chessboard vertices not found in %s\n' % (fn))
+                        self.messages.append('Chessboard vertices not found in %s' % (fn))
 
                     _PrintProgress.increment()
 
+        self.img_total_count = cnt; self.img_used_count = fcnt
     # calculate camera distortion
         rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (self.width, self.height), None, None)
 
-        cm = cPickle.dumps(self.camera_matrix, cPickle.HIGHEST_PROTOCOL)
-        dc = cPickle.dumps(self.dist_coefs, cPickle.HIGHEST_PROTOCOL)
-        rv = cPickle.dumps(self.rvecs, cPickle.HIGHEST_PROTOCOL)
-        tv = cPickle.dumps(self.tvecs, cPickle.HIGHEST_PROTOCOL)
+        cm = cPickle.dumps(camera_matrix, cPickle.HIGHEST_PROTOCOL)
+        dc = cPickle.dumps(dist_coefs, cPickle.HIGHEST_PROTOCOL)
+        rv = cPickle.dumps(rvecs, cPickle.HIGHEST_PROTOCOL)
+        tv = cPickle.dumps(tvecs, cPickle.HIGHEST_PROTOCOL)
 
-        modelid = Calibration.DB.crud_camera_upsert(self.camera_model)
-        Calibration.DB.crud_calibration_upsert(modelid, self.width, self.height, cm, dc, rms, rv, tv)
-        Calibration.DB.commit()
+        with lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
+            db = lenscorrectiondb.CalibrationCRUD(conn)
+            modelid = db.crud_camera_upsert(self.camera_model)
+            db.crud_calibration_upsert(modelid, self.width, self.height, cm, dc, rms, rv, tv)
+            conn.commit()
+
+    @property
+    def result_str(self):
+        '''result_str getter'''
+        return 'Resolution %ix%i: %i of %i were useable' % (self.width, self.height, self.img_used_count, self.img_total_count)
 #endregion
-
-
 
 def get_camera(model):
     '''(str)-> [class] camera
@@ -273,7 +287,6 @@ def _ini_set_database_strings():
     global _CALIBRATION_CONNECTION_STRING
     _CALIBRATION_CONNECTION_STRING = ini.tryread('DATABASE', 'CALIBRATION_CONNECTION_STRING', force_create=False)
 
-
 def calibrate(cam):
     '''(camera[class])
     Pass in a camera class object, initialised from the ini file
@@ -284,20 +297,20 @@ def calibrate(cam):
     calpath = iolib.get_file_name(path=cam.calibration_path)
     dims = common.get_image_resolutions(cam.get_full_calibration_image_path())
 
-    Calibration.DB = lenscorrectiondb.DB(cnstr=_CALIBRATION_CONNECTION_STRING)
-
     img_path = cam.get_full_calibration_image_path()
 
     #set up a list of classes for the different resolutions of calibration images
     calibrations = [Calibration(cam.model, img_path, h, w, (cam.grid.x_vertices, cam.grid.y_vertices), cam.square_size) for w, h in dims]
 
-    _PrintProgress.max = len(glob(img_path))
+    global _PrintProgress
+    _PrintProgress = PrintProgress(len(glob(img_path)))
     _PrintProgress.iteration = 1
 
     for Cal in calibrations:
         Cal.calibrate()
 
-    Calibration.DB.close()
+    for Cal in calibrations:
+        print(Cal.result_str)
 
 def _undistort(cam, img, mats, crop=True):
     '''[c]Camera, ndarray (image), dic, bool -> ndarray (image) | None
@@ -322,7 +335,7 @@ def _undistort(cam, img, mats, crop=True):
     finally:
         return dst
 
-def undistort(cam, imgpaths_or_imagelist, outpath, label='_UND', crop=True):
+def undistort(cam, imgpaths_or_imagelist, outpath, label='_UND', crop=True, use_nearest_aspect=True):
     '''(Camera, str|iterable, str, str, bool) -> void
     Bulk undistort, reading in the camera profile according to model name as matched in lenscorrection.py.ini
     Multiple paths can be provided
@@ -336,9 +349,10 @@ def undistort(cam, imgpaths_or_imagelist, outpath, label='_UND', crop=True):
     '''
 
     blobs = {}
-    db = lenscorrectiondb.DB(cnstr=_CALIBRATION_CONNECTION_STRING)
-
     useglob = True
+    bad_res = []
+    subst_res = []
+
     if isinstance(imgpaths_or_imagelist, str):
         imgpaths_or_imagelist = [imgpaths_or_imagelist]
     else:
@@ -357,35 +371,50 @@ def undistort(cam, imgpaths_or_imagelist, outpath, label='_UND', crop=True):
     else:
         newlist = imgpaths_or_imagelist
 
-    cnt = 0; success = 0
+    cnt = 1; success = 0
     logfilename = iolib.get_file_name(outpath)
-    for fil in newlist:
-        try:
-            path, name, ext = common.splitfn(fil)
-            outfile = os.path.join(outpath, name + label + '.png')
 
-            orig_img = cv2.imread(fil)
-            width, height = resolution(orig_img)
-
-            blobs = db.crud_read_calibration_blobs(cam.model, height, width)
-            if blobs is None:
-                iolib.write_to_eof(logfilename, 'No calibration data for image %s, resolution [%sx%s]' % (fil, width, height))
-            else:
-                #{'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
-                img = _undistort(cam, orig_img, blobs, crop)
-                if img is None:
-                    iolib.write_to_eof(logfilename, 'File %s failed in _undistort.\n' % (fil))
+    with lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
+        db = lenscorrectiondb.CalibrationCRUD(conn)
+        last_width = 0; last_height = 0
+        for fil in newlist:
+            try:
+                resize_suffix = ''
+                path, name, ext = common.splitfn(fil) # used later to rebuild output file name
+                orig_img = cv2.imread(fil)
+                width, height = resolution(orig_img)
+                if (last_width != width and last_height != height) and height > 0 and width > 0:
+                    blobs = db.crud_read_calibration_blobs(cam.model, height, width)
+                    if use_nearest_aspect and blobs is None: #use next best if no blobs found
+                        blobs = db.blobs_get_nearest_aspect_match(cam.model, height, width)
+                        if not blobs is None:
+                            w, h = blobs('matched_resolution_w_by_h')
+                            list_append_unique(subst_res, 'No exact calibration for resolution %ix%i, resized and used nearest match %ix%i' % (width, height, w, h))
+                            orig_img = common.resize(orig_img, w, h)
+                            resize_suffix = '_RZ%ix%i' % (w, h)
+                if blobs is None:
+                    iolib.write_to_eof(logfilename, 'No calibration data for image %s, resolution [%sx%s]' % (fil, width, height))
+                    list_append_unique(bad_res, '%ix%i' % (width, height))
                 else:
-                    cv2.imwrite(outfile, img)
-                    success += 1
-                    with fuckit:
-                        iolib.write_to_eof(logfilename, 'Success:%s\n' % (fil))
-        except Exception:
-            iolib.write_to_eof(logfilename, 'Failed:%s, Exception:%s\n' % (fil, Exception.message))
-        finally:
-            with fuckit:
-                iolib.print_progress(cnt, len(fil), '%i of %i [Successes: %i]' % (cnt, len(fil), success), bar_length=30)
-                cnt += 1
+                    #{'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
+                    img = _undistort(cam, orig_img, blobs, crop)
+                    if img is None:
+                        iolib.write_to_eof(logfilename, 'File %s failed in _undistort.\n' % (fil))
+                    else:
+                        outfile = os.path.join(outpath, name + label + resize_suffix + '.png')
+                        cv2.imwrite(outfile, img)
+                        success += 1
+                        with fuckit:
+                            iolib.write_to_eof(logfilename, 'Success:%s\n' % (fil))
+                last_width = width; last_height = height
+
+            except Exception:
+                iolib.write_to_eof(logfilename, 'Failed:%s, Exception:%s\n' % (fil, Exception.message))
+            finally:
+                with fuckit:
+                    iolib.print_progress(cnt, len(newlist), '%i of %i [Successes: %i]' % (cnt, len(newlist), success), bar_length=30)
+                    cnt += 1
+        if len(bad_res) > 0: print('Resolutions with no calibration matricies: %s' % (" ".join(bad_res)))
 
 #region main
 def main():
@@ -402,12 +431,16 @@ def main():
     cmdline = argparse.ArgumentParser(description='Examples:\n'
                                       'Undistort images in digikam database to c:/temp/pics\n'
                                       'lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p DIGIKAM\n\n'
+
                                       'Undistort images in a path and output to c:/temp/pics\n'
                                       'lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p c:/path/to/images/to/undistort \n\n'
+
                                       'Calibrate lens using images in CALIBRATION_PATH\n'
                                       'lenscorrection.py -m calibrate -c NEXTBASE512G\n\n'
+
                                       'Calibrate lens using images in CALIBRATION_PATH. Saves vertex detection images to the debug folder\n'
                                       'lenscorrection.py -m calibrate -c NEXTBASE512G -d\n')
+
     cmdline.add_argument('-m', '--mode', action='store', help='The mode, values are:\nUNDISTORT - undistorts images in path\nCALIBRATE - create lens calibration values', required=True)
     cmdline.add_argument('-p', '--path', action='store', help='Path to images to undistort. Pass DIGIKAM to use digikam database with options provided in the ini file. This is required in UNDISTORT mode.', required=False)
     cmdline.add_argument('-o', '--outpath', action='store', help='Path to store undistorted images. Must be provided in undistort mode', required=False)
@@ -427,17 +460,27 @@ def main():
         elif cmdargs.outpath == '':
             print('Output path not specified')
         else:
-            iolib.create_folder(os.path.normpath(cmdargs.outpath))
+            cmdargs.outpath = os.path.normpath(cmdargs.outpath)
+            if os.path.isdir(cmdargs.outpath):
+                title = 'Delete Files?'
+                msg = 'Folder %s already exists. Do you wish to delete existing files from it?' % cmdargs.outpath
+                default = msgbox.QMessageBox.No
+                result = msgbox.question(title, msg, default, msgbox.QMessageBox.Yes, msgbox.QMessageBox.No)
+                if result == msgbox.QMessageBox.Yes:
+                    iolib.files_delete(cmdargs.outpath)
+            else:
+                iolib.create_folder(cmdargs.outpath)
+
             if cmdargs.path.lower() == 'digikam':
                 digikam = digikamlib.MeasuredImages(_DIGIKAM_CONNECTION_STRING, cam.digikam_measured_tag, cam.digikam_camera_tag)
                 lst = digikam.valid_images
-                undistort(cam, lst, os.path.normpath(cmdargs.outpath))
+                undistort(cam, lst, cmdargs.outpath)
             else:
-                undistort(cam, os.path.normpath(cmdargs.path), os.path.normpath(cmdargs.outpath))
-            print('Undistort completed. Undistorted images saved to %s' % (os.path.normpath(cmdargs.outpath)))
+                undistort(cam, os.path.normpath(cmdargs.path), cmdargs.outpath)
+            print('Undistort completed')
     elif cmdargs.mode == 'calibrate':
         calibrate(cam)
-        print('Calibration saved.')
+        print('Calibration(s) saved to database.')
     else:
         print('\nInvalid or missing mode argument. Valid values are undistort or calibrate')
         iolib.exit()
