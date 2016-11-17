@@ -168,14 +168,14 @@ class CalibrationCRUD(object):
         '''
 
         aspect = width / float(height)
-        sql = 'SELECT calibration.height, calibration.width, calibration.camera_matrix, calibration.distortion_coefficients=?,' \
+        sql = 'SELECT calibration.height, calibration.width, calibration.camera_matrix, calibration.distortion_coefficients,' \
             ' calibration.rotational_vectors, calibration.translational_vectors, width/cast(height as float) as aspect' \
             ' FROM calibration' \
             ' INNER JOIN camera_model ON calibration.camera_modelid=camera_model.camera_modelid' \
-            ' WHERE calibration.camera_model=?' \
-            ' ORDER BY ABS(? - width/cast(height as float)) LIMIT 1'
+            ' WHERE camera_model.camera_model=?' \
+            ' ORDER BY ABS(? - (width/cast(height as float))) LIMIT 1'
         cur = self.conn.cursor()
-        res = cur.execute(sql, camera_model, aspect)
+        res = cur.execute(sql, [camera_model, aspect])
         assert isinstance(res, sqlite3.Cursor)
         for row in res:
             if len(row) == 0:
@@ -185,8 +185,8 @@ class CalibrationCRUD(object):
                 dcoef = cPickle.loads(str(row['distortion_coefficients']))
                 rvect = cPickle.loads(str(row['rotational_vectors']))
                 tvect = cPickle.loads(str(row['translational_vectors']))
-                w = row('width'); h = row('height'); aspect = w/float(h)
-                return {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect, 'matched_resolution_w_by_h':(width, height), new_aspect:aspect}
+                w = row['width']; h = row['height']; aspect = w/float(h)
+                return {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect, 'matched_resolution_w_by_h':(w, h), 'new_aspect':aspect}
     #endregion
 
 

@@ -1,4 +1,4 @@
-# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, not-context-manager, missing-docstring, unused-argument,bad-builtin
+# pylint: disable=reimported, missing-docstring, bad-builtin
 '''
 This module contains some common routines used by other samples.
 From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
@@ -7,6 +7,7 @@ From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 from __future__ import print_function
 import sys
 from glob import glob
+from urllib2 import urlopen
 
 import numpy as np
 import cv2
@@ -65,7 +66,7 @@ class Sketcher(object):
     def show(self):
         cv2.imshow(self.windowname, self.dests[0])
 
-    def on_mouse(self, event, x, y, flags, param):
+    def on_mouse(self, event, x, y, flags):
         pt = (x, y)
         if event == cv2.EVENT_LBUTTONDOWN:
             self.prev_pt = pt
@@ -97,7 +98,7 @@ class RectSelector(object):
         cv2.setMouseCallback(win, self.onmouse)
         self.drag_start = None
         self.drag_rect = None
-    def onmouse(self, event, x, y, flags, param):
+    def onmouse(self, event, x, y, flags):
         x, y = np.int16([x, y]) # BUG
         if event == cv2.EVENT_LBUTTONDOWN:
             self.drag_start = (x, y)
@@ -143,7 +144,7 @@ def get_image_resolutions(glob_str):
                 img = cv2.imread(pic)
             if isinstance(img, np.ndarray):
                 h, w = img.shape[:2]
-                e = [int(w), int(h)]
+                e = [w, h]
                 if e not in dims:
                     dims.append(e)
     return dims
@@ -317,7 +318,7 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     if width is None and height is None:
         return image
     elif not width is None and not height is None:
-        dim = (w, h)
+        dim = (width, height)
     elif width is None:
         r = height / float(h)
         dim = (int(w * r), height)

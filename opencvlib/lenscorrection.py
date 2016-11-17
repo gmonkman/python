@@ -294,7 +294,6 @@ def calibrate(cam):
     '''
     assert isinstance(cam, CameraIni)
 
-    calpath = iolib.get_file_name(path=cam.calibration_path)
     dims = common.get_image_resolutions(cam.get_full_calibration_image_path())
 
     img_path = cam.get_full_calibration_image_path()
@@ -381,6 +380,7 @@ def undistort(cam, imgpaths_or_imagelist, outpath, label='_UND', crop=True, use_
             try:
                 resize_suffix = ''
                 path, name, ext = common.splitfn(fil) # used later to rebuild output file name
+                path = path + ''; ext = ext + '' #silly thing to get rid of unused varible in pylint
                 orig_img = cv2.imread(fil)
                 width, height = resolution(orig_img)
                 if (last_width != width and last_height != height) and height > 0 and width > 0:
@@ -388,7 +388,7 @@ def undistort(cam, imgpaths_or_imagelist, outpath, label='_UND', crop=True, use_
                     if use_nearest_aspect and blobs is None: #use next best if no blobs found
                         blobs = db.blobs_get_nearest_aspect_match(cam.model, height, width)
                         if not blobs is None:
-                            w, h = blobs('matched_resolution_w_by_h')
+                            w, h = blobs['matched_resolution_w_by_h']
                             list_append_unique(subst_res, 'No exact calibration for resolution %ix%i, resized and used nearest match %ix%i' % (width, height, w, h))
                             orig_img = common.resize(orig_img, w, h)
                             resize_suffix = '_RZ%ix%i' % (w, h)

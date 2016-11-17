@@ -1,26 +1,19 @@
-#base
-import csv
+# pylint: disable=not-context-manager
+'''corr_tests'''
 import subprocess
 import sys
-import datetime
-import copy
 
 #third party
-import scipy
-import scipy.stats
 import fuckit
 import pandas
-import numpy
-import pandas.rpy.common as com
-import rpy2.robjects as ro
 
 #My Libs
-from enum import Enum
-import statslib
-import funclib
-import iolib
+import funclib.statslib as statslib
+import funclib.iolib as iolib
+import funclib.stringslib as stringslib
 
 def do_tests():
+    '''do tests'''
     pamfile = pandas.read_csv('data\\pam.csv')
     fmmfile = pandas.read_csv('data\\fmm.csv')
     fmmfilenonzero = pandas.read_csv('data\\fmmnonzero.csv')
@@ -35,7 +28,7 @@ def do_tests():
 
     results = [['test_type', 'desc', 'varname1', 'varname2', 'exclude zeros', 'teststat', 'p']]
 
-    iterations = funclib.read_number(raw_input('Input iterations. Enter 0 to not run permutation tests:'), 0)
+    iterations = stringslib.read_number(raw_input('Input iterations. Enter 0 to not run permutation tests:'), 0)
 
     #FMM no zero pairs
     out = [0]
@@ -45,7 +38,7 @@ def do_tests():
         venuecnt = fmmfilenonzero['VenueCnt'].tolist()
         value = fmmfilenonzero['VALUE'].tolist()
         corr_results = statslib.permuted_correlation(venuecnt, value, dic['teststat'], iterations, statslib.EnumMethod.kendall, out)
-        file_name = outdir + 'fmmNo0_' + funclib.datetime_stamp() + '.csv'
+        file_name = outdir + 'fmmNo0_' + stringslib.datetime_stamp() + '.csv'
         iolib.writecsv(file_name, corr_results, inner_as_rows=False)
 
     #FMM
@@ -56,7 +49,7 @@ def do_tests():
         venuecnt = fmmfile['VenueCnt'].tolist()
         value = fmmfile['VALUE'].tolist()
         corr_results = statslib.permuted_correlation(venuecnt, value, dic['teststat'], iterations, statslib.EnumMethod.kendall, out)
-        file_name = outdir + 'fmm_' + funclib.datetime_stamp() + '.csv'
+        file_name = outdir + 'fmm_' + stringslib.datetime_stamp() + '.csv'
         iolib.writecsv(file_name, corr_results, inner_as_rows=False)
 
     #Do PAM
@@ -67,9 +60,9 @@ def do_tests():
         venuecnt = pamfile['VenueCnt'].tolist()
         dayspakm = pamfile['days_pa_km'].tolist()
         corr_results = statslib.permuted_correlation(venuecnt, dayspakm, dic['teststat'], iterations, statslib.EnumMethod.kendall, out)
-        file_name = outdir + 'pam_' + funclib.datetime_stamp() + '.csv'
+        file_name = outdir + 'pam_' + stringslib.datetime_stamp() + '.csv'
         iolib.writecsv(file_name, corr_results, inner_as_rows=False)
-    
+
     #exclude zeros
     out = [0]
     dic = statslib.correlation_test_from_csv(pamfilenonzero, 'days_pa_km', 'VenueCnt', statslib.EnumMethod.kendall, statslib.EnumStatsEngine.r)
@@ -78,11 +71,11 @@ def do_tests():
         venuecnt = pamfilenonzero['VenueCnt'].tolist()
         dayspakm = pamfilenonzero['days_pa_km'].tolist()
         corr_results = statslib.permuted_correlation(venuecnt, dayspakm, dic['teststat'], iterations, statslib.EnumMethod.kendall, out)
-        file_name = outdir + 'pamNo0_' + funclib.datetime_stamp() + '.csv'
+        file_name = outdir + 'pamNo0_' + stringslib.datetime_stamp() + '.csv'
         iolib.writecsv(file_name, corr_results, inner_as_rows=False)
 
     #write results to file
-    fileout = outdir + 'corr_tests_' + funclib.datetime_stamp() + '.csv'
+    fileout = outdir + 'corr_tests_' + stringslib.datetime_stamp() + '.csv'
     iolib.writecsv(fileout, results, inner_as_rows=False)
 
     with fuckit:
