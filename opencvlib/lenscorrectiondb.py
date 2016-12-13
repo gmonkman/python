@@ -4,7 +4,7 @@
 #region imports
 import sqlite3
 import fuckit
-import cPickle
+import pickle
 
 import funclib.baselib as baselib
 #endregion
@@ -135,10 +135,10 @@ class CalibrationCRUD(object):
             if len(row) == 0:
                 return None
             else:
-                cmat = cPickle.loads(str(row['camera_matrix']))
-                dcoef = cPickle.loads(str(row['distortion_coefficients']))
-                rvect = cPickle.loads(str(row['rotational_vectors']))
-                tvect = cPickle.loads(str(row['translational_vectors']))
+                cmat = pickle.loads(str(row['camera_matrix']))
+                dcoef = pickle.loads(str(row['distortion_coefficients']))
+                rvect = pickle.loads(str(row['rotational_vectors']))
+                tvect = pickle.loads(str(row['translational_vectors']))
                 return {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
 
     def executeSQL(self, sql):
@@ -181,10 +181,10 @@ class CalibrationCRUD(object):
             if len(row) == 0:
                 return None
             else:
-                cmat = cPickle.loads(str(row['camera_matrix']))
-                dcoef = cPickle.loads(str(row['distortion_coefficients']))
-                rvect = cPickle.loads(str(row['rotational_vectors']))
-                tvect = cPickle.loads(str(row['translational_vectors']))
+                cmat = pickle.loads(str(row['camera_matrix']))
+                dcoef = pickle.loads(str(row['distortion_coefficients']))
+                rvect = pickle.loads(str(row['rotational_vectors']))
+                tvect = pickle.loads(str(row['translational_vectors']))
                 w = row['width']; h = row['height']; aspect = w/float(h)
                 return {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect, 'matched_resolution_w_by_h':(w, h), 'new_aspect':aspect}
     #endregion

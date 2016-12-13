@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import argparse 
@@ -40,4 +41,4 @@ if __name__=='__main__':
     codebook_file = args.codebook_file
     input_image = cv2.imread(args.input_image)
 
-    print "Output class:", ImageClassifier(svm_file, codebook_file).getImageTag(input_image)
+    print("Output class:", ImageClassifier(svm_file, codebook_file).getImageTag(input_image))

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 import cv2
@@ -48,7 +49,7 @@ def find_vertical_seam(img, energy):
     rows, cols = img.shape[:2]
 
     seam = np.zeros(img.shape[0]) 
-    dist_to = np.zeros(img.shape[:2]) + sys.maxint
+    dist_to = np.zeros(img.shape[:2]) + sys.maxsize
     dist_to[0,:] = np.zeros(img.shape[1])
     edge_to = np.zeros(img.shape[:2])
 
@@ -110,7 +111,7 @@ def remove_object(img, rect_roi):
         img = remove_vertical_seam(img, seam)
         x,y,w,h = rect_roi
         energy = compute_energy_matrix_modified(img, (x,y,w-i,h))
-        print 'Number of seams removed =', i+1
+        print('Number of seams removed =', i+1)
 
     img_output = np.copy(img)
     img_carved_backup = np.copy(img)
@@ -120,7 +121,7 @@ def remove_object(img, rect_roi):
         img = remove_vertical_seam(img, seam)
         img_output = add_vertical_seam(img_output, seam, i)
         energy = compute_energy_matrix(img)
-        print 'Number of seams added =', i+1
+        print('Number of seams added =', i+1)
 
     cv2.imshow('Input', img_input)
     cv2.imshow('Output', img_output)

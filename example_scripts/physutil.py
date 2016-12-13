@@ -68,6 +68,7 @@
 # Initial Build
 
 from __future__ import division
+from __future__ import print_function
 import unittest
 import csv;
 import sys;
@@ -558,9 +559,9 @@ def readcsv(filename,cols=1, IgnoreHeader=False, startrow = 0, NumericData=True)
         with open(filename,'rb') as csvfile:  #open the file, and iterate over its data
             csvdata = csv.reader(csvfile);   #tell python that the file is a csv
             for i in range(0,startrow): #skip to the startrow
-                csvdata.next();
+                next(csvdata);
             if IgnoreHeader and startrow!=0:
-                csvdata.next(); #if ignoring header, advance one row
+                next(csvdata); #if ignoring header, advance one row
             for row in csvdata:     #iterate over the rows in the csv
                 #Assign the cols of each row to a variable
                 for c in range(cols):   #read in the text values as floats in the array
@@ -572,9 +573,9 @@ def readcsv(filename,cols=1, IgnoreHeader=False, startrow = 0, NumericData=True)
         with open(filename,newline='') as csvfile:  #open the file, and iterate over its data
             csvdata = csv.reader(csvfile);   #tell python that the file is a csv
             for i in range(0,startrow): #skip to the startrow
-                csvdata.next();
+                next(csvdata);
             if ignoreHeader and startrow!=0:
-                csvdata.next(); #if ignoring header, advance one row
+                next(csvdata); #if ignoring header, advance one row
             for row in csvdata:     #iterate over the rows in the csv
                 #Assign the cols of each row to a variable
                 for c in range(cols):   #read in the text values as floats in the array

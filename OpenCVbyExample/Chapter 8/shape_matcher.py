@@ -28,7 +28,7 @@ if __name__=='__main__':
     input_contours = get_all_contours(img2)
 
     closest_contour = input_contours[0]
-    min_dist = sys.maxint
+    min_dist = sys.maxsize
     for contour in input_contours: 
         ret = cv2.matchShapes(ref_contour, contour, 1, 0.0)
         if ret < min_dist:

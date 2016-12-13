@@ -1,12 +1,7 @@
-#pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled, not-context-manager, unused-import, undefined-variable
+#pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, not-context-manager, invalid-name
 '''routines to manipulate array like objects like lists, tuples etc'''
-import warnings
-
-
 import numpy as np
-import numpy.ma as ma
 import numpy.random
-import pandas as pd
 import scipy.ndimage as ndimage
 import xlwings
 
@@ -52,12 +47,12 @@ def np_permute_2d(a):
 
     #now we need to reassign our original array for the permuted list where there are non NaNs
     #First get indexes of non NaN values in passed array
-    npInds = np.nonzero(mask) #mask is still a array of booleans with True values corresponding to non NaNs and Infs
-    npInds = np.transpose(npInds)
+    np_inds = np.nonzero(mask) #mask is still a array of booleans with True values corresponding to non NaNs and Infs
+    np_inds = np.transpose(np_inds)
     cnt = 0
     npout = a.copy()
     assert isinstance(npout, np.ndarray)
-    for val in npInds:
+    for val in np_inds:
         npout[val[0]][val[1]] = np_val_list[cnt]
         cnt += 1
 
@@ -86,13 +81,13 @@ def np_focal_mean(a, pad=True):
     '''
     assert isinstance(a, np.ndarray)
     x = a.astype(float)
-    
+
     if pad:
         #surround with nans so we can ignore edge effects
         x = np.pad(x, pad_width=1, mode='constant', constant_values=np.NaN)
 
     kernel = np.ones((3, 3))
-    
+
     #create means by kernel
     out = ndimage.filters.generic_filter(x, _focal_mean_filter, footprint=kernel, mode='constant', cval=np.NaN)
 
@@ -121,18 +116,18 @@ def np_paired_zeros_to_nan(a, b):
     #we the invert so matched zero positions are set to True
     #checked and nan is converted to True during above casting
     mask = np.invert(np.logical_or(nponebool, nptwobool))
-    
-    #npInds now contains indexes of all 'cells' which had zeros 
-    npInds = np.nonzero(mask)
-    assert isinstance(npInds, tuple)
-    
-    npInds = np.transpose(npInds)
-    
-    for val in npInds:
+
+    #npInds now contains indexes of all 'cells' which had zeros
+    np_inds = np.nonzero(mask)
+    assert isinstance(np_inds, tuple)
+
+    np_inds = np.transpose(np_inds)
+
+    for val in np_inds:
         x, y = val
         a[x][y] = np.NaN
         b[x][y] = np.NaN
-    
+
     return {'a':a, 'b':b}
 
 
@@ -182,10 +177,10 @@ def np_nans_to_zero(a):
     returns {'a':a,'b':b}
     '''
     assert isinstance(a, np.ndarray)
-    
+
     out = a.copy().astype(float)
     mask = numpy.isnan(out)
-    inds = np.nonzero(mask)   #inds where isnan is true, looks like [(11,1),(5,4) ...] 
+    inds = np.nonzero(mask)   #inds where isnan is true, looks like [(11,1),(5,4) ...]
     inds = zip(inds[0], inds[1])
     for x, y in inds:
         if np.isnan(out[x][y]): out[x][y] = 0
@@ -204,14 +199,14 @@ def np_unmatched_nans_to_zero(a, b):
     assert isinstance(b, np.ndarray)
     if a.shape != b.shape:
         raise ValueError('Arrays must be same shape')
-    
+
     a = a.astype(float)
     b = b.astype(float)
     mask = np_unmatched_nans(a, b)
 
     #this gets the indexes of cells with unmatched nans
-    inds = np.nonzero(mask)   
-    #inds looks like [(11,1),(5,4) ...] 
+    inds = np.nonzero(mask)
+    #inds looks like [(11,1),(5,4) ...]
     inds = zip(inds[0], inds[1])
     for ind in inds:
         if np.isnan(a[ind[0]][ind[1]]):
@@ -225,7 +220,7 @@ def np_unmatched_nans_to_zero(a, b):
 def np_unmatched_nans(a, b):
     '''(ndarray, ndarray) -> ndarray
     Creates a new array where nans do not match position in each array
-     
+
     nan<->nan = False
     nan<->1.2 = True
     1.2<->1.2 = False
@@ -273,9 +268,9 @@ def np_delete_zeros(a):
     delete zeros from an array.
     **Note that this will reshape the array**
     '''
-    aa = np.array(a).astype(float)
-    np.place(aa, aa == 0, np.nan)
-    return np_delete_nans(aa)
+    a = np.array(a).astype(float)
+    np.place(a, a == 0, np.nan)
+    return np_delete_nans(a)
 
 
 def np_delete_nans(a):
@@ -358,26 +353,10 @@ def np_conditional_array_split(a, has_by_column, has_by_row):
 #endregion
 
 
-
 #region Pandas
 def pd_df_to_ndarray(df):
     '''(dataframe)->ndarray
     Return a dataframe as a numpy array
     '''
     return df.as_matrix([x for x in df.columns])
-#endregion
-
-
-#region lists
-def list_flatten(test_list):
-    '''(list) -> list
-    returns flattened list
-    '''
-    if isinstance(test_list, list):
-        if len(test_list) == 0:
-            return []
-        first, rest = test_list[0], test_list[1:]
-        return flatten(first) + flatten(rest)
-    else:
-        raise ValueError("Couldn't flatten object. Expected a list, but object not a list")
 #endregion

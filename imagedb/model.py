@@ -1,15 +1,17 @@
+#pylint: skip-file
 # coding: utf-8
+
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Unicode, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mssql.base import BIT
 from sqlalchemy.ext.declarative import declarative_base
 
 
-Base = declarative_base()
-metadata = Base.metadata
+_BASE = declarative_base()
+_META = _BASE.metadata
 
 
-class Camera(Base):
+class Camera(_BASE):
     __tablename__ = 'camera'
 
     cameraid = Column(Integer, primary_key=True)
@@ -25,7 +27,7 @@ class Camera(Base):
     def __repr__(self):
         return "<Camera(cameraid=%i, camera='%s', manufacturer='%s', aperture_mm=%d, focal_distance_mm=%i, cmos_rows=%i, cmos_columns=%i, cmos_height_mm=%i, cmos_width_mm=%i)>" % (self.cameraid, self.camera, self.manufacturer, self.aperture_mm, self.focal_distance_mm, self.cmos_rows, self.cmos_columns, self.cmos_height_mm, self.cmos_width_mm)
 
-class Housing(Base):
+class Housing(_BASE):
     __tablename__ = 'housing'
 
     housingid = Column(Integer, primary_key=True)
@@ -37,7 +39,7 @@ class Housing(Base):
     def __repr__(self):
         return "<Housing(housingid=%i, housing='%s', laser_type='%s', lasers_nr=%i, b_b_to_b_lens_adjust=%i)>" % (self.housingid, self.housing, self.laser_type, self.lasers_nr, self.b_b_to_b_lens_adjust)
 
-class HousingMount(Base):
+class HousingMount(_BASE):
     __tablename__ = 'housing_mount'
 
     housing_mountid = Column(Integer, primary_key=True)
@@ -52,7 +54,7 @@ class HousingMount(Base):
     def __repr__(self):
         return "<Housing_mount(housing_mountid=%i, conversion_name='%s', subject_to_lens_conversion_mm=%i)>" % (self.housing_mountid, self.housingid, self.mountid, self.conversion_name, self.subject_to_lens_conversion_mm)
 
-class Mount(Base):
+class Mount(_BASE):
     __tablename__ = 'mount'
 
     mountid = Column(Integer, primary_key=True)
@@ -61,7 +63,7 @@ class Mount(Base):
     def __repr__(self):
         return "<Mount(mountid=%i, mount_name='%s')>" % (self.mountid, self.mount_name)
 
-class Sample(Base):
+class Sample(_BASE):
     __tablename__ = 'sample'
 
     sampleid = Column(Integer, primary_key=True)
@@ -80,15 +82,17 @@ class Sample(Base):
     capture_resolution = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     useable_footage = Column(BIT, nullable=False, server_default=text("((0))"))
     comment = Column(Unicode)
+    speciesid = Column(ForeignKey('species.speciesid'))
 
     camera = relationship('Camera')
     housing_mount = relationship('HousingMount')
     sample_header = relationship('SampleHeader')
+    species = relationship('Species')
 
     def __repr__(self):
-        return "<Sample(sampleid=%i, unique_code='%s', tl_mm=%i, fl_mm=%i, weight_g=%i, maturity='%s', laser_mm=%i, measurer='%s', board_board_length_mm=%i, capture_resolution='%s')>" % (self.sampleid, self.unique_code, self.tl_mm, self.fl_mm, self.weight_g, self.maturity, self.gutted, self.laser_mm, self.sample_headerid, self.measurer, self.cameraid, self.housing_mountid, self.board_board_length_mm, self.capture_resolution, self.useable_footage, self.comment)
+        return "<Sample(sampleid=%i, unique_code='%s', tl_mm=%i, fl_mm=%i, weight_g=%i, maturity='%s', laser_mm=%i, measurer='%s', board_board_length_mm=%i, capture_resolution='%s', speciesid=%i)>" % (self.sampleid, self.unique_code, self.tl_mm, self.fl_mm, self.weight_g, self.maturity, self.gutted, self.laser_mm, self.sample_headerid, self.measurer, self.cameraid, self.housing_mountid, self.board_board_length_mm, self.capture_resolution, self.useable_footage, self.comment, self.speciesid)
 
-class SampleHeader(Base):
+class SampleHeader(_BASE):
     __tablename__ = 'sample_header'
 
     sample_headerid = Column(Integer, primary_key=True)
@@ -100,7 +104,7 @@ class SampleHeader(Base):
     def __repr__(self):
         return "<Sample_header(sample_headerid=%i, supplier='%s', stock_source='%s', stock_location='%s')>" % (self.sample_headerid, self.visit_date, self.supplier, self.stock_source, self.stock_location)
 
-class SampleLength(Base):
+class SampleLength(_BASE):
     __tablename__ = 'sample_length'
 
     sample_lengthid = Column(Integer, primary_key=True)
@@ -116,3 +120,23 @@ class SampleLength(Base):
 
     def __repr__(self):
         return "<Sample_length(sample_lengthid=%i, estimate_mm=%i, ref_length_type='%s', ref_length_mm=%i, measured_resolution='%s')>" % (self.sample_lengthid, self.sampleid, self.estimate_mm, self.ref_length_type, self.ref_length_mm, self.optical_lens_correction, self.measured_resolution, self.comment)
+
+class Species(_BASE):
+    __tablename__ = 'species'
+
+    speciesid = Column(Integer, primary_key=True)
+    common_name = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
+    latin_name = Column(String(50, 'Latin1_General_CI_AS'))
+
+t_v_lengths = Table(
+    'v_lengths', _META,
+    Column('sampleid', Integer, nullable=False),
+    Column('tl_mm', Integer, nullable=False),
+    Column('lens_subject_distance', Integer),
+    Column('laser_corr', Integer),
+    Column('bg_corr', Integer),
+    Column('fg_corr', Integer),
+    Column('laser_sans_corr', Integer),
+    Column('bg_sans_corr', Integer),
+    Column('fg_sans_corr', Integer)
+)

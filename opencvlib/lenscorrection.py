@@ -13,10 +13,10 @@ default values:
 
 #region imports
 #region base imports
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from glob import glob
 import argparse
-import cPickle
+import pickle
 import os
 #end region
 
@@ -233,10 +233,10 @@ class Calibration(object):
     # calculate camera distortion
         rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (self.width, self.height), None, None)
 
-        cm = cPickle.dumps(camera_matrix, cPickle.HIGHEST_PROTOCOL)
-        dc = cPickle.dumps(dist_coefs, cPickle.HIGHEST_PROTOCOL)
-        rv = cPickle.dumps(rvecs, cPickle.HIGHEST_PROTOCOL)
-        tv = cPickle.dumps(tvecs, cPickle.HIGHEST_PROTOCOL)
+        cm = pickle.dumps(camera_matrix, pickle.HIGHEST_PROTOCOL)
+        dc = pickle.dumps(dist_coefs, pickle.HIGHEST_PROTOCOL)
+        rv = pickle.dumps(rvecs, pickle.HIGHEST_PROTOCOL)
+        tv = pickle.dumps(tvecs, pickle.HIGHEST_PROTOCOL)
 
         with lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
             db = lenscorrectiondb.CalibrationCRUD(conn)
@@ -258,7 +258,7 @@ def get_camera(model):
     '''
     if not inifilelib.iniexists(_INIFILE):
         raise IOError('Ini file %s not found.' % _INIFILE)
-    ini = inifilelib.configfile(_INIFILE)
+    ini = inifilelib.ConfigFile(_INIFILE)
 
     calpath = ini.tryread(model, 'CALIBRATION_PATH', force_create=False)
     if not os.path.exists(calpath):
@@ -281,7 +281,7 @@ def _ini_set_database_strings():
     '''load db config strings from the inifile'''
     if not inifilelib.iniexists(_INIFILE):
         raise IOError('Ini file %s not found.' % _INIFILE)
-    ini = inifilelib.configfile(_INIFILE)
+    ini = inifilelib.ConfigFile(_INIFILE)
     global _DIGIKAM_CONNECTION_STRING
     _DIGIKAM_CONNECTION_STRING = ini.tryread('DATABASE', 'DIGIKAM_CONNECTION_STRING', force_create=False)
     global _CALIBRATION_CONNECTION_STRING

@@ -1,5 +1,7 @@
 #pylint: skip-file
 '''Produce graphs for paper'''
+from __future__ import print_function
+from __future__ import absolute_import
 #region Imports
 #region base
 import math
@@ -25,7 +27,7 @@ import funclib.iolib as iolib
 import funclib.statslib as statslib
 import funclib.arraylib as arraylib
 import funclib.stringslib as stringslib
-import focalpermute as fp
+from . import focalpermute as fp
 #endregion
 
 #endregion
@@ -212,7 +214,7 @@ def plot_focal():
     #sns.set_size_inches(8, 5, forward=True)
     sns.despine(top=True, right=True)
 
-    print type(ax)
+    print(type(ax))
  #endregion
 
 

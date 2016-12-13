@@ -1,10 +1,11 @@
-#pylint: too-many-branches
+#pylint: disable=W0612, E0611,E1101
+'''pyqt wrapper'''
+from __future__ import print_function
 import sys
 from PyQt4.QtGui import QWidget, QApplication, QMessageBox
 from PyQt4 import QtCore
 
-
-def question(title, msg, default_button = QMessageBox.No, *flags):
+def question(title, msg, default_button=QMessageBox.No, *flags):
     '''(str, str, ints)->QMessageBoxValueEnumeration
     Show a message box
     Ints will be binary ORed to get Yes,No,Ok for example
@@ -25,8 +26,9 @@ def _or_flags(flags):
 
 
 def main():
+    '''entry pt'''
     x = question('Quit this', 'Press yes to quit', QMessageBox.No, QMessageBox.Yes, QMessageBox.No)
-    print 'yes' if x == QMessageBox.Yes else 'no'
+    print('yes' if x == QMessageBox.Yes else 'no')
 
 #This only executes if this script was the entry point
 if __name__ == '__main__':

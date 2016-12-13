@@ -159,7 +159,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
     engine: is an enumeration method
     scipy cant cope with nans. Matched nans will be removed if a and b are numpy arrays
     '''
-    
+
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
         if  isinstance(a, np.ndarray) is False or isinstance(b, np.ndarray) is False:
             raise ValueError('If numpy arrays are used, both must be ndarray types')
@@ -194,7 +194,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
 
     if len(lst_a) != len(lst_b):
         raise ValueError('Array lengths must match exactly')
-    
+
     assert isinstance(lst_a, list)
     assert isinstance(lst_b, list)
 
@@ -258,12 +258,12 @@ def permuted_teststat_check(csvfile, test_col, stat_value_to_check):
     col = [test_col]
     df = pandas.read_csv(csvfile, usecols=col)
     assert isinstance(df, pandas.DataFrame)
-    
+
     if stat_value_to_check >= 0:
         res = (df.iloc[0:] > stat_value_to_check).sum()
     else:
         res = (df.iloc[0:] < stat_value_to_check).sum()
-    
+
     return {'p':float(res[0])/(df.iloc[0:]).count()[0], 'n':(df.iloc[0:]).count()[0], 'more_extreme_n':res[0]}
 
 
@@ -271,7 +271,7 @@ def permuted_teststat_check(csvfile, test_col, stat_value_to_check):
 
 def permuted_teststat_check1(teststats, stat_value_to_check):
     '''(tuple|list) -> dic ({'p', 'n', 'more_extreme_n'})
-    teststats is an iterable 
+    teststats is an iterable
     stat_value_to_check: the unpermuted test stat result
 
     Returns a dictionary object:
@@ -289,7 +289,7 @@ def permuted_teststat_check1(teststats, stat_value_to_check):
         for v in teststats:
             if v < stat_value_to_check:
                 p += 1
-    
+
     return {'p':float(p)/len(teststats), 'n':len(teststats), 'more_extreme_n':p}
 
 
@@ -301,12 +301,12 @@ def focal_permutation(x, y, teststat, iters=1000):
     Calculates p
     dic  {'p':,'more_extreme_n':}
     '''
-    
+
     taus = []
     #only need to do focal mean once on y as this doesnt need to be permuted each time
     y = arraylib.np_focal_mean(y, False)
 
-    for cnt in range(iters):       
+    for cnt in range(iters):
         pre = '/* iter:' + str(cnt+1) + ' */'
 
         #just permute one of them
@@ -328,7 +328,7 @@ def focal_permutation(x, y, teststat, iters=1000):
 #region Binning and recoding
 def quantile_bin(nd, percentiles=None, zero_as_zero=False):
     '''(ndarray, list, list, boolean) -> ndarray
-    
+
     percentiles is list of percentiles, defaults to [25, 50, 100]
 
     Returned array has elements with labels substituted.
@@ -348,7 +348,7 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
           where the first two figures in the inner list of the numerical ranges
           for the data in array nd. The last figure is a number which represents the percentile
           to which the range belongs (starts at 1).
-          For example: percentiles=[25,50,75] 
+          For example: percentiles=[25,50,75]
           0%-25%=1 25%-50%=2 50%-75%=3 75%-100%=4
 
           If zeros are excluded they are assigned as 0.
@@ -358,7 +358,7 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
         '''
         assert isinstance(percentiles, list)
         #assert isinstance(nd, numpy.ndarray)
-    
+
         ret = []
         a = np.array(nd).flatten() #default dtype is float
         assert isinstance(a, np.ndarray)
@@ -368,16 +368,16 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
 
         a = arraylib.np_delete_zeros(a)
         labels = range(1, len(percentiles)+2) #[25,50,75] -> [1,2,3,4]
-    
+
         percentiles.sort()
         ranges = [scipy.stats.scoreatpercentile(a, x) for x in percentiles] if use_scipy else np.percentile(a, percentiles)
-    
+
         for ind, item in enumerate(ranges):
             if ind == 0:
                 ret.append([a.min() - 0.00001, item, labels[ind]])
             else:
                 ret.append([ranges[ind-1], item, labels[ind]])
-    
+
         #add last category
         ret.append([ranges[-1], a.max() + 0.00001, len(labels)])
 
@@ -405,7 +405,7 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
                 ret = item[2] #this is the label index eg 'High'
                 assigned = True
                 break
-    
+
         if not assigned:
             raise ValueError('Failed to assign bin label')
         return ret
@@ -415,11 +415,11 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
     if nd.dtype != float:
         raise ValueError('Array should be of type float. Try recasting using ndarray.astype(float)')
 
-    qr = get_quantile_ranges(nd, percentiles, zero_as_zero)
+    gqr = get_quantile_ranges(nd, percentiles, zero_as_zero)
     out = np.copy(nd)
     func = np.vectorize(get_bin_label, excluded=['ranges', 'zero_as_zero'])
-    out = func(out, ranges=qr, zero_as_zero=zero_as_zero)
-    
+    out = func(out, ranges=gqr, zero_as_zero=zero_as_zero)
+
     return out
 #endregion
 

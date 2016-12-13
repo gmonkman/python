@@ -1,0 +1,21 @@
+# Pycharm
+.idea/
+
+# Python stuff
+*.py[cod]
+
+# Pyinstaller
+build/
+dist/
+*.spec
+
+#Sublime Stuff
+*.sublime-project
+*.sublime-workspace
+
+# Log
+dwt.log
+
+# Other
+getapps.py
+getreleases.py

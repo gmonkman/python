@@ -1,4 +1,4 @@
-# pylint: disable=reimported, missing-docstring, bad-builtin
+#pylint: disable=reimported, missing-docstring, bad-option-value, import-error
 '''
 This module contains some common routines used by other samples.
 From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
@@ -7,18 +7,18 @@ From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 from __future__ import print_function
 import sys
 from glob import glob
-from urllib2 import urlopen
 
 import numpy as np
 import cv2
 import imghdr
 import fuckit
 
+PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
-#if PY3:
-#    from functools import reduce
-
-
+if PY2:
+    from urllib2 import urlopen
+else:
+    from urllib.request import urlopen
 
 # built-in modules
 import os
@@ -130,6 +130,14 @@ class RectSelector(object):
 
 
 #region defs
+def get_perspective_correction(bg_dist, object_depth, length):
+    '''(float, float)->float
+    Return the length correted for the depth of the object
+    considering the backplane of the object to be the best
+    representative of the length
+    '''
+    return length*(1 - (object_depth - bg_dist))
+
 def get_image_resolutions(glob_str):
     '''(str)->list of lists
     Takes paths and using wildcards globs through all images
@@ -285,7 +293,7 @@ def mosaic(w, imgs):
     if PY3:
         img0 = next(imgs)
     else:
-        img0 = imgs.next()
+        img0 = next(imgs)
     pad = np.zeros_like(img0)
     imgs = it.chain([img0], imgs)
     rows = grouper(w, imgs, pad)

@@ -1,5 +1,6 @@
 #pylint: disable=unused-import
 '''Main entry module to perform the permutation analysis'''
+from __future__ import print_function
 
 #custom
 import numpy
@@ -403,8 +404,8 @@ def permute_test_with_random(iterations=10):
 
     np = numpy.array(lst)
     p = (np[:, 0] > np[:, 1]).sum()/float(len(np))
-    print '\n'
-    print 'p[tau_focal > tau] = %f' % (p)
+    print('\n')
+    print('p[tau_focal > tau] = %f' % (p))
 
 
 def set_iter():
@@ -439,14 +440,14 @@ def run_pam_permutation():
 def omit():
     '''omit time test'''
     tau = scipy.stats.kendalltau(_NP_PAM_VENUE, _NP_PAM_DAYSPAKM, nan_policy='omit')[0]
-    print tau
+    print(tau)
 
 def propogate():
     '''prop test'''
     x = numpy.arange(118*77).reshape(118, 77)
     y = numpy.arange(118*77).reshape(118, 77)
     tau = scipy.stats.kendalltau(x, y, nan_policy='propagate')[0]
-    print tau
+    print(tau)
 
 def test_speed():
     '''test performance'''

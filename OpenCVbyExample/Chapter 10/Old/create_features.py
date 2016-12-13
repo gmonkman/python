@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import argparse
@@ -26,7 +27,7 @@ def load_input_map(label, input_folder):
     combined_data = []
 
     if not os.path.isdir(input_folder):
-        print "The folder " + input_folder + " doesn't exist"
+        print("The folder " + input_folder + " doesn't exist")
         raise IOError
         
     for root, dirs, files in os.walk(input_folder):
@@ -56,7 +57,7 @@ class FeatureExtractor(object):
             count += 1
 
             if count == num_samples_to_fit:
-                print "Built centroids for", item['label']
+                print("Built centroids for", item['label'])
 
             cur_label = item['label']
             img = cv2.imread(item['image'])
@@ -79,7 +80,7 @@ def extract_feature_map(input_map, kmeans, centroids):
         temp_dict = {}
         temp_dict['label'] = item['label']
     
-        print "Extracting features for", item['image']
+        print("Extracting features for", item['image'])
         img = cv2.imread(item['image'])
         img = resize_to_size(img, 150)
 
@@ -139,7 +140,7 @@ class DenseDetector(object):
 class SIFTExtractor(object):
     def compute(self, image, kps):
         if image is None:
-            print "Not a valid image"
+            print("Not a valid image")
             raise TypeError
 
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -168,14 +169,14 @@ if __name__=='__main__':
     downsample_length = args.scale
 
     # Building the codebook
-    print "===== Building codebook ====="
+    print("===== Building codebook =====")
     kmeans, centroids = FeatureExtractor().get_centroids(input_map)
     if args.codebook_file:
         with open(args.codebook_file, 'w') as f:
             pickle.dump((kmeans, centroids), f)
     
     # Input data and labels
-    print "===== Building feature map ====="
+    print("===== Building feature map =====")
     feature_map = extract_feature_map(input_map, kmeans, centroids)
     if args.feature_map_file:
         with open(args.feature_map_file, 'w') as f:

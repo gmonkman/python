@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import argparse
 
@@ -82,6 +83,6 @@ if __name__=='__main__':
         cv2.waitKey()
 
     else:
-        print "We don't have enough number of matches between the two images."
-        print "Found only %d matches. We need at least %d matches." % (len(good_matches), min_match_count)
+        print("We don't have enough number of matches between the two images.")
+        print("Found only %d matches. We need at least %d matches." % (len(good_matches), min_match_count))
 

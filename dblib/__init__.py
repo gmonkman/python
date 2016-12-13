@@ -1,3 +1,3 @@
 '''main init for dblib'''
 
-__all__ = ['dblib']
+__all__ = ['alchemylib', 'sqlitelib']

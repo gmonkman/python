@@ -1,3 +1,4 @@
+#pylint: skip-file
 '''string manipulations and related helper functions'''
 
 #base imports

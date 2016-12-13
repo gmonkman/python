@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 import cv2
@@ -22,7 +23,7 @@ def find_vertical_seam(img, energy):
     rows, cols = img.shape[:2]
 
     seam = np.zeros(img.shape[0]) 
-    dist_to = np.zeros(img.shape[:2]) + sys.maxint
+    dist_to = np.zeros(img.shape[:2]) + sys.maxsize
     dist_to[0,:] = np.zeros(img.shape[1])
     edge_to = np.zeros(img.shape[:2])
 
@@ -70,7 +71,7 @@ if __name__=='__main__':
         img_overlay_seam = overlay_vertical_seam(img_overlay_seam, seam)
         img = remove_vertical_seam(img, seam)
         energy = compute_energy_matrix(img)
-        print 'Number of seams removed =', i+1
+        print('Number of seams removed =', i+1)
 
     cv2.imshow('Input', img_input)
     cv2.imshow('Seams', img_overlay_seam)

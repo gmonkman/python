@@ -1,6 +1,7 @@
 #pylint: skip-file
 
 '''test code'''
+from __future__ import print_function
 import numpy
 import os
 import sys
@@ -34,8 +35,8 @@ def test_arraylib():
     assert isinstance(b, numpy.ndarray)
     #dic  = arraylib.np_unmatched_nans_to_zero(a, b)
     dic  = arraylib.np_paired_zeros_to_nan(a, b)
-    print dic['a']
-    print dic['b']    
+    print(dic['a'])
+    print(dic['b'])    
 #endregion
 
 
@@ -69,7 +70,7 @@ test_statslib()
 
 #region inifile
 ini_name = os.path.abspath(__file__) + '.ini'
-ini = inifilelib.configfile(ini_name)
+ini = inifilelib.ConfigFile(ini_name)
 s = ini.tryread('test', 'timeout', True, 60)
 ini.trywrite('test','NEWTEST','666')
 ini.trywrite('TRYWRITE','magic','8ball')
@@ -98,4 +99,4 @@ wildcards=('*.ini','*.txt','*.bat','*.zip','*.pdf')
 gen = file_list_generator(paths,wildcards)
 
 for v in gen:
-    print v
+    print(v)

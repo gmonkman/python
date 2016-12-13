@@ -1,12 +1,11 @@
-#pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled, not-context-manager
+#pylint: disable=C0302, no-member, expression-not-assigned, not-context-manager
 ''' helper for interacting with application ini files'''
-
-import ConfigParser as cp
+import configparser as cp
 import os
 
 import funclib.iolib as iolib
 
-class configfile(object):
+class ConfigFile(object):
     '''handles ini file defaults for common sections and values
     like data paths etc
     '''
@@ -18,13 +17,13 @@ class configfile(object):
 
         if not os.path.isfile(ini_file):
             iolib.file_create(ini_file)
-        self._config = cp.ConfigParser()        
+        self._config = cp.ConfigParser()
         self._config.read(ini_file)
-        
+
     def __str__(self):
         assert isinstance(self._config, cp.ConfigParser)
         return str(self._config.options)
-    
+
     def tryread(self, section, option, force_create=True, value_on_create=''):
         '''(str,str) -> str
         section is the section [DEFAULT]
@@ -38,7 +37,7 @@ class configfile(object):
             if self._config.has_option(section, option):
                 return self._config.get(section, option)
             else:
-                if force_create: 
+                if force_create:
                     self._config.set(section, option, value_on_create)
                     self.save()
                 return value_on_create
@@ -48,7 +47,7 @@ class configfile(object):
                 self._config.set(section, option, value_on_create)
                 self.save()
             return value_on_create
-    
+
     def trywrite(self, section, option, value):
         '''(str,str,str) ->void
         tries to write out a value to ini, creating new section if
@@ -62,8 +61,8 @@ class configfile(object):
 
     def save(self):
         '''save the config to disk'''
-        with open(self.ini_file, 'w') as configfile:
-            self._config.write(configfile)
+        with open(self.ini_file, 'w') as tmp:
+            self._config.write(tmp)
 
 def iniexists(file):
     '''(str) -> bool

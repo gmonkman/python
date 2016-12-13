@@ -1,3 +1,4 @@
+from __future__ import print_function
 import argparse
 
 import cv2
@@ -65,10 +66,10 @@ if __name__ == '__main__':
         fullDP = True
     )
 
-    print "\nComputing the disparity map ..."
+    print("\nComputing the disparity map ...")
     disparity_map = stereo.compute(image_left, image_right).astype(np.float32) / 16.0
 
-    print "\nGenerating the 3D map ..."
+    print("\nGenerating the 3D map ...")
     h, w = image_left.shape[:2]
     focal_length = 0.8*w                          
 
@@ -84,7 +85,7 @@ if __name__ == '__main__':
     output_points = points_3D[mask_map]
     output_colors = colors[mask_map]
 
-    print "\nCreating the output file ...\n"
+    print("\nCreating the output file ...\n")
     create_output(output_points, output_colors, output_file)
 
     #cv2.imshow('Left Image', image_left)

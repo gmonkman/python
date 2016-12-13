@@ -65,7 +65,7 @@ def init(getcmdlineargs=False, initialise_ini=False):
 
     if initialise_ini:
         _INI_NAME = os.path.abspath(__file__) + '.ini'
-        ini = inifilelib.configfile(_INI_NAME)
+        ini = inifilelib.ConfigFile(_INI_NAME)
         _MOVIE = ini.tryread('MOVIES', 'movie', False)
 
 def get_frame(cap, scaling_factor):

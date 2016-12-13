@@ -1,6 +1,7 @@
-#pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled, not-context-manager
+#pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, locally-disabled, not-context-manager, bare-except, redefined-builtin
 
 '''My file input and output library, e.g. for csv handling.'''
+from __future__ import print_function
 import csv
 from glob import glob
 import itertools
@@ -23,6 +24,71 @@ from funclib.stringslib import add_right
 from funclib.stringslib import add_left
 
 _NOTEPADPP_PATH = 'C:\\Program Files (x86)\\Notepad++\\notepad++.exe'
+
+
+
+class CSVIo(object):
+    '''class for reading/writing CSV objects
+    can work standalone or as the backbone for CSVMatch'''
+
+    def __init__(self, filepath):
+        '''init'''
+        self.filepath = filepath
+        self.values = []
+        self.rows = []
+
+        self.read()
+
+    def read(self, val_funct=lambda val: val):
+        '''use val_funct to operate on all the values before as they are read in'''
+        with open(self.filepath, 'rU') as f:
+            raw_csv = csv.DictReader(f)
+            for row in raw_csv:
+                row = {key: val_funct(val) for key, val in row.iteritems()}
+                self.rows.append(row)
+                self.values += row.values()
+            return
+
+    def save(self, filepath=None):
+        '''save'''
+        if not filepath:
+            filepath = self.filepath
+        with open(filepath, 'w') as f:
+            writer = csv.DictWriter(f, self.rows[0].keys())
+            writer.writeheader()
+            for row in self.rows:
+                writer.writerow(row)
+            return
+
+
+class CSVMatch(CSVIo):
+    '''CSVMatch class'''
+    def row_for_value(self, key, value):
+        '''returns a list of matching rows
+        key = the column name on the CSV
+        value = the value to match in that column
+        '''
+        if not value or not value in self.values: return
+
+        match = None
+        for row in self.rows:
+            if row[key] == value:
+                if match: raise MultipleMatchError()
+                match = row
+        return match
+
+    def row_for_object(self, match_function, obj):
+        '''like row_for_value, but allows for a more complicated match.
+        match_function takes three parameters (vals, row, object) and return true/false
+        '''
+        for row in self.rows:
+            if match_function(row, obj):
+                return row
+
+
+class MultipleMatchError(RuntimeError):
+    '''helper'''
+    pass
 
 
 #region CSV IO
@@ -50,7 +116,7 @@ def readcsv(filename, cols=1, startrow=0, numericdata=True):
         with open(filename, 'rb') as csvfile:  #open the file, and iterate over its data
             csvdata = csv.reader(csvfile)   #tell python that the file is a csv
             for i in range(0, startrow): #skip to the startrow
-                csvdata.next()
+                next(csvdata)
             for row in csvdata:     #iterate over the rows in the csv
                 #Assign the cols of each row to a variable
                 for items in range(cols):   #read in the text values as floats in the array
@@ -62,7 +128,7 @@ def readcsv(filename, cols=1, startrow=0, numericdata=True):
         with open(filename, newline='') as csvfile:  #open the file, and iterate over its data
             csvdata = csv.reader(csvfile)   #tell python that the file is a csv
             for i in range(0, startrow): #skip to the startrow
-                csvdata.next()
+                next(csvdata)
             for row in csvdata:     #iterate over the rows in the csv
                 #Assign the cols of each row to a variable
                 for items in range(cols):   #read in the text values as floats in the array
@@ -159,6 +225,7 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
 
 #region file system
 def exit():
+    '''override exit to detect platform'''
     if get_platform == 'windows':
         os.system("pause")
     else:
@@ -171,13 +238,14 @@ def get_platform():
     '''
     s = sys.platform.lower()
     if s == "linux" or s == "linux2":
-       return 'linux'
+        return 'linux'
     elif s == "darwin":
-       return 'mac'
+        return 'mac'
     elif s == "win32":
-       return 'windows'
+        return 'windows'
 
-def drive_get_uuid(drive='C:',strip=['-'], make_lcase=True, return_when_unidentified='??'):
+def drive_get_uuid(drive='C:', strip=['-'], make_lcase=True, return_when_unidentified='??'):
+    '''get uuid of drive'''
     drive = os.popen('vol %s' % drive).readlines()[1].split()[-1]
     if len(drive) == 0: drive = return_when_unidentified
     if make_lcase: drive = drive.lower()
@@ -215,7 +283,7 @@ def get_drive_from_uuid(uuid, strip=['-'], make_lcase=True):
     for char in strip:
         uuid = uuid.replace(char, '')
     drives = get_available_drive_uuids(strip, make_lcase) #first val is drive, second is the uuid
-    if drives.has_key(uuid):
+    if uuid in drives:
         return drives[uuid]
     else:
         return None
@@ -243,6 +311,7 @@ def file_list_generator1(paths, wildcards):
             yield os.path.normpath(myfile)
 
 def file_list_glob_generator(wilded_path):
+    '''glob generator from wildcarded path'''
     for file in glob(wilded_path):
         yield file
 
@@ -251,14 +320,14 @@ def files_delete(folder, delsubdirs=False):
     folder = os.path.normpath(folder)
     for the_file in os.listdir(folder):
         file_path = os.path.join(folder, the_file)
-        try:
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                if delsubdirs:
-                        shutil.rmtree(file_path)
-        except Exception as e:
-            print(e)
+    try:
+        if os.path.isfile(file_path):
+            os.unlink(file_path)
+        elif os.path.isdir(file_path):
+            if delsubdirs:
+                shutil.rmtree(file_path)
+    except Exception as e:
+        print(e)
 
 def get_file_name(path='', prefix='', ext='.txt'):
     '''(str, str, str) -> str
@@ -312,8 +381,8 @@ def write_to_file(results, prefix='', open_in_npp=True):
             for s in results:
                 f.write(str(s) + '\r\n')
 
-    print results
-    print filename
+    print(results)
+    print(filename)
     if open_in_npp: notepadpp_open_file(filename)
     return filename
 
@@ -363,9 +432,11 @@ def unpickle(path):
 #region console stuff
 def input_int(prompt='Input number', default=0):
     '''get console input from user and force to int'''
-    return int(stringslib.read_number(raw_input(prompt), default))
-
-
+    try:
+        input = raw_input
+    except NameError:
+        pass
+    return int(stringslib.read_number(input(prompt), default))
 
 
 def print_progress(iteration, total, prefix='', suffix='', decimals=2, bar_length=50):
@@ -390,5 +461,5 @@ def print_progress(iteration, total, prefix='', suffix='', decimals=2, bar_lengt
 
     sys.stdout.write('%s [%s] %s%s %s\r' % (prefix, progbar, percents, '%', suffix)), sys.stdout.flush()
     if iteration == total:
-        print "\n"
+        print("\n")
 #endregion

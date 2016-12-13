@@ -5,9 +5,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>965fc95c-7dbc-4efc-adab-5ed89451655a</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>imagedb.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <StartupFile>oneoffwork.py</StartupFile>
+    <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>imagedb</Name>
@@ -25,8 +24,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="imagedb.py" />
+    <Compile Include="imagedb.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="model.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="oneoffwork.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="__init__.py">

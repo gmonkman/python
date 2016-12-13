@@ -1,6 +1,9 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, unused-variable
+'''base classes and misc functions for manipulatin other base classes
+Stick list/tuple/dic functions in here
+'''
 
-'''base classes and misc functions'''
+from sys import version_info
 
 #########
 #CLASSES#
@@ -51,18 +54,6 @@ def dic_merge_two(x, y):
     z.update(y)
     return z
 
-def list_flatten(test_list):
-    '''(list) -> list
-    returns flattened list
-    '''
-    if isinstance(test_list, list):
-        if len(test_list) == 0:
-            return []
-        first, rest = test_list[0], test_list[1:]
-        return flatten(first) + flatten(rest)
-    else:
-        raise ValueError("Couldn't flatten object. Expected a list, but object not a list")
-
 def list_append_unique(list_in, val):
     '''(list, type)->void
     Appends val to list_in if it isnt already in the list
@@ -70,3 +61,26 @@ def list_append_unique(list_in, val):
     '''
     if not val in list_in:
         list_in.append(val)
+
+
+#region lists
+
+def list_flatten(items, seqtypes=(list, tuple)):
+    '''flatten a list'''
+    for i, x in enumerate(items):
+        while i < len(items) and isinstance(items[i], seqtypes):
+            items[i:i+1] = items[i]
+    return items
+#endregion
+
+
+#base python stuff
+def isPython3():
+    '''->bool
+    '''
+    return version_info.major == 3
+
+def isPython2():
+    '''->bool
+    '''
+    return version_info.major == 2

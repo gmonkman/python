@@ -1,3 +1,4 @@
+from __future__ import print_function
 import cv2
 import numpy as np
 
@@ -7,7 +8,7 @@ fast = cv2.FastFeatureDetector()
 
 # Detect keypoints
 keypoints = fast.detect(gray_image, None)
-print "Number of keypoints with non max suppression:", len(keypoints)
+print("Number of keypoints with non max suppression:", len(keypoints))
 
 # Draw keypoints on top of the input image
 img_keypoints_with_nonmax = cv2.drawKeypoints(gray_image, keypoints, color=(0,255,0))
@@ -19,7 +20,7 @@ fast.setBool('nonmaxSuppression', False)
 # Detect keypoints again
 keypoints = fast.detect(gray_image, None)
 
-print "Total Keypoints without nonmaxSuppression:", len(keypoints)
+print("Total Keypoints without nonmaxSuppression:", len(keypoints))
 
 # Draw keypoints on top of the input image
 img_keypoints_without_nonmax = cv2.drawKeypoints(gray_image, keypoints, color=(0,255,0))

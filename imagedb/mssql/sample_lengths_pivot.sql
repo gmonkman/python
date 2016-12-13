@@ -1,8 +1,23 @@
-select * from
+use imagedb
+go
+
+create view v_lengths
+as
+select 
+	xsampleid as sampleid
+	,tl_mm
+	,lens_subject_distance
+	,laser_corr
+	,bg_corr
+	,fg_corr
+	,laser_sans_corr
+	,bg_sans_corr
+	,fg_sans_corr
+ from
 (
 	(
 		select 
-			sampleid
+			xsampleid
 			,tl_mm
 			,lens_subject_distance
 			,[laser lines] as laser_corr
@@ -11,7 +26,7 @@ select * from
 		 from
 		(
 		select
-			sample.sampleid,
+			sample.sampleid as xsampleid,
 			sample.tl_mm,
 			sample.board_board_length_mm + housing_mount.subject_to_lens_conversion_mm as lens_subject_distance,
 			sample_length.ref_length_type,
@@ -34,14 +49,14 @@ select * from
 
 	(
 		select 
-			sampleid
+			ysampleid
 			,[laser lines] as laser_sans_corr
 			,[background checker] as bg_sans_corr
 			,[foreground checker] as fg_sans_corr
 		 from
 		(
 		select
-			sample.sampleid,
+			sample.sampleid as ysampleid,
 			sample.tl_mm,
 			sample.board_board_length_mm + housing_mount.subject_to_lens_conversion_mm as lens_subject_distance,
 			sample_length.ref_length_type,
@@ -58,5 +73,5 @@ select * from
 		MAX([estimate_mm]) FOR ref_length_type in ([laser lines], [background checker], [foreground checker])
 		)
 		as pvt
-	) as y on x.sampleid = y.sampleid
+	) as y on x.xsampleid = y.ysampleid
 )

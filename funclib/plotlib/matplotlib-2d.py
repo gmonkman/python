@@ -3,6 +3,7 @@
 Wrapper for matplotlib.
 Takes care of common-case, pretty graphs.
 """
+from __future__ import print_function
 
 import config
 import constants

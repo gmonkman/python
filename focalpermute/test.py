@@ -1,11 +1,13 @@
 #pylint: skip-file
 '''test stuff focalpermute'''
+from __future__ import print_function
+from __future__ import absolute_import
 
 import numpy as np
 
-import mediandistance as md
+from . import mediandistance as md
 import funclib.statslib as statslib
-import heatmap_conditionals as hc
+from . import heatmap_conditionals as hc
 
 #region mediandistance
 def median_distance():
@@ -13,7 +15,7 @@ def median_distance():
     a[0][0] = np.nan
     a[0][1] = 0
     a = md.bin_array_quartile(a)
-    print a
+    print(a)
     z=1
 
 def md_get_results():
