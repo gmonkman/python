@@ -11,6 +11,7 @@ from glob import glob
 import numpy as np
 import cv2
 import imghdr
+import xlwings
 import fuckit
 
 PY2 = sys.version_info[0] == 2
@@ -136,7 +137,7 @@ def get_perspective_correction(bg_dist, object_depth, length):
     considering the backplane of the object to be the best
     representative of the length
     '''
-    return length*(1 - (object_depth - bg_dist))
+    return length*(1 - (object_depth / bg_dist))
 
 def get_image_resolutions(glob_str):
     '''(str)->list of lists

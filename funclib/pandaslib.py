@@ -49,7 +49,7 @@ def col_calculate_new(df, func, new_col_name, *args):
 
     #
     for i, row in df.iterrows():
-        rowvals = [row[i][0] for i in args]
+        rowvals = [row[x] for x in args]
         v = func(*rowvals)
         df.set_value(i, new_col_name, v)
 

@@ -113,13 +113,17 @@ class SampleLength(_BASE):
     ref_length_type = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     ref_length_mm = Column(Integer, nullable=False, server_default=text("((0))"))
     optical_lens_correction = Column(BIT, nullable=False, server_default=text("((0))"))
+    perspective_correction = Column(BIT, nullable=False, server_default=text("((0))"))
     measured_resolution = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     comment = Column(Unicode)
 
     sample = relationship('Sample')
 
     def __repr__(self):
-        return "<Sample_length(sample_lengthid=%i, estimate_mm=%i, ref_length_type='%s', ref_length_mm=%i, measured_resolution='%s')>" % (self.sample_lengthid, self.sampleid, self.estimate_mm, self.ref_length_type, self.ref_length_mm, self.optical_lens_correction, self.measured_resolution, self.comment)
+        return "<Sample_length(sample_lengthid=%i, estimate_mm=%i, ref_length_type='%s', ref_length_mm=%i, measured_resolution='%s')>" % \
+            (self.sample_lengthid, self.sampleid, self.estimate_mm, self.ref_length_type, self.ref_length_mm, \
+                self.optical_lens_correction, self.perspective_correction, self.measured_resolution, self.comment)
+
 
 class Species(_BASE):
     __tablename__ = 'species'
