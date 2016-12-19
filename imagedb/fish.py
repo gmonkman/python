@@ -20,7 +20,26 @@ class Fish(ABC):
     def get_max_depth(self):
         '''(double)->double
         given the total length, get the depth
+       '''
+    @abstractmethod
+    def lalg_length_equals_depth(self, reverse):
+        '''get the parameters of the linear equation for the length-depth relationship
+        length = depth + c
+        Return x,c
         '''
+
+    @staticmethod
+    def length_from_depth(measure, coeff, const):
+        '''(float, float, float, bool, float)
+        Given a known measurement, calculate a linearly related measurement
+        based on the linear coefficient and constant
+        eg.
+        y = 0.1x + 0.01 relates depth to length
+        Pass in a length of 100mm, would return 100*0.1 + 0.01 (10.1mm) meaing our fish of 100cm
+        is 10.1cm deep.
+        '''
+        return measure*coeff + const
+
 
 #define an array of functions which will accept other 'species' classes
 class FishActions(object):
@@ -35,10 +54,17 @@ class FishActions(object):
         '''
         return self.species.get_max_depth()
 
+    def lalg_length_equals_depth(self, reverse=False):
+        '''get the parameters of the linear equation for the length-depth relationship
+        length = depth + c
+        Return x,c
+        '''
+        return self.species.get_max_depth(reverse)
+
 class Bass(Fish):
     '''bass'''
 
-    def __init__(self, length_tl):
+    def __init__(self, length_tl=0):
         super(Bass, self).__init__(length_tl) #keep python 2.7 compat, Python 3 only would be super().__init__(length_tl)
 
     def get_max_depth(self):
@@ -46,15 +72,26 @@ class Bass(Fish):
         given a length in mm, get maximum fish depth in mm
         REF: "Quality outline of European sea bass Dicentrarchus labrax reared in Italy: shelf life, edible yield, nutritional and dietetic traits"
         '''
-        a = np_array([[280, 10], [427.5, 10]])
-        c = np_array([34.3, 54.3])
+        a, c = self.lalg_length_equals_depth(False)
 
+        return self.length_tl*a + c
+
+    def lalg_length_equals_depth(self, reverse=False):
+        '''get the parameters of the linear equation for the length-depth relationship
+        length = a*Depth + c
+        Return x,c
+        If reverse use:
+        depth = a*Length + c
+        '''
+        if reverse:
+            #setup the matrix in the form ay + bx = c
+            a = np_array([[10, 34.3], [10, 54.3]])
+            c = np_array([280, 427.5])
+        else:
+            a = np_array([[280, 10], [427.5, 10]])
+            c = np_array([34.3, 54.3])
         ret = linalg.solve(a, c)
-        return self.length_tl*ret[0] + ret[1]
-
-
-
-
+        return (ret[0], ret[1])
 
 #region ENTRY
 def main():

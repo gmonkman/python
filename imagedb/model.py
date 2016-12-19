@@ -1,7 +1,7 @@
 #pylint: skip-file
 # coding: utf-8
 
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Unicode, text
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Unicode, text, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mssql.base import BIT
 from sqlalchemy.ext.declarative import declarative_base
@@ -84,7 +84,7 @@ class Sample(_BASE):
     comment = Column(Unicode)
     speciesid = Column(ForeignKey('species.speciesid'))
 
-    camera = relationship('Camera')
+    camera = relationship('Camera', backref='cameras')
     housing_mount = relationship('HousingMount')
     sample_header = relationship('SampleHeader')
     species = relationship('Species')
@@ -102,7 +102,8 @@ class SampleHeader(_BASE):
     stock_location = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
 
     def __repr__(self):
-        return "<Sample_header(sample_headerid=%i, supplier='%s', stock_source='%s', stock_location='%s')>" % (self.sample_headerid, self.visit_date, self.supplier, self.stock_source, self.stock_location)
+        return "<Sample_header(sample_headerid=%i, supplier='%s', stock_source='%s', stock_location='%s')>" \
+                % (self.sample_headerid, self.visit_date, self.supplier, self.stock_source, self.stock_location)
 
 class SampleLength(_BASE):
     __tablename__ = 'sample_length'
@@ -111,19 +112,18 @@ class SampleLength(_BASE):
     sampleid = Column(ForeignKey('sample.sampleid'), nullable=False)
     estimate_mm = Column(Integer, nullable=False, server_default=text("((0))"))
     ref_length_type = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
-    ref_length_mm = Column(Integer, nullable=False, server_default=text("((0))"))
-    optical_lens_correction = Column(BIT, nullable=False, server_default=text("((0))"))
-    perspective_correction = Column(BIT, nullable=False, server_default=text("((0))"))
+    ref_length_mm = Column(Integer, nullable=True, server_default=text("((0))"))
     measured_resolution = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     comment = Column(Unicode)
-
-    sample = relationship('Sample')
+    perspective_corrected_actual_mm = Column(Integer, nullable=True)
+    lens_correction_mm = Column(Integer, nullable=True)
+    perspective_corrected_estimate_mm = Column(Integer, nullable=True)
+    perspective_corrected_estimate_iter_mm = Column(Integer, nullable=True)
+    sample = relationship('Sample', backref='sample_lengths')
 
     def __repr__(self):
-        return "<Sample_length(sample_lengthid=%i, estimate_mm=%i, ref_length_type='%s', ref_length_mm=%i, measured_resolution='%s')>" % \
-            (self.sample_lengthid, self.sampleid, self.estimate_mm, self.ref_length_type, self.ref_length_mm, \
-                self.optical_lens_correction, self.perspective_correction, self.measured_resolution, self.comment)
-
+        return "<Sample_length(sample_lengthid=%i, estimate_mm=%i, ref_length_type='%s', ref_length_mm=%i, measured_resolution='%s', perspective_corrected_actual_mm=%i, lens_correction_mm=%i, perspective_corrected_estimate_iter_mm=%i)>"  \
+                % (self.sample_lengthid, self.sampleid, self.estimate_mm, self.ref_length_type, self.ref_length_mm, self.measured_resolution, self.comment, self.perspective_corrected_actual_mm, self.lens_correction_mm, self.perspective_corrected_estimate_iter_mm)
 
 class Species(_BASE):
     __tablename__ = 'species'

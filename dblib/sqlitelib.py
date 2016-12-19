@@ -89,16 +89,16 @@ class CRUD(object):
         return bool(row[0][0])
     #endregion
 
-
-    def get_blob(rw, colname):
+    @staticmethod
+    def get_blob(row, colname):
         '''(sqlite.Row, str)-> dic
         Returns unpickled object from db blob field
         which was pickled then stored
         '''
-        assert isinstance(rw, sqlite3.Row)
+        assert isinstance(row, sqlite3.Row)
         return pickle.loads(str(colname))
 
-    def executeSQL(self, sql):
+    def execute_sql(self, sql):
         '''execute sql against the db'''
         cur = self.conn.cursor()
         cur.execute(sql)

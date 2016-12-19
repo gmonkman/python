@@ -1,3 +1,5 @@
+#pylint: disable=global-statement,no-name-in-module
+
 '''helper function for database connections
 including sqlalchemy
 '''
@@ -8,7 +10,8 @@ from sqlalchemy import create_engine as _create_engine
 import fuckit
 
 from funclib.baselib import isPython2 as _isPython2
-from funclib.baselib import isPython3 as _isPython3
+from funclib.baselib import dic_merge_two
+#from funclib.baselib import isPython3 as _isPython3
 from enum import Enum as _Enum
 
 
@@ -41,13 +44,15 @@ class Consumer(_Enum):
 #TODO Expand supported connection types in get_connection_string
 
 class ConnectionString(object):
+    '''generate connection strings for different databases'''
     def __init__(self, server='', dbname='', user='', pw='', fileptr=''):
         self.server = server
         self.dbname = dbname
         self.user = user
-        self.pw = pw
+        self.password = pw
         self.fileptr = fileptr
 
+    @staticmethod
     def _get_mssql_prefix(db_type=MSSQLODBCDriver.mssqlserver2012):
         if db_type == MSSQLODBCDriver.mssqlserver2005:
             return 'SQL Server Native Client'
@@ -61,7 +66,7 @@ class ConnectionString(object):
     def mssql_connection_string(self, driver=MSSQLODBCDriver.mssqlserver2012):
         '''connection_string getter for _create_engine'''
         drv = quote_plus(ConnectionString._get_mssql_prefix(driver))
-        cnstr = '%s:%s@%s/%s?driver=%s' % (self.user, self.pw, self.server, self.dbname, drv)
+        cnstr = '%s:%s@%s/%s?driver=%s' % (self.user, self.password, self.server, self.dbname, drv)
         cnstr = 'mssql+pyodbc://' + cnstr
         return cnstr
 
@@ -74,7 +79,7 @@ class ConnectionString(object):
         returns the correctly formatted sqlite connection
         string for sqlalchemy to open its connection
         '''
-        if filename == '' and self.fileptr == '' :
+        if filename == '' and self.fileptr == '':
             s = 'sqlite://'
         elif filename == '':
             s = _os.path.normpath(self.fileptr)
@@ -87,22 +92,23 @@ class ConnectionString(object):
 class MsSQLs(object):
     '''generic sql functions'''
     def __init__(self):
-        return super().__init__()
+        pass
 
-    def exists_by_key(self, tablename, key_col, v):
+    #TODO test
+    @staticmethod
+    def exists_by_key(tablename, key_col, v):
         '''(str,str,the keyvalue)->bool
         return bool indicating if  id exists in table
         '''
-        cur = self.conn.cursor()
-
-        sql = "if exists(SELECT 1 as one FROM " + table + " WHERE "  + keycol + "='" + str(v) + "') " \
+        sql = "if exists(SELECT 1 as one FROM " + tablename + " WHERE "  + key_col + "='" + str(v) + "') " \
             "SELECT 1 as res else SELECT 0 as res"
-        cur.execute(sql)
-        row = cur.fetchall()
-        for res in row:
+        rows = ENGINE.execute(sql)
+        for row in rows:
             return bool(row['res'])
 
-    def exists_by_compositekey(self, table, dic):
+    #TODO Test
+    @staticmethod
+    def exists_by_compositekey(table, dic):
         '''(str, dic)->bool
         Return true or false if a record exists in table based on multiple values
         so dic would be for e.g.
@@ -113,28 +119,28 @@ class MsSQLs(object):
         where = ["%s='%s' AND " % (j, k) for j, k in dic.iteritems()]
         where[-1] = where[-1].replace('AND', '')
 
-        sql.append = "if exists(SELECT 1 as one FROM " + table + " WHERE "  + keycol + "='" + str(v) + "') " \
-
-        sql.append("if exists(SELECT 1 as one FROM " + %s
-        sql.append("".join(where))
-
+        sql.append('if exists(SELECT 1 as one FROM ' + table + ' ')
+        sql.append(''.join(where))
+        sql.append(') then ')
+        sql.append('select 1 as one else select 0 as one')
         query = "".join(sql)
-        cur = self.conn.cursor()
-        cur.execute(query)
-        row = cur.fetchall()
-        return bool(row[0][0])
+        rows = ENGINE.execute(query)
+        for row in rows:
+            return bool(row['one'])
 
-    def sql_upsert(self, table, keylist, **kwargs):
+    #TODO recode for SQL/SQLAlch
+    @staticmethod
+    def sql_upsert(table, keylist, **kwargs):
         '''(str, dict, **kwargs)->void
         keylist is dictionary of key fields and their values used
         to build the where.
         Pass the rest of the values in kwargs
         '''
-        allargs = baselib.dic_merge_two(keylist, kwargs)
+        allargs = dic_merge_two(keylist, kwargs)
         sql_insert = []
         sql_update = []
 
-        if self.exists_by_compositekey(table, keylist):
+        if MsSQLs.exists_by_compositekey(table, keylist):
             where = [" %s='%s' " % (j, k) for j, k in keylist.iteritems()]
 
             update = ["%s='%s'" % (j, k) for j, k in allargs.iteritems()]
@@ -155,7 +161,7 @@ class MsSQLs(object):
             return "".join(sql_insert)
 
 
-def create_engine_mssql(cnstr, echo=True, poolclass=_pool.NullPool):
+def create_engine_mssql(cnstr, echo=False, poolclass=_pool.NullPool):
     '''(str, str, str, str)->void
     opens an SQL Server engine with cnstr
     cnstr can be got by using get_connection_string()
@@ -166,16 +172,16 @@ def create_engine_mssql(cnstr, echo=True, poolclass=_pool.NullPool):
 
 
 def close():
+    '''close up db stuff'''
     with fuckit:
         ENGINE.dispose()
 
 
 
 def main():
-    '''
-    '''
-    cn = ConnectionString('toshiba', 'imagedb', 'sa', 'GGM290471')
-    s = cn.mssql_connection_string(MSSQLODBCDriver.mssqlserver2012)
+    '''entry for test code'''
+    cnn = ConnectionString('toshiba', 'imagedb', 'sa', 'GGM290471')
+    s = cnn.mssql_connection_string(MSSQLODBCDriver.mssqlserver2012)
     pass
 
 #This only executes if this script was the entry point

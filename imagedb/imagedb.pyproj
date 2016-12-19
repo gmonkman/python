@@ -24,7 +24,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="imagedb.py">
+    <Compile Include="fish.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="model.py">
