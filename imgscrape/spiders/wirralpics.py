@@ -12,13 +12,13 @@ class wirral_pic_spider(CrawlSpider):
     name = "wsf_pics"
     allowed_domains = ['wirralseafishing.co.uk']
 
-    #last_link = 4740
+    last_link = 4740
     last_link = 60
     posts_per_page = 30
     urls = ['http://www.wirralseafishing.co.uk/forum/phpBB2/viewforum.php?f=57',]
 
- #   for x in range(posts_per_page,last_link+30,posts_per_page):
-#        urls.append(urls[0] + "&start=%s" % x)
+    for x in range(posts_per_page,last_link+30,posts_per_page):
+        urls.append(urls[0] + "&start=%s" % x)
 
     # returns request objects
     def start_requests(self):
