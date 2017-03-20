@@ -25,17 +25,19 @@ class InitData(object):
     def __init__(self):
         '''init'''
 
-        sql = '' \
-        'select' \
-	        ' sample_length.sample_lengthid' \
-            ',sample.tl_mm' \
-	        ',sample.board_board_length_mm + housing_mount.subject_to_lens_conversion_mm as lens_subject_distance' \
-	        ',sample_length.lens_correction_mm' \
-            ',sample_length.estimate_mm' \
-        ' from' \
-	        ' sample' \
-	        ' inner join sample_length on sample.sampleid=sample_length.sampleid' \
-	        ' inner join housing_mount on housing_mount.housing_mountid=sample.housing_mountid'
+        sql = "" \
+        "select" \
+	        " sample_length.sample_lengthid" \
+            ",sample.tl_mm" \
+	        ",sample.board_board_length_mm + housing_mount.subject_to_lens_conversion_mm as lens_subject_distance" \
+	        ",sample_length.lens_correction_mm" \
+            ",sample_length.estimate_mm" \
+        " from" \
+	        " sample" \
+	        " inner join sample_length on sample.sampleid=sample_length.sampleid" \
+	        " inner join housing_mount on housing_mount.housing_mountid=sample.housing_mountid" \
+        " where" \
+            " sample.sampleid = '36'"
 
         self.df_lengths = pd.read_sql(sql, _alc.ENGINE, 'sample_lengthid')
 

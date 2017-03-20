@@ -6,6 +6,7 @@ import numpy
 import os
 import sys
 import itertools
+import urllib.request as request
 
 import funclib.stringslib as stringslib
 import funclib.arraylib as arraylib
@@ -36,7 +37,7 @@ def test_arraylib():
     #dic  = arraylib.np_unmatched_nans_to_zero(a, b)
     dic  = arraylib.np_paired_zeros_to_nan(a, b)
     print(dic['a'])
-    print(dic['b'])    
+    print(dic['b'])
 #endregion
 
 
@@ -83,6 +84,8 @@ pass
 #test_plots()
 #testbinning()
 #endregion
+response = request.urlopen('http://python.org/')
+html = response.read()
 
 
 def file_list_generator(paths, wildcards):

@@ -1,5 +1,6 @@
 '''stuff to do with the image database'''
 from numpy import array as np_array, linalg
+from scipy.integrate import quad
 
 from abc import ABC, abstractmethod
 
@@ -61,6 +62,14 @@ class FishActions(object):
         '''
         return self.species.get_max_depth(reverse)
 
+    def function_over_interval():
+        '''Given a function which represents the dorsal fish shape
+        return the function mean between the bounds x[0,1]
+        Each fish will have a different function is dictated by their different dorsal profile
+        The function will need to be determined empirically for each fish
+        '''
+        return self.species.function_over_interval()
+
 class Bass(Fish):
     '''bass'''
 
@@ -92,6 +101,8 @@ class Bass(Fish):
             c = np_array([34.3, 54.3])
         ret = linalg.solve(a, c)
         return (ret[0], ret[1])
+
+
 
 #region ENTRY
 def main():
