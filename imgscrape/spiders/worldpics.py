@@ -1,16 +1,15 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, unused-variable,anomalous-backslash-in-string,no-self-use
-'''wirralseafishing spiders'''
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, unused-variable, anomalous-backslash-in-string, no-self-use
+'''worldseafishing spiders'''
 import scrapy
 from scrapy.spiders import CrawlSpider, Rule
-from scrapy.spiders import Spider
 from scrapy.linkextractors import LinkExtractor
 from imgscrape.items import PostedImages
 
-class WirralPictureSpider(CrawlSpider):
+class WorldSeaFishingImageSpider(CrawlSpider):
     '''scrape images from wirralseafishing forum'''
     #http://www.wirralseafishing.co.uk/forum/phpBB2/viewforum.php?f=57&start=90
 
-    name = "wsf-pics"
+    name = "world-pics"
     allowed_domains = ['wirralseafishing.co.uk']
 
     last_link = 4740
@@ -22,7 +21,7 @@ class WirralPictureSpider(CrawlSpider):
 
     # returns request objects
     def start_requests(self):
-        '''handler of generated urls'''
+        '''handle requests'''
         for url in self.urls:
             yield scrapy.Request(url, self.parse)
 
@@ -31,18 +30,9 @@ class WirralPictureSpider(CrawlSpider):
     )
 
     def parse_images(self, response):
-        '''extract images in posts'''
+        '''parse'''
         img = PostedImages()
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
         #self.logger.info('thread link %s', response.url)
         img['image_urls'] = list(response.xpath('//img[contains(@class, "postimage")]/@src').extract())
         return img
-
-class TestSpider(Spider):
-    '''test stuff'''
-    name = 'wirral-test'
-    start_urls = ['http://www.wirralseafishing.co.uk/forum/phpBB2/viewtopic.php?f=57&t=30564&p=255306#p255306']
-
-    def parse(self, response):
-        '''parse'''
-        return {'image_urls':list(response.xpath('//img[contains(@class, "postimage")]/@src').extract())}

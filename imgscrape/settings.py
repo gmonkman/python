@@ -1,3 +1,5 @@
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, unused-variable
+'''settings'''
 BOT_NAME = 'imgscrape'
 
 SPIDER_MODULES = ['imgscrape.spiders']

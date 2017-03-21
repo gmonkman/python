@@ -33,11 +33,15 @@
     <Compile Include="items.py" />
     <Compile Include="pipelines.py" />
     <Compile Include="settings.py" />
-    <Compile Include="spiders\css.py" />
+    <Compile Include="spiders\angling_addicts.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="spiders\wirralpics.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="spiders\xpath.py" />
+    <Compile Include="spiders\worldpics.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="spiders\__init__.py" />
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
