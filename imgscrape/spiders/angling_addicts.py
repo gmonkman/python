@@ -26,7 +26,11 @@ class AnglingAddictsImageSpider(CrawlSpider):
         urls = [response.url]
         posts_per_page = 25
         last_page = response.selector.xpath('//a[contains(@title, "Click to jump to page")]/strong[2]/text()').extract_first()
-        last_page = read_number(last_page)
+        if last_page:
+            last_page = read_number(last_page)
+        else:
+            last_page = 0
+
         if last_page > 0:
             for v in list(range((int(last_page) - 1) * posts_per_page, 0, -1*posts_per_page)):
                 urls.append(urls[0].replace('.html', '') + '-%s.html' % v)
@@ -62,7 +66,11 @@ class AnglingAddictsSpeciesHuntImageSpider(Spider):
         urls = [response.url] #first page is just the base post url
         posts_per_page = 25
         last_page = response.selector.xpath('//a[contains(@title, "Click to jump to page")]/strong[2]/text()').extract_first()
-        last_page = read_number(last_page)
+        if last_page:
+            last_page = read_number(last_page)
+        else:
+            last_page = 0
+
         if last_page > 0:
             for v in list(range((int(last_page) - 1) * posts_per_page, 0, -1*posts_per_page)):
                 urls.append(urls[0].replace('.html', '') + '-%s.html' % v)

@@ -30,7 +30,11 @@ class SeaAnglingIrelandArchives(Spider):
         urls = [response.url]
         posts_per_page = 50
         last_page = response.selector.xpath('//a[contains(@title, "Click to jump to page")]/strong[2]/text()').extract_first()
-        last_page = read_number(last_page)
+        if last_page:
+            last_page = read_number(last_page)
+        else:
+            last_page = 0
+
         if last_page > 1:
             for v in list(range((int(last_page) - 1) * posts_per_page, 0, -1*posts_per_page)):
                 urls.append(urls[0] + '&start=%s' % v)

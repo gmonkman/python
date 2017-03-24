@@ -31,7 +31,11 @@ class SunnyRhylSpider(Spider):
         posts_per_page = 50
 
         pagination = response.selector.xpath('//table[contains(@class,"forumline")]//td[contains(@colspan,"7")]/span/a/text()').extract()
-        last_page = int(read_number(pagination[-1]))
+        if pagination:
+            last_page = int(read_number(pagination[-1]))
+        else:
+            last_page = 0
+
         if last_page > 1:
             for v in list(range((int(last_page) - 1) * posts_per_page, 0, -1*posts_per_page)):
                 s = self.base_url + parts[0] + 'p' + str(v) + '-' + parts[1]
