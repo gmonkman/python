@@ -2,7 +2,7 @@
 '''wirralseafishing spiders'''
 import scrapy
 from scrapy.spiders import CrawlSpider, Rule
-from scrapy.spiders import Spider
+#from scrapy.spiders import Spider
 from scrapy.linkextractors import LinkExtractor
 from imgscrape.items import PostedImages
 
@@ -37,12 +37,3 @@ class WirralPictureSpider(CrawlSpider):
         #self.logger.info('thread link %s', response.url)
         img['image_urls'] = list(response.xpath('//img[contains(@class, "postimage")]/@src').extract())
         return img
-
-class TestSpider(Spider):
-    '''test stuff'''
-    name = 'wirral-test'
-    start_urls = ['http://www.wirralseafishing.co.uk/forum/phpBB2/viewtopic.php?f=57&t=30564&p=255306#p255306']
-
-    def parse(self, response):
-        '''parse'''
-        return {'image_urls':list(response.xpath('//img[contains(@class, "postimage")]/@src').extract())}

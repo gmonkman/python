@@ -36,6 +36,8 @@
     <Compile Include="spiders\angling_addicts.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="spiders\seaanglingireland.py" />
+    <Compile Include="spiders\sunnyrhyl.py" />
     <Compile Include="spiders\wirralpics.py">
       <SubType>Code</SubType>
     </Compile>
