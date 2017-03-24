@@ -34,7 +34,7 @@ class SunnyRhylSpider(Spider):
         last_page = int(read_number(pagination[-1]))
         if last_page > 1:
             for v in list(range((int(last_page) - 1) * posts_per_page, 0, -1*posts_per_page)):
-                s = self.base_url + parts[0] + 'p' + v + '-' + parts[1]
+                s = self.base_url + parts[0] + 'p' + str(v) + '-' + parts[1]
                 urls.append(s)
 
         for url in urls:
