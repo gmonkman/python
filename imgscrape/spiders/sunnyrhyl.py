@@ -52,7 +52,6 @@ class SunnyRhylSpider(Spider):
         links = LinkExtractor(restrict_xpaths='//div[@class="topictitle"]//a[@class="topictitle"]').extract_links(response)
         for link in links:
             s = response.urljoin(link.url)
-            s = "http://sunnyrhyl.forumotion.com/t7039-dan-s-fish"
             yield scrapy.Request(s, callback=self.crawl_threads)
 
     def crawl_threads(self, response):
