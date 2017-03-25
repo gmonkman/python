@@ -14,7 +14,7 @@ class SeaAnglingIrelandArchives(Spider):
     start_urls = ['http://www.sea-angling-ireland.org/forum/viewforum.php?f=62',
                   'http://www.sea-angling-ireland.org/forum/viewforum.php?f=63']
 
-    #start_urls = ['http://www.sea-angling-ireland.org/forum/viewforum.php?f=62']
+    start_urls = ['http://www.sea-angling-ireland.org/forum/viewforum.php?f=62']
 
     base_url = 'http://www.sea-angling-ireland.org/forum/'
 
