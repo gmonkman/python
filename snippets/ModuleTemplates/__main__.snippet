@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>__main__</Title>
+      <Author>Graham Monkman</Author>
+      <Description>
+      </Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>
+      </Shortcut>
+    </Header>
+    <Snippet>
+      <Code Language="Python" Delimiter="$"><![CDATA[
+#region ENTRY
+def main():
+    '''execute if script was entry point'''
+    pass
+    
+#This only executes if this script was the entry point
+if __name__ == '__main__':
+    #execute my code
+    main()
+#endregion
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

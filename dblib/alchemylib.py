@@ -42,7 +42,6 @@ class Consumer(_Enum):
 
 
 #TODO Expand supported connection types in get_connection_string
-
 class ConnectionString(object):
     '''generate connection strings for different databases'''
     def __init__(self, server='', dbname='', user='', pw='', fileptr=''):
@@ -72,10 +71,10 @@ class ConnectionString(object):
 
     def sqlite_connection_string(self, filename=''):
         '''(str)->str
-        Connection strin getter for _create_engine
+        Connection string getter for _create_engine
         1) If file name is provided it uses that
         2) otherwise it uses self.fileptr
-        3) if both our empty it returns an in memory connection
+        3) if both are empty it returns an in memory connection
         returns the correctly formatted sqlite connection
         string for sqlalchemy to open its connection
         '''
@@ -160,23 +159,18 @@ class MsSQLs(object):
             sql_insert.append(");")
             return "".join(sql_insert)
 
-
 def create_engine_mssql(cnstr, echo=False, poolclass=_pool.NullPool):
     '''(str, str, str, str)->void
     opens an SQL Server engine with cnstr
-    cnstr can be got by using get_connection_string()
+    cnstr can be got by using the ConnectionString class
     '''
     global ENGINE
     ENGINE = _create_engine(cnstr, echo=echo, poolclass=poolclass)
-
-
 
 def close():
     '''close up db stuff'''
     with fuckit:
         ENGINE.dispose()
-
-
 
 def main():
     '''entry for test code'''

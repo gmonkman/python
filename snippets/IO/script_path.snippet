@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>script-path</Title>
+      <Shortcut>script-path</Shortcut>
+      <Description>Get path of executing script</Description>
+      <Author>Graha Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[from inspect import getsourcefile
+from os.path import abspath
+from os.path import join
+from os.path import normpath
+
+def script_folder():
+    '''returns folder of this py'''
+    return abspath(getsourcefile(lambda:0))
+
+mydir = normpath(join(script_folder(), '../images/google'))
+]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

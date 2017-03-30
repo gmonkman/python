@@ -164,7 +164,7 @@ def get_perspective_correction_iter_linear(coeff, const, bg_dist, length, last_l
         object_depth = length*coeff + const
     else:
         object_depth = last_length*coeff + const
-    
+
     if object_depth == 0:
         return length
     elif length == 0:
@@ -362,7 +362,7 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     1) initialize the dimensions of the image to be resized and grab the image size
     2) If both the width and height are None, then return the original image
     3) Both not none then resize to specied witdth and height
-    4) Otherwise resize keeping the aspect ration according to the provided width or height
+    4) Otherwise resize keeping the aspect ratio according to the provided width or height
     '''
     dim = None
     (h, w) = image.shape[:2]

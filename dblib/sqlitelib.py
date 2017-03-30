@@ -1,5 +1,5 @@
 # pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager
-'''sqlite helper libraries'''
+'''SQLAlchemy *independent* sqllite CRUD functions'''
 
 import sqlite3
 import fuckit
@@ -8,6 +8,17 @@ import pickle
 
 import funclib.baselib as baselib
 #endregion
+
+def sqlite_connection_string(self, fileptr='sqlite://'):
+    '''(str)->str
+    fileptr is the path to the sqlite database file
+    Returns an in memory connection
+    returns the correctly formatted sqlite connection
+    string for sqlalchemy to open its connection
+    '''
+    s = _os.path.normpath(filename)
+    s = _os.path.abspath(s)
+    return 'sqlite:///%s' % s
 
 class Conn(object):
     '''connection to database
@@ -190,7 +201,6 @@ class CRUD(object):
 
 def main():
     '''run when executed directly'''
-
     pass
 
 

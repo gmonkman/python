@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>global_cmdline</Title>
+      <Author>Graham Monkman</Author>
+      <Description>
+      </Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>
+      </Shortcut>
+    </Header>
+    <Snippet>
+      <Code Language="Python" Delimiter="$"><![CDATA[
+#need to import argparse
+_CMDLINE = argparse.ArgumentParser(description='Description if script is excuted with -h option')
+_CMDLINE.add_argument('-f','--foo', help='Description for foo argument', required=True)
+_CMDLINE.add_argument('-b','--bar', help='Description for bar argument', required=False default='WAS_EMPTY')
+_CMDLINEARGS = _CMDLINE.parse_args()
+
+#if _CMDLINEARGS.foo == 'THE FOO ARG':
+    #do stuff
+	
+#if _CMDLINEARGS.bar == 'WAS_EMPTY':
+    #do stuff if no bar argument was passed]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

@@ -1,5 +1,6 @@
 #pylint: skip-file
 # coding: utf-8
+'''sql server database for my fish records'''
 
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Unicode, text, Table
 from sqlalchemy.orm import relationship

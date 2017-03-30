@@ -18,6 +18,9 @@ opencvlib/movies
 *.jpeg
 *.JPG
 *.pkl
+*.zip
+*.rar
+*.tar
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

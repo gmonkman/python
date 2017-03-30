@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>1d9b1083-600c-4118-83fd-de48f0fd0b3b</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>exec.py</StartupFile>
+    <StartupFile>sel\example_google.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>
     </WorkingDirectory>
@@ -32,6 +32,21 @@
     </Compile>
     <Compile Include="items.py" />
     <Compile Include="pipelines.py" />
+    <Compile Include="sel\crawler\BaseCrawler.py" />
+    <Compile Include="sel\crawler\GoogleCrawler.py" />
+    <Compile Include="sel\crawler\YandexCrawler.py" />
+    <Compile Include="sel\crawler\__init__.py" />
+    <Compile Include="sel\example_google.py" />
+    <Compile Include="sel\example_yandex.py" />
+    <Compile Include="sel\fati-crawler.py" />
+    <Compile Include="sel\googleimagesearch.py" />
+    <Compile Include="sel\processor\BaseProcessor.py" />
+    <Compile Include="sel\processor\DownloadProcessor.py" />
+    <Compile Include="sel\processor\ElasticSearchProcessor.py" />
+    <Compile Include="sel\processor\LogProcessor.py" />
+    <Compile Include="sel\processor\__init__.py" />
+    <Compile Include="sel\setup.py" />
+    <Compile Include="sel\__init__.py" />
     <Compile Include="settings.py" />
     <Compile Include="spiders\angling_addicts.py">
       <SubType>Code</SubType>
@@ -43,20 +58,26 @@
     <Compile Include="spiders\wirralpics.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="spiders\worldpics.py">
+    <Compile Include="spiders\__init__.py" />
+    <Compile Include="utils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="spiders\__init__.py" />
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="sel\fati-test-products.csv" />
+    <Content Include="sel\README.md" />
+    <Content Include="utils.ini" />
     <Content Include="pylintrc" />
     <Content Include="README.txt" />
     <Content Include="scrapy.cfg" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="sel\" />
+    <Folder Include="sel\crawler\" />
+    <Folder Include="sel\processor\" />
     <Folder Include="spiders\" />
   </ItemGroup>
   <PropertyGroup>

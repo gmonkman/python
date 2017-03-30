@@ -4,28 +4,19 @@
     <Header>
       <SnippetTypes>
         <SnippetType>Expansion</SnippetType>
+		<SnippetType>SurroundsWith</SnippetType>
       </SnippetTypes>
-      <Title>switch</Title>
+      <Title>fuckit_surround</Title>
       <Author>Graham Monkman</Author>
-      <Description>
-      </Description>
-      <HelpUrl>
-      </HelpUrl>
-      <Shortcut>
-      </Shortcut>
+      <Description>Surround selected code in a fuckit (on error resume next)</Description>
+      <HelpUrl></HelpUrl>
+      <Shortcut>fuckit</Shortcut>
     </Header>
     <Snippet>
       <Code Language="Python" Delimiter="$"><![CDATA[
-    for case in switch(method):
-        #from funclib.baselib import switch
-        if case(VAL):
-            break
-        if case():
-            break
-        if case():
-            break
-        if case():
-            raise ValueError('Switch value case not found')]]></Code>
+    with fuckit:
+        $selected$
+$end$]]></Code>
     </Snippet>
   </CodeSnippet>
 </CodeSnippets>

@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>property_getter_setter</Title>
+      <Author>Graham Monkman</Author>
+      <Description>Create a property with a getter and setter</Description>
+      <HelpUrl></HelpUrl>
+      <Shortcut>prop</Shortcut>
+    </Header>
+    <Snippet>
+	<Declarations>
+		<Literal>
+			<ID>property</ID>
+			<ToolTip>Class property name</ToolTip>
+			<Default>my_new_property</Default>
+		</Literal>
+	</Declarations>
+      <Code Language="Python" Delimiter="$"><![CDATA[
+    @property
+    def $property$(self):
+        '''$property$ getter'''
+        return self._$property$
+    @$property$.setter
+    def $property$(self, $property$):
+        '''$property$ setter'''
+        self._$property$ = $property$
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

@@ -43,6 +43,9 @@
     <Compile Include="lenscorrectiondb.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="testing.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
