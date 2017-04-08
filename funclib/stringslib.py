@@ -56,4 +56,8 @@ def add_left(s, char):
         return char + s
     else:
         return s
+
+def rreplace(s, match, replacewith, cnt=1):
+    '''(str,str,str,int)->str'''
+    return replacewith.join(s.rsplit(match, cnt))
 #endregion

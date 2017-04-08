@@ -4,6 +4,7 @@ Stick list/tuple/dic functions in here
 '''
 
 from sys import version_info
+from sys import platform
 
 #########
 #CLASSES#
@@ -84,3 +85,16 @@ def isPython2():
     '''->bool
     '''
     return version_info.major == 2
+
+#also implemented in iolib
+def get_platform():
+    '''-> str
+    returns windows, mac, linux
+    '''
+    s = platform.lower()
+    if s == "linux" or s == "linux2":
+        return 'linux'
+    elif s == "darwin":
+        return 'mac'
+    elif s == "win32" or s == "windows":
+        return 'windows'

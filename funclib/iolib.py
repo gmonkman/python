@@ -226,7 +226,7 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
 #region file system
 def exit():
     '''override exit to detect platform'''
-    if get_platform == 'windows':
+    if get_platform() == 'windows':
         os.system("pause")
     else:
         os.system('read -s -n 1 -p "Press any key to continue..."')
@@ -241,49 +241,83 @@ def get_platform():
         return 'linux'
     elif s == "darwin":
         return 'mac'
-    elif s == "win32":
+    elif s == "win32" or s == "windows":
         return 'windows'
+    else:
+        return 'linux'
 
-def drive_get_uuid(drive='C:', strip=['-'], make_lcase=True, return_when_unidentified='??'):
+def _get_file_count(paths, recurse=False):
+    '''(list like|str)->int'''
+    cnt = 0
+
+    if isinstance(paths, str):
+        paths = [paths]
+
+    for ind, val in enumerate(paths):
+        paths[ind] = os.path.normpath(val)
+
+    if recurse:
+        for thedir in paths:
+            cnt += sum((len(f) for _, _, f in os.walk(thedir)))
+    else:
+        for thedir in paths:
+            cnt += len([item for item in os.listdir(thedir) if os.path.isfile(os.path.join(thedir, item))])
+    return cnt
+
+def drive_get_uuid(drive='C:', strip=['-'], return_when_unidentified='??'):
     '''get uuid of drive'''
     drive = os.popen('vol %s' % drive).readlines()[1].split()[-1]
     if len(drive) == 0: drive = return_when_unidentified
-    if make_lcase: drive = drive.lower()
+
     for char in strip:
         drive = drive.replace(char, '')
     return drive
 
-def get_available_drives(strip=['-'], make_lcase=True, return_when_unidentified='??'):
+def get_file_parts(filepath):
+    '''(str)->list[path, filepart, extension]
+    Given path to a file, split it into path, file part and extension.
+    eg: c:\temp\myfile.txt
+    ['c:\temp', 'myfile', '.txt']
+    '''
+    folder, fname = os.path.split(filepath)
+    fname, ext = os.path.splitext(fname)
+    return [folder, fname, ext]
+
+def get_available_drives(strip=['-'], return_when_unidentified='??'):
     '''->dictionary
     gets a list of available drives as the key, with uuids as the values
     eg. {'c:':'abcd1234','d:':'12345678'}
     '''
     drives = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
-    uuids = [drive_get_uuid(drv, strip, make_lcase, return_when_unidentified) for drv in drives]
+    uuids = [drive_get_uuid(drv, strip, return_when_unidentified) for drv in drives]
     return dict(zip(drives, uuids))
 
-def get_available_drive_uuids(strip=['-'], make_lcase=True, return_when_unidentified='??'):
+def get_available_drive_uuids(strip=['-'], return_when_unidentified='??'):
     '''->dictionary
     gets a list of available drives with uuids as the key
     eg. {'c:':'abcd1234','d:':'12345678'}
     '''
-    drives = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
-    uuids = [drive_get_uuid(drv, strip, make_lcase, return_when_unidentified) for drv in drives]
+
+    s = string.ascii_uppercase
+    drives = ['%s:' % d for d in s if os.path.exists('%s:' % d)]
+    uuids = [drive_get_uuid(drv, strip, return_when_unidentified) for drv in drives]
     return dict(zip(uuids, drives))
 
-def get_drive_from_uuid(uuid, strip=['-'], make_lcase=True):
+def get_drive_from_uuid(uuid, strip=['-']):
     '''str, str iterable, bool->str | None
     given a uuid get the drive letter
     uuid is expected to be lower case
 
     Returns None if not found
     '''
-    uuid = uuid.encode('ascii', 'ignore')
-    if make_lcase: uuid = uuid.lower()
+
     for char in strip:
         uuid = uuid.replace(char, '')
-    drives = get_available_drive_uuids(strip, make_lcase) #first val is drive, second is the uuid
+
+    drives = get_available_drive_uuids(strip) #first val is drive, second is the uuid
     if uuid in drives:
+        return drives[uuid]
+    elif uuid.lower() in drives:
         return drives[uuid]
     else:
         return None
@@ -398,6 +432,10 @@ def file_exists(file_name):
     Returns true if file exists
     '''
     return os.path.isfile(file_name)
+
+def folder_exists(folder_name):
+    '''check if folder exists'''
+    return os.path.exists(folder_name)
 
 def create_folder(folder_name):
     '''(str) -> void

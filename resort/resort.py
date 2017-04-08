@@ -1,143 +1,118 @@
-#
-# The MIT License
-#
-# Copyright (c) 2009 Matthew Maravillas
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-
-import sys
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-variable
+'''cmdline util to sort files'''
 import os
 import shutil
 import fnmatch
 from datetime import datetime
-import exif
 import optparse
 
-def main(options, args):
-    
-    for directory in args:
-        basedir = os.path.abspath(options.destination or os.path.split(directory)[0])
-        
-        if options.recurse:
-            for dirpath, dirnames, filenames in os.walk(directory):
-                for file in fnmatch.filter(filenames, options.pattern):
-                    sort_file(basedir, dirpath, file)
-            
-        else:
-            for file in fnmatch.filter(os.listdir(directory), options.pattern):
-                sort_file(basedir, directory, file)
-                
+_SORT_MODES = ['first_char', 'two_char', 'date']
 
-def sort_file(basedir, directory, file):
-    path = os.path.abspath(os.path.join(directory, file))
-    
+def main(opts, args_in):
+    '''entry point to code'''
+    for directory in args_in:
+        basedir = os.path.abspath(opts.destination or os.path.split(directory)[0])
+
+        if opts.recurse:
+            for dirpath, dirnames, filenames in os.walk(directory):
+                for file in fnmatch.filter(filenames, opts.pattern):
+                    sort_file(basedir, dirpath, file, opts.sortmode, opts.copy)
+        else:
+            for file in fnmatch.filter(os.listdir(directory), opts.pattern):
+                sort_file(basedir, directory, file, opts.sortmode, opts.copy)
+
+def sort_file(basedir, directory, file, sortmode, copy):
+    '''sort file'''
+    path = os.path.abspath(os.path.join(directory, file,))
+
     date = None
-    
-    if options.use_exif:
-        date = get_exif_date(path)
-        
-        if not date and options.verbose:
-            print "No EXIF information found: %s" % path
-        
-    if not date:
-        date = get_modification_date(path)
-    
-    new_directory = os.path.join(basedir,
-                                 str(date.year), 
-                                 "%02d" % date.month)
-    
+
+    if sortmode == 'first_char':
+        new_directory = os.path.join(basedir, file[0].lower())
+    elif sortmode == 'two_char':
+        new_directory = os.path.join(basedir, file[0:2].lower())
+    else:
+        if not date:
+            date = _get_modification_date(path)
+
+        new_directory = os.path.join(basedir, str(date.year) + ('%02d' % date.month))
+
     if not options.pretend:
         if not os.access(new_directory, os.F_OK):
             os.makedirs(new_directory)
-            
-        shutil.move(path, os.path.join(new_directory, file))
-            
+
+        if copy:
+            shutil.copy(path, os.path.join(new_directory, file))
+        else:
+            shutil.move(path, os.path.join(new_directory, file))
+
     if options.verbose or options.pretend:
-        print path , "->", new_directory
+        if copy:
+            print(path, "<->", new_directory)
+        else:
+            print(path, "->", new_directory)
 
+#TODO Add to funclib, and this is currently unused
+def _get_file_count(paths, recurse=False):
+    '''(list like|str)->int'''
+    cnt = 0
 
-def get_exif_date(path):
-    """Return the date and time  contained in the EXIF metadata for the file at path.
-    Returns None if the file is not an image, or contains no EXIF metadata. 
-    """
-    try:
-        exif = read_exif(path)        
-    except:
-        print "%s could not be read" % path
+    if isinstance(paths, str):
+        paths = [paths]
+
+    for ind, val in enumerate(paths):
+        paths[ind] = os.path.normpath(val)
+
+    if recurse:
+        for thedir in paths:
+            cnt += sum((len(f) for _, _, f in os.walk(thedir)))
     else:
-        if exif:
-            return datetime.strptime(str(exif["Image DateTime"]), "%Y:%m:%d %H:%M:%S")
-        
-    return None
+        for thedir in paths:
+            cnt += len([item for item in os.listdir(thedir) if os.path.isfile(os.path.join(thedir, item))])
+    return cnt
 
-def read_exif(path):
-    """Return the EXIF metadata from the file at path."""
-    file = open(path, 'rb')
-    
-    data = exif.process_file(file)
-    
-    return data
-    
-def get_modification_date(path):
+def _get_modification_date(path):
     """Return the modification date & time of the file at path."""
     return datetime.fromtimestamp(os.stat(path).st_mtime)
-    
-    
-    
+
 if __name__ == "__main__":
     parser = optparse.OptionParser("Usage: %prog [options] directory ...")
-    
-    parser.add_option("-x", "--ignore-exif", dest="use_exif",
-                      action="store_false", help="ignore any EXIF dates found")
-    parser.add_option("-p", "--pattern", dest="pattern",
-                      help="file pattern to match")
-    parser.add_option("-r", "--recurse", dest="recurse",
-                      action="store_true", help="recurse into subdirectories")
-    parser.add_option("-d", "--destination", dest="destination",
-                      help="directory that will contain sorted files")
-    parser.add_option("-v", "--verbose", dest="verbose",
-                      action="store_true", help="show verbose output")
-    parser.add_option("-P", "--pretend", dest="pretend",
-                      action="store_true", help="don't actually move files")
-    
-    parser.set_defaults(use_exif=True, 
-                        pattern="*.*",
+
+    parser.add_option("-p", "--pattern", dest="pattern", help="file pattern to match")
+    parser.add_option("-r", "--recurse", dest="recurse", action="store_true", help="recurse into subdirectories")
+    parser.add_option("-d", "--destination", dest="destination", help="directory that will contain sorted files")
+    parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="show verbose output")
+    parser.add_option("-P", "--pretend", dest="pretend", action="store_true", help="don't actually move files")
+    parser.add_option("-s", "--sortmode", dest="sortmode", help="One of: [date | first_char | two_char]")
+    parser.add_option("-c", "--copy", dest="copy", action="store_true", help="Copy rather than move")
+    parser.set_defaults(pattern="*.*",
                         recurse=False,
                         destination=None,
                         verbose=False,
-                        pretend=False)
-    
+                        pretend=False,
+                        sortmode="date",
+                        copy=False)
+
     (options, args) = parser.parse_args()
-    
+
+    if not options.sortmode in _SORT_MODES:
+        raise ValueError("Invalid sortmode -s %s. Options are [first_char | two_char | date]" % options.sortmode)
+
     if len(args) < 1:
         parser.error("Missing path argument")
-    
+
     if options.verbose:
-        if options.use_exif:
-            print "Using EXIF dates"
-        
-        print "File pattern:", options.pattern
-        
+        print("File pattern:", options.pattern)
+
         if options.recurse:
-            print "Recursing into subdirectories"
-        
-        print "Destination directory: %s" % (options.destination or "Default")
-           
+            print("Recursing into subdirectories")
+
+        if options.copy:
+            print("Copy mode: Copy")
+        else:
+            print("Copy mode: Move")
+
+        print("Sort mode: %s" % options.sortmode)
+        print("Destination directory: %s" % (options.destination or "Default"))
+
     main(options, args)

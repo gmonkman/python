@@ -1,4 +1,4 @@
-#pylint: skip-file
+ # pylint: disable-all
 
 import re, os, sys, datetime, time
 import pandas
@@ -9,7 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
-from pattern.web import URL, extension, cache, plaintext, Newsfeed, DOM
+#from pattern.web import URL, extension, cache, plaintext, Newsfeed, DOM
 
 class GoogleImageExtractor(object):
 
@@ -100,15 +100,15 @@ class GoogleImageExtractor(object):
             driver.execute_script("window.scrollTo(0, 60000)")
             time.sleep(2)
             driver.execute_script("window.scrollTo(0, 60000)")
-
         except:
-            print 'not able to find'
+            print('not able to find')
             driver.quit()
 
         self.page_source = driver.page_source
 
         driver.close()
 
+    #TODO Convert this from the library Pattern.DOM to an alternative, such as scrapy or beautifulsoup
     def extract_pic_url(self):
         """ extract all the raw pic url in list
 
@@ -121,7 +121,7 @@ class GoogleImageExtractor(object):
             try:
                 self.pic_url_list.append(tar_str.group(1))
             except:
-                print 'error parsing', tag
+                print('error parsing', tag)
 
     def multi_search_download(self):
         """ Mutli search download"""
@@ -144,7 +144,7 @@ class GoogleImageExtractor(object):
         self.create_folder()
         pic_counter = 1
         for url_link in self.pic_url_list:
-            print pic_counter
+            print(pic_counter)
             pic_prefix_str = self.g_search_key  + str(pic_counter)
             self.download_single_image(url_link.encode(), pic_prefix_str)
             pic_counter = pic_counter +1
@@ -170,13 +170,13 @@ class GoogleImageExtractor(object):
             return #return if not valid image extension
 
         f = open(temp_filename_full_path, 'wb') # save as test.gif
-        print url_link
+        print(url_link)
         self.pic_info_list.append(pic_prefix_str + ': ' + url_link )
         try:
             f.write(url.download())#if have problem skip
         except:
             #if self.__print_download_fault:
-            print 'Problem with processing this data: ', url_link
+            print('Problem with processing this data: ', url_link)
             self.download_fault =1
         f.close()
 

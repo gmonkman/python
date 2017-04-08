@@ -1,5 +1,6 @@
 # pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager
 '''SQLAlchemy *independent* sqllite CRUD functions'''
+import os
 
 import sqlite3
 import fuckit
@@ -7,26 +8,22 @@ import pickle
 
 
 import funclib.baselib as baselib
+
 #endregion
 
-def sqlite_connection_string(self, fileptr='sqlite://'):
-    '''(str)->str
-    fileptr is the path to the sqlite database file
-    Returns an in memory connection
-    returns the correctly formatted sqlite connection
-    string for sqlalchemy to open its connection
-    '''
-    s = _os.path.normpath(filename)
-    s = _os.path.abspath(s)
-    return 'sqlite:///%s' % s
 
 class Conn(object):
-    '''connection to database
-    initiate with the with statement
+    '''connection to database. Loaded into the self.conn
+    initiate with the with statement.
+    A path can be passed in and it will call sqlite_connection_string
+    to correctly format the connection string.
+
+    Pass the cnstr in when the class is initialised or call open
     '''
-    def __init__(self, cnstr=':memory:'):
-        self.cnstr = cnstr
+    def __init__(self, cnstr=':memory:', force_absolute_path=True):
+        self.cnstr = self._make_abs_path(cnstr) if force_absolute_path else cnstr
         self.conn = None
+        #no need to open connection in init - __enter__ will do that.
 
     def __enter__(self):
         self.conn = sqlite3.connect(self.cnstr)
@@ -36,13 +33,14 @@ class Conn(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.conn.close()
 
-    def open(self, cnstr):
+    def open(self, cnstr, force_absolute_path=True):
         '''str->void
         file path location of the db
         open a connection, closing existing one
         '''
+        self.cnstr = self._make_abs_path(cnstr) if force_absolute_path else cnstr
         self.close()
-        self.conn = sqlite3.connect(cnstr)
+        self.conn = sqlite3.connect(self.cnstr)
         self.conn.row_factory = sqlite3.Row
 
     def close(self, commit=False):
@@ -57,6 +55,19 @@ class Conn(object):
     def commit(self):
         '''commit'''
         self.conn.commit()
+
+    @staticmethod
+    def _make_abs_path(fileptr):
+        '''(str)->str
+        Creates absolute paths to sqlite db file for consumption by the sqlite3 library.e
+        '''
+        if fileptr != ':memory:':
+            s = os.path.normpath(fileptr)
+            s = os.path.abspath(s)
+        else:
+            s = ':memory:'
+        return s
+
 
 
 class CRUD(object):

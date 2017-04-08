@@ -37,12 +37,13 @@ def col_append_fill(df, col_name, f):
     else:
         df.loc[:, col_name] = pd.Series(f, index=df.index)
 
-def col_append_rand_fill(df, col_name):
+def col_append_rand_fill(df, col_name, lower=0, upper=1):
     '''(df,str,any)->df
     df is BYREF
     adds a column to dataframe filling it with random values from a standard normal
     '''
-    df.assign(colname=pd.np_array_datetime64_compat. np.random.randn())
+    #TODO Untested
+    df[col_name] = np.random.choice(range(lower, upper), df1.shape[0])
 
 def col_calculate_new(df, func, new_col_name, *args):
     '''(pd.df, function, str, the named arguments for function)
