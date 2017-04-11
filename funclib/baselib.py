@@ -49,6 +49,21 @@ class switch(object):
         else:
             return False
 
+class dictp(dict):
+    '''allow values to be accessed with partial key match
+    dic = {'abc':1}
+    d = dictp(dic)
+    print(d['a']) # returns 1
+    '''
+    def __getitem__(self, partial_key):
+        keys = [k for k in self.keys() if partial_key in k]
+        if keys:
+            if len(keys) > 1:
+                raise KeyError('Partial key matched more than 1 element')
+
+            key = keys[0] if keys else None
+        return self.get(key)
+
 def dic_merge_two(x, y):
     '''Given two dicts, merge them into a new dict as a shallow copy.'''
     z = x.copy()

@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>tryexceptfinallyWithCapture</Title>
+      <Shortcut>tryexceptfinallyWithCapture</Shortcut>
+      <Description>Try, catch, finally, with error capture</Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>SurroundsWithStatement</SnippetType>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[
+    try:
+        $selected$
+    except Exception as e:
+        print('Error was ' + str(e))
+    finally:
+        #work
+    $end$]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

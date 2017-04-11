@@ -10,6 +10,7 @@ from glob import glob
 
 import numpy as np
 import cv2
+from cv2 import convexHull
 import imghdr
 import fuckit
 
@@ -130,6 +131,33 @@ class RectSelector(object):
 
 
 #region defs
+def roi_polygon_set(img, points):
+    '''(np array or path, array of points)->img
+    Points are for a rectangle as an e.g. [(0,0), (50,0), (0,50), (50,50)]
+    '''
+    if isinstance(img, str):
+        img = cv2.imread(img, -1) # -1 loads as-is so if it will be 3 or 4 channel as the original
+    else:
+        if not isinstance(img, np.ndarray):
+            raise ValueError('Argument must be the path to an image, or an image (ndarray)')
+
+    # mask defaulting to black for 3-channel and transparent for 4-channel
+    # (of course replace corners with yours)
+    mask = np.zeros(img.shape, dtype=np.uint8)
+    roi_corners = convexHull(np.array([points], dtype=np.int32))
+    #roi_corners = np.array([points], dtype=np.int32)
+    channel_count = img.shape[2]  # i.e. 3 or 4 depending on your image
+    ignore_mask_color = (255,)*channel_count
+    #cv2.fillConvexPoly(mask, roi_corners, ignore_mask_color)
+    #cv2.fillConvexPoly(mask, roi_corners, ignore_mask_color)
+    cv2.fillPoly(mask, roi_corners, ignore_mask_color)
+
+    cv2.imshow('preview', mask)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    return cv2.bitwise_and(img, mask) # apply and return the mask
+
 def get_perspective_correction(bg_dist, object_depth, length):
     '''(float, float)->float|None
     Return the length corrected for the depth of the object
@@ -260,6 +288,13 @@ def to_rect(a):
     if len(a) == 2:
         a = (0, 0, a[0], a[1])
     return np.array(a, np.float64).reshape(2, 2)
+
+def rect_as_points(rw, col, h, w):
+    '''(int,int,int,int)->list
+    Given a rectangle specified by the top left point
+    and width and height, convert to a list of points
+    '''
+    return [(rw, col), (rw + h, col), (rw, col + w), (h, w)]
 
 def rect2rect_mtx(src, dst):
     src, dst = to_rect(src), to_rect(dst)

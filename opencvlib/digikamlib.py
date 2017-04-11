@@ -11,11 +11,13 @@ import sqlite3
 from funclib.baselib import get_platform
 from funclib.iolib import get_available_drive_uuids
 from funclib.stringslib import rreplace
+from funclib.stringslib import add_left
 from funclib.iolib import print_progress
 
 import dblib.sqlitelib as sqlitelib
 
 SPECIFIC_PATH_OVERRIDE = ''
+SILENT = False
 
 def read_specific_path(pathin):
     '''(str)->str
@@ -183,7 +185,7 @@ class _ReadFiles(object):
             cur = cn.cursor()
             cur.execute(self.sql)
             row = cur.fetchall()
-            print('Reading image paths from digikam database')
+            if not SILENT: print('Reading image paths from digikam database')
             cnt = 0
             strip = ['-', 'VOLUMEID:?UUID=']
             drives = get_available_drive_uuids(strip=strip)
@@ -212,12 +214,13 @@ class _ReadFiles(object):
                     drive = SPECIFIC_PATH_OVERRIDE
 
                 spath = read_specific_path(res['specificPath'])
-                rpath = res['relativePath'] #.encode('ascii', 'ignore')
-                name = os.sep + res['name'] #.encode('ascii', 'ignore')
+                rpath = res['relativePath']
+                name = os.sep + res['name']
                 full_path = os.path.normpath(drive + spath + rpath + name)
                 image_paths.append(full_path)
                 cnt += 1
-                print_progress(cnt, len(row), bar_length=30)
+                if not SILENT:
+                    print_progress(cnt, len(row), bar_length=30)
 
             self.images.image_files = image_paths
 
@@ -287,8 +290,8 @@ class ImagePaths(object):
         set the path to the digikam db digikam4.db'''
         self.digikam_path = digikam_path
 
-    def ImagesByTags(self, **kwargs):
-        '''(Key-value kwargs representing parent tag name and child tag name)->list
+    def ImagesByTags(self, filename='', album_label='', relative_path='', **kwargs):
+        '''(str, str, str, Key-value kwargs representing parent tag name and child tag name)->list
 
         Retrieve images by the tags, where kwargs is parent key=child key
         Hence for bass, we would call using:
@@ -297,7 +300,14 @@ class ImagePaths(object):
         Pass in __any__ = <tag> for a single non-heirarchy match, eg __any__ = 'bass' will pick up anything tagged with bass anywhere
 
         Get a list of a images by the tags passed in args
+
+        Relative paths must use forward slash /
         '''
+        #Albumroots.specificpath is the root path of the album from the drive, excluding the drive
+        #e.g. /development/python/opencvlib/calibration for the calibration album
+        #Albums.relative path is the path after the album root
+        #e.g.
+
         sql = [
             'select distinct '
                 'Images.id, AlbumRoots.identifier, AlbumRoots.specificPath, Albums.relativePath, images.name '
@@ -329,10 +339,26 @@ class ImagePaths(object):
                   #  ')'
         ]
 
-        where = [" parent.name='%s' AND children.name='%s' AND" % (key, value) for key, value in kwargs.items()]
-        where[-1] = rreplace(where[-1], 'AND', '', 1)
+        if kwargs:
+            where = [" parent.name='%s' AND children.name='%s' AND" % (key, value) for key, value in kwargs.items()]
+            where[-1] = rreplace(where[-1], 'AND', '', 1)
+        else:
+            where = " 1=1 "
+
         sql.append(''.join(where))
-        sql.append('));')
+        sql.append('))')
+
+        sql.append(" AND 1=1 ")
+
+        if filename != '':
+            sql.append(" AND Images.name='%s'" % filename.lstrip('\\').lstrip('/'))
+
+        if relative_path != '':
+            sql.append(" AND Albums.relativePath='%s'" % add_left(relative_path.rstrip('/').rstrip('\\'), '/')) #e.g. should be /scraped/0b
+
+        if album_label != '':
+            sql.append(" AND AlbumRoots.label='%s'" % album_label) #album name
+
         query = "".join(sql)
 
         #Fix string if we arnt bothered about a parent match for any kwarg args
@@ -340,5 +366,6 @@ class ImagePaths(object):
         #where parent.name='__any__' AND children.name='bass'
         query.replace("parent.name='__any__' AND'", " ")
         rf = _ReadFiles(query, self.digikam_path)
-        print('Total image paths: %s | Valid: %s | Invalid: %s' % (rf.images.total_count, rf.images.valid_count, rf.images.invalid_count))
+        if not SILENT:
+            print('Total image paths: %s | Valid: %s | Invalid: %s' % (rf.images.total_count, rf.images.valid_count, rf.images.invalid_count))
         return rf.images.valid

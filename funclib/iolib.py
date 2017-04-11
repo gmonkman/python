@@ -267,7 +267,8 @@ def _get_file_count(paths, recurse=False):
 def drive_get_uuid(drive='C:', strip=['-'], return_when_unidentified='??'):
     '''get uuid of drive'''
     drive = os.popen('vol %s' % drive).readlines()[1].split()[-1]
-    if len(drive) == 0: drive = return_when_unidentified
+    if len(drive) == 0:
+            drive = return_when_unidentified
 
     for char in strip:
         drive = drive.replace(char, '')
