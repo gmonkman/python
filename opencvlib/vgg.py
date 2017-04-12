@@ -236,11 +236,11 @@ class _Region(object):
         self.all_points_y = kwargs.get('all_points_y')
 
         if self.shape == 'polygon':
-            self.all_points_rc = list(zip(self.all_points_y, self.all_points_x))
+            self.all_points = list(zip(self.all_points_x, self.all_points_y))
         elif self.shape == 'point':
-            self.all_points_rc = [(self.y, self.x)]
+            self.all_points = [(self.x, self.y)]
         elif self.shape == 'rect':
-            self.all_points_rc = rect_as_points(self.y, self.x, self.h, self.w)
+            self.all_points = rect_as_points(self.y, self.x, self.h, self.w)
 
 def load_json(vgg_file, fix_keys=True):
     '''(str)->void

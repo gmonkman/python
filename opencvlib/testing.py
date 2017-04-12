@@ -31,12 +31,10 @@ def test_roi():
         assert isinstance(subject, vgg._Subject)
         for region in subject.regions_generator('whole'):
             assert isinstance(region, vgg._Region)
-#           mask = common.roi_polygon_set(img_path,region.all_points_rc)
-            pts=[(0,0),(50,0),(0,100),(50,100)]
-            mask = common.roi_polygon_set(img_path, pts)
-            #cv2.imshow('preview', mask)
-            #cv2.waitKey(0)
-            #cv2.destroyAllWindows()
+            mask = common.roi_polygons_get(img_path, region.all_points)
+            cv2.imshow('preview', mask)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
 def main():
     test_roi()

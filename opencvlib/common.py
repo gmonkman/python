@@ -7,8 +7,11 @@ From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 from __future__ import print_function
 import sys
 from glob import glob
+from os import path
 
 import numpy as np
+import numpy.ma as ma
+
 import cv2
 from cv2 import convexHull
 import imghdr
@@ -30,21 +33,19 @@ import funclib.iolib as iolib
 #endregion
 
 
-#module consts and variables
+#region module consts and variables
 IMAGE_EXTENSIONS = ['.bmp', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
 IMAGE_EXTENSIONS_AS_WILDCARDS = ['*.bmp', '*.jpg', '*.jpeg', '*.png', '*.tif', '*.tiff', '*.pbm', '*.pgm', '*.ppm']
 
-# palette data from matplotlib/_cm.py
-_jet_data = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1),
+_JET_DATA = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1),
                          (1, 0.5, 0.5)),
                'green': ((0., 0, 0), (0.125, 0, 0), (0.375, 1, 1), (0.64, 1, 1),
                          (0.91, 0, 0), (1, 0, 0)),
                'blue': ((0., 0.5, 0.5), (0.11, 1, 1), (0.34, 1, 1), (0.65, 0, 0),
                          (1, 0, 0))}
 
-cmap_data = {'jet' : _jet_data}
-#module consts and variables
-
+_CMAP_DATA = {'jet' : _JET_DATA}
+#endregion
 
 #region classes
 class Bunch(object):
@@ -90,7 +91,7 @@ class StatValue(object):
             self.value = v
         else:
             c = self.smooth_coef
-            self.value = c * self.value + (1.0-c) * v
+            self.value = c * self.value + (1.0 - c) * v
 
 class RectSelector(object):
     def __init__(self, win, callback):
@@ -110,7 +111,7 @@ class RectSelector(object):
                 x0, y0 = np.minimum([xo, yo], [x, y])
                 x1, y1 = np.maximum([xo, yo], [x, y])
                 self.drag_rect = None
-                if x1-x0 > 0 and y1-y0 > 0:
+                if x1 - x0 > 0 and y1 - y0 > 0:
                     self.drag_rect = (x0, y0, x1, y1)
             else:
                 rect = self.drag_rect
@@ -131,10 +132,19 @@ class RectSelector(object):
 
 
 #region defs
-def roi_polygon_set(img, points):
-    '''(np array or path, array of points)->img
-    Points are for a rectangle as an e.g. [(0,0), (50,0), (0,50), (50,50)]
+def _fixp(pth):
+    '''(str)->str
+    basically path.normpath
     '''
+    return path.normpath(pth)
+
+def roi_polygons_get(img, points):
+    '''(ndarray or path, [tuple list|ndarray])->ndarray, ndarray, ndarray
+
+
+    Points are a tuple list e.g. [(0,0), (50,0), (0,50), (50,50)] or an
+    '''
+    img = _fixp(img)
     if isinstance(img, str):
         img = cv2.imread(img, -1) # -1 loads as-is so if it will be 3 or 4 channel as the original
     else:
@@ -143,20 +153,21 @@ def roi_polygon_set(img, points):
 
     # mask defaulting to black for 3-channel and transparent for 4-channel
     # (of course replace corners with yours)
-    mask = np.zeros(img.shape, dtype=np.uint8)
-    roi_corners = convexHull(np.array([points], dtype=np.int32))
-    #roi_corners = np.array([points], dtype=np.int32)
-    channel_count = img.shape[2]  # i.e. 3 or 4 depending on your image
-    ignore_mask_color = (255,)*channel_count
-    #cv2.fillConvexPoly(mask, roi_corners, ignore_mask_color)
-    #cv2.fillConvexPoly(mask, roi_corners, ignore_mask_color)
-    cv2.fillPoly(mask, roi_corners, ignore_mask_color)
+    white_mask = np.zeros(img.shape, dtype=np.uint8)
+    if  isinstance(points, ndarray):
+        roi_corners = convexHull(points)
+    else:
+        roi_corners = convexHull(np.array([points], dtype=np.int32))
 
-    cv2.imshow('preview', mask)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    roi_corners = np.squeeze(roi_corners)
 
-    return cv2.bitwise_and(img, mask) # apply and return the mask
+    channel_count = img.shape[2]  # i.e.  3 or 4 depending on your image
+    ignore_mask_color = (255,) * channel_count
+    cv2.fillConvexPoly(white_mask, roi_corners, ignore_mask_color)
+
+    mask = ma.masked_values(white_mask, 0)
+
+    return white_mask, mask, cv2.bitwise_and(img, white_mask)
 
 def get_perspective_correction(bg_dist, object_depth, length):
     '''(float, float)->float|None
@@ -167,10 +178,10 @@ def get_perspective_correction(bg_dist, object_depth, length):
     '''
     if bg_dist is None or object_depth is None or length is None:
         return None
-    elif bg_dist == 0 or 1-(object_depth/bg_dist) == 0:
+    elif bg_dist == 0 or 1 - (object_depth / bg_dist) == 0:
         return None
     else:
-        return length/(1-(object_depth/bg_dist))
+        return length / (1 - (object_depth / bg_dist))
 
 def get_perspective_correction_iter_linear(coeff, const, bg_dist, length, last_length=0, stop_below_proportion=0.01):
     '''(float, float, float, float,float)->float|None
@@ -188,15 +199,15 @@ def get_perspective_correction_iter_linear(coeff, const, bg_dist, length, last_l
     we return the result and stop the iteration
     '''
     if last_length == 0:
-        object_depth = length*coeff + const
+        object_depth = length * coeff + const
     else:
-        object_depth = last_length*coeff + const
+        object_depth = last_length * coeff + const
 
     if object_depth == 0:
         return length
     elif length == 0:
         return 0
-    elif (last_length/length < stop_below_proportion) and last_length > 0:
+    elif (last_length / length < stop_below_proportion) and last_length > 0:
         return length
 
     if last_length == 0: #first call
@@ -272,16 +283,16 @@ def splitfn(fn):
 
 def anorm2(a):
     '''anorm2'''
-    return (a*a).sum(-1)
+    return (a * a).sum(-1)
 def anorm(a):
     '''anorm'''
     return np.sqrt(anorm2(a))
 
 def homotrans(H, x, y):
-    xs = H[0, 0]*x + H[0, 1]*y + H[0, 2]
-    ys = H[1, 0]*x + H[1, 1]*y + H[1, 2]
-    s = H[2, 0]*x + H[2, 1]*y + H[2, 2]
-    return xs/s, ys/s
+    xs = H[0, 0] * x + H[0, 1] * y + H[0, 2]
+    ys = H[1, 0] * x + H[1, 1] * y + H[1, 2]
+    s = H[2, 0] * x + H[2, 1] * y + H[2, 2]
+    return xs / s, ys / s
 
 def to_rect(a):
     a = np.ravel(a)
@@ -293,8 +304,10 @@ def rect_as_points(rw, col, h, w):
     '''(int,int,int,int)->list
     Given a rectangle specified by the top left point
     and width and height, convert to a list of points
+
+    Note opencv points have origin in top left and are (x,y) ie row,col
     '''
-    return [(rw, col), (rw + h, col), (rw, col + w), (h, w)]
+    return [(col, rw), (col, rw + h), (col + w, rw), (w, h)]
 
 def rect2rect_mtx(src, dst):
     src, dst = to_rect(src), to_rect(dst)
@@ -315,7 +328,7 @@ def lookat(eye, target, up=(0, 0, 1)):
 
 def mtx2rvec(R):
     w, u, vt = cv2.SVDecomp(R - np.eye(3))
-    p = vt[0] + u[:, 0]*w[0]    # same as np.dot(R, vt[0])
+    p = vt[0] + u[:, 0] * w[0]    # same as np.dot(R, vt[0])
     c = np.dot(vt[0], p)
     s = np.dot(vt[1], p)
     axis = np.cross(vt[0], vt[1])
@@ -323,11 +336,11 @@ def mtx2rvec(R):
 
 def draw_str(dst, target, s):
     x, y = target
-    cv2.putText(dst, s, (x+1, y+1), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+    cv2.putText(dst, s, (x + 1, y + 1), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
     cv2.putText(dst, s, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=cv2.LINE_AA)
 
 def make_cmap(name, n=256):
-    data = cmap_data[name]
+    data = _CMAP_DATA[name]
     xs = np.linspace(0.0, 1.0, n)
     channels = []
     eps = 1e-6
@@ -335,11 +348,11 @@ def make_cmap(name, n=256):
         ch_data = data[ch_name]
         xp, yp = [], []
         for x, y1, y2 in ch_data:
-            xp += [x, x+eps]
+            xp += [x, x + eps]
             yp += [y1, y2]
         ch = np.interp(xs, xp, yp)
         channels.append(ch)
-    return np.uint8(np.array(channels).T*255)
+    return np.uint8(np.array(channels).T * 255)
 
 def clock():
     return cv2.getTickCount() / cv2.getTickFrequency()
@@ -351,7 +364,7 @@ def Timer(msg):
     try:
         yield
     finally:
-        print("%.2f ms" % ((clock()-start)*1000))
+        print("%.2f ms" % ((clock() - start) * 1000))
 
 def grouper(n, iterable, fillvalue=None):
     '''grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx'''
@@ -383,7 +396,6 @@ def getsize(img):
 
 #def mdot(*args):
    # return reduce(np.dot, args)
-
 def draw_keypoints(vis, keypoints, color=(0, 255, 255)):
     for kp in keypoints:
         x, y = kp.pt
@@ -414,7 +426,7 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     return cv2.resize(image, dim, interpolation=inter)
 
 def skeletonize(image, size, structuring=cv2.MORPH_RECT):
-    # determine the area (i.e. total number of pixels in the image),
+    # determine the area (i.e.  total number of pixels in the image),
     # initialize the output skeletonized image, and construct the
     # morphological structuring element
     area = image.shape[0] * image.shape[1]
@@ -454,7 +466,7 @@ def url_to_image(url, readFlag=cv2.IMREAD_COLOR):
     return image
 
 def opencv2matplotlib(image):
-    '''(ndarray0->ndarray
+    '''(ndarray->ndarray)
     OpenCV represents images in BGR order; however, Matplotlib
     expects the image in RGB order, so simply convert from BGR
     to RGB and return
@@ -483,5 +495,18 @@ def opencv_check_version(major, lib=None):
     # return whether or not the current OpenCV version matches the
     # major version number
     return lib.__version__.startswith(major)
+
+def show(img):
+    '''(str|ndarray)->void
+    Show an image, passing in a path or ndarray
+    '''
+    if isinstance(img, str):
+        img = _fixp(img)
+        img = cv2.imread(img)
+
+    cv2.imshow('img',img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 #endregion
 #endregion
