@@ -1,4 +1,4 @@
-#pylint: skip-file
+# pylint: skip-file
 '''
 Basic configuration holder objects.
 '''
@@ -7,23 +7,25 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import sys, os
+import sys
+import os
 import warnings
-
 
 
 if sys.version_info.major == 3:
     def execfile(fn, glbl, loc):
         exec(open(fn).read(), glbl, loc)
-else: # python 2
+else:  # python 2
     execfile = execfile
 
 
 class BasicConfigError(Exception):
     pass
 
+
 class ConfigLockError(BasicConfigError):
     pass
+
 
 class ConfigReadError(BasicConfigError):
     pass
@@ -34,6 +36,7 @@ class ConfigHolder(dict):
 it maps attribute access to the real dictionary. This object is lockable, use
 the 'lock' and 'unlock' methods to set its state. If locked, new keys or
 attributes cannot be added, but existing ones may be changed.'''
+
     def __init__(self, init={}, name=None):
         name = name or self.__class__.__name__.lower()
         dict.__init__(self, init)
@@ -53,12 +56,13 @@ attributes cannot be added, but existing ones may be changed.'''
     def __str__(self):
         n = self._name
         s = ["{}(name={!r}):".format(self.__class__.__name__, n)]
-        s = s + ["  {}.{} = {!r}".format(n, it[0], it[1]) for it in self.items()]
+        s = s + ["  {}.{} = {!r}".format(n, it[0], it[1])
+                 for it in self.items()]
         s.append("\n")
         return "\n".join(s)
 
     def __setitem__(self, key, value):
-        if self._locked and not key in self:
+        if self._locked and key not in self:
             raise ConfigLockError("setting attribute on locked config holder")
         return super(ConfigHolder, self).__setitem__(key, value)
 
@@ -106,18 +110,22 @@ class BasicConfig(ConfigHolder):
         global variables that become keys in the configuration. Returns
         True if file read OK, False otherwise.'''
         if os.path.isfile(filename):
-            gb = globalspace or {} # temporary global namespace for config files.
+            # temporary global namespace for config files.
+            gb = globalspace or {}
             gb["SECTION"] = SECTION
-            gb["sys"] = sys # in case config stuff needs these.
+            gb["sys"] = sys  # in case config stuff needs these.
             gb["os"] = os
+
             def include(fname):
                 execfile(get_pathname(fname), gb, self)
             gb["include"] = include
             try:
                 execfile(filename, gb, self)
-            except:
+            except BaseException:
                 ex, val, tb = sys.exc_info()
-                warnings.warn("BasicConfig: error reading %s: %s (%s)." % (filename, ex, val))
+                warnings.warn(
+                    "BasicConfig: error reading %s: %s (%s)." %
+                    (filename, ex, val))
                 return False
             else:
                 return True
@@ -134,6 +142,8 @@ def get_pathname(basename):
 # main function for getting a configuration file. gets it from the common
 # configuration location (/etc/pycopia), but if a full path is given then
 # use that instead.
+
+
 def get_config(fname, initdict=None, globalspace=None, **kwargs):
     fname = get_pathname(fname)
     cf = BasicConfig()
@@ -144,6 +154,7 @@ def get_config(fname, initdict=None, globalspace=None, **kwargs):
         return cf
     else:
         raise ConfigReadError("did not successfully read %r." % (fname,))
+
 
 def check_config(fname):
     '''check_config(filename) -> bool
@@ -160,7 +171,7 @@ def check_config(fname):
 
 def _test(argv):
     cf = get_config("config_test.conf")
-    print (cf)
+    print(cf)
 
 
 if __name__ == "__main__":

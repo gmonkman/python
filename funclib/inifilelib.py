@@ -1,16 +1,20 @@
-#pylint: disable=C0302, no-member, expression-not-assigned, not-context-manager
+# pylint: disable=C0302, no-member, expression-not-assigned,
+# not-context-manager
 ''' helper for interacting with application ini files'''
 import configparser as cp
 import os
 
 import funclib.iolib as iolib
 
+
 class ConfigFile(object):
     '''handles ini file defaults for common sections and values
     like data paths etc
     '''
+
     def __init__(self, ini_file):
-        self.ini_file_path, self.ini_file_name = os.path.split(os.path.abspath(ini_file))
+        self.ini_file_path, self.ini_file_name = os.path.split(
+            os.path.abspath(ini_file))
         self.ini_file = ini_file
         if not str(ini_file).endswith('ini') or str(ini_file).endswith('cfg'):
             raise ValueError('Expected ini file to have extension ini or cfg')
@@ -63,6 +67,7 @@ class ConfigFile(object):
         '''save the config to disk'''
         with open(self.ini_file, 'w') as tmp:
             self._config.write(tmp)
+
 
 def iniexists(file):
     '''(str) -> bool

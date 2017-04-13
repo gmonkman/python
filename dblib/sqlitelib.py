@@ -1,4 +1,8 @@
-# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager
+# pylint: disable=C0302, line-too-long, too-few-public-methods,
+# too-many-branches, too-many-statements, no-member, ungrouped-imports,
+# too-many-arguments, wrong-import-order, relative-import,
+# too-many-instance-attributes, too-many-locals, unused-variable,
+# not-context-manager
 '''SQLAlchemy *independent* sqllite CRUD functions'''
 import os
 
@@ -9,7 +13,7 @@ import pickle
 
 import funclib.baselib as baselib
 
-#endregion
+# endregion
 
 
 class Conn(object):
@@ -20,10 +24,12 @@ class Conn(object):
 
     Pass the cnstr in when the class is initialised or call open
     '''
+
     def __init__(self, cnstr=':memory:', force_absolute_path=True):
-        self.cnstr = self._make_abs_path(cnstr) if force_absolute_path else cnstr
+        self.cnstr = self._make_abs_path(
+            cnstr) if force_absolute_path else cnstr
         self.conn = None
-        #no need to open connection in init - __enter__ will do that.
+        # no need to open connection in init - __enter__ will do that.
 
     def __enter__(self):
         self.conn = sqlite3.connect(self.cnstr)
@@ -38,7 +44,8 @@ class Conn(object):
         file path location of the db
         open a connection, closing existing one
         '''
-        self.cnstr = self._make_abs_path(cnstr) if force_absolute_path else cnstr
+        self.cnstr = self._make_abs_path(
+            cnstr) if force_absolute_path else cnstr
         self.close()
         self.conn = sqlite3.connect(self.cnstr)
         self.conn.row_factory = sqlite3.Row
@@ -69,10 +76,10 @@ class Conn(object):
         return s
 
 
-
 class CRUD(object):
     '''everything to do with the db
     '''
+
     def __init__(self, dbconn):
         '''(sqlite3.conection)
         pass in an open dbconn
@@ -80,13 +87,14 @@ class CRUD(object):
         self.conn = dbconn
         assert isinstance(self.conn, sqlite3.Connection)
 
-    #region exists stuff
+    # region exists stuff
     def exists_by_primarykey(self, table, keyid):
         '''(str,id)->bool
         return bool indicating if  id exists in table
         '''
         cur = self.conn.cursor()
-        sql = 'SELECT EXISTS(SELECT 1 as one FROM ' + table + ' WHERE ' + table + 'id="' + str(keyid) + '" LIMIT 1) as res;'
+        sql = 'SELECT EXISTS(SELECT 1 as one FROM ' + table + ' WHERE ' + \
+            table + 'id="' + str(keyid) + '" LIMIT 1) as res;'
         cur.execute(sql)
         row = cur.fetchall()
         for res in row:
@@ -109,7 +117,7 @@ class CRUD(object):
         cur.execute(query)
         row = cur.fetchall()
         return bool(row[0][0])
-    #endregion
+    # endregion
 
     @staticmethod
     def get_blob(row, colname):
@@ -155,7 +163,7 @@ class CRUD(object):
         2) Returns None if no matches found
         '''
         sql = 'SELECT %s FROM %s WHERE %s="%s" LIMIT 1;' % \
-                    (col_with_value_we_want, table_name, col_to_search, value)
+            (col_with_value_we_want, table_name, col_to_search, value)
         cur = self.conn.cursor()
         cur.execute(sql)
         row = cur.fetchall()
@@ -167,7 +175,8 @@ class CRUD(object):
         sql = list()
         sql.append("SELECT * FROM %s " % table)
         if kwargs:
-            sql.append("WHERE " + " AND ".join("%s = '%s'" % (k, v) for k, v in kwargs.iteritems()))
+            sql.append("WHERE " + " AND ".join("%s = '%s'" % (k, v)
+                                               for k, v in kwargs.iteritems()))
         sql.append(";")
         return "".join(sql)
 
@@ -205,7 +214,8 @@ class CRUD(object):
         ''' deletes rows from table where **kwargs match '''
         sql = list()
         sql.append("DELETE FROM %s " % table)
-        sql.append("WHERE " + " AND ".join("%s = '%s'" % (k, v) for k, v in kwargs.iteritems()))
+        sql.append("WHERE " + " AND ".join("%s = '%s'" % (k, v)
+                                           for k, v in kwargs.iteritems()))
         sql.append(";")
         return "".join(sql)
 
@@ -215,7 +225,7 @@ def main():
     pass
 
 
-#This only executes if this script was the entry point
+# This only executes if this script was the entry point
 if __name__ == '__main__':
     main()
-    #execute my code
+    # execute my code

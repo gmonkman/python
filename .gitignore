@@ -426,3 +426,5 @@ permanal/data/kendall_100000/kendall_100000_master.xlsx
 *.xlsx
 focalpermute/RESULT20161003181026.txt
 *.db
+*.pdf
+*.bak

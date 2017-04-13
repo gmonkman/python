@@ -1,11 +1,14 @@
-#pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, not-context-manager, invalid-name
+# pylint: disable=C0302, dangerous-default-value, no-member,
+# expression-not-assigned, not-context-manager, invalid-name
 '''routines to manipulate array like objects like lists, tuples etc'''
 import numpy as np
 import numpy.random
 import scipy.ndimage as ndimage
 import xlwings
 
-#list stuff
+# list stuff
+
+
 def list_delete_value_pairs(list_a, list_b, match_value=0):
     '''(list,list,str|number) -> void
     Given two lists, removes matching values pairs occuring
@@ -22,13 +25,14 @@ def list_delete_value_pairs(list_a, list_b, match_value=0):
             del list_b[ind]
 
 
-#region NUMPY
+# region NUMPY
 def check_array(a, b):
     '''(ndarray,ndarray)
     perform array checks raising error if problem
     '''
     if a.shape != b.shape:
         raise ValueError('Array shapes did not match.')
+
 
 def np_permute_2d(a):
     '''(ndarray) -> ndarray
@@ -38,16 +42,19 @@ def np_permute_2d(a):
     '''
     assert isinstance(a, np.ndarray)
 
-    #get a numpy flattened array of all values which are a number (ie exclude NaNs)
-    mask = np.isfinite(a) #create a boolean mask
+    # get a numpy flattened array of all values which are a number (ie exclude
+    # NaNs)
+    mask = np.isfinite(a)  # create a boolean mask
 
     np_val_list = a.copy()
     np_val_list = np_val_list[mask]
     np_val_list = np.random.permutation(np_val_list)
 
-    #now we need to reassign our original array for the permuted list where there are non NaNs
-    #First get indexes of non NaN values in passed array
-    np_inds = np.nonzero(mask) #mask is still a array of booleans with True values corresponding to non NaNs and Infs
+    # now we need to reassign our original array for the permuted list where there are non NaNs
+    # First get indexes of non NaN values in passed array
+    # mask is still a array of booleans with True values corresponding to non
+    # NaNs and Infs
+    np_inds = np.nonzero(mask)
     np_inds = np.transpose(np_inds)
     cnt = 0
     npout = a.copy()
@@ -83,13 +90,18 @@ def np_focal_mean(a, pad=True):
     x = a.astype(float)
 
     if pad:
-        #surround with nans so we can ignore edge effects
+        # surround with nans so we can ignore edge effects
         x = np.pad(x, pad_width=1, mode='constant', constant_values=np.NaN)
 
     kernel = np.ones((3, 3))
 
-    #create means by kernel
-    out = ndimage.filters.generic_filter(x, _focal_mean_filter, footprint=kernel, mode='constant', cval=np.NaN)
+    # create means by kernel
+    out = ndimage.filters.generic_filter(
+        x,
+        _focal_mean_filter,
+        footprint=kernel,
+        mode='constant',
+        cval=np.NaN)
 
     return out
 
@@ -112,12 +124,12 @@ def np_paired_zeros_to_nan(a, b):
     nponebool = np.array(a, dtype=bool)
     nptwobool = np.array(b, dtype=bool)
 
-    #mask now has False where both 'in' arrays have matching zeros
-    #we the invert so matched zero positions are set to True
-    #checked and nan is converted to True during above casting
+    # mask now has False where both 'in' arrays have matching zeros
+    # we the invert so matched zero positions are set to True
+    # checked and nan is converted to True during above casting
     mask = np.invert(np.logical_or(nponebool, nptwobool))
 
-    #npInds now contains indexes of all 'cells' which had zeros
+    # npInds now contains indexes of all 'cells' which had zeros
     np_inds = np.nonzero(mask)
     assert isinstance(np_inds, tuple)
 
@@ -128,7 +140,7 @@ def np_paired_zeros_to_nan(a, b):
         a[x][y] = np.NaN
         b[x][y] = np.NaN
 
-    return {'a':a, 'b':b}
+    return {'a': a, 'b': b}
 
 
 def np_pad_nan(a):
@@ -154,9 +166,9 @@ def np_delete_paired_nans_flattened(a, b):
     a = a.flatten()
     b = b.flatten()
 
-    #set mask values to false where there are nans
-    #then use mask for both a and b to filter out all matching
-    #nans
+    # set mask values to false where there are nans
+    # then use mask for both a and b to filter out all matching
+    # nans
     a = a.astype(float)
     b = b.astype(float)
 
@@ -166,7 +178,7 @@ def np_delete_paired_nans_flattened(a, b):
     a = a[mask]
     b = b[mask]
 
-    return {'a':a, 'b':b}
+    return {'a': a, 'b': b}
 
 
 def np_nans_to_zero(a):
@@ -180,10 +192,12 @@ def np_nans_to_zero(a):
 
     out = a.copy().astype(float)
     mask = numpy.isnan(out)
-    inds = np.nonzero(mask)   #inds where isnan is true, looks like [(11,1),(5,4) ...]
+    # inds where isnan is true, looks like [(11,1),(5,4) ...]
+    inds = np.nonzero(mask)
     inds = zip(inds[0], inds[1])
     for x, y in inds:
-        if np.isnan(out[x][y]): out[x][y] = 0
+        if np.isnan(out[x][y]):
+            out[x][y] = 0
 
     return out
 
@@ -204,9 +218,9 @@ def np_unmatched_nans_to_zero(a, b):
     b = b.astype(float)
     mask = np_unmatched_nans(a, b)
 
-    #this gets the indexes of cells with unmatched nans
+    # this gets the indexes of cells with unmatched nans
     inds = np.nonzero(mask)
-    #inds looks like [(11,1),(5,4) ...]
+    # inds looks like [(11,1),(5,4) ...]
     inds = zip(inds[0], inds[1])
     for ind in inds:
         if np.isnan(a[ind[0]][ind[1]]):
@@ -214,7 +228,7 @@ def np_unmatched_nans_to_zero(a, b):
         else:
             b[ind[0]][ind[1]] = 0
 
-    return {'a':a, 'b':b}
+    return {'a': a, 'b': b}
 
 
 def np_unmatched_nans(a, b):
@@ -254,13 +268,13 @@ def np_delete_paired_zeros_flattened(a, b):
     a = a.flatten()
     b = b.flatten()
 
-    #set mask values to false where there are zeros
-    #then use mask for both a and b to filter out all matching
-    #zeros
+    # set mask values to false where there are zeros
+    # then use mask for both a and b to filter out all matching
+    # zeros
     amask = np.invert(a == 0)
     bmask = np.invert(b == 0)
     mask = np.logical_or(amask, bmask)
-    return {'a':a[mask], 'b':b[mask]}
+    return {'a': a[mask], 'b': b[mask]}
 
 
 def np_delete_zeros(a):
@@ -317,6 +331,7 @@ def np_frequencies(a):
     unq, cnt = np.unique(a, return_counts=True)
     return np.asarray((unq, cnt)).T
 
+
 def np_difference(a, b):
     '''(ndarray, ndarray) -> ndarray
     get absolute difference between two matrices.
@@ -338,25 +353,25 @@ def np_conditional_array_split(a, has_by_column, has_by_row):
     cols = int(a.shape[1])
 
     if has_by_column and has_by_row:
-        body = a[0:cols-1, 0:rows-1]
-        row_marginals = a[0:rows-1, cols-1:cols]
-        col_marginals = a[rows-1:rows, 0:cols-1]
+        body = a[0:cols - 1, 0:rows - 1]
+        row_marginals = a[0:rows - 1, cols - 1:cols]
+        col_marginals = a[rows - 1:rows, 0:cols - 1]
     elif has_by_row:
-        body = a[0:rows, 0:cols-1]
-        row_marginals = a[0:rows, cols-1:cols]
+        body = a[0:rows, 0:cols - 1]
+        row_marginals = a[0:rows, cols - 1:cols]
         col_marginals = []
     elif has_by_column:
-        body = a[0:rows-1, 0:cols]
-        col_marginals = a[rows-1:rows, :]
+        body = a[0:rows - 1, 0:cols]
+        col_marginals = a[rows - 1:rows, :]
         row_marginals = []
     return [body, col_marginals, row_marginals]
-#endregion
+# endregion
 
 
-#region Pandas
+# region Pandas
 def pd_df_to_ndarray(df):
     '''(dataframe)->ndarray
     Return a dataframe as a numpy array
     '''
     return df.as_matrix([x for x in df.columns])
-#endregion
+# endregion

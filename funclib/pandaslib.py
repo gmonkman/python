@@ -1,14 +1,19 @@
-#pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled, not-context-manager, unused-import, undefined-variable
+# pylint: disable=C0302, too-many-branches, dangerous-default-value,
+# line-too-long, no-member, expression-not-assigned, locally-disabled,
+# not-context-manager, unused-import, undefined-variable
 '''routines to manipulate array like objects like lists, tuples etc'''
 import pandas as pd
 import numpy as np
 
-#region Pandas
+# region Pandas
+
+
 def pd_df_to_ndarray(df):
     '''(dataframe)->ndarray
     Return a dataframe as a numpy array
     '''
     return df.as_matrix([x for x in df.columns])
+
 
 def col_append(df, col_name):
     '''(df,str)->df
@@ -18,6 +23,7 @@ def col_append(df, col_name):
     '''
     df.loc[:, col_name] = pd.Series(pd.np.nan, index=df.index)
 
+
 def col_append_nan_fill(df, col_name):
     '''(df,str)->df
     df is BYREF
@@ -25,6 +31,7 @@ def col_append_nan_fill(df, col_name):
     with np.NaN values.
     '''
     col_append(df, col_name)
+
 
 def col_append_fill(df, col_name, f):
     '''(df,str,any)->df
@@ -37,13 +44,15 @@ def col_append_fill(df, col_name, f):
     else:
         df.loc[:, col_name] = pd.Series(f, index=df.index)
 
+
 def col_append_rand_fill(df, col_name, lower=0, upper=1):
     '''(df,str,any)->df
     df is BYREF
     adds a column to dataframe filling it with random values from a standard normal
     '''
-    #TODO Untested
+    # TODO Untested
     df[col_name] = np.random.choice(range(lower, upper), df1.shape[0])
+
 
 def col_calculate_new(df, func, new_col_name, *args):
     '''(pd.df, function, str, the named arguments for function)
@@ -72,7 +81,9 @@ def col_calculate_new(df, func, new_col_name, *args):
     '''
     assert isinstance(df, pd.DataFrame)
     if new_col_name in df.columns:
-        raise BaseException('Column %s already exists in the dataframe.' % (new_col_name))
+        raise BaseException(
+            'Column %s already exists in the dataframe.' %
+            (new_col_name))
     col_append(df, new_col_name)
 
     #
@@ -87,6 +98,7 @@ def col_exists(df, col_name):
     '''
     return col_name in df.columns
 
+
 def col_index(df, col_name):
     '''(df, str)->int
     Given col return index
@@ -97,6 +109,7 @@ def col_index(df, col_name):
     else:
         return None
 
+
 def cols_get_indexes_from_names(df, *args):
     '''df, str args->tuple
     Given list if strings get the corresponding
@@ -104,8 +117,9 @@ def cols_get_indexes_from_names(df, *args):
     '''
     return [col_index(df, x) for x in args]
 
+
 def readfld(v, default=None):
     '''return default if v us a pandas null
     '''
     return default if pd.isnull(v) else v
-#endregion
+# endregion

@@ -1,5 +1,6 @@
 '''basic number related helper functions'''
 
+
 def is_float(test):
     '''(any) -> bool
     Return true of false if s is a float

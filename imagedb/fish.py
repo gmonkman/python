@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 
 class Fish(ABC):
     '''base class to store samples'''
+
     def __init__(self, length_tl=0):
         '''init class'''
         self.name_latin = ''
@@ -15,7 +16,6 @@ class Fish(ABC):
         self.length_fl = 0
         self.length_sl = 0
         self.max_ventral_dorsal_thickness = 0
-
 
     @abstractmethod
     def get_max_depth(self):
@@ -39,12 +39,13 @@ class Fish(ABC):
         Pass in a length of 100mm, would return 100*0.1 + 0.01 (10.1mm) meaing our fish of 100cm
         is 10.1cm deep.
         '''
-        return measure*coeff + const
+        return measure * coeff + const
 
 
-#define an array of functions which will accept other 'species' classes
+# define an array of functions which will accept other 'species' classes
 class FishActions(object):
     '''polymorphic class functions for fish species, aubclassed from Fish'''
+
     def __init__(self, species):
         '''species is a fish class (polymorphic)
         '''
@@ -70,11 +71,14 @@ class FishActions(object):
         '''
         return self.species.function_over_interval()
 
+
 class Bass(Fish):
     '''bass'''
 
     def __init__(self, length_tl=0):
-        super(Bass, self).__init__(length_tl) #keep python 2.7 compat, Python 3 only would be super().__init__(length_tl)
+        # keep python 2.7 compat, Python 3 only would be
+        # super().__init__(length_tl)
+        super(Bass, self).__init__(length_tl)
 
     def get_max_depth(self):
         '''(float)->float
@@ -83,7 +87,7 @@ class Bass(Fish):
         '''
         a, c = self.lalg_length_equals_depth(False)
 
-        return self.length_tl*a + c
+        return self.length_tl * a + c
 
     def lalg_length_equals_depth(self, reverse=False):
         '''get the parameters of the linear equation for the length-depth relationship
@@ -93,7 +97,7 @@ class Bass(Fish):
         depth = a*Length + c
         '''
         if reverse:
-            #setup the matrix in the form ay + bx = c
+            # setup the matrix in the form ay + bx = c
             a = np_array([[10, 34.3], [10, 54.3]])
             c = np_array([280, 427.5])
         else:
@@ -103,14 +107,14 @@ class Bass(Fish):
         return (ret[0], ret[1])
 
 
-
-#region ENTRY
+# region ENTRY
 def main():
     '''execute if script was entry point'''
     pass
 
-#This only executes if this script was the entry point
+
+# This only executes if this script was the entry point
 if __name__ == '__main__':
-    #execute my code
+    # execute my code
     main()
-#endregion
+# endregion

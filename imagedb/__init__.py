@@ -1,4 +1,4 @@
-#pylint: skip-file
+# pylint: skip-file
 '''imagedb'''
 
 __all__ = ['oneoffwork', 'model', 'imagedb']

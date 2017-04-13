@@ -1,4 +1,8 @@
-# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, no-member, ungrouped-imports, too-many-arguments, wrong-import-order, relative-import, too-many-instance-attributes, too-many-locals, unused-variable, not-context-manager
+# pylint: disable=C0302, line-too-long, too-few-public-methods,
+# too-many-branches, too-many-statements, no-member, ungrouped-imports,
+# too-many-arguments, wrong-import-order, relative-import,
+# too-many-instance-attributes, too-many-locals, unused-variable,
+# not-context-manager
 '''
 various routines to work with the digikam library, stored in sqlite
 '''
@@ -19,6 +23,7 @@ import dblib.sqlitelib as sqlitelib
 SPECIFIC_PATH_OVERRIDE = ''
 SILENT = False
 
+
 def read_specific_path(pathin):
     '''(str)->str
     Use SPECIFIC_PATH_OVERRIDE if defined, primarily
@@ -29,6 +34,7 @@ def read_specific_path(pathin):
     else:
         return SPECIFIC_PATH_OVERRIDE
 
+
 class _ImagesValidator(object):
     '''Use this to process a list of digikam image paths.
     It processes the paths to generate valid and invalid links
@@ -38,6 +44,7 @@ class _ImagesValidator(object):
 
     If cv_load_test is true, then validation will try and load images with cv2.imread.
     '''
+
     def __init__(self, file_ptrs=None):
         '''files is a list of paths'''
         self._image_files = file_ptrs
@@ -45,7 +52,7 @@ class _ImagesValidator(object):
         self._valid_image_files = []
         self.cv_load_test = False
 
-        if not file_ptrs is None:
+        if file_ptrs is not None:
             self._validate()
 
     def _validate(self):
@@ -64,7 +71,8 @@ class _ImagesValidator(object):
                     except Exception:
                         self._invalid_image_files.append(images)
 
-        self._valid_image_files = list(set(self._image_files).difference(self._invalid_image_files))
+        self._valid_image_files = list(
+            set(self._image_files).difference(self._invalid_image_files))
 
     @property
     def invalid_count(self):
@@ -102,6 +110,7 @@ class _ImagesValidator(object):
         '''image_names getter
         returns list of image names with full path'''
         return self._image_files
+
     @image_files.setter
     def image_files(self, image_files):
         '''(list, bool)->void
@@ -140,6 +149,7 @@ class _ImagesValidator(object):
             else:
                 self._invalid_image_files.append(image)
 
+
 class _ReadFiles(object):
     '''executes the sql and generates and instantiates an ImageValidator member
     Handles conversion of digikam stored paths to actual file paths if in
@@ -164,7 +174,7 @@ class _ReadFiles(object):
         '''
         self.sql = sql
         self.dbfile = dbfile
-        if sql != '' or not sql is None:
+        if sql != '' or sql is not None:
             self._read()
 
     def _read(self):
@@ -185,7 +195,8 @@ class _ReadFiles(object):
             cur = cn.cursor()
             cur.execute(self.sql)
             row = cur.fetchall()
-            if not SILENT: print('Reading image paths from digikam database')
+            if not SILENT:
+                print('Reading image paths from digikam database')
             cnt = 0
             strip = ['-', 'VOLUMEID:?UUID=']
             drives = get_available_drive_uuids(strip=strip)
@@ -201,14 +212,15 @@ class _ReadFiles(object):
                         if uuid in drives:
                             drive = drives[uuid] + os.sep
                         else:
-                            if not uuid in invalid_uuids:
+                            if uuid not in invalid_uuids:
                                 invalid_uuids.append(uuid)
                                 warnings.warn('No drive found for UUID', uuid)
                             drive = ''
                     elif get_platform() == 'linux':
                         drive = ''
                     else:
-                        warnings.warn('Warning: Platform not recognised or unsupported. Treating as Linux.')
+                        warnings.warn(
+                            'Warning: Platform not recognised or unsupported. Treating as Linux.')
                         drive = ''
                 else:
                     drive = SPECIFIC_PATH_OVERRIDE
@@ -233,6 +245,7 @@ class MeasuredImages(object):
 
     The list is created from a view in the digikamlib.
     '''
+
     def __init__(self, dbfile, digikam_measured_tag, digikam_camera_tag):
         '''initialise the class'''
         self.digikam_measured_tag = digikam_measured_tag
@@ -247,36 +260,38 @@ class MeasuredImages(object):
         from a digikam database using the module level _CONNECTION
         which needs to be previousl set
         '''
-        sql = ('select distinct Images.id, AlbumRoots.identifier, AlbumRoots.specificPath, Albums.relativePath, images.name '
-                'from Images '
-                    ' inner join Albums on albums.id=images.album '
-                    ' inner join AlbumRoots on AlbumRoots.id=Albums.albumRoot '
-                'where '
-                'Images.id in ( '
-                'select '
-                    'Images.id '
-                'from images '
-                    'inner join ImageTags on images.id=ImageTags.imageid '
-                    'inner join Tags on Tags.id=ImageTags.tagid '
-                'where '
-                'Tags.name="camera") '
-                'AND '
-                'Images.id in ( '
-                'select Images.id '
-                'from images '
-                'inner join ImageTags on images.id=ImageTags.imageid '
-                'inner join Tags on Tags.id=ImageTags.tagid '
-                'where '
-                'Tags.name="' + self.digikam_measured_tag + '") '
-                'AND '
-                'Images.id in ( '
-                'select Images.id '
-                'from images '
-                'inner join ImageTags on images.id=ImageTags.imageid '
-                'inner join Tags on Tags.id=ImageTags.tagid '
-                'where Tags.name="' + self.digikam_camera_tag + '")')
+        sql = (
+            'select distinct Images.id, AlbumRoots.identifier, AlbumRoots.specificPath, Albums.relativePath, images.name '
+            'from Images '
+            ' inner join Albums on albums.id=images.album '
+            ' inner join AlbumRoots on AlbumRoots.id=Albums.albumRoot '
+            'where '
+            'Images.id in ( '
+            'select '
+            'Images.id '
+            'from images '
+            'inner join ImageTags on images.id=ImageTags.imageid '
+            'inner join Tags on Tags.id=ImageTags.tagid '
+            'where '
+            'Tags.name="camera") '
+            'AND '
+            'Images.id in ( '
+            'select Images.id '
+            'from images '
+            'inner join ImageTags on images.id=ImageTags.imageid '
+            'inner join Tags on Tags.id=ImageTags.tagid '
+            'where '
+            'Tags.name="' + self.digikam_measured_tag + '") '
+            'AND '
+            'Images.id in ( '
+            'select Images.id '
+            'from images '
+            'inner join ImageTags on images.id=ImageTags.imageid '
+            'inner join Tags on Tags.id=ImageTags.tagid '
+            'where Tags.name="' + self.digikam_camera_tag + '")')
 
         self.Files = _ReadFiles(sql, self.dbfile)
+
 
 class ImagePaths(object):
     '''This creates lists of paths to image files (ie the full file name, like C:/imgs/myimg.jpg)
@@ -285,12 +300,18 @@ class ImagePaths(object):
     Create multiple ImagePaths and append results to master list
     to reproduce an OR query.
     '''
+
     def __init__(self, digikam_path):
         '''(str)
         set the path to the digikam db digikam4.db'''
         self.digikam_path = digikam_path
 
-    def ImagesByTags(self, filename='', album_label='', relative_path='', **kwargs):
+    def ImagesByTags(
+            self,
+            filename='',
+            album_label='',
+            relative_path='',
+            **kwargs):
         '''(str, str, str, Key-value kwargs representing parent tag name and child tag name)->list
 
         Retrieve images by the tags, where kwargs is parent key=child key
@@ -303,44 +324,45 @@ class ImagePaths(object):
 
         Relative paths must use forward slash /
         '''
-        #Albumroots.specificpath is the root path of the album from the drive, excluding the drive
-        #e.g. /development/python/opencvlib/calibration for the calibration album
-        #Albums.relative path is the path after the album root
-        #e.g.
+        # Albumroots.specificpath is the root path of the album from the drive, excluding the drive
+        # e.g. /development/python/opencvlib/calibration for the calibration album
+        # Albums.relative path is the path after the album root
+        # e.g.
 
         sql = [
             'select distinct '
-                'Images.id, AlbumRoots.identifier, AlbumRoots.specificPath, Albums.relativePath, images.name '
+            'Images.id, AlbumRoots.identifier, AlbumRoots.specificPath, Albums.relativePath, images.name '
             'from '
-                'Images '
-                'inner join Albums on albums.id=images.album '
-                ' inner join AlbumRoots on AlbumRoots.id=Albums.albumRoot '
+            'Images '
+            'inner join Albums on albums.id=images.album '
+            ' inner join AlbumRoots on AlbumRoots.id=Albums.albumRoot '
             'where '
-                'Images.id in '
-                    '( '
-                        'select '
-                            'images.id '
-                        ' from '
-                            'images '
-                            ' inner join imagetags on images.id=ImageTags.imageid '
-                            ' inner join tags on tags.id=imagetags.tagid '
-                        'where '
-                            'imagetags.tagid in '
-                            '( '
-                                'select '
-                                    'children.id as tagid '
-                                'from '
-                                    'tags children '
-                                    'left join tags parent on children.pid=parent.id '
-                                'where '
-                                #    'parent.name="species"'
-                                  #  'AND children.name="bass"'
-                         #   ')'
-                  #  ')'
+            'Images.id in '
+            '( '
+            'select '
+            'images.id '
+            ' from '
+            'images '
+            ' inner join imagetags on images.id=ImageTags.imageid '
+            ' inner join tags on tags.id=imagetags.tagid '
+            'where '
+            'imagetags.tagid in '
+            '( '
+            'select '
+            'children.id as tagid '
+            'from '
+            'tags children '
+            'left join tags parent on children.pid=parent.id '
+            'where '
+            #    'parent.name="species"'
+            #  'AND children.name="bass"'
+            #   ')'
+            #  ')'
         ]
 
         if kwargs:
-            where = [" parent.name='%s' AND children.name='%s' AND" % (key, value) for key, value in kwargs.items()]
+            where = [" parent.name='%s' AND children.name='%s' AND" %
+                     (key, value) for key, value in kwargs.items()]
             where[-1] = rreplace(where[-1], 'AND', '', 1)
         else:
             where = " 1=1 "
@@ -351,21 +373,33 @@ class ImagePaths(object):
         sql.append(" AND 1=1 ")
 
         if filename != '':
-            sql.append(" AND Images.name='%s'" % filename.lstrip('\\').lstrip('/'))
+            sql.append(
+                " AND Images.name='%s'" %
+                filename.lstrip('\\').lstrip('/'))
 
         if relative_path != '':
-            sql.append(" AND Albums.relativePath='%s'" % add_left(relative_path.rstrip('/').rstrip('\\'), '/')) #e.g. should be /scraped/0b
+            sql.append(
+                " AND Albums.relativePath='%s'" %
+                add_left(
+                    relative_path.rstrip('/').rstrip('\\'),
+                    '/'))  # e.g. should be /scraped/0b
 
         if album_label != '':
-            sql.append(" AND AlbumRoots.label='%s'" % album_label) #album name
+            sql.append(
+                " AND AlbumRoots.label='%s'" %
+                album_label)  # album name
 
         query = "".join(sql)
 
-        #Fix string if we arnt bothered about a parent match for any kwarg args
-        #which would look like:
-        #where parent.name='__any__' AND children.name='bass'
+        # Fix string if we arnt bothered about a parent match for any kwarg args
+        # which would look like:
+        # where parent.name='__any__' AND children.name='bass'
         query.replace("parent.name='__any__' AND'", " ")
         rf = _ReadFiles(query, self.digikam_path)
         if not SILENT:
-            print('Total image paths: %s | Valid: %s | Invalid: %s' % (rf.images.total_count, rf.images.valid_count, rf.images.invalid_count))
+            print(
+                'Total image paths: %s | Valid: %s | Invalid: %s' %
+                (rf.images.total_count,
+                 rf.images.valid_count,
+                 rf.images.invalid_count))
         return rf.images.valid

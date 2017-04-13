@@ -1,10 +1,8 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled,
+# no-self-use, unused-argument
 '''Provides preprocessing routines
 '''
 import cv2
-
-import opencvlib.common as common
-
 
 def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     '''(ndarray, int, int, constant)->void
@@ -18,7 +16,7 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
 
     if width is None and height is None:
         return image
-    elif not width is None and not height is None:
+    elif width is not None and height is not None:
         dim = (width, height)
     elif width is None:
         r = height / float(h)

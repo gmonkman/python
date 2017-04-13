@@ -1,9 +1,9 @@
-#pylint: disable=reimported, missing-docstring, bad-option-value, import-error
+# pylint: disable=reimported, missing-docstring, bad-option-value, import-error
 '''
 This module contains some common routines used by other samples.
 From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 '''
-#region imports
+# region imports
 from __future__ import print_function
 import sys
 from glob import glob
@@ -30,30 +30,53 @@ import itertools as it
 from contextlib import contextmanager
 
 import funclib.iolib as iolib
-#endregion
+# endregion
 
 
-#region module consts and variables
-IMAGE_EXTENSIONS = ['.bmp', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
-IMAGE_EXTENSIONS_AS_WILDCARDS = ['*.bmp', '*.jpg', '*.jpeg', '*.png', '*.tif', '*.tiff', '*.pbm', '*.pgm', '*.ppm']
+# region module consts and variables
+IMAGE_EXTENSIONS = [
+    '.bmp',
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.tif',
+    '.tiff',
+    '.pbm',
+    '.pgm',
+    '.ppm']
+IMAGE_EXTENSIONS_AS_WILDCARDS = [
+    '*.bmp',
+    '*.jpg',
+    '*.jpeg',
+    '*.png',
+    '*.tif',
+    '*.tiff',
+    '*.pbm',
+    '*.pgm',
+    '*.ppm']
 
 _JET_DATA = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1),
-                         (1, 0.5, 0.5)),
-               'green': ((0., 0, 0), (0.125, 0, 0), (0.375, 1, 1), (0.64, 1, 1),
-                         (0.91, 0, 0), (1, 0, 0)),
-               'blue': ((0., 0.5, 0.5), (0.11, 1, 1), (0.34, 1, 1), (0.65, 0, 0),
-                         (1, 0, 0))}
+                     (1, 0.5, 0.5)),
+             'green': ((0., 0, 0), (0.125, 0, 0), (0.375, 1, 1), (0.64, 1, 1),
+                       (0.91, 0, 0), (1, 0, 0)),
+             'blue': ((0., 0.5, 0.5), (0.11, 1, 1), (0.34, 1, 1), (0.65, 0, 0),
+                      (1, 0, 0))}
 
-_CMAP_DATA = {'jet' : _JET_DATA}
-#endregion
+_CMAP_DATA = {'jet': _JET_DATA}
+# endregion
 
-#region classes
+# region classes
+
+
 class Bunch(object):
     '''bunch'''
+
     def __init__(self, **kw):
         self.__dict__.update(kw)
+
     def __str__(self):
         return str(self.__dict__)
+
 
 class Sketcher(object):
     def __init__(self, windowname, dests, colors_func):
@@ -82,16 +105,19 @@ class Sketcher(object):
             self.prev_pt = pt
             self.show()
 
+
 class StatValue(object):
     def __init__(self, smooth_coef=0.5):
         self.value = None
         self.smooth_coef = smooth_coef
+
     def update(self, v):
         if self.value is None:
             self.value = v
         else:
             c = self.smooth_coef
             self.value = c * self.value + (1.0 - c) * v
+
 
 class RectSelector(object):
     def __init__(self, win, callback):
@@ -100,8 +126,9 @@ class RectSelector(object):
         cv2.setMouseCallback(win, self.onmouse)
         self.drag_start = None
         self.drag_rect = None
+
     def onmouse(self, event, x, y, flags):
-        x, y = np.int16([x, y]) # BUG
+        x, y = np.int16([x, y])  # BUG
         if event == cv2.EVENT_LBUTTONDOWN:
             self.drag_start = (x, y)
             return
@@ -119,42 +146,50 @@ class RectSelector(object):
                 self.drag_rect = None
                 if rect:
                     self.callback(rect)
+
     def draw(self, vis):
         if not self.drag_rect:
             return False
         x0, y0, x1, y1 = self.drag_rect
         cv2.rectangle(vis, (x0, y0), (x1, y1), (0, 255, 0), 2)
         return True
+
     @property
     def dragging(self):
         return self.drag_rect is not None
-#endregion
+# endregion
 
 
-#region defs
+# region defs
 def _fixp(pth):
     '''(str)->str
     basically path.normpath
     '''
     return path.normpath(pth)
 
+
 def roi_polygons_get(img, points):
     '''(ndarray or path, [tuple list|ndarray])->ndarray, ndarray, ndarray
-
-
     Points are a tuple list e.g. [(0,0), (50,0), (0,50), (50,50)] or an
+
+    Returns 3 ndarrays
+    [0] White pixels for the bounding polygon
+    [1] A numpy masked array where pixels outside the polygon are masked (False)
+    [2] The original image inside the polygon, with black pixels outside the polygon
     '''
     img = _fixp(img)
     if isinstance(img, str):
-        img = cv2.imread(img, -1) # -1 loads as-is so if it will be 3 or 4 channel as the original
+        # -1 loads as-is so if it will be 3 or 4 channel as the original
+        img = cv2.imread(img, -1)
     else:
         if not isinstance(img, np.ndarray):
-            raise ValueError('Argument must be the path to an image, or an image (ndarray)')
+            raise ValueError(
+                'Argument must be the path to an image, or an image (ndarray)')
 
     # mask defaulting to black for 3-channel and transparent for 4-channel
     # (of course replace corners with yours)
     white_mask = np.zeros(img.shape, dtype=np.uint8)
-    if  isinstance(points, ndarray):
+    if isinstance(points, np.ndarray):
         roi_corners = convexHull(points)
     else:
         roi_corners = convexHull(np.array([points], dtype=np.int32))
@@ -168,6 +203,7 @@ def roi_polygons_get(img, points):
     mask = ma.masked_values(white_mask, 0)
 
     return white_mask, mask, cv2.bitwise_and(img, white_mask)
+
 
 def get_perspective_correction(bg_dist, object_depth, length):
     '''(float, float)->float|None
@@ -183,7 +219,14 @@ def get_perspective_correction(bg_dist, object_depth, length):
     else:
         return length / (1 - (object_depth / bg_dist))
 
-def get_perspective_correction_iter_linear(coeff, const, bg_dist, length, last_length=0, stop_below_proportion=0.01):
+
+def get_perspective_correction_iter_linear(
+        coeff,
+        const,
+        bg_dist,
+        length,
+        last_length=0,
+        stop_below_proportion=0.01):
     '''(float, float, float, float,float)->float|None
     Return the length corrected for the depth of the object
     considering the backplane of the object to be the best
@@ -210,15 +253,18 @@ def get_perspective_correction_iter_linear(coeff, const, bg_dist, length, last_l
     elif (last_length / length < stop_below_proportion) and last_length > 0:
         return length
 
-    if last_length == 0: #first call
+    if last_length == 0:  # first call
         l = get_perspective_correction(bg_dist, object_depth, length) - length
     else:
-        l = get_perspective_correction(bg_dist, object_depth, last_length) - last_length
+        l = get_perspective_correction(
+            bg_dist, object_depth, last_length) - last_length
 
     if l is None:
         return None
 
-    return get_perspective_correction_iter_linear(coeff, const, bg_dist, length + l, l, stop_below_proportion)
+    return get_perspective_correction_iter_linear(
+        coeff, const, bg_dist, length + l, l, stop_below_proportion)
+
 
 def get_image_resolutions(glob_str):
     '''(str)->list of lists
@@ -239,12 +285,14 @@ def get_image_resolutions(glob_str):
                     dims.append(e)
     return dims
 
+
 def resolution(img):
     '''ndarray
     width,height
     '''
     assert isinstance(img, np.ndarray)
     return [img.shape[1], img.shape[0]]
+
 
 def is_image(file_path, try_load=False):
     '''(str)->bool
@@ -262,6 +310,7 @@ def is_image(file_path, try_load=False):
                     ret = True
     return ret
 
+
 def image_generator(paths, wildcards, flags=None):
     '''(iterable, iterable)->ndarray (an image)
     Globs through every file in paths matching wildcards returning
@@ -273,20 +322,25 @@ def image_generator(paths, wildcards, flags=None):
         else:
             yield cv2.imread(images, flags)
 
+
 def splitfn(fn):
     '''(str) -> tuple
     splits a full file name into path, name and extension, returning as a tuple
     '''
-    path, fn = os.path.split(fn)
+    pth, fn = os.path.split(fn)
     name, ext = os.path.splitext(fn)
-    return path, name, ext
+    return pth, name, ext
+
 
 def anorm2(a):
     '''anorm2'''
     return (a * a).sum(-1)
+
+
 def anorm(a):
     '''anorm'''
     return np.sqrt(anorm2(a))
+
 
 def homotrans(H, x, y):
     xs = H[0, 0] * x + H[0, 1] * y + H[0, 2]
@@ -294,11 +348,13 @@ def homotrans(H, x, y):
     s = H[2, 0] * x + H[2, 1] * y + H[2, 2]
     return xs / s, ys / s
 
+
 def to_rect(a):
     a = np.ravel(a)
     if len(a) == 2:
         a = (0, 0, a[0], a[1])
     return np.array(a, np.float64).reshape(2, 2)
+
 
 def rect_as_points(rw, col, h, w):
     '''(int,int,int,int)->list
@@ -309,12 +365,14 @@ def rect_as_points(rw, col, h, w):
     '''
     return [(col, rw), (col, rw + h), (col + w, rw), (w, h)]
 
+
 def rect2rect_mtx(src, dst):
     src, dst = to_rect(src), to_rect(dst)
     cx, cy = (dst[1] - dst[0]) / (src[1] - src[0])
     tx, ty = dst[0] - src[0] * (cx, cy)
     M = np.float64([[cx, 0, tx], [0, cy, ty], [0, 0, 1]])
     return M
+
 
 def lookat(eye, target, up=(0, 0, 1)):
     fwd = np.asarray(target, np.float64) - eye
@@ -326,6 +384,7 @@ def lookat(eye, target, up=(0, 0, 1)):
     tvec = -np.dot(R, eye)
     return R, tvec
 
+
 def mtx2rvec(R):
     w, u, vt = cv2.SVDecomp(R - np.eye(3))
     p = vt[0] + u[:, 0] * w[0]    # same as np.dot(R, vt[0])
@@ -334,10 +393,14 @@ def mtx2rvec(R):
     axis = np.cross(vt[0], vt[1])
     return axis * np.arctan2(s, c)
 
+
 def draw_str(dst, target, s):
     x, y = target
-    cv2.putText(dst, s, (x + 1, y + 1), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
-    cv2.putText(dst, s, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=cv2.LINE_AA)
+    cv2.putText(dst, s, (x + 1, y + 1), cv2.FONT_HERSHEY_PLAIN,
+                1.0, (0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+    cv2.putText(dst, s, (x, y), cv2.FONT_HERSHEY_PLAIN,
+                1.0, (255, 255, 255), lineType=cv2.LINE_AA)
+
 
 def make_cmap(name, n=256):
     data = _CMAP_DATA[name]
@@ -354,8 +417,10 @@ def make_cmap(name, n=256):
         channels.append(ch)
     return np.uint8(np.array(channels).T * 255)
 
+
 def clock():
     return cv2.getTickCount() / cv2.getTickFrequency()
+
 
 @contextmanager
 def Timer(msg):
@@ -366,6 +431,7 @@ def Timer(msg):
     finally:
         print("%.2f ms" % ((clock() - start) * 1000))
 
+
 def grouper(n, iterable, fillvalue=None):
     '''grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx'''
     args = [iter(iterable)] * n
@@ -374,6 +440,7 @@ def grouper(n, iterable, fillvalue=None):
     else:
         output = it.izip_longest(fillvalue=fillvalue, *args)
     return output
+
 
 def mosaic(w, imgs):
     '''Make a grid from images.
@@ -390,19 +457,24 @@ def mosaic(w, imgs):
     rows = grouper(w, imgs, pad)
     return np.vstack(map(np.hstack, rows))
 
+
 def getsize(img):
     h, w = img.shape[:2]
     return w, h
 
-#def mdot(*args):
+# def mdot(*args):
    # return reduce(np.dot, args)
+
+
 def draw_keypoints(vis, keypoints, color=(0, 255, 255)):
     for kp in keypoints:
         x, y = kp.pt
         cv2.circle(vis, (int(x), int(y)), 2, color)
 
-#region jrosebr1
-#https://github.com/jrosebr1/imutils/blob/master/imutils/convenience.py
+# region jrosebr1
+# https://github.com/jrosebr1/imutils/blob/master/imutils/convenience.py
+
+
 def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     '''(ndarray, int, int, constant)->void
     1) initialize the dimensions of the image to be resized and grab the image size
@@ -415,7 +487,7 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
 
     if width is None and height is None:
         return image
-    elif not width is None and not height is None:
+    elif width is not None and height is not None:
         dim = (width, height)
     elif width is None:
         r = height / float(h)
@@ -424,6 +496,7 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
         r = width / float(w)
         dim = (width, int(h * r))
     return cv2.resize(image, dim, interpolation=inter)
+
 
 def skeletonize(image, size, structuring=cv2.MORPH_RECT):
     # determine the area (i.e.  total number of pixels in the image),
@@ -455,6 +528,7 @@ def skeletonize(image, size, structuring=cv2.MORPH_RECT):
     # return the skeletonized image
     return skeleton
 
+
 def url_to_image(url, readFlag=cv2.IMREAD_COLOR):
     '''(str,cv2readflag)->ndarray
     download the image, convert it to a NumPy array, and then read
@@ -465,6 +539,7 @@ def url_to_image(url, readFlag=cv2.IMREAD_COLOR):
     image = cv2.imdecode(image, readFlag)
     return image
 
+
 def opencv2matplotlib(image):
     '''(ndarray->ndarray)
     OpenCV represents images in BGR order; however, Matplotlib
@@ -473,11 +548,13 @@ def opencv2matplotlib(image):
     '''
     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
+
 def is_cv2():
     '''if we are using OpenCV 2, then our cv2.__version__ will start
     with '2.'
     '''
     return opencv_check_version("2.")
+
 
 def is_cv3():
     '''
@@ -485,6 +562,7 @@ def is_cv3():
     with '3.'
     '''
     return opencv_check_version("3.")
+
 
 def opencv_check_version(major, lib=None):
     '''if the supplied library is None, import OpenCV
@@ -496,6 +574,22 @@ def opencv_check_version(major, lib=None):
     # major version number
     return lib.__version__.startswith(major)
 
+
+def poly_area(pts=None, x=None, y=None):
+    '''(list, list, list)->float
+    If points are in two matched lists, use x= and y=
+    Else if you have an array of points, use pts=
+
+    eg. x=[1,2,3,4], y=[5,6,7,8]
+    or pts=[(1,5),(2,6),(3,7),(4,8)]
+    '''
+    if pts:
+        x = [pt[0] for pt in pts]
+        y = [pt[1] for pt in pts]
+
+    return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+
+
 def show(img):
     '''(str|ndarray)->void
     Show an image, passing in a path or ndarray
@@ -504,9 +598,9 @@ def show(img):
         img = _fixp(img)
         img = cv2.imread(img)
 
-    cv2.imshow('img',img)
+    cv2.imshow('img', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-#endregion
-#endregion
+# endregion
+# endregion
