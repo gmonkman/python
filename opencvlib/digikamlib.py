@@ -28,6 +28,8 @@ def read_specific_path(pathin):
     '''(str)->str
     Use SPECIFIC_PATH_OVERRIDE if defined, primarily
     for if we run on a different computer
+
+    Replace specific path with specific_path_override
     '''
     if SPECIFIC_PATH_OVERRIDE == '':
         return pathin
@@ -311,8 +313,9 @@ class ImagePaths(object):
             filename='',
             album_label='',
             relative_path='',
+            bool_type='AND',
             **kwargs):
-        '''(str, str, str, Key-value kwargs representing parent tag name and child tag name)->list
+        '''(str, str, str,str, Key-value kwargs representing parent tag name and child tag name)->list
 
         Retrieve images by the tags, where kwargs is parent key=child key
         Hence for bass, we would call using:
@@ -320,9 +323,15 @@ class ImagePaths(object):
 
         Pass in __any__ = <tag> for a single non-heirarchy match, eg __any__ = 'bass' will pick up anything tagged with bass anywhere
 
+        Where a parent has multiple children, need to use a list for the values, e.g. species=['bass','mackerel']
+
         Get a list of a images by the tags passed in args
 
         Relative paths must use forward slash /
+
+        valid bool type are AND and OR.
+
+        *Note sets can be used to emulate AND/OR/NOT like operations on returned lists
         '''
         # Albumroots.specificpath is the root path of the album from the drive, excluding the drive
         # e.g. /development/python/opencvlib/calibration for the calibration album
@@ -359,13 +368,30 @@ class ImagePaths(object):
             #   ')'
             #  ')'
         ]
-
+        where = []
         if kwargs:
-            where = [" parent.name='%s' AND children.name='%s' AND" %
-                     (key, value) for key, value in kwargs.items()]
-            where[-1] = rreplace(where[-1], 'AND', '', 1)
+            if bool_type == 'OR':
+                for key, value in kwargs.items():
+                    if isinstance(value,list):
+                        for val in value:
+                            where.append(" (parent.name='%s' AND children.name='%s') OR" % (key, val))
+                    else:
+                        where.append(" (parent.name='%s' AND children.name='%s') OR" % (key, value))
+
+                #where = [" parent.name='%s' OR children.name='%s' OR" % (key, value) for key, value in kwargs.items()]
+                where[-1] = rreplace(where[-1], 'OR', '', 1)
+            else:
+                for key, value in kwargs.items():
+                    if isinstance(value,list):
+                        for val in value:
+                            where.append(" (parent.name='%s' AND children.name='%s') AND" % (key, val))
+                    else:
+                        where.append(" (parent.name='%s' AND children.name='%s') AND" % (key, value))
+
+                #where = [" parent.name='%s' AND children.name='%s' AND" % (key, value) for key, value in kwargs.items()]
+                where[-1] = rreplace(where[-1], 'AND', '', 1)
         else:
-            where = " 1=1 "
+            where = [" 1=1 "]
 
         sql.append(''.join(where))
         sql.append('))')

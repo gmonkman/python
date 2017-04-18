@@ -1,9 +1,10 @@
-#pylint: disable=redefined-variable-type
+# pylint: disable=redefined-variable-type
 """
 Wrapper for executing system commands and returning the result as a string.
 """
 
 import subprocess
+
 
 def execute(command, on_failure=None):
     """ (-> String (-> CalledProcessException String) String)
@@ -14,9 +15,11 @@ def execute(command, on_failure=None):
         exception.
     """
     # Try to run the command, watch for failures
-    # Need to close pipe in a finally block? I think not but leaving note just.in.case
+    # Need to close pipe in a finally block? I think not but leaving note
+    # just.in.case
     try:
-        output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+        output = subprocess.check_output(
+            command, shell=True, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as cpe:
         if on_failure is None:
             raise cpe
@@ -28,12 +31,10 @@ def execute(command, on_failure=None):
         output = output.decode('utf-8')
     return output
 
+
 def find_file(filename):
     '''unsure what this does1'''
-    command = " ".join(["find"
-                        , "."
-                        , "-name"
-                        , filename])
+    command = " ".join(["find", ".", "-name", filename])
     matches_str = execute(command)
     if matches_str:
         return matches_str.split("\n", 1)[0]

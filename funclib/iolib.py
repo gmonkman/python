@@ -297,11 +297,22 @@ def drive_get_uuid(drive='C:', strip=['-'], return_when_unidentified='??'):
 def get_file_parts(filepath):
     '''(str)->list[path, filepart, extension]
     Given path to a file, split it into path, file part and extension.
-    eg: c:\temp\myfile.txt
-    ['c:\temp', 'myfile', '.txt']
+    eg: c:/temp/myfile.txt
+    ['c:/temp', 'myfile', '.txt']
     '''
     folder, fname = os.path.split(filepath)
     fname, ext = os.path.splitext(fname)
+    return [folder, fname, ext]
+
+
+def get_file_parts2(filepath):
+    '''(str)->list[path, filepart, extension]
+    Given path to a file, split it into path, file part and extension.
+    eg: c:/temp/myfile.txt
+    ['c:/temp', 'myfile.txt', '.txt']
+    '''
+    folder, fname = os.path.split(filepath)
+    ext = os.path.splitext(fname)[1]
     return [folder, fname, ext]
 
 
@@ -537,7 +548,7 @@ def print_progress(
         prefix='',
         suffix='',
         decimals=2,
-        bar_length=50):
+        bar_length=30):
     """
     Call in a loop to create terminal progress bar
     @params:

@@ -53,7 +53,9 @@ class switch(object):
         else:
             return False
 
+# region dict
 
+#region dict classes
 class dictp(dict):
     '''allow values to be accessed with partial key match
     dic = {'abc':1}
@@ -70,12 +72,68 @@ class dictp(dict):
             key = keys[0] if keys else None
         return self.get(key)
 
+class DictList(dict):
+    '''support having a key with a list of values,
+    effectively emulating a ditionary with non-unique keys
+    >>> d = dictlist.Dictlist()
+    >>> d['test'] = 1
+    >>> d['test'] = 2
+    >>> d['test'] = 3
+    >>> d
+    {'test': [1, 2, 3]}
+    >>> d['other'] = 100
+    >>> d
+    {'test': [1, 2, 3], 'other': [100]}
+    '''
+    def __setitem__(self, key, value):
+        try:
+            self[key]
+        except KeyError:
+            super(DictList, self).__setitem__(key, [])
+        self[key].append(value)
+#endregion
+
 
 def dic_merge_two(x, y):
     '''Given two dicts, merge them into a new dict as a shallow copy.'''
     z = x.copy()
     z.update(y)
     return z
+# endregion
+
+
+# region lists
+def list_not(lst, not_in_list):
+    '''(list,list)->list
+    return set of lst elements not in not_in_list
+
+    **Removes duplicates'''
+    return list(set(lst) - set(not_in_list))
+
+
+def list_and(lst1, lst2):
+    '''(list,list)->list
+    Return list elements in both lists
+
+    **Removes duplicates'''
+    return set(lst1) & set(lst2)
+
+
+def list_or(lst1, lst2):
+    '''(list,list)->list
+    return all list elements (union)
+
+    **Removes duplicates'''
+    return set(lst1) | set(lst2)
+
+
+def list_symmetric_diff(lst1, lst2):
+    '''(list,list)->list
+    Return all list elements not common
+    to both sets
+
+    **Removes duplicates'''
+    return set(lst1) ^ set(lst2)
 
 
 def list_append_unique(list_in, val):
@@ -87,8 +145,6 @@ def list_append_unique(list_in, val):
         list_in.append(val)
 
 
-# region lists
-
 def list_flatten(items, seqtypes=(list, tuple)):
     '''flatten a list'''
     for i, x in enumerate(items):
@@ -98,7 +154,7 @@ def list_flatten(items, seqtypes=(list, tuple)):
 # endregion
 
 
-# base python stuff
+# region base python stuff
 def isPython3():
     '''->bool
     '''
@@ -109,7 +165,6 @@ def isPython2():
     '''->bool
     '''
     return version_info.major == 2
-
 # also implemented in iolib
 
 
@@ -124,3 +179,4 @@ def get_platform():
         return 'mac'
     elif s == "win32" or s == "windows":
         return 'windows'
+# endregion

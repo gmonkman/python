@@ -6,10 +6,12 @@ import opencvlib.digikamlib as digikamlib
 import opencvlib.vgg as vgg
 import opencvlib.common as common
 
+
 def test_vgg_fix():
     vgg.load_json(
         'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/test_write.json')
     vgg.write_region_attributes('bass')
+
 
 def test_imagesbytags():
     image_paths = digikamlib.ImagePaths(
@@ -30,9 +32,9 @@ def test_vgg():
         'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/10150756_851703354845619_1559938228217274444_n.jpg')
     assert isinstance(img, vgg.Image)
     for subject in img.subjects_generator('bass'):
-        assert isinstance(subject, vgg._Subject)
+        assert isinstance(subject, vgg.Subject)
         for region in subject.regions_generator():
-            assert isinstance(region, vgg._Region)
+            assert isinstance(region, vgg.Region)
             print(region.species, region.part, region.shape)
 
 
@@ -49,20 +51,22 @@ def test_roi():
         False)
     vgg_img = vgg.Image(img_path)
     for subject in vgg_img.subjects_generator('bass'):
-        assert isinstance(subject, vgg._Subject)
+        assert isinstance(subject, vgg.Subject)
         for region in subject.regions_generator('whole'):
-            assert isinstance(region, vgg._Region)
-            white, ma, cropped_image = common.roi_polygons_get(img_path, region.all_points)
+            assert isinstance(region, vgg.Region)
+            white, ma, cropped_image = common.roi_polygons_get(
+                img_path, region.all_points)
             cv2.imshow('preview', white)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
 
 def main():
-    #test_roi()
+    # test_roi()
     # test_imagesbytags()
     # test_vgg()
     test_vgg_fix()
+
 
 if __name__ == "__main__":
     main()

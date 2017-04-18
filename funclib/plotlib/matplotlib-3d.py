@@ -1,4 +1,4 @@
-#pylint: skip-file
+# pylint: skip-file
 '''3d matplot lib plot wrapper'''
 from __future__ import print_function
 
@@ -7,7 +7,7 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
-matplotlib.use('Agg') # Disable the display, does not affect graph generation
+matplotlib.use('Agg')  # Disable the display, does not affect graph generation
 from mpl_toolkits.axes_grid1 import AxesGrid
 
 import constants
@@ -15,14 +15,14 @@ import constants
 # Set font, globally
 default_font = {
     #'family': 'normal',
-    'weight' : 'semibold',
-    'size' : 24,
+    'weight': 'semibold',
+    'size': 24,
     #'linespacing' : 0.4,
 }
 title_font = {
     #'family': 'normal',
-    'weight' : 'semibold',
-    'size' : 30,
+    'weight': 'semibold',
+    'size': 30,
     #'linespacing' : 0.4,
 }
 matplotlib.rc('font', **default_font)
@@ -47,6 +47,8 @@ COLORMAPS = [
 #############################################################################
 
 # http://stackoverflow.com/questions/7404116/defining-the-midpoint-of-a-colormap-in-matplotlib
+
+
 def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
     '''
     Function to offset the "center" of a colormap. Useful for
@@ -92,6 +94,7 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
     plt.register_cmap(cmap=newcmap)
     return newcmap
 
+
 def make_mesh(xbounds, ybounds, zfun, samples):
     """
         Create a mesh from:
@@ -115,19 +118,18 @@ def make_mesh(xbounds, ybounds, zfun, samples):
 
 # For info on colormaps, see
 # http://matplotlib.org/api/pyplot_summary.html?highlight=colormaps#matplotlib.pyplot.colormaps
+
+
 def contour(xbounds, ybounds, zfun, title=None, xlabel=None, ylabel=None, zlabel=None, samples=constants.GRAPH_SAMPLES, output=None, zlim=None, colormap=cm.cubehelix):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     X, Y, Z = make_mesh(xbounds, ybounds, zfun, samples)
-    cmap = shiftedColorMap(colormap
-                           ,start=0, midpoint=0.4, stop=.85, name='shifted%s' % colormap.name)
-    surf = ax.plot_surface(X, Y, Z
-                           ,rstride=1, cstride=1 # row/column step size (int, default=10)
-                           ,cmap=cmap
-                           ,vmin=0, vmax=zlim
-                           ,linewidth=0, antialiased=False)
+    cmap = shiftedColorMap(colormap, start=0, midpoint=0.4,
+                           stop=.85, name='shifted%s' % colormap.name)
+    surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1  # row/column step size (int, default=10)
+                           , cmap=cmap, vmin=0, vmax=zlim, linewidth=0, antialiased=False)
     # Override the x and y ticks
-    xposns = list(range(xbounds[0], xbounds[1]+1))
+    xposns = list(range(xbounds[0], xbounds[1] + 1))
     yposns = [(ybounds[1] - ybounds[0]) // 2, ybounds[1]]
     plt.xticks(xposns, ["%sx" % n for n in xposns])
     plt.yticks(yposns, ["%sx" % m for m in yposns])
@@ -150,6 +152,7 @@ def contour(xbounds, ybounds, zfun, title=None, xlabel=None, ylabel=None, zlabel
     print("Saved contour to '%s'" % output)
     plt.close()
     return out
+
 
 def make_figs(output):
     """

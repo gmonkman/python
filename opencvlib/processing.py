@@ -4,6 +4,7 @@
 '''
 import cv2
 
+
 def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     '''(ndarray, int, int, constant)->void
     1) initialize the dimensions of the image to be resized and grab the image size

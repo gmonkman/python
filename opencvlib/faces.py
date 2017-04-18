@@ -5,7 +5,7 @@
 import cv2
 import os.path as path
 
-from funclib.iolib import get_file_parts
+from funclib.iolib import get_file_parts2
 
 # TODO Test blur_face
 
@@ -17,7 +17,7 @@ def blur_face(imagepath, overwrite_original=False, save_face=False):
     overwrite_original: overwrite or save as new file in image folder
     save_face: save the detected face as seperate file in image folder
     '''
-    folder, file_part, ext_with_dot = get_file_parts(imagepath)
+    folder, file_part, ext_with_dot = get_file_parts2(imagepath)
     image = cv2.imread(imagepath)
     result_image = image.copy()
 

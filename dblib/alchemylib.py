@@ -111,7 +111,8 @@ class MsSQLs(object):
         return bool indicating if  id exists in table
         '''
         sql = "if exists(SELECT 1 as one FROM " + tablename + " WHERE " + \
-            key_col + "='" + str(v) + "') " "SELECT 1 as res else SELECT 0 as res"
+            key_col + "='" + str(v) + \
+            "') " "SELECT 1 as res else SELECT 0 as res"
         rows = ENGINE.execute(sql)
         for row in rows:
             return bool(row['res'])

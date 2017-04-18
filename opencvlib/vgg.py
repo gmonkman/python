@@ -16,61 +16,74 @@ So: 50x50 image. Top Left x=0,y=0: Bottom Right x=50, y=50
 import os.path as path
 import json
 import logging
-import argparse
-import sys
+
+
 from shutil import copy
 from math import pi
 
 from funclib.stringslib import datetime_stamp
-from funclib.iolib import get_file_parts
 from funclib.baselib import dictp
+
+from funclib.iolib import get_file_parts
+from funclib.iolib import print_progress
 
 from opencvlib.common import rect_as_points
 from opencvlib.common import poly_area
 
-silent = False
+SILENT = True
 _JSON_FILE_NAME = ''
-_JSON_FILE = []
+JSON_FILE = []
 _LOG_FILE_NAME = 'vgg.py.' + datetime_stamp() + '.log'
 
-_VALID_SHAPES_ALL = ['', 'polygon', 'rect', 'circle', 'ellipse', 'point']
-_VALID_SHAPES_2D = ['polygon', 'rect', 'circle', 'ellipse']
+VALID_SHAPES_ALL = ['', 'polygon', 'rect', 'circle', 'ellipse', 'point']
+VALID_SHAPES_2D = ['polygon', 'rect', 'circle', 'ellipse']
 
-_VALID_PARTS = ['', 'whole', 'head']
-_VALID_SPECIES = ['bass',
-    'dab',
-    'mackerel',
-    'flounder',
-    'dogfish',
-    'plaice',
-    'gurnard grey',
-    'flatfish',
-    'cod']
+VALID_PARTS = ['', 'whole', 'head']
+VALID_SPECIES = ['bass',
+                 'dab',
+                 'mackerel',
+                 'flounder',
+                 'dogfish',
+                 'plaice',
+                 'gurnard grey',
+                 'flatfish',
+                 'cod']
+
 
 def _prints(s):
-    if not silent:
+    if not SILENT:
         print(s)
 
+
 logging.basicConfig(format='%(asctime)s %(message)s',
-    filename=_LOG_FILE_NAME,
-    filemode='w',
-    level=logging.DEBUG)
+                    filename=_LOG_FILE_NAME,
+                    filemode='w',
+                    level=logging.DEBUG)
 
 _prints('Logging to %s' % _LOG_FILE_NAME)
 
 
-def _fix_keys():
+def fix_keys(backup=True, show_progress=False):
     '''loop through json file and correct file sizes
     '''
-    for key in _JSON_FILE:
+    cnt = 0
+    _prints('\n\nFixing keys...\n')
+    for key in JSON_FILE:
         # relies on VGG JSON file being in same dir as files
         filepath = get_file_parts(_JSON_FILE_NAME)[0]
-        filename = _JSON_FILE[key]['filename']
+        filename = JSON_FILE[key]['filename']
         fullname = path.join(filepath, filename)
         size_in_bytes = path.getsize(fullname)
         newkey = filename + str(size_in_bytes)
-        _JSON_FILE[newkey] = _JSON_FILE.pop(key)
-    save_json()
+        JSON_FILE[newkey] = JSON_FILE.pop(key)
+
+        if not SILENT or show_progress:
+            cnt += 1
+            s = '%s of %s' % (cnt, len(JSON_FILE))
+            print_progress(cnt, len(JSON_FILE), s, bar_length=30)
+
+    save_json(backup)
+    _prints('\n\nKey fixing complete.\n')
 
 
 class Image(object):
@@ -118,7 +131,8 @@ class Image(object):
         '''
         self.filepath = filepath
         if filepath != '':
-            self.filefolder, self.filename, self.fileext = get_file_parts(path.abspath(path.normpath(self.filepath)))
+            self.filefolder, self.filename, self.fileext = get_file_parts(
+                path.abspath(path.normpath(self.filepath)))
             self.filename = self.filename + self.fileext
             self.key = self._get_key()
 
@@ -127,27 +141,60 @@ class Image(object):
         identify subject of given species'''
         subjectids = []
 
-        if species not in _VALID_SPECIES:
+        if species not in VALID_SPECIES:
             raise ValueError('Invalid species ' + species)
 
-        d = dictp(_JSON_FILE)
+        d = dictp(JSON_FILE)
         regions = d[self.key]['regions']
 
         if regions:
             assert isinstance(regions, dict)
             for region in regions.values():
-                if region['region_attributes']['species'].casefold() == species.casefold():
-                    subjectid = region['region_attributes']['subjectid']
+                if region.get('region_attributes').get('species', '').casefold() == species.casefold():
+                    subjectid = region.get(
+                        'region_attributes').get('subjectid')
                     if subjectid not in subjectids:
                         subjectids.append(subjectid)
-                        sbj = _Subject(self.key, subjectid)
+                        sbj = Subject(self.key, subjectid)
                         yield sbj
         else:
             s = 'No VGG regions defined for image %s' % self.filepath
+
+            if not SILENT:
+                print(s)
             logging.warning(s)
 
+    @property
+    def subject_count(self, species=''):
+        '''str->int
+        Returns number of valid regions
 
-class _Subject(object):
+        If species is set, checks for that species only
+        '''
+        cnt = 0
+
+        for spp in VALID_SPECIES:
+            if species.casefold() == spp.casefold() or species == '':
+                for region in self.subjects_generator(spp):
+                    cnt += 1
+        return cnt
+
+    @property
+    def shape_count(self):
+        '''->int
+        Returns number of shapes
+        '''
+        d = dictp(JSON_FILE)
+        regions = d[self.key]['regions']
+        cnt=0
+        if regions:
+            assert isinstance(regions, dict)
+            for region in regions.values():
+                if region.get('shape_attributes'):
+                    cnt+=1
+        return cnt
+
+class Subject(object):
     '''really a fish object, has many regions
     Should not be accessed directly.
     Iterate through the Images class subjects_generator.
@@ -174,7 +221,7 @@ class _Subject(object):
         saved to region_ids for access later
         '''
 
-        d = dictp(_JSON_FILE)
+        d = dictp(JSON_FILE)
         regions = d[self.key]['regions']
 
         for key, region in regions.items():
@@ -201,13 +248,13 @@ class _Subject(object):
 
         If no region attributes assumes region is the whole object ('whole')
         '''
-        if part not in _VALID_PARTS:
+        if part not in VALID_PARTS:
             raise ValueError('Invalid image region type (part) ' + part)
 
-        if shape not in _VALID_SHAPES_ALL:
+        if shape not in VALID_SHAPES_ALL:
             raise ValueError('Invalid shape ' + part)
 
-        d = dictp(_JSON_FILE)
+        d = dictp(JSON_FILE)
         regions = d[self.key]['regions']
 
         # region_ids is the ids of all regions which share a common
@@ -216,20 +263,20 @@ class _Subject(object):
             shape_attr = regions[region_key]['shape_attributes']
             region_attr = regions[region_key]['region_attributes']
             if shape_attr:
-                reg = _Region(part=region_attr.get('part', 'whole'),
-                              image_key=self.key,  # no get, error if doesnt exist
-                              has_attrs=True if region_attr else False,
-                              region_key=region_key,  # no get, error if doesnt exist
-                              species=region_attr.get('species'),
-                              subjectid=region_attr.get('subjectid'),
-                              shape=shape_attr.get('name'),
-                              x=shape_attr.get('x'),
-                              y=shape_attr.get('y'),
-                              r=shape_attr.get('r'),
-                              w=shape_attr.get('w'),
-                              h=shape_attr.get('h'),
-                              all_points_x=shape_attr.get('all_points_x'),
-                              all_points_y=shape_attr.get('all_points_y'))
+                reg = Region(part=region_attr.get('part', 'whole'),
+                             image_key=self.key,  # no get, error if doesnt exist
+                             has_attrs=True if region_attr else False,
+                             region_key=region_key,  # no get, error if doesnt exist
+                             species=region_attr.get('species'),
+                             subjectid=region_attr.get('subjectid'),
+                             shape=shape_attr.get('name'),
+                             x=shape_attr.get('x'),
+                             y=shape_attr.get('y'),
+                             r=shape_attr.get('r'),
+                             w=shape_attr.get('width'),
+                             h=shape_attr.get('height'),
+                             all_points_x=shape_attr.get('all_points_x'),
+                             all_points_y=shape_attr.get('all_points_y'))
                 if part == '' or part.casefold() == region_attr['part'].casefold():
                     if shape == '' or shape.casefold() == shape_attr.get('name'):
                         yield reg
@@ -238,7 +285,11 @@ class _Subject(object):
                 logging.warning(s)
 
 
-class _Region(object):
+class Region(object):
+    '''Object representing a a single shape marked on a subject,
+    like a head or the whole.
+    '''
+
     def __init__(self, **kwargs):
         '''supported kwargs
         name= [circle | polygon | rect]
@@ -305,23 +356,26 @@ class _Region(object):
         '''->void
         write the region to the in memory json file _JSON_FILE
         '''
-        _JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['subjectid'] = str(self.subjectid)
-        _JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['species'] = self.species
-        _JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['part'] = self.part
+        JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['subjectid'] = str(
+            self.subjectid)
+        JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['species'] = self.species
+        JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['part'] = self.part
 
 # region Save and Load the file
-def load_json(vgg_file, fix_keys=True):
+
+
+def load_json(vgg_file, fixkeys=True, backup=True):
     '''(str)->void
     Load the VGG JSON file into the module variable _JSON_FILE
     '''
     pth = path.normpath(vgg_file)
-    global _JSON_FILE
+    global JSON_FILE
     global _JSON_FILE_NAME
     with open(pth) as data_file:
-        _JSON_FILE = json.load(data_file)
+        JSON_FILE = json.load(data_file)
     _JSON_FILE_NAME = pth
-    if fix_keys:
-        _fix_keys()
+    if fixkeys:
+        fix_keys(backup)
 
 
 def save_json(backup=True):
@@ -337,109 +391,12 @@ def save_json(backup=True):
     if backup:
         bk = path.join(filepath, filename + datetime_stamp() + ext + '.bak')
         copy(_JSON_FILE_NAME, bk)
-        s = 'Created backup of VGG file %s' % bk
+        s = '\nCreated backup of VGG file %s' % bk
         _prints(s)
         logging.info(s)
     with open(_JSON_FILE_NAME, 'w') as outfile:
-        json.dump(_JSON_FILE, outfile)
-    s = 'Saved VGG JSON file %s' % _JSON_FILE_NAME
+        json.dump(JSON_FILE, outfile)
+    s = '\nSaved VGG JSON file %s' % _JSON_FILE_NAME
     _prints(s)
     logging.info(s)
 # endregion
-def write_region_attributes(species, backup=True):
-    '''(str)->void
-    Species is the species name to write to the VGG file.
-
-    Will write the region tags:
-    species=bass, subjectid=1, part=head|tail
-    Decides to write head/tail based on the shape area.
-
-    Only works if there is a single subject (fish) with shapes.
-
-    This is purely a fix to save manual entry.
-
-    *Note, load_json needs to be called fits.
-    '''
-    max_area = 0
-    max_region_key = None
-    region_cnt = 0
-    region_shape_cnt = 0
-    dobreak = False
-    dosave = False
-
-    if not _JSON_FILE:
-        raise ValueError('No VGG JSON file loaded. Call load_json first')
-
-    # first pass to get some stats
-    for key in _JSON_FILE:
-        subj = _Subject(key)
-        for region in subj.regions_generator():
-            assert isinstance(region, _Region)
-            if region.has_attrs:
-                dobreak = True
-                break
-
-            region_cnt += 1
-            region_shape_cnt = region_shape_cnt + \
-                (1 if region.shape in _VALID_SHAPES_2D else 0)
-            if region.area > max_area:
-                max_area = region.area
-                max_region_key = region.region_key
-
-        if dobreak:  # move to next image if there is not two shapes
-            dobreak = False
-            break
-
-        if region_cnt == 2 and region_cnt == region_shape_cnt:
-            for region in subj.regions_generator():
-                if not region.has_attrs:
-                    region.species = species
-                    region.subjectid = 1
-                    region.part = ('whole' if region.region_key == max_region_key else 'head')
-                    region.write()
-                    s = 'Updated regions in %s, part: %s' % (key, region.part)
-                    logging.info(s)
-                    _prints(s)
-                    dosave = True
-
-    if dosave:
-        save_json(backup)
-
-
-
-#need to import argparse
-
-#if _CMDLINEARGS.foo == 'THE FOO ARG':
-    #do stuff
-
-#if _CMDLINEARGS.bar == 'WAS_EMPTY':
-    #do stuff if no bar argument was passed
-
-def main():
-    '''main entry if run from commandline
-    '''
-    cmdline = argparse.ArgumentParser(description='Routines related to VGG files')
-    cmdline.add_argument('file', help='VGG JSON file to manipulate') #position argument
-    cmdline.add_argument('-r', '--region', help='Write region attributes to the specified file, species can be specified', required=False, action='store_true') #specied value argument
-    cmdline.add_argument('-f', '--fix_keys', help='Fix the keys in specied file to account for file size changes', required=False, action='store_true')
-    cmdline.add_argument('-s', '--species', help='Specify species where this is used', required=False, default='') #present or absent test
-    args = cmdline.parse_args()
-
-    spp = args.species
-
-    global silent
-    silent = True
-
-    load_json(path.normpath(args.file))
-    if args.region:
-        if spp == '': spp = 'bass'
-        print("\nUpdating regions, assuming subject is %s....\n" % spp)
-        write_region_attributes(spp)
-
-    if args.fix_keys:
-        print("\nFixing keys with new file sizes....\n")
-        _fix_keys()
-
-if __name__ == "__main__":
-    main()
-    #sys.exit(int(main() or 0))

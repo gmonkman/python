@@ -1,12 +1,13 @@
-#pylint: skip-file
+# pylint: skip-file
 '''string manipulations and related helper functions'''
 
-#base imports
+# base imports
 import time
 import numbers
 
-#my imports
+# my imports
 import funclib.numericslib
+
 
 def datetime_stamp(datetimesep=''):
     '''(str) -> str
@@ -16,6 +17,7 @@ def datetime_stamp(datetimesep=''):
     '''
     fmtstr = '%Y%m%d' + datetimesep + '%H%m%S'
     return time.strftime(fmtstr)
+
 
 def read_number(test, default=0):
     '''(any,number) -> number
@@ -28,14 +30,16 @@ def read_number(test, default=0):
             return default
     elif isinstance(test, numbers.Number):
         return test
-    else:   #not a string or not a number
+    else:  # not a string or not a number
         return default
+
 
 def toASCII(str_val):
     '''(str)->(str)'''
     return str_val.encode('ascii', 'ignore')
 
-#region files and paths related
+# region files and paths related
+
 
 def add_right(s, char='/'):
     '''(str, str) -> str
@@ -47,6 +51,7 @@ def add_right(s, char='/'):
     else:
         return s
 
+
 def add_left(s, char):
     '''(str, str) -> str
     Appends prefix to string if it doesnt exist
@@ -57,7 +62,8 @@ def add_left(s, char):
     else:
         return s
 
+
 def rreplace(s, match, replacewith, cnt=1):
     '''(str,str,str,int)->str'''
     return replacewith.join(s.rsplit(match, cnt))
-#endregion
+# endregion

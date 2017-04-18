@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>vgg.py</StartupFile>
+    <StartupFile>vgg_scripts\subjectless.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/test_write.json" -r -f -s bass</CommandLineArguments>
+    <CommandLineArguments>-t OR "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/bass-angler.json" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db" is_train=head is_train=whole</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
@@ -55,11 +55,25 @@
     <Compile Include="vgg.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="vgg_scripts\fix_keys.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="vgg_scripts\merge_vggs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="vgg_scripts\subjectless.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="vgg_scripts\write_attr.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="calibration\" />
     <Folder Include="calibration\nextbase512g\" />
+    <Folder Include="faces_scripts\" />
+    <Folder Include="vgg_scripts\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="calibration\nextbase512g\2016_1011_132058_001.JPG" />
