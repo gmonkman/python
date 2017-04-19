@@ -25,7 +25,7 @@ def main():
     vgg.SILENT = True
     print('Fixing keys...')
     vgg.load_json(path.normpath(args.file), fixkeys=True)  # also fixes keys
-    print('\n\nDone')
+    print('Done')
 
 
 if __name__ == "__main__":

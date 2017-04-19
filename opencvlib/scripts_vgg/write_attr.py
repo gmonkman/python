@@ -117,7 +117,8 @@ def main():
         spp = 'bass'
 
     if spp not in vgg.VALID_SPECIES:
-        print('Species not found. Valid species are ' + ", ".join(vgg.VALID_SPECIES))
+        print('Species not found. Valid species are ' +
+              ", ".join(vgg.VALID_SPECIES))
         return
 
     print("Updating regions, subject target is %s....\n" % spp)

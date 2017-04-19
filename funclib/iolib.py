@@ -239,6 +239,16 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
 
 
 # region file system
+def datetime_stamp(datetimesep=''):
+    '''(str) -> str
+    Returns clean date-time stamp for file names etc
+    e.g 01 June 2016 11:23 would be 201606011123
+    str is optional seperator between the date and time
+    '''
+    fmtstr = '%Y%m%d' + datetimesep + '%H%m%S'
+    return time.strftime(fmtstr)
+
+
 def exit():
     '''override exit to detect platform'''
     if get_platform() == 'windows':
@@ -372,6 +382,8 @@ def file_list_generator(paths, wildcards):
     the generated file list so:
     paths = ('c:/','d:/')     wildcards=('*.ini','*.txt')
     Will generate: c:/*.ini, c:/*.txt, d:/*.ini, d:/*.txt
+
+    ie. Yields wildcards for consumption a glob.
     '''
     for vals in (add_right(x[0]) + x[1]
                  for x in itertools.product(paths, wildcards)):
@@ -381,10 +393,15 @@ def file_list_generator(paths, wildcards):
 def file_list_generator1(paths, wildcards):
     '''(iterable, iterable) -> tuple
     Takes a list of paths and wildcards and creates a
-    generator which iterates through all the files found
+    generator which iterates through all the FILES found
     in the paths matching the wildcards.
-    the generated file list so:
+
+    So yields all the file names found.
     '''
+
+    for ind, v in enumerate(paths):
+        paths[ind] = os.path.normpath(v)
+
     for vals in (add_right(x[0]) + x[1]
                  for x in itertools.product(paths, wildcards)):
         for myfile in glob(vals):

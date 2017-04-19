@@ -4,19 +4,28 @@
 
 import cv2
 import os.path as path
+from shutil import copy
 
+from funclib.iolib import create_folder
+
+from funclib.stringslib import datetime_stamp
 from funclib.iolib import get_file_parts2
 
 # TODO Test blur_face
 
 
-def blur_face(imagepath, overwrite_original=False, save_face=False):
+def blur_face(imagepath, save_face=False, overwrite_original=False):
     '''(str, bool, bool)
     Blur a faces found in an image
     imagepath: path to image
-    overwrite_original: overwrite or save as new file in image folder
-    save_face: save the detected face as seperate file in image folder
+
+    If overwrite_original, then originals will be moved
+    to a subfolder with datetime stamp.
+
+    Otherwise the blurred images will be created in this subdir
+.
     '''
+
     folder, file_part, ext_with_dot = get_file_parts2(imagepath)
     image = cv2.imread(imagepath)
     result_image = image.copy()
@@ -63,9 +72,14 @@ def blur_face(imagepath, overwrite_original=False, save_face=False):
             cv2.imwrite(face_file_name, sub_face)
 
     # cv2.imshow("Detected face", result_image)
+
+    stamp = datetime_stamp()
+    newfld = path.join(folder, stamp)
+
+    # DEBUG
     if overwrite_original:
-        file_name = imagepath
+        create_folder(newfld)
+        copy(imagepath, path.normpath(path.join(newfld, file_part)))
+        cv2.imwrite(imagepath, result_image)
     else:
-        file_name = path.join(folder, file_part + '_anon' + ext_with_dot)
-    file_name = path.normpath(file_name)
-    cv2.imwrite(file_name, result_image)
+        cv2.imwrite(path.join(newfld, file_part), result_image)

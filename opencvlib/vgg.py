@@ -186,13 +186,14 @@ class Image(object):
         '''
         d = dictp(JSON_FILE)
         regions = d[self.key]['regions']
-        cnt=0
+        cnt = 0
         if regions:
             assert isinstance(regions, dict)
             for region in regions.values():
                 if region.get('shape_attributes'):
-                    cnt+=1
+                    cnt += 1
         return cnt
+
 
 class Subject(object):
     '''really a fish object, has many regions

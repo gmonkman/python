@@ -55,7 +55,9 @@ class switch(object):
 
 # region dict
 
-#region dict classes
+# region dict classes
+
+
 class dictp(dict):
     '''allow values to be accessed with partial key match
     dic = {'abc':1}
@@ -72,6 +74,7 @@ class dictp(dict):
             key = keys[0] if keys else None
         return self.get(key)
 
+
 class DictList(dict):
     '''support having a key with a list of values,
     effectively emulating a ditionary with non-unique keys
@@ -85,13 +88,14 @@ class DictList(dict):
     >>> d
     {'test': [1, 2, 3], 'other': [100]}
     '''
+
     def __setitem__(self, key, value):
         try:
             self[key]
         except KeyError:
             super(DictList, self).__setitem__(key, [])
         self[key].append(value)
-#endregion
+# endregion
 
 
 def dic_merge_two(x, y):

@@ -11,6 +11,7 @@ from os import path
 
 import numpy as np
 import numpy.ma as ma
+from imutils import resize
 
 import cv2
 from cv2 import convexHull
@@ -311,11 +312,19 @@ def is_image(file_path, try_load=False):
     return ret
 
 
-def image_generator(paths, wildcards, flags=None):
+def image_generator(paths, wildcards=None, flags=None):
     '''(iterable, iterable)->ndarray (an image)
+    Paths: List of paths
+    Wildcards: List of wildcards. If wildcards is None, the IMAGE_EXTENSIONS_AS_WILDCARDS
+    will be used.
+
     Globs through every file in paths matching wildcards returning
     the image as an ndarray
     '''
+
+    if wildcards is None:
+        wildcards = IMAGE_EXTENSIONS_AS_WILDCARDS
+
     for images in iolib.file_list_generator1(paths, wildcards):
         if flags is None:
             yield cv2.imread(images)
@@ -601,6 +610,25 @@ def show(img):
     cv2.imshow('img', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+def pyramid(image, scale=1.5, minSize=(30, 30)):
+        # yield the original image
+    yield image
+
+    # keep looping over the pyramid
+    while True:
+                # compute the new dimensions of the image and resize it
+        w = int(image.shape[1] / scale)
+        image = resize(image, width=w)
+
+        # if the resized image does not meet the supplied minimum
+        # size, then stop constructing the pyramid
+        if image.shape[0] < minSize[1] or image.shape[1] < minSize[0]:
+            break
+
+        # yield the next image in the pyramid
+        yield image
 
 # endregion
 # endregion

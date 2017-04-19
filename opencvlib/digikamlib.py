@@ -308,7 +308,7 @@ class ImagePaths(object):
         set the path to the digikam db digikam4.db'''
         self.digikam_path = digikam_path
 
-    def ImagesByTags(
+    def images_by_tags(
             self,
             filename='',
             album_label='',
@@ -372,21 +372,25 @@ class ImagePaths(object):
         if kwargs:
             if bool_type == 'OR':
                 for key, value in kwargs.items():
-                    if isinstance(value,list):
+                    if isinstance(value, list):
                         for val in value:
-                            where.append(" (parent.name='%s' AND children.name='%s') OR" % (key, val))
+                            where.append(
+                                " (parent.name='%s' AND children.name='%s') OR" % (key, val))
                     else:
-                        where.append(" (parent.name='%s' AND children.name='%s') OR" % (key, value))
+                        where.append(
+                            " (parent.name='%s' AND children.name='%s') OR" % (key, value))
 
                 #where = [" parent.name='%s' OR children.name='%s' OR" % (key, value) for key, value in kwargs.items()]
                 where[-1] = rreplace(where[-1], 'OR', '', 1)
             else:
                 for key, value in kwargs.items():
-                    if isinstance(value,list):
+                    if isinstance(value, list):
                         for val in value:
-                            where.append(" (parent.name='%s' AND children.name='%s') AND" % (key, val))
+                            where.append(
+                                " (parent.name='%s' AND children.name='%s') AND" % (key, val))
                     else:
-                        where.append(" (parent.name='%s' AND children.name='%s') AND" % (key, value))
+                        where.append(
+                            " (parent.name='%s' AND children.name='%s') AND" % (key, value))
 
                 #where = [" parent.name='%s' AND children.name='%s' AND" % (key, value) for key, value in kwargs.items()]
                 where[-1] = rreplace(where[-1], 'AND', '', 1)

@@ -9,14 +9,14 @@ from shutil import copyfile
 
 import opencvlib.vgg as vgg
 import opencvlib.digikamlib as dkl
-from funclib.iolib import get_file_parts2
+from funclib.iolib import _get_file_parts22
 from funclib.iolib import create_folder
 from funclib.iolib import print_progress
 from funclib.baselib import DictList
 
 
 def main():
-    '''(str, kwags)->void
+    '''
     Copies files matching the tags kwargs to
     the subfolder where the image has no set.
 
@@ -27,10 +27,10 @@ def main():
     '''
 
     cmdline = argparse.ArgumentParser(description='Copies image files to a specified subfolder which have'
-                                        ' the specified tags in digikam\n\n'
-                                        'Only images in the root of the VGG file folder are checked.\n\n'
-                                        'Example:\n'
-                                        'subjectless.py -t OR "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/bass-angler.json" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db" is_train=head is_train=whole'
+                                      ' the specified tags in digikam\n\n'
+                                      'Only images in the root of the VGG file folder are checked.\n\n'
+                                      'Example:\n'
+                                      'subjectless.py -t OR "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/bass-angler.json" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db" is_train=head is_train=whole'
                                       )
 
     cmdline.add_argument(
@@ -82,7 +82,9 @@ def main():
         return
 
     # Build kw args
-    kwords = DictList() #allow multiple values in our key value pairs, eg is_train=head is_train=whole will be {'is_train':['head','whole']}
+    # allow multiple values in our key value pairs, eg is_train=head
+    # is_train=whole will be {'is_train':['head','whole']}
+    kwords = DictList()
     for kv in args.key_values:
         kv = str(kv)
         a, b = kv.split(sep='=')
@@ -93,7 +95,7 @@ def main():
         print('Unknown argument %s for -t (the boolean search type). Defaulting to AND' %
               args.bool_type)
 
-    images = digi.ImagesByTags(bool_type=args.bool_type, **kwords)
+    images = digi.images_by_tags(bool_type=args.bool_type, **kwords)
     print('%s images matched digikam tag criteria' % len(images))
     # create the new folder
     if args.subfolder == '':
@@ -101,15 +103,15 @@ def main():
     else:
         subfolder = args.subfolder
 
-    new_fld = path.normpath(get_file_parts2(vggfile)[0] + '/' + subfolder)
+    new_fld = path.normpath(_get_file_parts22(vggfile)[0] + '/' + subfolder)
     create_folder(new_fld)
     print("\nCreated folder %s" % new_fld)
 
-    vgg_folder = get_file_parts2(vggfile)[0]
+    vgg_folder = _get_file_parts22(vggfile)[0]
     cnt = 1
-    copy_cnt=0
+    copy_cnt = 0
     for img in images:
-        imgfld = get_file_parts2(img)[0]
+        imgfld = _get_file_parts22(img)[0]
         if vgg_folder == imgfld:
             do_copy = True
 
@@ -118,9 +120,9 @@ def main():
                 do_copy = bool(vgg_image.shape_count == 0)
 
             if do_copy:
-                dest = path.join(new_fld, get_file_parts2(img)[1])
+                dest = path.join(new_fld, _get_file_parts22(img)[1])
                 copyfile(img, dest)
-                copy_cnt +=1
+                copy_cnt += 1
 
             s = '%s of %s' % (cnt, len(images))
             print_progress(cnt, len(images), s, bar_length=30)

@@ -16,7 +16,7 @@ def test_vgg_fix():
 def test_imagesbytags():
     image_paths = digikamlib.ImagePaths(
         'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db')
-    lst = image_paths.ImagesByTags(
+    lst = image_paths.images_by_tags(
         filename='10150756_851703354845619_1559938228217274444_n.jpg',
         album_label='images',
         relative_path='bass/angler',
@@ -41,7 +41,7 @@ def test_vgg():
 def test_roi():
     image_paths = digikamlib.ImagePaths(
         'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db')
-    img_path = image_paths.ImagesByTags(
+    img_path = image_paths.images_by_tags(
         filename='10150756_851703354845619_1559938228217274444_n.jpg',
         album_label='images',
         relative_path='bass/angler',
