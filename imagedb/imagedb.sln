@@ -11,6 +11,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "dblib", "..\dblib\dblib.pyp
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "opencvlib", "..\opencvlib\opencvlib.pyproj", "{3791C3EB-165F-4A04-83E2-956959C15823}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "solem", "..\solem\solem.pyproj", "{14E8C985-7257-488A-A3A7-D05601826AE5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,8 @@ Global
 		{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3791C3EB-165F-4A04-83E2-956959C15823}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3791C3EB-165F-4A04-83E2-956959C15823}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14E8C985-7257-488A-A3A7-D05601826AE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14E8C985-7257-488A-A3A7-D05601826AE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

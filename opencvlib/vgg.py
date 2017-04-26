@@ -21,6 +21,8 @@ import logging
 from shutil import copy
 from math import pi
 
+from cv2 import boundingRect
+
 from funclib.stringslib import datetime_stamp
 from funclib.baselib import dictp
 
@@ -28,7 +30,9 @@ from funclib.iolib import get_file_parts
 from funclib.iolib import print_progress
 
 from opencvlib.common import rect_as_points
+from opencvlib.common import bounding_rect_as_points
 from opencvlib.common import poly_area
+from opencvlib.common import bounding_ellipse_as_points
 
 SILENT = True
 _JSON_FILE_NAME = ''
@@ -289,6 +293,8 @@ class Subject(object):
 class Region(object):
     '''Object representing a a single shape marked on a subject,
     like a head or the whole.
+
+    Note opencv points have origin in top left and are (x,y) ie col,row (width,height). Not the matrix standard.
     '''
 
     def __init__(self, **kwargs):
@@ -302,11 +308,13 @@ class Region(object):
 
         values set to None if not read
 
-        Coordinate system for VGG is:
+        Coordinate system for VGG (which is the same as *points* in opencv) is:
         x = Columns, with origin at left
         y = Rows, with origin at top
 
         So: 50x50 image. Top Left x=0,y=0: Bottom Right x=50, y=50
+
+        bounding_rectangle property is the x,y,w,h representation of a rectangle
         '''
         self.image_key = kwargs['image_key']
         self.has_attrs = kwargs.get('has_attrs')
@@ -343,15 +351,22 @@ class Region(object):
         if self.shape == 'polygon':
             self.all_points = list(zip(self.all_points_x, self.all_points_y))
             self.area = poly_area(pts=self.all_points)
+            self.bounding_rectangle_as_points = bounding_rect_as_points(self.all_points)
+            self.bounding_rectangle = boundingRect(all_points)
         elif self.shape == 'point':
             self.all_points = [(self.x, self.y)]
+            self.bounding_rectangle_as_points = None
         elif self.shape == 'rect':
-            self.all_points = rect_as_points(self.y, self.x, self.h, self.w)
+            self.all_points = rect_as_points(self.x, self.y, self.w, self.h)
             self.area = poly_area(pts=self.all_points)
         elif self.shape == 'circle':
             self.area = pi * self.r ** 2
+            self.bounding_rectangle_as_points =bounding_ellipse_as_poinrts(self.rx, self.ry,self.r,self.r)
+            self.bounding_rectangle = [self.rx-self.r,self.ry-self.r,self.r*2,self.r*2]
         elif self.shape == 'ellipse':
             self.area = pi * self.rx * self.ry
+            self.bounding_rectangle_as_points =bounding_ellipse_as_poinrts(self.rx, self.ry,self.rx,self.ry)
+            self.bounding_rectangle = [self.rx-self.rx,self.ry-self.ry,self.rx*2,self.ry*2]
 
     def write(self):
         '''->void

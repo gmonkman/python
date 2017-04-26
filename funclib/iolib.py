@@ -6,8 +6,11 @@
 from __future__ import print_function
 import csv
 from glob import glob
+from glob import iglob
+
 import itertools
 import os
+import time
 import shutil
 import string
 
@@ -24,6 +27,7 @@ import fuckit
 import funclib.stringslib as stringslib
 from funclib.stringslib import add_right
 from funclib.stringslib import add_left
+from funclib.baselib import get_platform
 
 _NOTEPADPP_PATH = 'C:\\Program Files (x86)\\Notepad++\\notepad++.exe'
 
@@ -385,34 +389,56 @@ def file_list_generator(paths, wildcards):
 
     ie. Yields wildcards for consumption a glob.
     '''
+    assert not isinstance(paths, str), 'paths argument is a string, it should be a list or tuple'
+    assert not isinstance(wildcards, str), 'wildcards argument is a string, it should be a list or tuple'
+
     for vals in (add_right(x[0]) + x[1]
                  for x in itertools.product(paths, wildcards)):
         yield os.path.normpath(vals)
 
 
-def file_list_generator1(paths, wildcards):
+def file_list_generator1(paths, wildcards, recurse=False):
     '''(iterable, iterable) -> tuple
     Takes a list of paths and wildcards and creates a
     generator which iterates through all the FILES found
     in the paths matching the wildcards.
 
     So yields all the file names found.
+
+    Now supports recurssion
     '''
+    assert not isinstance(paths, str), 'paths argument is a string, it should be a list or tuple'
+    assert not isinstance(wildcards, str), 'wildcards argument is a string, it should be a list or tuple'
 
     for ind, v in enumerate(paths):
         paths[ind] = os.path.normpath(v)
 
     for vals in (add_right(x[0]) + x[1]
                  for x in itertools.product(paths, wildcards)):
-        for myfile in glob(vals):
-            yield os.path.normpath(myfile)
+        if recurse:
+            for f in file_list_glob_generator(vals, recurse=True):
+                yield f
+        else:
+            for myfile in glob(vals):
+                yield os.path.normpath(myfile)
 
 
-def file_list_glob_generator(wilded_path):
-    '''glob generator from wildcarded path'''
-    for file in glob(wilded_path):
-        yield file
+def file_list_glob_generator(wilded_path, recurse=False):
+    '''(str,bool)->yields strings (file paths)
+    Glob generator from wildcarded path
+    Wilded path would be something like 'c:\*.tmp' or c:\*.*
 
+    Yields actual file names, e.g. c:/temp/a.tmp
+
+    SUPPORTS RECURSION
+    '''
+    fld, f = get_file_parts2(wilded_path)[0:2]
+
+    if recurse:
+        wilded_path = os.path.normpath(os.path.join(fld,'**',f))
+
+    for file in iglob(wilded_path, recursive=recurse):
+        yield os.path.normpath(file)
 
 def files_delete(folder, delsubdirs=False):
     '''(str)->void'''
@@ -469,10 +495,9 @@ def notepadpp_open_file(filename):
         openpth = _NOTEPADPP_PATH + ' ' + '"' + filename + '"'
         subprocess.Popen(openpth)
 
-
-def write_to_file(results, prefix='', open_in_npp=True):
+def write_to_file(results, prefix='', open_in_npp=True, full_file_path=''):
     '''
-    (str|iterable) -> str
+    (str|iterable,bool,str) -> str
     Takes result_text and writes it to a file in the cwd.
     Prints out the file name at the end and opens the folder location
 
@@ -482,20 +507,33 @@ def write_to_file(results, prefix='', open_in_npp=True):
 
     If results is a string then it writes out the string, otherwise it iterates through
     results writing all elements to the file.
+
+    If full_file_path is defined, saves the file as this, otherwise creates it in CWD with a datetime stamp
     '''
-    filename = os.getcwd() + '\\RESULT' + prefix + \
-        stringslib.datetime_stamp() + '.txt'
+    if full_file_path == '':
+        filename = os.getcwd() + '\\RESULT' + prefix + \
+            stringslib.datetime_stamp() + '.txt'
+    else:
+        fld, f = full_file_path[0:2]
+        create_folder(fld)
+        filename = full_file_path
+
+    nl = '\r\n' if get_platform() == 'windows' else '\n'
+
     with open(filename, 'w+') as f:
         if isinstance(results, str):
             f.write(results)
         else:
             for s in results:
-                f.write(str(s) + '\r\n')
+                f.write(str(s) + nl)
 
     print(results)
     print(filename)
     if open_in_npp:
-        notepadpp_open_file(filename)
+        if get_platform() == 'windows':
+            notepadpp_open_file(filename)
+        else:
+            print('Option to open in NPP only available on Windows.')
     return filename
 
 

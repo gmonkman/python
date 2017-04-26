@@ -48,6 +48,9 @@
     </Compile>
     <Compile Include="object-detector\config.py" />
     <Compile Include="object-detector\extract_features.py" />
+    <Compile Include="object-detector\knn.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="object-detector\nms.py" />
     <Compile Include="object-detector\test_classifier.py" />
     <Compile Include="object-detector\train_classifier.py" />
@@ -81,6 +84,7 @@
   <ItemGroup>
     <Folder Include="calibration\" />
     <Folder Include="calibration\nextbase512g\" />
+    <Folder Include="scripts_object_detect\" />
     <Folder Include="object-detector\" />
     <Folder Include="object-detector\bin\" />
     <Folder Include="object-detector\data\" />

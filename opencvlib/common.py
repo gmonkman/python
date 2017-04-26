@@ -8,6 +8,7 @@ from __future__ import print_function
 import sys
 from glob import glob
 from os import path
+from random import randint
 
 import numpy as np
 import numpy.ma as ma
@@ -35,8 +36,7 @@ import funclib.iolib as iolib
 
 
 # region module consts and variables
-IMAGE_EXTENSIONS = [
-    '.bmp',
+IMAGE_EXTENSIONS = ['.bmp',
     '.jpg',
     '.jpeg',
     '.png',
@@ -45,8 +45,7 @@ IMAGE_EXTENSIONS = [
     '.pbm',
     '.pgm',
     '.ppm']
-IMAGE_EXTENSIONS_AS_WILDCARDS = [
-    '*.bmp',
+IMAGE_EXTENSIONS_AS_WILDCARDS = ['*.bmp',
     '*.jpg',
     '*.jpeg',
     '*.png',
@@ -67,7 +66,6 @@ _CMAP_DATA = {'jet': _JET_DATA}
 # endregion
 
 # region classes
-
 
 class Bunch(object):
     '''bunch'''
@@ -171,7 +169,7 @@ def _fixp(pth):
 
 def roi_polygons_get(img, points):
     '''(ndarray or path, [tuple list|ndarray])->ndarray, ndarray, ndarray
-    Points are a tuple list e.g. [(0,0), (50,0), (0,50), (50,50)] or an
+    Points are a tuple list e.g. [(0,0), (50,0), (0,50), (50,50)]
 
     Returns 3 ndarrays
     [0] White pixels for the bounding polygon
@@ -184,8 +182,7 @@ def roi_polygons_get(img, points):
         img = cv2.imread(img, -1)
     else:
         if not isinstance(img, np.ndarray):
-            raise ValueError(
-                'Argument must be the path to an image, or an image (ndarray)')
+            raise ValueError('Argument must be the path to an image, or an image (ndarray)')
 
     # mask defaulting to black for 3-channel and transparent for 4-channel
     # (of course replace corners with yours)
@@ -221,8 +218,7 @@ def get_perspective_correction(bg_dist, object_depth, length):
         return length / (1 - (object_depth / bg_dist))
 
 
-def get_perspective_correction_iter_linear(
-        coeff,
+def get_perspective_correction_iter_linear(coeff,
         const,
         bg_dist,
         length,
@@ -257,14 +253,12 @@ def get_perspective_correction_iter_linear(
     if last_length == 0:  # first call
         l = get_perspective_correction(bg_dist, object_depth, length) - length
     else:
-        l = get_perspective_correction(
-            bg_dist, object_depth, last_length) - last_length
+        l = get_perspective_correction(bg_dist, object_depth, last_length) - last_length
 
     if l is None:
         return None
 
-    return get_perspective_correction_iter_linear(
-        coeff, const, bg_dist, length + l, l, stop_below_proportion)
+    return get_perspective_correction_iter_linear(coeff, const, bg_dist, length + l, l, stop_below_proportion)
 
 
 def get_image_resolutions(glob_str):
@@ -365,15 +359,39 @@ def to_rect(a):
     return np.array(a, np.float64).reshape(2, 2)
 
 
-def rect_as_points(rw, col, h, w):
+def rect_as_points(rw, col, w, h):
     '''(int,int,int,int)->list
     Given a rectangle specified by the top left point
     and width and height, convert to a list of points
 
-    Note opencv points have origin in top left and are (x,y) ie row,col
+    Note opencv points have origin in top left and are (x,y) ie col,row (width,height). Not the matrix standard.
     '''
-    return [(col, rw), (col, rw + h), (col + w, rw), (w, h)]
+    return [(col, rw), (col, rw + h), (col + w, rw), (col+w,rw+ h)]
 
+def bounding_rect_as_points(points):
+    '''(list|ndarray)->list
+    Return points of a bounding rectangle in opencv point format.
+
+    Returns corner points ([[x,y],[x+w,y],[x,y+h],[x+w,y+h]]
+    and *not* top left point with width and height (ie x,y,w,h).
+    '''
+    x,y,w,h = cv2.boundingRect(points)
+    return rect_as_points(x,y,w,h)
+
+def bounding_ellipse_as_points(centre_point,rx,ry):
+    '''(list|tuple,int,int)->list
+    Return points of a bounding rectangle in opencv point format.
+
+    For circle, pass in the radius twice.
+
+    Returns corner points ([[x,y],[x+w,y],[x,y+h],[x+w,y+h]]
+    and *not* top left point with width and height (ie x,y,w,h).
+    Note opencv points have origin in top left
+    and are (x,y) i.e. col,row (width,height). Not the matrix standard.
+    '''
+    x,y = centre_point
+    #DEBUG Check outputs of bounding_ellipse_as_points
+    return [[x - rx, y - ry], [x + rx, y - ry], [x - rx, y + ry], [x + rx, y + ry]]
 
 def rect2rect_mtx(src, dst):
     src, dst = to_rect(src), to_rect(dst)
@@ -468,12 +486,31 @@ def mosaic(w, imgs):
 
 
 def getsize(img):
+    '''(ndarray|str)->int, int
+    return width and height of an image (in that order)
+
+    Can pass in a file path or ndarray
+    '''
+    if isinstance(img, str):
+        img = cv2.imread(img)
+
     h, w = img.shape[:2]
     return w, h
 
+def getsize_dict(img):
+    '''(ndarray|str)->{'w':cols,'h':rows}
+    return width and height of an image (in that order)
+
+    Can pass in a file path or ndarray
+    '''
+    if isinstance(img, str):
+        img = cv2.imread(img)
+
+    h, w = img.shape[:2]
+    return {'w':w,'h':h}
+
 # def mdot(*args):
    # return reduce(np.dot, args)
-
 
 def draw_keypoints(vis, keypoints, color=(0, 255, 255)):
     for kp in keypoints:
@@ -482,7 +519,6 @@ def draw_keypoints(vis, keypoints, color=(0, 255, 255)):
 
 # region jrosebr1
 # https://github.com/jrosebr1/imutils/blob/master/imutils/convenience.py
-
 
 def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     '''(ndarray, int, int, constant)->void
@@ -506,6 +542,53 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
         dim = (width, int(h * r))
     return cv2.resize(image, dim, interpolation=inter)
 
+
+def histeq_color(img):
+    '''(ndarray)->ndarray
+	Equalize histogram of color image
+	'''
+    img_yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+
+    # equalize the histogram of the Y channel
+    img_yuv[:,:,0] = cv2.equalizeHist(img_yuv[:,:,0])
+
+    # convert the YUV image back to RGB format
+    return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
+
+def histeq(im, nbr_bins=256):
+    """    Histogram equalization of a grayscale image. """
+
+    # get image histogram
+    imhist, bins = histogram(im.flatten(), nbr_bins, normed=True)
+    cdf = imhist.cumsum()  # cumulative distribution function
+    cdf = 255 * cdf / cdf[-1]  # normalize
+
+    # use linear interpolation of cdf to find new pixel values
+    im2 = interp(im.flatten(), bins[:-1], cdf)
+
+    return im2.reshape(im.shape), cdf
+
+def compute_average(imlist, silent=True):
+    """(list,[bool])->ndarray
+	Compute the average of a list of images. """
+
+    # open first image and make into array of type float
+    averageim = array(Image.open(imlist[0]), 'f')
+
+    skipped = 0
+
+    for imname in imlist[1:]:
+        try:
+            averageim += array(Image.open(imname))
+        except:
+            if not silent:
+                print(imname + "...skipped")
+                skipped += 1
+
+    averageim /= (len(imlist) - skipped)
+    if not silent:
+        print('Skipped %s images of %s' % (skipped, len(imlist)))
+    return np.array(averageim, 'uint8')
 
 def skeletonize(image, size, structuring=cv2.MORPH_RECT):
     # determine the area (i.e.  total number of pixels in the image),
@@ -583,7 +666,6 @@ def opencv_check_version(major, lib=None):
     # major version number
     return lib.__version__.startswith(major)
 
-
 def poly_area(pts=None, x=None, y=None):
     '''(list, list, list)->float
     If points are in two matched lists, use x= and y=
@@ -629,6 +711,27 @@ def pyramid(image, scale=1.5, minSize=(30, 30)):
 
         # yield the next image in the pyramid
         yield image
+
+def sample_image_rectangle(img, w,h):
+    '''(str|ndarray,int,int,int,int)->ndarray|None
+    Return a retangle of an image as an ndarray
+    randomly chosen from the original image.
+
+    ndarray or the path to an image can be used.
+
+    Returns None if the image is smaller than the area
+    '''
+    if isinstance(img, str):
+        img = cv2.imread(path.normpath(img) , -1)
+
+    img_w,img_h = getsize(img)
+    if img_w < w or img_h < h:
+        return None
+
+    rnd_col = randint(0, img_w - w) #0 index
+    rnd_row = randint(0, img_h - h)
+
+    return img[rnd_row:rnd_row + h, rnd_col:rnd_col + w, ::-1]
 
 # endregion
 # endregion
