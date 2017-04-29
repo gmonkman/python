@@ -1,12 +1,17 @@
-# Import the required modules
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+
+'''classifier training'''
+import argparse as ap
+import glob
+import os
+
 from skimage.feature import local_binary_pattern
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.externals import joblib
-import argparse as ap
-import glob
-import os
-from config import *
+
+
+import opencvlib.objdetect.config as config
 
 if __name__ == "__main__":
     # Parse the command line arguments

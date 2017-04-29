@@ -51,7 +51,7 @@ def main():
             cnt += 1
             print_progress(cnt, len(images), '%s of %s' % (cnt, len(images)))
 
-    print('\nDone.')
+    print('Done.')
 
 
 if __name__ == "__main__":

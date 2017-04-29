@@ -20,7 +20,7 @@ with open('./data/points_normal.pkl', 'rb') as f:
     class_2 = pickle.load(f)
     labels = pickle.load(f)
 
-#load the model training data with corresponding labesl
+# load the model training data with corresponding labesl
 model = knn.KnnClassifier(labels, vstack((class_1, class_2)))
 
 # load test data using Pickle
@@ -31,16 +31,16 @@ with open('./data/points_normal_test.pkl', 'rb') as f:
 
 # test on the first point
 res = model.classify(class_1[0])
-print(res,class_1[0])
+print(res, class_1[0])
 
 res = model.classify(class_1[1])
-print(res,class_1[1])
+print(res, class_1[1])
 
 res = model.classify(class_2[0])
-print(res,class_2[0])
+print(res, class_2[0])
 
 res = model.classify(class_2[1])
-print(res,class_2[1])
+print(res, class_2[1])
 
 
 # define function for plotting
@@ -48,22 +48,24 @@ print(res,class_2[1])
 
 def _classify(x, y, model=model):
     arr = []
-    for (xx, yy) in zip(x, y):#[1,2,3],[3,4,5] -> [1,3],[2,4],[3,5]
+    for (xx, yy) in zip(x, y):  # [1,2,3],[3,4,5] -> [1,3],[2,4],[3,5]
         arr.append(model.classify([xx, yy]))
     return array(arr)
-    #return array([model.classify([xx, yy]) for (xx, yy) in zip(x, y)])
+    # return array([model.classify([xx, yy]) for (xx, yy) in zip(x, y)])
 
 
 # plot the classification boundary
 
 def plot():
-    imtools.plot_2D_boundary([-6, 6, -6, 6], [class_1, class_2], _classify, [1, -1])
+    imtools.plot_2D_boundary(
+        [-6, 6, -6, 6], [class_1, class_2], _classify, [1, -1])
     show()
 
 
 def main():
     load_data()
-    #plot()
+    # plot()
+
 
 if __name__ == "__main__":
     main()

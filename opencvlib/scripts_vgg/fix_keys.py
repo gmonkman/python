@@ -8,7 +8,7 @@ Assumes all images are in same folder as the vgg JSON file
 import argparse
 import os.path as path
 
-import opencvlib.vgg as vgg
+import opencvlib.imgpipe.vgg as vgg
 
 
 def main():

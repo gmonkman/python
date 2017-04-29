@@ -2,7 +2,31 @@
 # no-self-use, unused-argument
 '''Provides preprocessing routines
 '''
+import itertools as it
 import cv2
+import numpy as np
+import opencvlib.decs as decs
+
+_JET_DATA = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1),
+                     (1, 0.5, 0.5)),
+             'green': ((0., 0, 0), (0.125, 0, 0), (0.375, 1, 1), (0.64, 1, 1),
+                       (0.91, 0, 0), (1, 0, 0)),
+             'blue': ((0., 0.5, 0.5), (0.11, 1, 1), (0.34, 1, 1), (0.65, 0, 0),
+                      (1, 0, 0))}
+
+_CMAP_DATA = {'jet': _JET_DATA}
+
+
+# region Private
+def _grouper(n, iterable, fillvalue=None):
+    '''grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx'''
+    args = [iter(iterable)] * n
+    if _PY3:
+        output = it.zip_longest(fillvalue=fillvalue, *args)
+    else:
+        output = it.izip_longest(fillvalue=fillvalue, *args)
+    return output
+# endregion
 
 
 def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
@@ -26,3 +50,93 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
         r = width / float(w)
         dim = (width, int(h * r))
     return cv2.resize(image, dim, interpolation=inter)
+
+
+def histeq_color(img):
+    '''(ndarray)->ndarray
+        Equalize histogram of color image
+        '''
+    img_yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+
+    # equalize the histogram of the Y channel
+    img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
+
+    # convert the YUV image back to RGB format
+    return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
+
+
+def histeq(im, nbr_bins=256):
+    """    Histogram equalization of a grayscale image. """
+
+    # get image histogram
+    imhist, bins = histogram(im.flatten(), nbr_bins, normed=True)
+    cdf = imhist.cumsum()  # cumulative distribution function
+    cdf = 255 * cdf / cdf[-1]  # normalize
+
+    # use linear interpolation of cdf to find new pixel values
+    im2 = interp(im.flatten(), bins[:-1], cdf)
+
+    return im2.reshape(im.shape), cdf
+
+
+def compute_average(imlist, silent=True):
+    """(list,[bool])->ndarray
+        Compute the average of a list of images. """
+
+    # open first image and make into array of type float
+    averageim = array(Image.open(imlist[0]), 'f')
+
+    skipped = 0
+
+    for imname in imlist[1:]:
+        try:
+            averageim += array(Image.open(imname))
+        except:
+            if not silent:
+                print(imname + "...skipped")
+                skipped += 1
+
+    averageim /= (len(imlist) - skipped)
+    if not silent:
+        print('Skipped %s images of %s' % (skipped, len(imlist)))
+    return np.array(averageim, 'uint8')
+
+
+def make_cmap(name, n=256):
+    '''make a cmap'''
+    data = _CMAP_DATA[name]
+    xs = np.linspace(0.0, 1.0, n)
+    channels = []
+    eps = 1e-6
+    for ch_name in ['blue', 'green', 'red']:
+        ch_data = data[ch_name]
+        xp, yp = [], []
+        for x, y1, y2 in ch_data:
+            xp += [x, x + eps]
+            yp += [y1, y2]
+        ch = np.interp(xs, xp, yp)
+        channels.append(ch)
+    return np.uint8(np.array(channels).T * 255)
+
+
+def mosaic(w, imgs):
+    '''Make a grid from images.
+    w    -- number of grid columns
+    imgs -- images (must have same size and format)
+    '''
+    imgs = iter(imgs)
+    img0 = next(imgs)
+
+    pad = np.zeros_like(img0)
+    imgs = it.chain([img0], imgs)
+    rows = _grouper(w, imgs, pad)
+    return np.vstack(map(np.hstack, rows))
+
+
+def opencv2matplotlib(image):
+    '''(ndarray->ndarray)
+    OpenCV represents images in BGR order; however, Matplotlib
+    expects the image in RGB order, so simply convert from BGR
+    to RGB and return
+    '''
+    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

@@ -29,10 +29,10 @@ from funclib.baselib import dictp
 from funclib.iolib import get_file_parts
 from funclib.iolib import print_progress
 
-from opencvlib.common import rect_as_points
-from opencvlib.common import bounding_rect_as_points
-from opencvlib.common import poly_area
-from opencvlib.common import bounding_ellipse_as_points
+from opencvlib.roi import rect_as_points
+from opencvlib.roi import bounding_rect_of_poly
+from opencvlib.roi import poly_area
+from opencvlib.roi import bounding_rect_of_ellipse
 
 SILENT = True
 _JSON_FILE_NAME = ''
@@ -351,8 +351,9 @@ class Region(object):
         if self.shape == 'polygon':
             self.all_points = list(zip(self.all_points_x, self.all_points_y))
             self.area = poly_area(pts=self.all_points)
-            self.bounding_rectangle_as_points = bounding_rect_as_points(self.all_points)
-            self.bounding_rectangle = boundingRect(all_points)
+            self.bounding_rectangle_as_points = bounding_rect_of_poly(
+                self.all_points)
+            self.bounding_rectangle = boundingRect(self.all_points)
         elif self.shape == 'point':
             self.all_points = [(self.x, self.y)]
             self.bounding_rectangle_as_points = None
@@ -361,12 +362,16 @@ class Region(object):
             self.area = poly_area(pts=self.all_points)
         elif self.shape == 'circle':
             self.area = pi * self.r ** 2
-            self.bounding_rectangle_as_points =bounding_ellipse_as_poinrts(self.rx, self.ry,self.r,self.r)
-            self.bounding_rectangle = [self.rx-self.r,self.ry-self.r,self.r*2,self.r*2]
+            self.bounding_rectangle_as_points = bounding_rect_of_ellipse(
+                (self.x, self.y), self.r, self.r) #circle is just an ellipse
+            self.bounding_rectangle = [
+                self.rx - self.r, self.ry - self.r, self.r * 2, self.r * 2]
         elif self.shape == 'ellipse':
             self.area = pi * self.rx * self.ry
-            self.bounding_rectangle_as_points =bounding_ellipse_as_poinrts(self.rx, self.ry,self.rx,self.ry)
-            self.bounding_rectangle = [self.rx-self.rx,self.ry-self.ry,self.rx*2,self.ry*2]
+            self.bounding_rectangle_as_points = bounding_rect_of_ellipse(
+                (self.x, self.y), self.rx, self.ry)
+            self.bounding_rectangle = [
+                self.rx - self.rx, self.ry - self.ry, self.rx * 2, self.ry * 2]
 
     def write(self):
         '''->void

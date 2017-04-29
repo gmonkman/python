@@ -27,13 +27,13 @@ import numpy as np
 # endregion
 
 # region my imports
-import opencvlib.digikamlib as digikamlib
+import opencvlib.imgpipes.digikamlib as digikamlib
 import funclib.iolib as iolib
 import funclib.inifilelib as inifilelib
 import funclib.pyqtlib as msgbox
 import opencvlib.common as common
-import opencvlib.lenscorrectiondb as lenscorrectiondb
-from opencvlib.common import resolution
+import opencvlib.lenscorrection.lenscorrectiondb as lenscorrectiondb
+from opencvlib import ImageInfo
 from funclib.baselib import list_append_unique
 
 #from opencvlib.common import is_image
@@ -247,7 +247,7 @@ class Calibration(object):
         for fn in iolib.file_list_glob_generator(self.wildcarded_images_path):
             if common.is_image(fn):
                 img = cv2.imread(os.path.normpath(fn), 0)
-                w, h = common.resolution(img)
+                w, h = ImageInfo.resolution(img)
                 if w == self.width and h == self.height:
                     cnt += 1
                     found, corners = cv2.findChessboardCorners(
@@ -471,7 +471,7 @@ def undistort(
                 path = path + ''
                 ext = ext + ''  # silly thing to get rid of unused varible in pylint
                 orig_img = cv2.imread(fil)
-                width, height = resolution(orig_img)
+                width, height = ImageInfo.resolution(orig_img)
                 if (last_width != width and last_height !=
                         height) and height > 0 and width > 0:
                     blobs = db.crud_read_calibration_blobs(

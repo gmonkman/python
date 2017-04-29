@@ -34,37 +34,44 @@
     <Compile Include="common.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="digikamlib.py">
+    <Compile Include="decs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="distance.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="edges.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="faces.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="lenscorrection.py">
+    <Compile Include="imgpipes\digikamlib.py" />
+    <Compile Include="imgpipes\generators.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="lenscorrectiondb.py">
+    <Compile Include="scripts_faces\blur_faces.py" />
+    <Compile Include="imgpipes\vgg.py" />
+    <Compile Include="imgpipes\__init__.py" />
+    <Compile Include="lenscorrection\lenscorrection.py" />
+    <Compile Include="lenscorrection\lenscorrectiondb.py" />
+    <Compile Include="lenscorrection\__init__.py" />
+    <Compile Include="objdetect\config.py" />
+    <Compile Include="objdetect\features.py" />
+    <Compile Include="objdetect\knn.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="object-detector\config.py" />
-    <Compile Include="object-detector\extract_features.py" />
-    <Compile Include="object-detector\knn.py">
+    <Compile Include="objdetect\test_classifier.py" />
+    <Compile Include="objdetect\train_classifier.py" />
+    <Compile Include="objdetect\__init__.py" />
+    <Compile Include="perspective.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="object-detector\nms.py" />
-    <Compile Include="object-detector\test_classifier.py" />
-    <Compile Include="object-detector\train_classifier.py" />
-    <Compile Include="object-detector\__init__.py" />
-    <Compile Include="processing.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="scripts_faces\blur_faces.py">
+    <Compile Include="processing.py" />
+    <Compile Include="roi.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="testing.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="vgg.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_vgg\fix_keys.py">
@@ -79,19 +86,24 @@
     <Compile Include="scripts_vgg\write_attr.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="winpyr.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="calibration\" />
     <Folder Include="calibration\nextbase512g\" />
-    <Folder Include="scripts_object_detect\" />
-    <Folder Include="object-detector\" />
-    <Folder Include="object-detector\bin\" />
-    <Folder Include="object-detector\data\" />
-    <Folder Include="object-detector\data\config\" />
-    <Folder Include="object-detector\data\images\" />
-    <Folder Include="object-detector\data\models\" />
+    <Folder Include="imgpipes\" />
     <Folder Include="scripts_faces\" />
+    <Folder Include="lenscorrection\" />
+    <Folder Include="scripts_object_detect\" />
+    <Folder Include="objdetect\" />
+    <Folder Include="objdetect\bin\" />
+    <Folder Include="objdetect\data\" />
+    <Folder Include="objdetect\data\config\" />
+    <Folder Include="objdetect\data\images\" />
+    <Folder Include="objdetect\data\models\" />
     <Folder Include="scripts_vgg\" />
   </ItemGroup>
   <ItemGroup>
@@ -136,24 +148,24 @@
     <Content Include="calibration\nextbase512g\2016_1011_132754_040.JPG" />
     <Content Include="calibration\nextbase512g\2016_1011_132758_041.JPG" />
     <Content Include="calibration\pattern.png" />
-    <Content Include="lenscorrection.py.ini" />
+    <Content Include="lenscorrection\lenscorrection.py.ini" />
     <Content Include="make_model.bat" />
-    <Content Include="object-detector\.gitignore" />
-    <Content Include="object-detector\bin\test-object-detector" />
-    <Content Include="object-detector\data\config\config.cfg" />
-    <Content Include="object-detector\data\images\test-im-1-nms.png" />
-    <Content Include="object-detector\data\images\test-im-1.png" />
-    <Content Include="object-detector\data\images\test-im-2-nms.png" />
-    <Content Include="object-detector\data\images\test-im-2.png" />
-    <Content Include="object-detector\data\images\test-im-3-nms.png" />
-    <Content Include="object-detector\data\images\test-im-3.png" />
-    <Content Include="object-detector\data\images\test-im-4-nms.png" />
-    <Content Include="object-detector\data\images\test-im-4.png" />
-    <Content Include="object-detector\data\models\svm.model" />
-    <Content Include="object-detector\data\models\svm.model_01.npy" />
-    <Content Include="object-detector\data\models\svm.model_02.npy" />
-    <Content Include="object-detector\data\models\svm.model_03.npy" />
-    <Content Include="object-detector\README.md" />
+    <Content Include="objdetect\.gitignore" />
+    <Content Include="objdetect\bin\test-object-detector" />
+    <Content Include="objdetect\data\config\config.cfg" />
+    <Content Include="objdetect\data\images\test-im-1-nms.png" />
+    <Content Include="objdetect\data\images\test-im-1.png" />
+    <Content Include="objdetect\data\images\test-im-2-nms.png" />
+    <Content Include="objdetect\data\images\test-im-2.png" />
+    <Content Include="objdetect\data\images\test-im-3-nms.png" />
+    <Content Include="objdetect\data\images\test-im-3.png" />
+    <Content Include="objdetect\data\images\test-im-4-nms.png" />
+    <Content Include="objdetect\data\images\test-im-4.png" />
+    <Content Include="objdetect\data\models\svm.model" />
+    <Content Include="objdetect\data\models\svm.model_01.npy" />
+    <Content Include="objdetect\data\models\svm.model_02.npy" />
+    <Content Include="objdetect\data\models\svm.model_03.npy" />
+    <Content Include="objdetect\README.md" />
     <Content Include="pylintrc" />
   </ItemGroup>
   <ItemGroup>

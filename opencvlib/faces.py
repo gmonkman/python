@@ -16,7 +16,7 @@ from funclib.iolib import get_file_parts2
 
 def blur_face(imagepath, save_face=False, overwrite_original=False):
     '''(str, bool, bool)
-    Blur a faces found in an image
+    Blur faces found in an image
     imagepath: path to image
 
     If overwrite_original, then originals will be moved

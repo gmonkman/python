@@ -1,10 +1,14 @@
 # pylint: skip-file
+from functools import wraps  # decorator for decorator funcs
 
 import sys
 import cv2
-import opencvlib.digikamlib as digikamlib
-import opencvlib.vgg as vgg
+from numpy import ndarray
+
+import opencvlib.imgpipes.digikamlib as digikamlib
+import opencvlib.imgpipes.vgg as vgg
 import opencvlib.common as common
+import opencvlib
 
 
 def test_vgg_fix():

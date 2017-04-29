@@ -1,4 +1,5 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled,
+# no-self-use, unused-argument
 '''Script to blur faces in images
 '''
 import argparse
@@ -10,10 +11,12 @@ from funclib.iolib import datetime_stamp as dts
 from funclib.iolib import print_progress
 from funclib.iolib import file_list_generator1 as flg
 
-#DEBUG ebug fix_newlines.py script
+# DEBUG ebug fix_newlines.py script
+
+
 def main():
     '''
-    Blurs faces in folders.
+    Fix newlines according to the operating system
     '''
     cmdline = argparse.ArgumentParser(description='Replaces newlines according to OS.\n'
                                       'Directories can be optionally recursed.\n'
@@ -43,10 +46,11 @@ def main():
     for f in fs:
         try:
             if not args.nobackup:
-                backup = path.join(get_file_parts(f)[0], get_file_parts(f)[1] + suffix + get_file_parts(f)[2])
+                backup = path.join(get_file_parts(f)[0], get_file_parts(f)[
+                                   1] + suffix + get_file_parts(f)[2])
                 copyfile(f, backup)
 
-            fileContents = open(f,"r").read()
+            fileContents = open(f, "r").read()
             with open(f, 'w', newline=None) as myfile:
                 myfile.write(fileContents)
         except Exception as e:

@@ -389,8 +389,10 @@ def file_list_generator(paths, wildcards):
 
     ie. Yields wildcards for consumption a glob.
     '''
-    assert not isinstance(paths, str), 'paths argument is a string, it should be a list or tuple'
-    assert not isinstance(wildcards, str), 'wildcards argument is a string, it should be a list or tuple'
+    assert not isinstance(
+        paths, str), 'paths argument is a string, it should be a list or tuple'
+    assert not isinstance(
+        wildcards, str), 'wildcards argument is a string, it should be a list or tuple'
 
     for vals in (add_right(x[0]) + x[1]
                  for x in itertools.product(paths, wildcards)):
@@ -407,8 +409,10 @@ def file_list_generator1(paths, wildcards, recurse=False):
 
     Now supports recurssion
     '''
-    assert not isinstance(paths, str), 'paths argument is a string, it should be a list or tuple'
-    assert not isinstance(wildcards, str), 'wildcards argument is a string, it should be a list or tuple'
+    assert not isinstance(
+        paths, str), 'paths argument is a string, it should be a list or tuple'
+    assert not isinstance(
+        wildcards, str), 'wildcards argument is a string, it should be a list or tuple'
 
     for ind, v in enumerate(paths):
         paths[ind] = os.path.normpath(v)
@@ -435,10 +439,11 @@ def file_list_glob_generator(wilded_path, recurse=False):
     fld, f = get_file_parts2(wilded_path)[0:2]
 
     if recurse:
-        wilded_path = os.path.normpath(os.path.join(fld,'**',f))
+        wilded_path = os.path.normpath(os.path.join(fld, '**', f))
 
     for file in iglob(wilded_path, recursive=recurse):
         yield os.path.normpath(file)
+
 
 def files_delete(folder, delsubdirs=False):
     '''(str)->void'''
@@ -494,6 +499,7 @@ def notepadpp_open_file(filename):
     with fuckit:
         openpth = _NOTEPADPP_PATH + ' ' + '"' + filename + '"'
         subprocess.Popen(openpth)
+
 
 def write_to_file(results, prefix='', open_in_npp=True, full_file_path=''):
     '''

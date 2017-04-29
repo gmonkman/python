@@ -161,23 +161,14 @@ class Sample(_BASE):
     species = relationship('Species')
 
     def __repr__(self):
-        return "<Sample(sampleid=%i, unique_code='%s', tl_mm=%i, fl_mm=%i, weight_g=%i, maturity='%s', laser_mm=%i, measurer='%s', board_board_length_mm=%i, capture_resolution='%s', speciesid=%i)>" % (self.sampleid,
-                                                                                                                                                                                                         self.unique_code,
-                                                                                                                                                                                                         self.tl_mm,
-                                                                                                                                                                                                         self.fl_mm,
-                                                                                                                                                                                                         self.weight_g,
-                                                                                                                                                                                                         self.maturity,
-                                                                                                                                                                                                         self.gutted,
-                                                                                                                                                                                                         self.laser_mm,
-                                                                                                                                                                                                         self.sample_headerid,
-                                                                                                                                                                                                         self.measurer,
-                                                                                                                                                                                                         self.cameraid,
-                                                                                                                                                                                                         self.housing_mountid,
-                                                                                                                                                                                                         self.board_board_length_mm,
-                                                                                                                                                                                                         self.capture_resolution,
-                                                                                                                                                                                                         self.useable_footage,
-                                                                                                                                                                                                         self.comment,
-                                                                                                                                                                                                         self.speciesid)
+        return "<Sample(sampleid=%i, unique_code='%s', tl_mm=%i, fl_mm=%i, weight_g=%i, maturity='%s', laser_mm=%i, measurer='%s',"
+        "board_board_length_mm=%i, capture_resolution='%s', speciesid=%i)>" \
+            % (self.sampleid, self.unique_code, self.tl_mm, self.fl_mm,
+               self.weight_g, self.maturity, self.gutted, self.laser_mm,
+               self.sample_headerid, self.measurer, self.cameraid, self.housing_mountid,
+               self.board_board_length_mm, self.capture_resolution,
+               self.useable_footage, self.comment, self.speciesid
+               )
 
 
 class SampleHeader(_BASE):

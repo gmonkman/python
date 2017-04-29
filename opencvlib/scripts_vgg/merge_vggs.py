@@ -7,7 +7,7 @@ import argparse
 import os.path as path
 import json
 
-import opencvlib.vgg as vgg
+import opencvlib.imgpipe.vgg as vgg
 from funclib.iolib import print_progress
 from funclib.baselib import dic_merge_two
 

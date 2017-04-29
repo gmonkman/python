@@ -7,8 +7,8 @@ import argparse
 import os.path as path
 from shutil import copyfile
 
-import opencvlib.vgg as vgg
-import opencvlib.digikamlib as dkl
+import opencvlib.imgpipe.vgg as vgg
+import opencvlib.imgpipe.digikamlib as dkl
 from funclib.iolib import _get_file_parts22
 from funclib.iolib import create_folder
 from funclib.iolib import print_progress
