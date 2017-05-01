@@ -378,6 +378,19 @@ def get_drive_from_uuid(uuid, strip=['-']):
     else:
         return None
 
+def folder_generator(paths):
+    '''
+    (str|iterable)->yield str
+    Yields all subfolders
+    '''
+    if isinstance(paths, str):
+        paths = [paths]
+
+    paths = [os.path.normpath(p) for p in paths]
+    for pth in paths:
+        for dir, subdir, filelist in os.walk(pth):
+            yield dir
+
 
 def file_list_generator(paths, wildcards):
     '''(iterable, iterable) -> tuple

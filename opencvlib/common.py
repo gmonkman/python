@@ -14,6 +14,8 @@ import imghdr
 
 import fuckit
 
+from opencvlib.decs import decgetimg
+
 __all__ = ['show', 'getimg', 'Info', 'fixp', 'ImageInfo', 'homotrans']
 # endregion
 
@@ -120,8 +122,52 @@ class ImageInfo(_BaseImg):
         super().__init__(img)
 
     @staticmethod
+    @decgetimg
+    def is_higher_res(img, w, h, either=False):
+        '''(ndarray|str, int, int, bool)->bool
+        Check if img is
+        If either is false, image is considered higher res
+        if both w and h are greater than the image w, h
+        '''
+        x, y = resolution(img)
+        if either:
+            if not w is None:
+                return x < w
+            if not h is None:
+                return y < h
+            return False
+        else:
+            if not w is None and not h is None:
+                return x<w and y<h
+            else:
+                return False
+
+
+    @staticmethod
+    @decgetimg
+    def is_lower_res(img, w, h,either=True):
+        '''(ndarray|str, int, int, bool)->bool
+        Check if img is lower res than that defined by w and h.
+        If either is true, image is considered lower res
+        if either the width or the height is less than w, h
+        '''
+        x, y = resolution(img)
+        if either:
+            if not w is None:
+                return x > w
+            if not h is None:
+                return y > h
+            return False
+        else:
+            if not w is None and not h is None:
+                return x>w and y>h
+            else:
+                return False
+
+    @staticmethod
+    @decgetimg
     def resolution(img):
-        '''ndarray
+        '''(str|ndarray)->int,int
         width,height
         '''
         assert isinstance(img, np.ndarray)

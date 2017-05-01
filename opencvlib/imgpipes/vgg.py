@@ -27,12 +27,17 @@ from funclib.stringslib import datetime_stamp
 from funclib.baselib import dictp
 
 from funclib.iolib import get_file_parts
+from funclib.iolib import get_file_parts2
+
 from funclib.iolib import print_progress
+from funclib.baselib import list_not
+from funclib.baselib import list_and
 
 from opencvlib.roi import rect_as_points
 from opencvlib.roi import bounding_rect_of_poly
 from opencvlib.roi import poly_area
 from opencvlib.roi import bounding_rect_of_ellipse
+from  opencvlib import ImageInfo
 
 SILENT = True
 _JSON_FILE_NAME = ''
@@ -53,6 +58,18 @@ VALID_SPECIES = ['bass',
                  'flatfish',
                  'cod']
 
+
+def valid_parts_in_list(parts, silent=False):
+    for r in list_not(parts, VALID_PARTS):
+        if not silent:
+            print('Part %s invalid' % r)
+    return list_and(parts, VALID_PARTS)
+
+def valid_species_in_list(species, silent=False):
+    for r in list_not(species, VALID_SPECIES):
+        if not silent:
+            print('Species %s invalid' % r)
+    return list_and(species, VALID_SPECIES)
 
 def _prints(s):
     if not SILENT:
@@ -89,6 +106,16 @@ def fix_keys(backup=True, show_progress=False):
     save_json(backup)
     _prints('\n\nKey fixing complete.\n')
 
+def imagesGenerator():
+    '''Generate VGG.Image class objects
+    for every image in the vgg file
+    '''
+    for img in JSON_FILE:
+        pth = get_file_parts2(_JSON_FILE_NAME)[0]
+        img_pth = path.join(pth, img['filename'])
+        if ImageInfo.is_image(img_pth):
+            i = Image(img_pth)
+            yield i
 
 class Image(object):
     '''Load and iterate VGG configured image regions
@@ -112,7 +139,7 @@ class Image(object):
     def _get_key(self):
         '''->[str | None]
         Generate unique key for image file
-        Returns None if no image file does not exist
+        Returns None if image file does not exist
         or an error occurs
         '''
         if path.isfile(self.filepath):
