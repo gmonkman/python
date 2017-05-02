@@ -115,17 +115,26 @@ def rect_as_points(rw, col, w, h):
 # DEBUG bounding_rect_of_poly
 
 
-def bounding_rect_of_poly(points):
+def bounding_rect_of_poly(points, as_points=True):
     '''(list|ndarray)->list
-    Return points of a bounding rectangle in opencv point format.
+    Return points of a bounding rectangle in opencv point format if
+    as_points=True.
+
+    If as_points is false, returns as a tuple (x,y,w,h)
 
     Returns corner points ([[x,y],[x+w,y],[x,y+h],[x+w,y+h]]
     and *not* top left point with width and height (ie x,y,w,h).
     Note opencv points have origin in top left
     and are (x,y) i.e. col,row (width,height). Not the matrix standard.
     '''
+    if not isinstance(points, np.ndarray):
+        points = np.array([points], dtype=np.int32)
+
     x, y, w, h = cv2.boundingRect(points)
-    return rect_as_points(x, y, w, h)
+    if as_points:
+        return rect_as_points(x, y, w, h)
+    else:
+        return (x,y,w,h)
 
 
 # DEBUG bounding_rect_of_ellipse

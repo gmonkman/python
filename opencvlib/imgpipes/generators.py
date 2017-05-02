@@ -62,7 +62,7 @@ class VGGSearchParams():
             species = [species]
 
         self._parts = vgg.valid_parts_in_list(parts)
-        self._species = vgg.valid_parts_in_list(species)
+        self._species = vgg.valid_species_in_list(species)
 
     @property
     def parts(self):
@@ -95,6 +95,12 @@ class DigikamSearchParams():
         self.key_value_bool_type = key_value_bool_type
         self.keyvaluetags = keyvaluetags
 
+    def no_filters(self):
+        '''()->bool
+        returns true if no filters set
+        '''
+        return self.filename == '' and self.album_label == '' and self.relative_path == '' and not self.keyvaluetags
+
 
 class Images():
     '''
@@ -118,9 +124,13 @@ class Images():
         self.valid_extensions = valid_extensions
         self.max_res_wh = max_res_wh
         self.min_res_wh = min_res_wh
-        assert isinstance(digikam_params, DigikamSearchParams)
-        assert isinstance(vgg_params, VGGSearchParams)
         Images._initdb()
+
+    def no_digikam_filters(self):
+        if self._digikam_params is None:
+            return True
+        else:
+            return self._digikam_params.no_filters()
 
     @property
     def digikamParams(self):
@@ -156,6 +166,9 @@ class Images():
 
         Note that Images.dkImages must be set by calling init_db
         '''
+        if self.no_digikam_filters():
+            return None
+
         assert isinstance(digikam_search_param, DigikamSearchParams)
         assert Images.dkImages is not None
         imgs = Images.dkImages.images_by_tags(
@@ -168,12 +181,15 @@ class Images():
         imgs_out = [fixp(i) for i in imgs]
         return imgs_out
 
-    def generate_images(self):
+    def digikam_generator(self):
         '''(void)->ndarray,str
         generate whole images applying only the digikam filter
         Yields:
         image region (ndarray), full image path (eg c:/images/myimage.jpg)
         '''
+        if self.no_digikam_filters():
+            return
+
         dk_image_list = self._get_digikam_image_list(self._digikam_params)
         for img in dk_image_list:
             if ImageInfo.is_lower_res(img.filepath, *self.min_res_wh):
@@ -195,6 +211,7 @@ class Images():
         Note that this uses the filters set in the VGGFilter and DigikamSearchParams
         Yields:
         image region (ndarray), species (eg bass), part (eg head, whole), full image path (eg c:/images/myimage.jpg)
+
         '''
         dk_image_list = self._get_digikam_image_list(self._digikam_params)
 
@@ -204,8 +221,9 @@ class Images():
                     vgg.load_json(fixp(path.join(fld, VGG_FILE)))
                     for Img in vgg.imagesGenerator():
 
-                        if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
-                            continue
+                        if not self.no_digikam_filters: #if no filters set for digikam, just ignore it
+                            if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
+                                continue
 
                         if ImageInfo.is_lower_res(Img.filepath, *self.min_res_wh):
                             continue
@@ -232,8 +250,9 @@ class Images():
                     vgg.load_json(fixp(path.join(fld, VGG_FILE)))
                     for Img in vgg.imagesGenerator():
 
-                        if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
-                            continue
+                        if not self.no_digikam_filters: #if no filters set for digikam, just ignore it
+                            if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
+                                continue
 
                         if ImageInfo.is_lower_res(Img.filepath, *self.min_res_wh):
                             continue
@@ -254,6 +273,7 @@ class Images():
                                         assert isinstance(region, vgg.Region)
                                         cropped_image = roi_polygons_get(Img.filepath, region.all_points)[2]
                                         yield cropped_image, spp, part, Img.filepath
+
 
 
 def _dir_has_vgg(fld):

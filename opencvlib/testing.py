@@ -9,7 +9,11 @@ import opencvlib.imgpipes.digikamlib as digikamlib
 import opencvlib.imgpipes.vgg as vgg
 import opencvlib.common as common
 import opencvlib
+from opencvlib.decs import decgetimg
+from opencvlib import show
+import opencvlib.imgpipes.generators as gnr
 
+from funclib.iolib import get_file_parts2
 
 def test_vgg_fix():
     vgg.load_json(
@@ -64,13 +68,27 @@ def test_roi():
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
+@decgetimg
+def test_decgetimg(img):
+    print(type(img))
+    show(img)
+    pass
+
+def test_image_pipeline():
+    vgg_sp = gnr.VGGSearchParams('whole','bass')
+    vgg_folders = ['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler']
+    pipe = gnr.Images(vgg_folders, None, vgg_sp)
+    for img, spp, part, img_path in pipe.generate_regions():
+        show(img, get_file_parts2(img_path)[1])
+        print(spp, part, img_path)
 
 def main():
     # test_roi()
     # test_imagesbytags()
     # test_vgg()
-    test_vgg_fix()
-
+    #test_vgg_fix()
+    #test_decgetimg('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/smoothhound/angler/DSCF0907.JPG')
+    test_image_pipeline()
 
 if __name__ == "__main__":
     main()

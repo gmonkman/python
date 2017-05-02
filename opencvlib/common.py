@@ -43,16 +43,24 @@ def homotrans(H, x, y):
     s = H[2, 0] * x + H[2, 1] * y + H[2, 2]
     return xs / s, ys / s
 
-
-def show(img):
+@decgetimg
+def show(img, title='img',max_width=1024):
     '''(str|ndarray)->void
     Show an image, passing in a path or ndarray
     '''
-    if isinstance(img, str):
-        img = fixp(img)
-        img = cv2.imread(img)
+    w, h = ImageInfo.getsize(img)
 
-    cv2.imshow('img', img)
+    if w > max_width:
+        ratio = max_width/w
+        new_w = int(max_width)
+        new_h = int(h * ratio)
+    else:
+        new_w = int(w)
+        new_h = int(h)
+
+    cv2.namedWindow(title, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(title, new_w, new_h)
+    cv2.imshow(title, img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 

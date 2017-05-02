@@ -569,7 +569,7 @@ def fixp(pth):
     '''(str)->str
     basically path.normpath
     '''
-    return path.normpath(pth)
+    return os.path.normpath(pth)
 
 
 def file_exists(file_name):

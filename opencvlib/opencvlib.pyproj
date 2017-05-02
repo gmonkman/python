@@ -151,7 +151,7 @@
     <Content Include="calibration\nextbase512g\2016_1011_132754_040.JPG" />
     <Content Include="calibration\nextbase512g\2016_1011_132758_041.JPG" />
     <Content Include="calibration\pattern.png" />
-    <Content Include="imgpipes\config.cfg">
+    <Content Include="imgpipes\imgpipes.cfg">
       <SubType>Code</SubType>
     </Content>
     <Content Include="lenscorrection\lenscorrection.py.ini" />

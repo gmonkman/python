@@ -121,7 +121,7 @@ def imagesGenerator():
     '''
     for img in JSON_FILE:
         pth = get_file_parts2(_JSON_FILE_NAME)[0]
-        img_pth = path.join(pth, img['filename'])
+        img_pth = path.join(pth, JSON_FILE[img]['filename'])
         if ImageInfo.is_image(img_pth):
             i = Image(img_pth)
             yield i
@@ -389,25 +389,25 @@ class Region(object):
             self.all_points = list(zip(self.all_points_x, self.all_points_y))
             self.area = poly_area(pts=self.all_points)
             self.bounding_rectangle_as_points = bounding_rect_of_poly(
-                self.all_points)
-            self.bounding_rectangle = boundingRect(self.all_points)
+                self.all_points, as_points=True)
+            self.bounding_rectangle_xywh = bounding_rect_of_poly(self.all_points, as_points=False) # x,y,w,h
         elif self.shape == 'point':
             self.all_points = [(self.x, self.y)]
             self.bounding_rectangle_as_points = None
         elif self.shape == 'rect':
-            self.all_points = rect_as_points(self.x, self.y, self.w, self.h)
+            self.all_points = rect_as_points(self.y, self.x, self.w, self.h)
             self.area = poly_area(pts=self.all_points)
         elif self.shape == 'circle':
             self.area = pi * self.r ** 2
             self.bounding_rectangle_as_points = bounding_rect_of_ellipse(
                 (self.x, self.y), self.r, self.r)  # circle is just an ellipse
-            self.bounding_rectangle = [
+            self.bounding_rectangle_xywh = [
                 self.rx - self.r, self.ry - self.r, self.r * 2, self.r * 2]
         elif self.shape == 'ellipse':
             self.area = pi * self.rx * self.ry
             self.bounding_rectangle_as_points = bounding_rect_of_ellipse(
                 (self.x, self.y), self.rx, self.ry)
-            self.bounding_rectangle = [
+            self.bounding_rectangle_xywh = [
                 self.rx - self.rx, self.ry - self.ry, self.rx * 2, self.ry * 2]
 
     def write(self):

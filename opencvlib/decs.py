@@ -26,6 +26,6 @@ def decgetimg(func):
                 i = img
             else:
                 i = None
-
-        return _getimg_wrapper(i, *args, **kwargs)
+            return func(i, *args, **kwargs)
+    return _getimg_wrapper
 # endregion
