@@ -10,10 +10,8 @@ import cv2
 
 from opencvlib.roi import nms_rects
 from opencvlib.objdetect.config import cells_per_block, min_wdw_sz, model_path, normalize, orientations, \
-                                    pixels_per_cell, step_size, threshold, visualize
-
-
-
+    pixels_per_cell, step_size, threshold, visualize
+from opencvlib.winpyr import slide_win_abs
 
 if __name__ == "__main__":
     # Parse the command line arguments
@@ -48,7 +46,7 @@ if __name__ == "__main__":
         # the width or height of the window, then end the iterations.
         if im_scaled.shape[0] < min_wdw_sz[1] or im_scaled.shape[1] < min_wdw_sz[0]:
             break
-        for (x, y, im_window) in sliding_window(im_scaled, min_wdw_sz, step_size):
+        for (x, y, im_window) in slide_win_abs(im_scaled, min_wdw_sz, step_size):
             if im_window.shape[0] != min_wdw_sz[1] or im_window.shape[1] != min_wdw_sz[0]:
                 continue
             # Calculate the HOG features

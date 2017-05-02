@@ -1,5 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled,
-# no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''Copies files with defined tags to
 a specified subfolder where the image has valid regions
 '''
@@ -7,9 +6,9 @@ import argparse
 import os.path as path
 from shutil import copyfile
 
-import opencvlib.imgpipe.vgg as vgg
-import opencvlib.imgpipe.digikamlib as dkl
-from funclib.iolib import _get_file_parts22
+import opencvlib.imgpipes.vgg as vgg
+import opencvlib.imgpipes.digikamlib as dkl
+from funclib.iolib import get_file_parts2
 from funclib.iolib import create_folder
 from funclib.iolib import print_progress
 from funclib.baselib import DictList
@@ -103,15 +102,15 @@ def main():
     else:
         subfolder = args.subfolder
 
-    new_fld = path.normpath(_get_file_parts22(vggfile)[0] + '/' + subfolder)
+    new_fld = path.normpath(get_file_parts2(vggfile)[0] + '/' + subfolder)
     create_folder(new_fld)
     print("\nCreated folder %s" % new_fld)
 
-    vgg_folder = _get_file_parts22(vggfile)[0]
+    vgg_folder = get_file_parts2(vggfile)[0]
     cnt = 1
     copy_cnt = 0
     for img in images:
-        imgfld = _get_file_parts22(img)[0]
+        imgfld = get_file_parts2(img)[0]
         if vgg_folder == imgfld:
             do_copy = True
 
@@ -120,7 +119,7 @@ def main():
                 do_copy = bool(vgg_image.shape_count == 0)
 
             if do_copy:
-                dest = path.join(new_fld, _get_file_parts22(img)[1])
+                dest = path.join(new_fld, get_file_parts2(img)[1])
                 copyfile(img, dest)
                 copy_cnt += 1
 

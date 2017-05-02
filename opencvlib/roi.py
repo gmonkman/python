@@ -14,9 +14,10 @@ from numpy import ma
 from opencvlib.decs import decgetimg
 from opencvlib import ImageInfo
 
-__all__ = ['sample_rect', 'poly_area', 'roi_polygons_get', 'to_rect', 'rect_as_points',
-           'bounding_rect_as_points', 'bounding_ellipse_as_points', 'rect2rect_mtx',
-           'rects_intersect']
+__all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
+           'rect2rect_mtx', 'rect_as_points', 'rects_intersect', 'roi_polygons_get',
+           'sample_rect', 'to_rect']
+
 
 @decgetimg
 def sample_rect(img, w, h):
@@ -111,7 +112,9 @@ def rect_as_points(rw, col, w, h):
     '''
     return [(col, rw), (col, rw + h), (col + w, rw), (col + w, rw + h)]
 
-#DEBUG bounding_rect_of_poly
+# DEBUG bounding_rect_of_poly
+
+
 def bounding_rect_of_poly(points):
     '''(list|ndarray)->list
     Return points of a bounding rectangle in opencv point format.
@@ -125,7 +128,7 @@ def bounding_rect_of_poly(points):
     return rect_as_points(x, y, w, h)
 
 
-#DEBUG bounding_rect_of_ellipse
+# DEBUG bounding_rect_of_ellipse
 def bounding_rect_of_ellipse(centre_point, rx, ry):
     '''(list|tuple,int,int)->list
     center_point: x,y  ie. col,row
@@ -150,6 +153,7 @@ def rect2rect_mtx(src, dst):
     tx, ty = dst[0] - src[0] * (cx, cy)
     M = np.float64([[cx, 0, tx], [0, cy, ty], [0, 0, 1]])
     return M
+
 
 def rects_intersect(rect1, rect2):
     '''

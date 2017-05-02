@@ -378,6 +378,7 @@ def get_drive_from_uuid(uuid, strip=['-']):
     else:
         return None
 
+
 def folder_generator(paths):
     '''
     (str|iterable)->yield str
@@ -562,6 +563,13 @@ def file_create(file_name):
     '''
     if not os.path.isfile(file_name):
         write_to_eof(file_name, '')
+
+
+def fixp(pth):
+    '''(str)->str
+    basically path.normpath
+    '''
+    return path.normpath(pth)
 
 
 def file_exists(file_name):

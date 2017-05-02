@@ -1,4 +1,5 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled,no-self-use, unused-argument,reimported
+# pylint: disable=C0103, too-few-public-methods,
+# locally-disabled,no-self-use, unused-argument,reimported
 
 '''
 This module contains some common routines used by other samples.
@@ -11,26 +12,21 @@ from glob import glob
 import numpy as np
 import cv2
 import imghdr
-
 import fuckit
 
+from funclib.iolib import fixp
 from opencvlib.decs import decgetimg
 
 __all__ = ['show', 'getimg', 'Info', 'fixp', 'ImageInfo', 'homotrans']
 # endregion
 
 
-def fixp(pth):
-    '''(str)->str
-    basically path.normpath
-    '''
-    return path.normpath(pth)
-
-
 def getimg(img):
     '''(ndarray|str)->ndarray
     tries to load the image if its a path and returns the loaded ndarray
     otherwise returns input img if it is an ndarray
+
+    Also consider using @decs.decgetimg decorator
     '''
     if isinstance(img, str):
         return cv2.imread(fixp(img), -1)
@@ -100,19 +96,14 @@ class Info(object):
         return Info.opencv_check_version("3.")
 
     @staticmethod
-    def opencv_check_version(major, lib=None):
+    def opencv_check_version(major):
         '''(int,cv2 library)->bool
         Checks major version of cv2.
         eg. opencv_check_version("3.") will be true for any cv2 version 3.x.x
 
         If the supplied library is None, cv2 will be imported
         '''
-        if lib is None:
-            import cv2 as lib
-
-        # return whether or not the current OpenCV version matches the
-        # major version number
-        return lib.__version__.startswith(major)
+        return cv2.__version__.startswith(major)
 
 
 class ImageInfo(_BaseImg):
@@ -129,7 +120,7 @@ class ImageInfo(_BaseImg):
         If either is false, image is considered higher res
         if both w and h are greater than the image w, h
         '''
-        x, y = resolution(img)
+        x, y = ImageInfo.resolution(img)
         if either:
             if not w is None:
                 return x < w
@@ -138,20 +129,19 @@ class ImageInfo(_BaseImg):
             return False
         else:
             if not w is None and not h is None:
-                return x<w and y<h
+                return x < w and y < h
             else:
                 return False
 
-
     @staticmethod
     @decgetimg
-    def is_lower_res(img, w, h,either=True):
+    def is_lower_res(img, w, h, either=True):
         '''(ndarray|str, int, int, bool)->bool
         Check if img is lower res than that defined by w and h.
         If either is true, image is considered lower res
         if either the width or the height is less than w, h
         '''
-        x, y = resolution(img)
+        x, y = ImageInfo.resolution(img)
         if either:
             if not w is None:
                 return x > w
@@ -160,7 +150,7 @@ class ImageInfo(_BaseImg):
             return False
         else:
             if not w is None and not h is None:
-                return x>w and y>h
+                return x > w and y > h
             else:
                 return False
 
@@ -200,7 +190,7 @@ class ImageInfo(_BaseImg):
         '''
         dims = []
         for pic in glob(glob_str):
-            if ImageInfo.is_image(pic): #does the work
+            if ImageInfo.is_image(pic):  # does the work
                 with fuckit:
                     img = cv2.imread(pic)
                 if isinstance(img, np.ndarray):

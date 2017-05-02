@@ -6,7 +6,7 @@ two regions have been defined for a single subject'''
 import argparse
 from os import path
 
-import opencvlib.imgpipe.vgg as vgg
+import opencvlib.imgpipes.vgg as vgg
 from funclib.iolib import print_progress
 
 

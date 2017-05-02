@@ -5,7 +5,9 @@
 import itertools as it
 import cv2
 import numpy as np
-import opencvlib.decs as decs
+
+from opencvlib.decs import decgetimg
+from funclib.baselib import isPython2
 
 _JET_DATA = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1),
                      (1, 0.5, 0.5)),
@@ -21,7 +23,7 @@ _CMAP_DATA = {'jet': _JET_DATA}
 def _grouper(n, iterable, fillvalue=None):
     '''grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx'''
     args = [iter(iterable)] * n
-    if _PY3:
+    if not isPython2():
         output = it.zip_longest(fillvalue=fillvalue, *args)
     else:
         output = it.izip_longest(fillvalue=fillvalue, *args)
@@ -29,8 +31,9 @@ def _grouper(n, iterable, fillvalue=None):
 # endregion
 
 
+@decgetimg
 def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
-    '''(ndarray, int, int, constant)->void
+    '''(ndarray|str, int, int, constant)->void
     1) initialize the dimensions of the image to be resized and grab the image size
     2) If both the width and height are None, then return the original image
     3) Both not none then resize to specied width and height
@@ -52,6 +55,7 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     return cv2.resize(image, dim, interpolation=inter)
 
 
+@decgetimg
 def histeq_color(img):
     '''(ndarray)->ndarray
         Equalize histogram of color image
@@ -65,16 +69,19 @@ def histeq_color(img):
     return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
 
 
+@decgetimg
 def histeq(im, nbr_bins=256):
-    """    Histogram equalization of a grayscale image. """
+    '''(ndarray|str, int)->ndarray
+    Histogram equalization of a grayscale image.
+    '''
 
     # get image histogram
-    imhist, bins = histogram(im.flatten(), nbr_bins, normed=True)
+    imhist, bins = np.histogram(im.flatten(), nbr_bins, normed=True)
     cdf = imhist.cumsum()  # cumulative distribution function
     cdf = 255 * cdf / cdf[-1]  # normalize
 
     # use linear interpolation of cdf to find new pixel values
-    im2 = interp(im.flatten(), bins[:-1], cdf)
+    im2 = np.interp(im.flatten(), bins[:-1], cdf)
 
     return im2.reshape(im.shape), cdf
 
@@ -84,16 +91,16 @@ def compute_average(imlist, silent=True):
         Compute the average of a list of images. """
 
     # open first image and make into array of type float
-    averageim = array(Image.open(imlist[0]), 'f')
+    averageim = np.array(cv2.imread(imlist[0], -1), 'f')
 
     skipped = 0
 
     for imname in imlist[1:]:
         try:
-            averageim += array(Image.open(imname))
-        except:
+            averageim += np.array(cv2.imread(imname), -1)
+        except Exception as e:
             if not silent:
-                print(imname + "...skipped")
+                print(imname + "...skipped. The error was %s." % str(e))
                 skipped += 1
 
     averageim /= (len(imlist) - skipped)
@@ -133,8 +140,9 @@ def mosaic(w, imgs):
     return np.vstack(map(np.hstack, rows))
 
 
+@decgetimg
 def opencv2matplotlib(image):
-    '''(ndarray->ndarray)
+    '''(ndarray|str)->ndarray
     OpenCV represents images in BGR order; however, Matplotlib
     expects the image in RGB order, so simply convert from BGR
     to RGB and return

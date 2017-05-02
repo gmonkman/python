@@ -37,7 +37,7 @@ from opencvlib.roi import rect_as_points
 from opencvlib.roi import bounding_rect_of_poly
 from opencvlib.roi import poly_area
 from opencvlib.roi import bounding_rect_of_ellipse
-from  opencvlib import ImageInfo
+from opencvlib import ImageInfo
 
 SILENT = True
 _JSON_FILE_NAME = ''
@@ -60,16 +60,24 @@ VALID_SPECIES = ['bass',
 
 
 def valid_parts_in_list(parts, silent=False):
+    '''(iterable)->list
+    Return valid parts in parts against the master list
+    '''
     for r in list_not(parts, VALID_PARTS):
         if not silent:
             print('Part %s invalid' % r)
     return list_and(parts, VALID_PARTS)
 
+
 def valid_species_in_list(species, silent=False):
+    '''(iterable)->list
+    check if a part is in the valid parts list
+    '''
     for r in list_not(species, VALID_SPECIES):
         if not silent:
             print('Species %s invalid' % r)
     return list_and(species, VALID_SPECIES)
+
 
 def _prints(s):
     if not SILENT:
@@ -106,6 +114,7 @@ def fix_keys(backup=True, show_progress=False):
     save_json(backup)
     _prints('\n\nKey fixing complete.\n')
 
+
 def imagesGenerator():
     '''Generate VGG.Image class objects
     for every image in the vgg file
@@ -116,6 +125,7 @@ def imagesGenerator():
         if ImageInfo.is_image(img_pth):
             i = Image(img_pth)
             yield i
+
 
 class Image(object):
     '''Load and iterate VGG configured image regions
@@ -390,7 +400,7 @@ class Region(object):
         elif self.shape == 'circle':
             self.area = pi * self.r ** 2
             self.bounding_rectangle_as_points = bounding_rect_of_ellipse(
-                (self.x, self.y), self.r, self.r) #circle is just an ellipse
+                (self.x, self.y), self.r, self.r)  # circle is just an ellipse
             self.bounding_rectangle = [
                 self.rx - self.r, self.ry - self.r, self.r * 2, self.r * 2]
         elif self.shape == 'ellipse':

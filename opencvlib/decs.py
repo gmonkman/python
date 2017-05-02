@@ -2,19 +2,30 @@
 # no-self-use, unused-argument
 '''my decorators'''
 
-from functools import wraps as _wraps
+from functools import wraps
 
-from opencvlib import getimg as _getimg
+import numpy as np
+import cv2
 
-__all__ = ['getimgdec']
+from funclib.iolib import fixp
 
+__all__ = ['decgetimg']
 
+# region Decorators
 def decgetimg(func):
     '''this decorator makes a function accept an
     image path or ndarray
     '''
-    @_wraps(func)
+    @wraps(func)
     def _getimg_wrapper(img, *args, **kwargs):
         if not img is None:
-            img = _getimg(img)
-        return _getimg_wrapper(img, *args, **kwargs)
+
+            if isinstance(img, str):
+                i = cv2.imread(fixp(img), -1)
+            elif isinstance(img, np.ndarray):
+                i = img
+            else:
+                i = None
+
+        return _getimg_wrapper(i, *args, **kwargs)
+# endregion

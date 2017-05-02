@@ -5,6 +5,7 @@
 import cv2
 import numpy as np
 
+
 def skeletonize(image, size, structuring=cv2.MORPH_RECT):
     '''determine the area (i.e.  total number of pixels in the image),
     initialize the output skeletonized image, and construct the

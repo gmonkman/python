@@ -6,6 +6,7 @@ import numpy as np
 
 from opencvlib.distance import L2dist
 
+
 class KnnClassifier(object):
     '''knnclassifier'''
 
@@ -36,4 +37,5 @@ class KnnClassifier(object):
             votes.setdefault(label, 0)
             votes[label] += 1
 
-        return max(votes) #return the dictionary label/key with the most votes
+        # return the dictionary label/key with the most votes
+        return max(votes)

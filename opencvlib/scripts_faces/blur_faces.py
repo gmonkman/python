@@ -4,15 +4,12 @@
 '''
 import argparse
 import os.path as path
-from shutil import copyfile
 
-from funclib.iolib import get_file_parts2
-from funclib.iolib import create_folder
 from funclib.iolib import print_progress
 from funclib.iolib import file_list_generator1 as flg
 
 from opencvlib.faces import blur_face
-from opencvlib.common import IMAGE_EXTENSIONS_AS_WILDCARDS
+from opencvlib import IMAGE_EXTENSIONS_AS_WILDCARDS
 
 
 def main():

@@ -1,8 +1,10 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled,
+# no-self-use, unused-argument
 '''Distance measures'''
 import numpy as np
 
 __all__ = ['L1dist', 'L2dist']
+
 
 def L2dist(p1, p2):
     '''(ndarray,ndarray)->float
