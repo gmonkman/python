@@ -21,8 +21,6 @@ import logging
 from shutil import copy
 from math import pi
 
-from cv2 import boundingRect
-
 from funclib.stringslib import datetime_stamp
 from funclib.baselib import dictp
 
@@ -58,6 +56,18 @@ VALID_SPECIES = ['bass',
                  'flatfish',
                  'cod']
 
+def _prints(s):
+    if not SILENT:
+        print(s)
+
+
+logging.basicConfig(format='%(asctime)s %(message)s',
+                    filename=_LOG_FILE_NAME,
+                    filemode='w',
+                    level=logging.DEBUG)
+
+_prints('Logging to %s' % _LOG_FILE_NAME)
+
 
 def valid_parts_in_list(parts, silent=False):
     '''(iterable)->list
@@ -77,19 +87,6 @@ def valid_species_in_list(species, silent=False):
         if not silent:
             print('Species %s invalid' % r)
     return list_and(species, VALID_SPECIES)
-
-
-def _prints(s):
-    if not SILENT:
-        print(s)
-
-
-logging.basicConfig(format='%(asctime)s %(message)s',
-                    filename=_LOG_FILE_NAME,
-                    filemode='w',
-                    level=logging.DEBUG)
-
-_prints('Logging to %s' % _LOG_FILE_NAME)
 
 
 def fix_keys(backup=True, show_progress=False):
@@ -264,19 +261,34 @@ class Subject(object):
         '''
 
         d = dictp(JSON_FILE)
-        regions = d[self.key]['regions']
+        regions = d.getp(self.key).get('regions')
 
         for key, region in regions.items():
             # if called with no subject id, just yield all the regions in
             # regions generator,
             # this ignores subject and assumes there is only one fish.
             # This is used write_region_attributes
-
+            assert isinstance(region, dict)
             if self.subjectid is None:
-                self.region_ids.add(key)
+                self.region_ids.add(key) #dont care about a subject, so get all regions without checking if they match a subject
             else:
-                if region['region_attributes']['subjectid'] == self.subjectid:
-                    self.region_ids.add(key)
+                rattr = region.get('region_attributes')
+                if rattr is None:
+                    s = 'No region_attributes for file with key %s' % self.key
+                    logging.warning(s)
+                    if not SILENT:
+                        print(s)
+                else:
+                    subj = rattr.get('subjectid')
+                    if  subj is None:
+                        s = 'No subjectid set in region_attributes for file with key %s' % self.key
+                        logging.warning(s)
+                        if not SILENT:
+                            print(s)
+                    else:
+                        if subj == self.subjectid:
+                            self.region_ids.add(key)
+
 
     def regions_generator(self, part='', shape=''):
         '''(str, str)->Yields Region classes
@@ -297,13 +309,27 @@ class Subject(object):
             raise ValueError('Invalid shape ' + part)
 
         d = dictp(JSON_FILE)
-        regions = d[self.key]['regions']
+        regions = d.getp(self.key).get('regions')
 
         # region_ids is the ids of all regions which share a common
         # region_attributes['subjectid']
         for region_key in self.region_ids:
-            shape_attr = regions[region_key]['shape_attributes']
-            region_attr = regions[region_key]['region_attributes']
+            shape_attr = regions.get(region_key).get('shape_attributes')
+            if shape_attr is None:
+                s = 'No shape_attributes for file with key %s' % self.key
+                logging.warning(s)
+                if not SILENT:
+                    print(s)
+                continue
+
+            region_attr = regions.get(region_key).get('region_attributes')
+            if region_attr is None:
+                s = 'No region_attributes for file with key %s' % self.key
+                logging.warning(s)
+                if not SILENT:
+                    print(s)
+                continue
+
             if shape_attr:
                 reg = Region(part=region_attr.get('part', 'whole'),
                              image_key=self.key,  # no get, error if doesnt exist
@@ -322,9 +348,6 @@ class Subject(object):
                 if part == '' or part.casefold() == region_attr['part'].casefold():
                     if shape == '' or shape.casefold() == shape_attr.get('name'):
                         yield reg
-            else:
-                s = 'shape_attributes undefined in VGG for image key %s' % self.key
-                logging.warning(s)
 
 
 class Region(object):

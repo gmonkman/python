@@ -1,7 +1,7 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument,wildcard-import
 
 '''opencvlib'''
-from opencvlib.common import getimg, show
+from opencvlib.common import getimg, show, checkwaitkey, getwaitkey
 from opencvlib.common import ImageInfo, Info
 
 IMAGE_EXTENSIONS = ('.bmp',
@@ -24,5 +24,5 @@ IMAGE_EXTENSIONS_AS_WILDCARDS = ('*.bmp',
                                  '*.pgm',
                                  '*.ppm')
 
-__all__ = ['common', 'perspective', 'processing',
-           'roi', 'edges', 'faces', 'distance']
+__all__ = ['common', 'distance', 'edges', 'faces',
+           'perspective', 'processing', 'roi', 'winpyr']

@@ -127,6 +127,10 @@ class Images():
         Images._initdb()
 
     def no_digikam_filters(self):
+        '''()->bool
+        Return bool indicating if
+        there are any digikam filters set
+        '''
         if self._digikam_params is None:
             return True
         else:
@@ -221,7 +225,7 @@ class Images():
                     vgg.load_json(fixp(path.join(fld, VGG_FILE)))
                     for Img in vgg.imagesGenerator():
 
-                        if not self.no_digikam_filters: #if no filters set for digikam, just ignore it
+                        if not self.no_digikam_filters(): #if no filters set for digikam, just ignore it
                             if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
                                 continue
 
@@ -250,7 +254,7 @@ class Images():
                     vgg.load_json(fixp(path.join(fld, VGG_FILE)))
                     for Img in vgg.imagesGenerator():
 
-                        if not self.no_digikam_filters: #if no filters set for digikam, just ignore it
+                        if not self.no_digikam_filters(): #if no filters set for digikam, just ignore it
                             if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
                                 continue
 

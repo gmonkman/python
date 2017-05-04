@@ -6,7 +6,6 @@ This module contains some common routines used by other samples.
 From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 '''
 # region imports
-from os import path
 from glob import glob
 
 import numpy as np
@@ -16,8 +15,9 @@ import fuckit
 
 from funclib.iolib import fixp
 from opencvlib.decs import decgetimg
+from funclib.stringslib import read_number
 
-__all__ = ['show', 'getimg', 'Info', 'fixp', 'ImageInfo', 'homotrans']
+__all__ = ['show', 'getimg', 'Info', 'fixp', 'ImageInfo', 'homotrans', 'checkwaitkey', 'getwaitkey']
 # endregion
 
 
@@ -43,10 +43,29 @@ def homotrans(H, x, y):
     s = H[2, 0] * x + H[2, 1] * y + H[2, 2]
     return xs / s, ys / s
 
+
+def getwaitkey(i):
+    '''get a string representation
+    of the key pressed to end opencv.waitkey
+    '''
+    return chr(i & 255)
+
+
+def checkwaitkey(key_as_string, waitkeyval):
+    '''pass in a character, returns true if matched'''
+    return getwaitkey(waitkeyval) == key_as_string
+
+
 @decgetimg
-def show(img, title='img',max_width=1024):
-    '''(str|ndarray)->void
+def show(img, title='img', max_width=800, waitsecs=0):
+    '''(str|ndarray)->int, str
     Show an image, passing in a path or ndarray
+
+    Returns the key value pressed and the title
+    <no key>=255
+    y=121
+    <space>=32
+    n=110
     '''
     w, h = ImageInfo.getsize(img)
 
@@ -58,12 +77,17 @@ def show(img, title='img',max_width=1024):
         new_w = int(w)
         new_h = int(h)
 
+    waitsecs = int(read_number(waitsecs)*1000)
+    if waitsecs < 0:
+        waitsecs = 0
+
     cv2.namedWindow(title, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(title, new_w, new_h)
     cv2.imshow(title, img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    key = cv2.waitKey(waitsecs) #255 is no key press
 
+    cv2.destroyAllWindows()
+    return key, title
 
 # region UTIL CLASSES
 class _BaseImg(object):

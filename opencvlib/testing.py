@@ -14,6 +14,7 @@ from opencvlib import show
 import opencvlib.imgpipes.generators as gnr
 
 from funclib.iolib import get_file_parts2
+from funclib.iolib import write_to_file
 
 def test_vgg_fix():
     vgg.load_json(
@@ -77,10 +78,16 @@ def test_decgetimg(img):
 def test_image_pipeline():
     vgg_sp = gnr.VGGSearchParams('whole','bass')
     vgg_folders = ['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler']
-    pipe = gnr.Images(vgg_folders, None, vgg_sp)
+    dk_sp = gnr.DigikamSearchParams(key_value_bool_type='OR', is_train=['head','whole'])
+    #dk_sp = None
+    pipe = gnr.Images(vgg_folders, dk_sp, vgg_sp)
+    res = []
     for img, spp, part, img_path in pipe.generate_regions():
-        show(img, get_file_parts2(img_path)[1])
-        print(spp, part, img_path)
+        i, title = show(img, title=get_file_parts2(img_path)[1], waitsecs=10)
+        if opencvlib.checkwaitkey('n', i): #pressed n
+            res.append([opencvlib.getwaitkey(i), title])
+    if res: write_to_file(res)
+
 
 def main():
     # test_roi()

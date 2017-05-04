@@ -74,6 +74,24 @@ class dictp(dict):
             key = keys[0] if keys else None
         return self.get(key)
 
+    def getp(self, partial_key, d=None):
+        '''(str, any)->dict item
+        Support partial key matches,
+        return d if key not found
+        '''
+        keys = [k for k in self.keys() if partial_key in k]
+        if keys:
+            if len(keys) > 1:
+                raise KeyError('Partial key matched more than 1 element')
+
+            key = keys[0] if keys else None
+            if key is None:
+                return d
+            else:
+                return self.get(key)
+        else:
+            return d
+
 
 class DictList(dict):
     '''support having a key with a list of values,

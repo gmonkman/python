@@ -134,7 +134,7 @@ def bounding_rect_of_poly(points, as_points=True):
     if as_points:
         return rect_as_points(x, y, w, h)
     else:
-        return (x,y,w,h)
+        return (x, y, w, h)
 
 
 # DEBUG bounding_rect_of_ellipse

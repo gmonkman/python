@@ -13,9 +13,11 @@ __all__ = ['decgetimg']
 
 # region Decorators
 def decgetimg(func):
-    '''this decorator makes a function accept an
-    image path or ndarray
     '''
+    decorator to wrap opening an
+    image using opencv.imread
+    '''
+    #this decorator makes a function accept an image path or ndarray
     @wraps(func)
     def _getimg_wrapper(img, *args, **kwargs):
         if not img is None:

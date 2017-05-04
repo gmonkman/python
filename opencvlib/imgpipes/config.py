@@ -16,16 +16,16 @@ def cfg_path():
     '''()->str
     returns full path to config file
     '''
-    pth, fname, ext = get_file_parts2(abspath(getsourcefile(lambda:0)))
+    pth = get_file_parts2(abspath(getsourcefile(lambda: 0)))[0]
     pth = fixp(pth)
-    return fixp(join(pth,'imgpipes.cfg'))
+    return fixp(join(pth, 'imgpipes.cfg'))
 
 
 
 config = cp.RawConfigParser()
 config.read(cfg_path())
 
-digikamdb = config.get("DIGIKAM", "dbpath")
+digikamdb = fixp(config.get("DIGIKAM", "dbpath"))
 
 #orientations = config.getint("hog", "orientations")
 #cells_per_block = json.loads(config.get("hog", "cells_per_block"))
