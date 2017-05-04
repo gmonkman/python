@@ -3,6 +3,7 @@
 '''base classes and misc functions for manipulatin other base classes
 Stick list/tuple/dic functions in here
 '''
+from collections import OrderedDict
 
 from sys import version_info
 from sys import platform
@@ -56,7 +57,15 @@ class switch(object):
 # region dict
 
 # region dict classes
-
+class odict(OrderedDict):
+    '''subclass OrderedDict to support item retreival by index'''
+    def getbyindex(self, ind):
+        '''(int)->tuple
+        Retrieve dictionary key-value pair as a tuple using
+        the integer index
+        '''
+        items = list(self.items())
+        return items[ind]
 
 class dictp(dict):
     '''allow values to be accessed with partial key match

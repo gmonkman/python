@@ -6,12 +6,13 @@ from functools import wraps
 
 import numpy as np
 import cv2
+from PIL.Image import open as pil_open
 
 from funclib.iolib import fixp
 
 __all__ = ['decgetimg']
 
-# region Decorators
+
 def decgetimg(func):
     '''
     decorator to wrap opening an
@@ -30,4 +31,25 @@ def decgetimg(func):
                 i = None
             return func(i, *args, **kwargs)
     return _getimg_wrapper
-# endregion
+
+def decgetimgpil(func):
+    '''
+    decorator to wrap opening an
+    image using pil.Image.open
+
+    PIL is a lazy load so checking resolution for example
+    will not load the full image into memory
+    '''
+    #this decorator makes a function accept an image path or ndarray
+    @wraps(func)
+    def _getimg_wrapper(img, *args, **kwargs):
+        if not img is None:
+
+            if isinstance(img, str):
+                i = pil_open(fixp(img))
+            elif isinstance(img, np.ndarray):
+                i = img
+            else:
+                i = None
+            return func(i, *args, **kwargs)
+    return _getimg_wrapper

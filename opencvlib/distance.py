@@ -19,9 +19,54 @@ def L2dist(p1, p2):
 
 def L1dist(v1, v2):
     '''(ndarray,ndarray)->float
-    l1dist, the minkowski or taxi cab distance
+    L1dist (minkowski/taxi cab) distance between 2 points
     A=np.array([[0,0]])
     B=np.array([[1,1]])
     L2dist(A, B) = 2
     '''
     return np.sum(abs(v1 - v2))
+
+#TODO Test nearN eculidean
+def nearN_euclidean(point, points, nr=1):
+    '''(ndarray|list|tuple|ndarray|list|tuple,int)->list [[ind1,dist1]int (index of tuple), point of same type as points
+    Given a point and an array of points
+    return a list of lists containing the index and distances of the nr closest points to point.
+    eg:
+    pt = [0,0]: pts=[[0,0], [1,1], [3,3]]
+    nearN_euclidean(point, points, nr=2)
+    # ([0,0], [1,1.414
+
+    0 and 1 are the indices and 1, 1.414 are the distances
+    '''
+    ndpt = np.array(point)
+    ndpts = np.array(points)
+    diff = ndpts - ndpt
+    dist = np.sqrt(np.dot(diff.T, diff))
+
+    ret = np.argpartition(dist, -nr)[:nr]
+    l_ind = ret.tolist()
+    l_dist = dist[l_ind].tolist()
+    out = [x for x in zip(l_ind, l_dist)]
+    return out
+
+def furthestN_euclidean(point, points, nr=1):
+    '''(ndarray|list|tuple|ndarray|list|tuple,int)->list [[int,float], ... ]
+    Given a point and an array of points
+    return a list of lists of the index and distance of the nr most distant points from point.
+    eg:
+    pt = [0,0]: pts=[[0,0], [1,1], [3,3]]
+    furthestN_euclidean(point, points, nr=2)
+    # [[2,9], [1,1.414]]
+
+    2 and 1 are the indices and 9 and 1.414 are the distances
+    '''
+    ndpt = np.array(point)
+    ndpts = np.array(points)
+    diff = ndpts - ndpt
+    dist = np.sqrt(np.dot(diff.T, diff))
+
+    ret = np.argpartition(dist, nr)[:nr]
+    l_ind = ret.tolist()
+    l_dist = dist[l_ind].tolist()
+    out = [x for x in zip(l_ind, l_dist)]
+    return out

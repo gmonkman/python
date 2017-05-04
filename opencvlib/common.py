@@ -12,10 +12,13 @@ import numpy as np
 import cv2
 import imghdr
 import fuckit
+from  PIL.Image import open as pil_open
 
 from funclib.iolib import fixp
-from opencvlib.decs import decgetimg
 from funclib.stringslib import read_number
+
+from opencvlib.decs import decgetimg #loads full image into memory
+from opencvlib.decs import decgetimgpil #lazy loader, use for info style functions
 
 __all__ = ['show', 'getimg', 'Info', 'fixp', 'ImageInfo', 'homotrans', 'checkwaitkey', 'getwaitkey']
 # endregion
@@ -145,7 +148,7 @@ class ImageInfo(_BaseImg):
         super().__init__(img)
 
     @staticmethod
-    @decgetimg
+    @decgetimgpil
     def is_higher_res(img, w, h, either=False):
         '''(ndarray|str, int, int, bool)->bool
         Check if img is
@@ -166,7 +169,7 @@ class ImageInfo(_BaseImg):
                 return False
 
     @staticmethod
-    @decgetimg
+    @decgetimgpil
     def is_lower_res(img, w, h, either=True):
         '''(ndarray|str, int, int, bool)->bool
         Check if img is lower res than that defined by w and h.
@@ -187,13 +190,14 @@ class ImageInfo(_BaseImg):
                 return False
 
     @staticmethod
-    @decgetimg
+    @decgetimgpil
     def resolution(img):
         '''(str|ndarray)->int,int
         width,height
         '''
         assert isinstance(img, np.ndarray)
-        return [img.shape[1], img.shape[0]]
+        return [img.shape[0], img.shape[1]]
+
 
     @staticmethod
     def is_image(file_path, try_load=False):

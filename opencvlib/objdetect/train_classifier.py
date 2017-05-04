@@ -14,9 +14,7 @@ from sklearn.externals import joblib
 from opencvlib.objdetect import config
 
 #import opencvlib.objdetect.config as config
-
-if __name__ == "__main__":
-    # Parse the command line arguments
+def parse_args():
     parser = ap.ArgumentParser()
     parser.add_argument(
         '-p', "--posfeat", help="Path to the positive features directory", required=True)
@@ -31,6 +29,7 @@ if __name__ == "__main__":
 
     # Classifiers supported
     clf_type = args['classifier']
+
 
     fds = []
     labels = []

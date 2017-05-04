@@ -1,19 +1,28 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, dangerous-default-value, attribute-defined-outside-init
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, dangerous-default-value, attribute-defined-outside-init, return-in-init
 '''simple image file generators'''
 from os import path
 
 import cv2
+from numpy.random import randint
 
+from funclib.baselib import odict #subclass indexable OrderedDictionary item
 from funclib.iolib import file_list_generator1
 from funclib.iolib import folder_generator
+from funclib.iolib import fixp
+
+from opencvlib import ImageInfo
+from opencvlib import getimg
+
+from opencvlib.distance import nearN_euclidean
 
 import opencvlib.imgpipes.vgg as vgg
 import opencvlib.imgpipes.digikamlib as digikamlib
-from opencvlib import ImageInfo
-from opencvlib.roi import roi_polygons_get
-from funclib.iolib import fixp
-from opencvlib import getimg
 from opencvlib.imgpipes import config
+
+from opencvlib.roi import roi_polygons_get
+from opencvlib.roi import sample_rect
+
+
 
 from opencvlib import IMAGE_EXTENSIONS_AS_WILDCARDS
 from opencvlib import IMAGE_EXTENSIONS
@@ -48,7 +57,7 @@ def image_generator(paths, wildcards=IMAGE_EXTENSIONS_AS_WILDCARDS, flags=-1):
 # region Main Region and Image Generator
 
 
-class VGGSearchParams():
+class VGGSearchParams(object):
     '''VGGSearchParams
     '''
     def __init__(self, parts, species):
@@ -102,7 +111,7 @@ class DigikamSearchParams():
         return self.filename == '' and self.album_label == '' and self.relative_path == '' and not self.keyvaluetags
 
 
-class Images():
+class Images(object):
     '''
     Images
     '''
@@ -124,6 +133,7 @@ class Images():
         self.valid_extensions = valid_extensions
         self.max_res_wh = max_res_wh
         self.min_res_wh = min_res_wh
+        self.dirty_filters = True
         Images._initdb()
 
     def no_digikam_filters(self):
@@ -145,6 +155,7 @@ class Images():
     def digikamParams(self, digikamParams):
         '''digikamParams setter'''
         self._digikam_params = digikamParams
+        self.dirty_filters = True #for use in inherited classes, not needed for this explicitly
 
     @property
     def vggParams(self):
@@ -155,6 +166,7 @@ class Images():
     def vggParams(self, vggParams):
         '''vggParams setter'''
         self._vgg_params = vggParams
+        self.dirty_filters = True #for use in inherited classes, not needed for this explicitly
 
     @staticmethod
     def _initdb():
@@ -185,11 +197,13 @@ class Images():
         imgs_out = [fixp(i) for i in imgs]
         return imgs_out
 
-    def digikam_generator(self):
-        '''(void)->ndarray,str
+    def digikam_generator(self, yield_path_only=False):
+        '''(bool)->ndarray,str
         generate whole images applying only the digikam filter
         Yields:
         image region (ndarray), full image path (eg c:/images/myimage.jpg)
+
+        If yeild_path_only, then the yielded ndarray will be none.
         '''
         if self.no_digikam_filters():
             return
@@ -207,7 +221,10 @@ class Images():
                     if not img.fileext in self.valid_extensions:
                         continue
 
-            yield getimg(img), img
+            if yield_path_only:
+                yield None, img
+            else:
+                yield getimg(img), img
 
     def generate_regions(self):
         '''(bool)-> ndarray,str,str,str
@@ -284,3 +301,73 @@ def _dir_has_vgg(fld):
     fld = path.join(path.normpath(fld), VGG_FILE)
     return path.isfile(fld)
 # endregion
+
+class RandomRegions(Images):
+    '''get random regions from the digikam library based on search criteria
+    which are first set in the DigikamSearchParams class.
+    '''
+    def __init__(self, search_folders, digikam_params, min_res_wh=(None, None), max_res_wh = (None, None), valid_extensions = IMAGE_EXTENSIONS, recurse_search_folders = False):
+        #resolutions is a dictionary of dictionaries {'c:\pic.jpg':{'w':1024, 'h':768}}
+
+        #Code relies on d_res and pt_res having same indices
+        #All points are w,h
+        self.d_res = odict() #ordered dictionary (collections.OrderedDict) of resolutions
+        self.pt_res = [] #resolutions as a list of points
+        return super().__init__(search_folders, digikam_params, min_res_wh, max_res_wh, valid_extensions, recurse_search_folders)
+
+
+    def generate_regions(self):
+        '''DO NOT USE. Only allow the digikam generator
+        as makes no sense to sample from a region'''
+        raise AttributeError("'RandomRegions' object has no attribute 'generate_regions'")
+
+    def region(self, img, w, h, sample_size=1):
+        '''(int, ndarray|str, int, int, int)->ndarray,str
+        Retrieve a random image region sampled from the digikam library
+        nearest in resolution to nearest_resolution
+        nearest resolution images.
+
+        img:Get a sample from an image with similiar resolution to this img
+        w, h:Size of region to sample from similiar resolution image
+
+        sample_size:Randomly sample an image from the sample_size nearest in resolution from the digikam library
+
+        Returns an image (ndarray) and the image path
+        '''
+        if self.no_digikam_filters():
+            raise ValueError('No digikam filters set. '
+                             'Create a class instance of generators.DigikamSearchParams and '
+                             'pass to RandomRegions.digikamParams property, or set at creation')
+        image = getimg(img)
+        _loadres() #refresh if needed
+        w, h = ImageInfo.resolution(img)
+        samples = nearN_euclidean((w, h), self.pt_res, sample_size)
+        samples = [self.d_res.getbyindex(ind) for ind, dist in samples]
+        samp_path = samples[randint(0, len(samples))]
+        sample_image = getimg(samp_path)
+        return sample_rect(sample_image, region_sz[0], region_sz[1]), samp_path
+
+
+    @staticmethod
+    def _gen_res_key(w, h):
+        '''(int,int)->str
+        generate unique resolution key
+        '''
+        return str(w) + 'x' + str(h)
+
+
+    def _loadres(self, force=False):
+        '''loads resolutions with full image paths
+        '''
+        if not force and not self.dirty_filters:
+            return
+
+        self.d_res = odict()
+        self.pt_res = []
+        if self.no_digikam_filters():
+            return
+
+        for img, img_path in self.digikam_generator(True):
+            w, h = ImageInfo.resolution(img_path) #use the pil lazy loader
+            self.d_res[img_path] = _gen_res_key(w, h) #ordered dict, matching order of pts, order is critical for getting random image
+            self.pt_res.append([w, h])

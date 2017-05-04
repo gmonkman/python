@@ -1,5 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled,
-# no-self-use, unused-argument,wildcard-import,unused-wildcard-import
+# pylint: disable=C0103, too-few-public-methods
 '''extract features'''
 
 import argparse as ap
