@@ -6,21 +6,19 @@ This module contains some common routines used by other samples.
 From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 '''
 # region imports
-from glob import glob
+from glob import glob as _glob
 
-import numpy as np
-import cv2
-import imghdr
-import fuckit
-from  PIL.Image import open as pil_open
+import numpy as _np
+import cv2 as _cv2
+import imghdr as _imghdr
+import fuckit as _fuckit
 
-from funclib.iolib import fixp
-from funclib.stringslib import read_number
+from funclib.iolib import fixp as _fixp
+from funclib.stringslib import read_number as _read_number
 
-from opencvlib.decs import decgetimg #loads full image into memory
-from opencvlib.decs import decgetimgpil #lazy loader, use for info style functions
+import decs as _decs
 
-__all__ = ['show', 'getimg', 'Info', 'fixp', 'ImageInfo', 'homotrans', 'checkwaitkey', 'getwaitkey']
+__all__ = ['show', 'getimg', 'Info', 'ImageInfo', 'homotrans', 'checkwaitkey', 'getwaitkey']
 # endregion
 
 
@@ -29,10 +27,10 @@ def getimg(img):
     tries to load the image if its a path and returns the loaded ndarray
     otherwise returns input img if it is an ndarray
 
-    Also consider using @decs.decgetimg decorator
+    Also consider using @decs._decs.decgetimg decorator
     '''
     if isinstance(img, str):
-        return cv2.imread(fixp(img), -1)
+        return _cv2.imread(_fixp(img), -1)
     else:
         return img
 
@@ -59,7 +57,7 @@ def checkwaitkey(key_as_string, waitkeyval):
     return getwaitkey(waitkeyval) == key_as_string
 
 
-@decgetimg
+@_decs.decgetimg
 def show(img, title='img', max_width=800, waitsecs=0):
     '''(str|ndarray)->int, str
     Show an image, passing in a path or ndarray
@@ -80,16 +78,16 @@ def show(img, title='img', max_width=800, waitsecs=0):
         new_w = int(w)
         new_h = int(h)
 
-    waitsecs = int(read_number(waitsecs)*1000)
+    waitsecs = int(_read_number(waitsecs)*1000)
     if waitsecs < 0:
         waitsecs = 0
 
-    cv2.namedWindow(title, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(title, new_w, new_h)
-    cv2.imshow(title, img)
-    key = cv2.waitKey(waitsecs) #255 is no key press
+    _cv2.namedWindow(title, _cv2.WINDOW_NORMAL)
+    _cv2.resizeWindow(title, new_w, new_h)
+    _cv2.imshow(title, img)
+    key = _cv2.waitKey(waitsecs) #255 is no key press
 
-    cv2.destroyAllWindows()
+    _cv2.destroyAllWindows()
     return key, title
 
 # region UTIL CLASSES
@@ -117,7 +115,7 @@ class Info(object):
 
     @staticmethod
     def is_cv2():
-        '''if we are using OpenCV 2, then our cv2.__version__ will start
+        '''if we are using OpenCV 2, then our _cv2.__version__ will start
         with '2.'
         '''
         return Info.opencv_check_version("2.")
@@ -125,20 +123,20 @@ class Info(object):
     @staticmethod
     def is_cv3():
         '''
-        if we are using OpenCV 3.X, then our cv2.__version__ will start
+        if we are using OpenCV 3.X, then our _cv2.__version__ will start
         with '3.'
         '''
         return Info.opencv_check_version("3.")
 
     @staticmethod
     def opencv_check_version(major):
-        '''(int,cv2 library)->bool
-        Checks major version of cv2.
-        eg. opencv_check_version("3.") will be true for any cv2 version 3.x.x
+        '''(int,_cv2 library)->bool
+        Checks major version of _cv2.
+        eg. opencv_check_version("3.") will be true for any _cv2 version 3.x.x
 
-        If the supplied library is None, cv2 will be imported
+        If the supplied library is None, _cv2 will be imported
         '''
-        return cv2.__version__.startswith(major)
+        return _cv2.__version__.startswith(major)
 
 
 class ImageInfo(_BaseImg):
@@ -148,7 +146,7 @@ class ImageInfo(_BaseImg):
         super().__init__(img)
 
     @staticmethod
-    @decgetimgpil
+    @_decs.decgetimgpil
     def is_higher_res(img, w, h, either=False):
         '''(ndarray|str, int, int, bool)->bool
         Check if img is
@@ -169,7 +167,7 @@ class ImageInfo(_BaseImg):
                 return False
 
     @staticmethod
-    @decgetimgpil
+    @_decs.decgetimgpil
     def is_lower_res(img, w, h, either=True):
         '''(ndarray|str, int, int, bool)->bool
         Check if img is lower res than that defined by w and h.
@@ -190,29 +188,32 @@ class ImageInfo(_BaseImg):
                 return False
 
     @staticmethod
-    @decgetimgpil
+    @_decs.decgetimgpil
     def resolution(img):
         '''(str|ndarray)->int,int
         width,height
         '''
-        assert isinstance(img, np.ndarray)
-        return [img.shape[0], img.shape[1]]
+        if isinstance(img, _np.ndarray):
+            h, w = img.shape[:2]
+            return w, h
+        else:
+            return [img.width, img.height]
 
 
     @staticmethod
     def is_image(file_path, try_load=False):
         '''(str)->bool
         Pass in a file string and see if it looks like an image.
-        If try_load is true, we try and load the file using cv2.imread (costly)
+        If try_load is true, we try and load the file using _cv2.imread (costly)
         '''
         ret = False
-        if not imghdr.what(file_path) is None:
+        if not _imghdr.what(file_path) is None:
             ret = True
             if try_load:
-                with fuckit:
+                with _fuckit:
                     ret = False
-                    img = cv2.imread(file_path)
-                    if isinstance(img, np.ndarray):
+                    img = _cv2.imread(file_path)
+                    if isinstance(img, _np.ndarray):
                         ret = True
         return ret
 
@@ -225,11 +226,11 @@ class ImageInfo(_BaseImg):
         [[800,600],[1024,768]]
         '''
         dims = []
-        for pic in glob(glob_str):
+        for pic in _glob(glob_str):
             if ImageInfo.is_image(pic):  # does the work
-                with fuckit:
-                    img = cv2.imread(pic)
-                if isinstance(img, np.ndarray):
+                with _fuckit:
+                    img = _cv2.imread(pic)
+                if isinstance(img, _np.ndarray):
                     h, w = img.shape[:2]
                     e = [w, h]
                     if e not in dims:
@@ -244,7 +245,7 @@ class ImageInfo(_BaseImg):
         Can pass in a file path or ndarray
         '''
         if isinstance(img, str):
-            img = cv2.imread(img)
+            img = _cv2.imread(img)
 
         h, w = img.shape[:2]
         return w, h
@@ -257,7 +258,7 @@ class ImageInfo(_BaseImg):
         Can pass in a file path or ndarray
         '''
         if isinstance(img, str):
-            img = cv2.imread(img)
+            img = _cv2.imread(img)
 
         h, w = img.shape[:2]
         return {'w': w, 'h': h}

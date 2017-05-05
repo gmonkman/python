@@ -213,7 +213,7 @@ class Image(object):
 
         for spp in VALID_SPECIES:
             if species.casefold() == spp.casefold() or species == '':
-                for region in self.subjects_generator(spp):
+                for dummy in self.subjects_generator(spp):
                     cnt += 1
         return cnt
 

@@ -4,7 +4,8 @@
 
 import argparse
 from os import path
-from subprocess import Popen
+
+import subprocess as _subprocess
 
 from funclib.iolib import file_list_glob_generator
 from funclib.iolib import write_to_file
@@ -16,7 +17,7 @@ def main():
     '''execute if script was entry point'''
     parser = argparse.ArgumentParser(description='Create a futurize batch script for python (.py) files.\n'
                                      'Example:\n'
-                                     'create_futurize_script -r -e -o c:\myscript.bat -f C:\Python352\Scripts\futurize.exe c:/development/python/funclib c:/development/python/dblib'
+                                     'create_futurize_script -r -e -o c:/myscript.bat -f C:/Python352/Scripts/futurize.exe c:/development/python/funclib c:/development/python/dblib'
                                      )
     parser.add_argument('-r', '--recurse',
                         help='Recurse folders', action='store_true')
@@ -42,8 +43,8 @@ def main():
     print('Done. Run the script from a command line/shell')
 
     if args.execute_script:
-        p = Popen(path.normpath(args.execute_script), shell=True, stdout=pipe)
-        stdout, stderr = p.communicate()
+        p = _subprocess.Popen(path.normpath(args.execute_script), shell=True, stdout=_subprocess.PIPE)
+        dummy, dummy1 = p.communicate()
         if p.returncode == 0:
             print('Reported to have finished successfully')
         else:

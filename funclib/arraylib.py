@@ -1,9 +1,8 @@
-# pylint: disable=C0302, dangerous-default-value, no-member,
-# expression-not-assigned, not-context-manager, invalid-name
+# pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, not-context-manager, invalid-name
 '''routines to manipulate array like objects like lists, tuples etc'''
-import numpy as np
+import numpy as _np
 import numpy.random
-import scipy.ndimage as ndimage
+import scipy.ndimage as _ndimage
 import xlwings
 
 # list stuff
@@ -40,25 +39,25 @@ def np_permute_2d(a):
     i.e. the array can contain NaNs but a permuted value
     cannot be permuted into a cell of value NaN
     '''
-    assert isinstance(a, np.ndarray)
+    assert isinstance(a, _np.ndarray)
 
     # get a numpy flattened array of all values which are a number (ie exclude
     # NaNs)
-    mask = np.isfinite(a)  # create a boolean mask
+    mask = _np.isfinite(a)  # create a boolean mask
 
     np_val_list = a.copy()
     np_val_list = np_val_list[mask]
-    np_val_list = np.random.permutation(np_val_list)
+    np_val_list = _np.random.permutation(np_val_list)
 
     # now we need to reassign our original array for the permuted list where there are non NaNs
     # First get indexes of non NaN values in passed array
     # mask is still a array of booleans with True values corresponding to non
     # NaNs and Infs
-    np_inds = np.nonzero(mask)
-    np_inds = np.transpose(np_inds)
+    np_inds = _np.nonzero(mask)
+    np_inds = _np.transpose(np_inds)
     cnt = 0
     npout = a.copy()
-    assert isinstance(npout, np.ndarray)
+    assert isinstance(npout, _np.ndarray)
     for val in np_inds:
         npout[val[0]][val[1]] = np_val_list[cnt]
         cnt += 1
@@ -72,10 +71,10 @@ def _focal_mean_filter(arg):
     to calculate per element focal values.
     In particular we want to return NaN when the original element is NaN
     '''
-    if np.isnan(arg[4]):
-        return np.NaN
+    if _np.isnan(arg[4]):
+        return _np.NaN
     else:
-        return np.nanmean(arg)
+        return _np.nanmean(arg)
 
 
 def np_focal_mean(a, pad=True):
@@ -86,22 +85,22 @@ def np_focal_mean(a, pad=True):
 
     May get unexpected results if ndarray is not of type float
     '''
-    assert isinstance(a, np.ndarray)
+    assert isinstance(a, _np.ndarray)
     x = a.astype(float)
 
     if pad:
         # surround with nans so we can ignore edge effects
-        x = np.pad(x, pad_width=1, mode='constant', constant_values=np.NaN)
+        x = _np.pad(x, pad_width=1, mode='constant', constant_values=_np.NaN)
 
-    kernel = np.ones((3, 3))
+    kernel = _np.ones((3, 3))
 
     # create means by kernel
-    out = ndimage.filters.generic_filter(
+    out = _ndimage.filters.generic_filter(
         x,
         _focal_mean_filter,
         footprint=kernel,
         mode='constant',
-        cval=np.NaN)
+        cval=_np.NaN)
 
     return out
 
@@ -112,8 +111,8 @@ def np_paired_zeros_to_nan(a, b):
     replaces matched zero value pairs with nans, retaining
     the shape of the array
     '''
-    assert isinstance(a, np.ndarray)
-    assert isinstance(b, np.ndarray)
+    assert isinstance(a, _np.ndarray)
+    assert isinstance(b, _np.ndarray)
     if a.dtype != 'float':
         raise ValueError('ndarray a is not of dtype float')
     if b.dtype != 'float':
@@ -121,24 +120,24 @@ def np_paired_zeros_to_nan(a, b):
 
     if a.shape != b.shape:
         raise ValueError('Arrays must be the same shape')
-    nponebool = np.array(a, dtype=bool)
-    nptwobool = np.array(b, dtype=bool)
+    nponebool = _np.array(a, dtype=bool)
+    nptwobool = _np.array(b, dtype=bool)
 
     # mask now has False where both 'in' arrays have matching zeros
     # we the invert so matched zero positions are set to True
     # checked and nan is converted to True during above casting
-    mask = np.invert(np.logical_or(nponebool, nptwobool))
+    mask = _np.invert(_np.logical_or(nponebool, nptwobool))
 
     # npInds now contains indexes of all 'cells' which had zeros
-    np_inds = np.nonzero(mask)
+    np_inds = _np.nonzero(mask)
     assert isinstance(np_inds, tuple)
 
-    np_inds = np.transpose(np_inds)
+    np_inds = _np.transpose(np_inds)
 
     for val in np_inds:
         x, y = val
-        a[x][y] = np.NaN
-        b[x][y] = np.NaN
+        a[x][y] = _np.NaN
+        b[x][y] = _np.NaN
 
     return {'a': a, 'b': b}
 
@@ -148,7 +147,7 @@ def np_pad_nan(a):
     pads nd with nans'''
     if a.dtype != 'float':
         raise ValueError('ndarray is not of dtype float')
-    return np.pad(a, pad_width=1, mode='constant', constant_values=np.NaN)
+    return _np.pad(a, pad_width=1, mode='constant', constant_values=_np.NaN)
 
 
 def np_delete_paired_nans_flattened(a, b):
@@ -158,8 +157,8 @@ def np_delete_paired_nans_flattened(a, b):
     are FLATTENED (but retain matches at a given index)
     {'a':a, 'b':b}
     '''
-    assert isinstance(a, np.ndarray)
-    assert isinstance(b, np.ndarray)
+    assert isinstance(a, _np.ndarray)
+    assert isinstance(b, _np.ndarray)
     if a.shape != b.shape:
         raise ValueError('arrays are of different shape')
 
@@ -172,9 +171,9 @@ def np_delete_paired_nans_flattened(a, b):
     a = a.astype(float)
     b = b.astype(float)
 
-    amask = np.invert(np.isnan(a))
-    bmask = np.invert(np.isnan(b))
-    mask = np.logical_or(amask, bmask)
+    amask = _np.invert(_np.isnan(a))
+    bmask = _np.invert(_np.isnan(b))
+    mask = _np.logical_or(amask, bmask)
     a = a[mask]
     b = b[mask]
 
@@ -188,15 +187,15 @@ def np_nans_to_zero(a):
     a and b will be converted to dtype=float
     returns {'a':a,'b':b}
     '''
-    assert isinstance(a, np.ndarray)
+    assert isinstance(a, _np.ndarray)
 
     out = a.copy().astype(float)
     mask = numpy.isnan(out)
     # inds where isnan is true, looks like [(11,1),(5,4) ...]
-    inds = np.nonzero(mask)
+    inds = _np.nonzero(mask)
     inds = zip(inds[0], inds[1])
     for x, y in inds:
-        if np.isnan(out[x][y]):
+        if _np.isnan(out[x][y]):
             out[x][y] = 0
 
     return out
@@ -209,8 +208,8 @@ def np_unmatched_nans_to_zero(a, b):
     a and b will be converted to dtype=float
     returns {'a':a,'b':b}
     '''
-    assert isinstance(a, np.ndarray)
-    assert isinstance(b, np.ndarray)
+    assert isinstance(a, _np.ndarray)
+    assert isinstance(b, _np.ndarray)
     if a.shape != b.shape:
         raise ValueError('Arrays must be same shape')
 
@@ -219,11 +218,11 @@ def np_unmatched_nans_to_zero(a, b):
     mask = np_unmatched_nans(a, b)
 
     # this gets the indexes of cells with unmatched nans
-    inds = np.nonzero(mask)
+    inds = _np.nonzero(mask)
     # inds looks like [(11,1),(5,4) ...]
     inds = zip(inds[0], inds[1])
     for ind in inds:
-        if np.isnan(a[ind[0]][ind[1]]):
+        if _np.isnan(a[ind[0]][ind[1]]):
             a[ind[0]][ind[1]] = 0
         else:
             b[ind[0]][ind[1]] = 0
@@ -243,17 +242,17 @@ def np_unmatched_nans(a, b):
 
     Returned ndarray has True where nans are unmatched
     '''
-    assert isinstance(a, np.ndarray)
-    assert isinstance(b, np.ndarray)
+    assert isinstance(a, _np.ndarray)
+    assert isinstance(b, _np.ndarray)
     if a.shape != b.shape:
         raise ValueError('Arrays must be same shape')
 
     a = a.astype(float)
     b = b.astype(float)
 
-    amask = np.isnan(a)
-    bmask = np.isnan(b)
-    mask = np.logical_xor(amask, bmask)
+    amask = _np.isnan(a)
+    bmask = _np.isnan(b)
+    mask = _np.logical_xor(amask, bmask)
     return mask
 
 
@@ -263,17 +262,17 @@ def np_delete_paired_zeros_flattened(a, b):
     This must first flatten both arrays and both outputs
     are flattened (but retain matches at a given index
     '''
-    assert isinstance(a, np.ndarray)
-    assert isinstance(b, np.ndarray)
+    assert isinstance(a, _np.ndarray)
+    assert isinstance(b, _np.ndarray)
     a = a.flatten()
     b = b.flatten()
 
     # set mask values to false where there are zeros
     # then use mask for both a and b to filter out all matching
     # zeros
-    amask = np.invert(a == 0)
-    bmask = np.invert(b == 0)
-    mask = np.logical_or(amask, bmask)
+    amask = _np.invert(a == 0)
+    bmask = _np.invert(b == 0)
+    mask = _np.logical_or(amask, bmask)
     return {'a': a[mask], 'b': b[mask]}
 
 
@@ -282,8 +281,8 @@ def np_delete_zeros(a):
     delete zeros from an array.
     **Note that this will reshape the array**
     '''
-    a = np.array(a).astype(float)
-    np.place(a, a == 0, np.nan)
+    a = _np.array(a).astype(float)
+    _np.place(a, a == 0, _np.nan)
     return np_delete_nans(a)
 
 
@@ -294,15 +293,15 @@ def np_delete_nans(a):
 
     **Note that this will change the location of values in the array**
     '''
-    nd = np.array(a).astype(float)
-    return nd[np.invert(np.isnan(nd))]
+    nd = _np.array(a).astype(float)
+    return nd[_np.invert(_np.isnan(nd))]
 
 
 def np_contains_nan(nd):
     '''(ndarray) -> bool
     Global check if array contains np.nan anywhere
     '''
-    return np.isnan(np.sum(nd))
+    return _np.isnan(_np.sum(nd))
 
 
 def np_pickled_in_excel(pickle_name):
@@ -314,7 +313,7 @@ def np_pickled_in_excel(pickle_name):
 
     Currently assumes a 1D or 2D array. Unknown behaviour with >2 axis.
     '''
-    arr = np.load(pickle_name)
+    arr = _np.load(pickle_name)
     xlwings.view(arr)
 
 
@@ -328,8 +327,8 @@ def np_frequencies(a):
     [3,2],
     [4,3]]
     '''
-    unq, cnt = np.unique(a, return_counts=True)
-    return np.asarray((unq, cnt)).T
+    unq, cnt = _np.unique(a, return_counts=True)
+    return _np.asarray((unq, cnt)).T
 
 
 def np_difference(a, b):
@@ -337,9 +336,9 @@ def np_difference(a, b):
     get absolute difference between two matrices.
     Effectively one from the other then abs it.
     '''
-    x = np.copy(a)
-    y = np.copy(b)
-    return np.abs(x - y)
+    x = _np.copy(a)
+    y = _np.copy(b)
+    return _np.abs(x - y)
 
 
 def np_conditional_array_split(a, has_by_column, has_by_row):

@@ -2,8 +2,8 @@
 # line-too-long, no-member, expression-not-assigned, locally-disabled,
 # not-context-manager, unused-import, undefined-variable
 '''routines to manipulate array like objects like lists, tuples etc'''
-import pandas as pd
-import numpy as np
+import pandas as _pd
+import numpy as _np
 
 # region Pandas
 
@@ -21,7 +21,7 @@ def col_append(df, col_name):
     adds a column to dataframe filling it
     with np.NaN values.
     '''
-    df.loc[:, col_name] = pd.Series(pd.np.nan, index=df.index)
+    df.loc[:, col_name] = _pd.Series(_pd.np.nan, index=df.index)
 
 
 def col_append_nan_fill(df, col_name):
@@ -40,9 +40,9 @@ def col_append_fill(df, col_name, f):
     If f is None, filled with NaN
     '''
     if f is None:
-        df.loc[:, col_name] = pd.Series(pd.np.nan, index=df.index)
+        df.loc[:, col_name] = _pd.Series(_pd.np.nan, index=df.index)
     else:
-        df.loc[:, col_name] = pd.Series(f, index=df.index)
+        df.loc[:, col_name] = _pd.Series(f, index=df.index)
 
 
 def col_append_rand_fill(df, col_name, lower=0, upper=1):
@@ -51,7 +51,7 @@ def col_append_rand_fill(df, col_name, lower=0, upper=1):
     adds a column to dataframe filling it with random values from a standard normal
     '''
     # TODO Untested
-    df[col_name] = np.random.choice(range(lower, upper), df1.shape[0])
+    df[col_name] = _np.random.choice(range(lower, upper), df.shape[0])
 
 
 def col_calculate_new(df, func, new_col_name, *args):
@@ -79,7 +79,7 @@ def col_calculate_new(df, func, new_col_name, *args):
     1   10  10
     2   20  40
     '''
-    assert isinstance(df, pd.DataFrame)
+    assert isinstance(df, _pd.DataFrame)
     if new_col_name in df.columns:
         raise BaseException(
             'Column %s already exists in the dataframe.' %
@@ -121,5 +121,5 @@ def cols_get_indexes_from_names(df, *args):
 def readfld(v, default=None):
     '''return default if v us a pandas null
     '''
-    return default if pd.isnull(v) else v
+    return default if _pd.isnull(v) else v
 # endregion

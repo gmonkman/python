@@ -5,21 +5,21 @@ from an image.
 
 Includes some geometry related functions for shapes
 '''
-from random import randint
+from random import randint as _randint
 
-import cv2
-import numpy as np
-from numpy import ma
+import cv2 as _cv2
+import numpy as _np
+from numpy import ma as _ma
 
-from opencvlib.decs import decgetimg
-from opencvlib import ImageInfo
+import opencvlib.decs as _decs
+import opencvlib as _opencvlib
 
 __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
            'rect2rect_mtx', 'rect_as_points', 'rects_intersect', 'roi_polygons_get',
            'sample_rect', 'to_rect']
 
 
-@decgetimg
+@_decs.decgetimg
 def sample_rect(img, w, h):
     '''(str|ndarray,int,int,int,int)->ndarray|None
     Return a retangle of an image as an ndarray
@@ -30,16 +30,35 @@ def sample_rect(img, w, h):
     Returns None if the image is smaller than the area
     '''
     # if isinstance(img, str):
-    #   img = cv2.imread(path.normpath(img) , -1)
+    #   img = _cv2.imread(path.normpath(img) , -1)
 
-    img_w, img_h = ImageInfo.getsize(img)
+    img_w, img_h = _opencvlib.ImageInfo.getsize(img)
     if img_w < w or img_h < h:
         return None
 
-    rnd_col = randint(0, img_w - w)  # 0 index
-    rnd_row = randint(0, img_h - h)
+    rnd_col = _randint(0, img_w - w)  # 0 index
+    rnd_row = _randint(0, img_h - h)
 
     return img[rnd_row:rnd_row + h, rnd_col:rnd_col + w, ::-1]
+
+
+@_decs.decgetimg
+def cropimg_xywh(img, x, y, w, h):
+    '''(str|ndarray, int, int, int, int)->ndarray
+    Return a rectangular region from an image.
+    '''
+    return img[y:y+h, x:x+w]
+
+
+@_decs.decgetimg
+def cropimg_pts(img, corners):
+    '''(str|ndarray, list|tuple|ndarray)->ndarray
+    Return a rectangular region from an image.
+
+    Corners are x,y like points representing the rectangle's corners
+    '''
+    x, y, w, h = rect_as_xywh(corners)
+    return cropimg_xywh(img, x, y, w, h)
 
 
 def poly_area(pts=None, x=None, y=None):
@@ -54,37 +73,38 @@ def poly_area(pts=None, x=None, y=None):
         x = [pt[0] for pt in pts]
         y = [pt[1] for pt in pts]
 
-    return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+    return 0.5 * _np.abs(_np.dot(x, _np.roll(y, 1)) - _np.dot(y, _np.roll(x, 1)))
 
 
-@decgetimg
+@_decs.decgetimg
 def roi_polygons_get(img, points):
-    '''(ndarray or path, [tuple list|ndarray])->ndarray, ndarray, ndarray
+    '''(ndarray or path, [tuple list|ndarray])->ndarray, ndarray, ndarray, ndarray
     Points are a tuple list e.g. [(0,0), (50,0), (0,50), (50,50)]
 
     Returns 3 ndarrays
     [0] White pixels for the bounding polygon
     [1] A numpy masked array where pixels outside the polygon are masked (False)
     [2] The original image inside the polygon, with black pixels outside the polygon
+    [3] The original image cropped to a rectangle bounding the polygon
     '''
 
     # mask defaulting to black for 3-channel and transparent for 4-channel
     # (of course replace corners with yours)
-    white_mask = np.zeros(img.shape, dtype=np.uint8)
-    if isinstance(points, np.ndarray):
-        roi_corners = cv2.convexHull(points)
-    else:
-        roi_corners = cv2.convexHull(np.array([points], dtype=np.int32))
+    white_mask = _np.zeros(img.shape, dtype=_np.uint8)
 
-    roi_corners = np.squeeze(roi_corners)
+    roi_corners = _cv2.convexHull(_np.array([points], dtype=_np.int32))
+    roi_corners = _np.squeeze(roi_corners)
 
     channel_count = img.shape[2]  # i.e.  3 or 4 depending on your image
     ignore_mask_color = (255,) * channel_count
-    cv2.fillConvexPoly(white_mask, roi_corners, ignore_mask_color)
+    _cv2.fillConvexPoly(white_mask, roi_corners, ignore_mask_color)
 
-    mask = ma.masked_values(white_mask, 0)
+    mask = _ma.masked_values(white_mask, 0)
 
-    return white_mask, mask, cv2.bitwise_and(img, white_mask)
+    rect = bounding_rect_of_poly(_np.array([points], dtype=_np.int32), as_points=False) #x,y,w,h
+    bitwise = _cv2.bitwise_and(img, white_mask)
+    rectcrop = cropimg_xywh(bitwise, *rect)
+    return white_mask, mask, bitwise, rectcrop
 
 
 def to_rect(a):
@@ -97,10 +117,10 @@ def to_rect(a):
     [[0,0]
      [2,3]]
     '''
-    a = np.ravel(a)
+    a = _np.ravel(a)
     if len(a) == 2:
         a = (0, 0, a[0], a[1])
-    return np.array(a, np.float64).reshape(2, 2)
+    return _np.array(a, _np.float64).reshape(2, 2)
 
 
 def rect_as_points(rw, col, w, h):
@@ -111,6 +131,25 @@ def rect_as_points(rw, col, w, h):
     Note opencv points have origin in top left and are (x,y) ie col,row (width,height). Not the matrix standard.
     '''
     return [(col, rw), (col, rw + h), (col + w, rw), (col + w, rw + h)]
+
+
+def rect_as_xywh(pts):
+    '''(ndarray|list|tuple)->tuple
+    take points and work out the bounding rectangle, returning
+    as a tuple of x (row), y (col), w, h
+
+    pts format by example: [(1,1),(10,10),(1,10),(10,1)]
+    '''
+    if len(pts) != 4:
+        raise ValueError('Expected 4 points, got %s' % len(pts))
+
+    dims = tuple([len(i) for i in pts])
+    if max(dims) != 2 or min(dims) != 2:
+        raise ValueError('Some items in iterable argument pts do not have 2 dimensions.')
+
+    pts = _np.array(pts)
+    return pts[:, 0].min(), pts[:, 1].min(), pts[:, 0].max() + 1 - pts[:, 0].min(), pts[:, 1].max() + 1 - pts[:, 1].min()
+
 
 # DEBUG bounding_rect_of_poly
 
@@ -127,10 +166,10 @@ def bounding_rect_of_poly(points, as_points=True):
     Note opencv points have origin in top left
     and are (x,y) i.e. col,row (width,height). Not the matrix standard.
     '''
-    if not isinstance(points, np.ndarray):
-        points = np.array([points], dtype=np.int32)
+    if not isinstance(points, _np.ndarray):
+        points = _np.array([points], dtype=_np.int32)
 
-    x, y, w, h = cv2.boundingRect(points)
+    x, y, w, h = _cv2.boundingRect(points)
     if as_points:
         return rect_as_points(x, y, w, h)
     else:
@@ -160,7 +199,7 @@ def rect2rect_mtx(src, dst):
     src, dst = to_rect(src), to_rect(dst)
     cx, cy = (dst[1] - dst[0]) / (src[1] - src[0])
     tx, ty = dst[0] - src[0] * (cx, cy)
-    M = np.float64([[cx, 0, tx], [0, cy, ty], [0, 0, 1]])
+    M = _np.float64([[cx, 0, tx], [0, cy, ty], [0, 0, 1]])
     return M
 
 

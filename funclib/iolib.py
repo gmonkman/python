@@ -1,39 +1,36 @@
-# pylint: disable=C0302, dangerous-default-value, no-member,
-# expression-not-assigned, locally-disabled, not-context-manager,
-# bare-except, redefined-builtin
+# pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, locally-disabled, not-context-manager, redefined-builtin
 
-'''My file input and output library, e.g. for csv handling.'''
-from __future__ import print_function
-import csv
-from glob import glob
-from glob import iglob
+'''My file input and output library, e.g. for _csv handling.'''
+from __future__ import print_function as _print_function
 
-import itertools
-import os
-import time
-import shutil
-import string
+import csv as _csv
+import glob as _glob
+import itertools as _itertools
+import os as _os
+import time as _time
+import shutil as _shutil
+import string as _string
 
 try:
-    import cPickle as pickle
+    import cPickle as _pickle
 except BaseException:
-    import pickle
+    import _pickle
 
-import subprocess
-import sys
+import subprocess as _subprocess
+import sys as _sys
 
-from numpy import ndarray as numpy_ndarray
-import fuckit
-import funclib.stringslib as stringslib
-from funclib.stringslib import add_right
-from funclib.stringslib import add_left
-from funclib.baselib import get_platform
+
+from numpy import ndarray as _numpy_ndarray
+
+import fuckit as _fuckit
+import funclib.stringslib as _stringslib
+from funclib.baselib import get_platform as _get_platform
 
 _NOTEPADPP_PATH = 'C:\\Program Files (x86)\\Notepad++\\notepad++.exe'
 
 
 class CSVIo(object):
-    '''class for reading/writing CSV objects
+    '''class for reading/writing _csv objects
     can work standalone or as the backbone for CSVMatch'''
 
     def __init__(self, filepath):
@@ -47,7 +44,7 @@ class CSVIo(object):
     def read(self, val_funct=lambda val: val):
         '''use val_funct to operate on all the values before as they are read in'''
         with open(self.filepath, 'rU') as f:
-            raw_csv = csv.DictReader(f)
+            raw_csv = _csv.DictReader(f)
             for row in raw_csv:
                 row = {key: val_funct(val) for key, val in row.iteritems()}
                 self.rows.append(row)
@@ -59,7 +56,7 @@ class CSVIo(object):
         if not filepath:
             filepath = self.filepath
         with open(filepath, 'w') as f:
-            writer = csv.DictWriter(f, self.rows[0].keys())
+            writer = _csv.DictWriter(f, self.rows[0].keys())
             writer.writeheader()
             for row in self.rows:
                 writer.writerow(row)
@@ -71,7 +68,7 @@ class CSVMatch(CSVIo):
 
     def row_for_value(self, key, value):
         '''returns a list of matching rows
-        key = the column name on the CSV
+        key = the column name on the _csv
         value = the value to match in that column
         '''
         if value or not value not in self.values:
@@ -99,9 +96,9 @@ class MultipleMatchError(RuntimeError):
     pass
 
 
-# region CSV IO
+# region _csv IO
 def write_to_eof(filename, thetext):
-    '''(string,string) ->void
+    '''(_string,_string) ->void
     Write thetext to the end of the file given in filename.
     '''
     try:
@@ -112,21 +109,21 @@ def write_to_eof(filename, thetext):
 
 
 def readcsv(filename, cols=1, startrow=0, numericdata=True):
-    '''(string, int, bool, int, bool) -> list
-    Reads a csv file into a list and returns the list
-    Set cols to the number of cols in the csv.
+    '''(_string, int, bool, int, bool) -> list
+    Reads a _csv file into a list and returns the list
+    Set cols to the number of cols in the _csv.
 
     If you want to skip the first row (eg if you have a header row, set startrow to 1.
     '''
     data = [0] * (cols)
     for i in range(cols):
         data[i] = []
-    if sys.version_info.major == 2:
+    if _sys.version_info.major == 2:
         with open(filename, 'rb') as csvfile:  # open the file, and iterate over its data
-            csvdata = csv.reader(csvfile)  # tell python that the file is a csv
+            csvdata = _csv.reader(csvfile)  # tell python that the file is a _csv
             for i in range(0, startrow):  # skip to the startrow
                 next(csvdata)
-            for row in csvdata:  # iterate over the rows in the csv
+            for row in csvdata:  # iterate over the rows in the _csv
                 # Assign the cols of each row to a variable
                 for items in range(
                         cols):  # read in the text values as floats in the array
@@ -134,12 +131,12 @@ def readcsv(filename, cols=1, startrow=0, numericdata=True):
                         data[items].append(float(row[items]))
                     else:
                         data[items].append(row[items])
-    elif sys.version_info.major == 3:
+    elif _sys.version_info.major == 3:
         with open(filename, newline='') as csvfile:  # open the file, and iterate over its data
-            csvdata = csv.reader(csvfile)  # tell python that the file is a csv
+            csvdata = _csv.reader(csvfile)  # tell python that the file is a _csv
             for i in range(0, startrow):  # skip to the startrow
                 next(csvdata)
-            for row in csvdata:  # iterate over the rows in the csv
+            for row in csvdata:  # iterate over the rows in the _csv
                 # Assign the cols of each row to a variable
                 for items in range(
                         cols):  # read in the text values as floats in the array
@@ -148,14 +145,14 @@ def readcsv(filename, cols=1, startrow=0, numericdata=True):
                     else:
                         data[items].append(row[items])
     else:
-        sys.stderr.write('You need to use python 2* or 3* \n')
+        _sys.stderr.write('You need to use python 2* or 3* \n')
         exit(1)
     return data
 
 
 def writecsv(filename, datalist, header=[], inner_as_rows=True):
-    '''(string, list, list, bool) -> Void
-    Reads a csv file into a list and returns the list
+    '''(_string, list, list, bool) -> Void
+    Reads a _csv file into a list and returns the list
     ---
     inner_as_rows == True
     [[1,a],[2,b]]
@@ -170,16 +167,16 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
     csvfile = []
     useheader = False
     # make sure we have the correct versions of python
-    if sys.version_info.major == 2:
+    if _sys.version_info.major == 2:
         csvfile = open(filename, 'wb')
-    elif sys.version_info.major == 3:
-        csvfile = open('pythonTest.csv', 'w', newline='')
+    elif _sys.version_info.major == 3:
+        csvfile = open('pythonTest._csv', 'w', newline='')
     else:
-        sys.stderr.write('You need to use python 2* or 3* \n')
+        _sys.stderr.write('You need to use python 2* or 3* \n')
         exit(1)
 
     # if user passed a numpy array, convert it
-    if isinstance(datalist, numpy_ndarray):
+    if isinstance(datalist, _numpy_ndarray):
         datalist = datalist.T
         datalist = datalist.tolist()
     # if there is no data, close the file
@@ -203,7 +200,7 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
     if is_listoflists:
         for list_index in range(1, len(datalist)):
             if len(datalist[list_index]) != list_len:
-                sys.stderr.write(
+                _sys.stderr.write(
                     'All lists in datalist must be the same length \n')
                 csvfile.close()
                 return
@@ -211,17 +208,17 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
     # cols
     if len(header) != 0:
         if len(header) != num_lists:
-            sys.stderr.write(
+            _sys.stderr.write(
                 'Header length did not match the number of columns, ignoring header.\n')
         else:
             useheader = True
 
     # now that we've checked the inputs, loop and write outputs
-    writer = csv.writer(
+    writer = _csv.writer(
         csvfile,
         delimiter=',',
         quotechar='|',
-        quoting=csv.QUOTE_MINIMAL)  # Create writer object
+        quoting=_csv.QUOTE_MINIMAL)  # Create writer object
     if useheader:
         writer.writerow(header)
     if inner_as_rows:
@@ -237,7 +234,7 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
         for row in datalist:
             writer.writerow(row)
 
-    # close the csv file to save
+    # close the _csv file to save
     csvfile.close()
 # endregion
 
@@ -245,28 +242,28 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
 # region file system
 def datetime_stamp(datetimesep=''):
     '''(str) -> str
-    Returns clean date-time stamp for file names etc
+    Returns clean date-_time stamp for file names etc
     e.g 01 June 2016 11:23 would be 201606011123
-    str is optional seperator between the date and time
+    str is optional seperator between the date and _time
     '''
     fmtstr = '%Y%m%d' + datetimesep + '%H%m%S'
-    return time.strftime(fmtstr)
+    return _time.strftime(fmtstr)
 
 
 def exit():
     '''override exit to detect platform'''
-    if get_platform() == 'windows':
-        os.system("pause")
+    if _get_platform() == 'windows':
+        _os.system("pause")
     else:
-        os.system('read -s -n 1 -p "Press any key to continue..."')
-    sys.exit()
+        _os.system('read -s -n 1 -p "Press any key to continue..."')
+    _sys.exit()
 
 
 def get_platform():
     '''-> str
     returns windows, mac, linux
     '''
-    s = sys.platform.lower()
+    s = _sys.platform.lower()
     if s == "linux" or s == "linux2":
         return 'linux'
     elif s == "darwin":
@@ -277,7 +274,7 @@ def get_platform():
         return 'linux'
 
 
-def _get_file_count(paths, recurse=False):
+def get_file_count(paths, recurse=False):
     '''(list like|str)->int'''
     cnt = 0
 
@@ -285,21 +282,54 @@ def _get_file_count(paths, recurse=False):
         paths = [paths]
 
     for ind, val in enumerate(paths):
-        paths[ind] = os.path.normpath(val)
+        paths[ind] = _os.path.normpath(val)
 
     if recurse:
         for thedir in paths:
-            cnt += sum((len(f) for _, _, f in os.walk(thedir)))
+            cnt += sum((len(f) for _, _, f in _os.walk(thedir)))
     else:
         for thedir in paths:
-            cnt += len([item for item in os.listdir(thedir)
-                        if os.path.isfile(os.path.join(thedir, item))])
+            cnt += len([item for item in _os.listdir(thedir)
+                        if _os.path.isfile(_os.path.join(thedir, item))])
     return cnt
+
+
+def hasext(path, ext):
+    '''(str, str|list)->bool
+    Does the file have extension ext
+    ext can be a list of extensions
+    '''
+    if isinstance(ext, str):
+        return get_file_parts2(path)[2] == ext
+    else:
+        return get_file_parts2(path)[2] in ext
+
+
+def hasdir(path, fld):
+    '''(str, str|list)->bool
+    Is the file in folder fld.
+    fld can be a list of folders (strings)
+    '''
+    if isinstance(path, str):
+        return get_file_parts2(path)[0] == fld
+    else:
+        return get_file_parts2(path)[0] in fld
+
+
+def hasfile(path, fname):
+    '''(str, str|list)->bool
+    Is the file name in full file path equal to fname.
+    fname can be a list of file names
+    '''
+    if isinstance(path, str):
+        return get_file_parts2(path)[1] == fld
+    else:
+        return get_file_parts2(path)[1] in fld
 
 
 def drive_get_uuid(drive='C:', strip=['-'], return_when_unidentified='??'):
     '''get uuid of drive'''
-    drive = os.popen('vol %s' % drive).readlines()[1].split()[-1]
+    drive = _os.popen('vol %s' % drive).readlines()[1].split()[-1]
     if len(drive) == 0:
         drive = return_when_unidentified
 
@@ -314,8 +344,8 @@ def get_file_parts(filepath):
     eg: c:/temp/myfile.txt
     ['c:/temp', 'myfile', '.txt']
     '''
-    folder, fname = os.path.split(filepath)
-    fname, ext = os.path.splitext(fname)
+    folder, fname = _os.path.split(filepath)
+    fname, ext = _os.path.splitext(fname)
     return [folder, fname, ext]
 
 
@@ -325,8 +355,8 @@ def get_file_parts2(filepath):
     eg: c:/temp/myfile.txt
     ['c:/temp', 'myfile.txt', '.txt']
     '''
-    folder, fname = os.path.split(filepath)
-    ext = os.path.splitext(fname)[1]
+    folder, fname = _os.path.split(filepath)
+    ext = _os.path.splitext(fname)[1]
     return [folder, fname, ext]
 
 
@@ -337,7 +367,7 @@ def get_available_drives(strip=['-'], return_when_unidentified='??'):
     '''
     drives = [
         '%s:' %
-        d for d in string.ascii_uppercase if os.path.exists(
+        d for d in _string.ascii_uppercase if _os.path.exists(
             '%s:' %
             d)]
     uuids = [drive_get_uuid(drv, strip, return_when_unidentified)
@@ -351,8 +381,8 @@ def get_available_drive_uuids(strip=['-'], return_when_unidentified='??'):
     eg. {'c:':'abcd1234','d:':'12345678'}
     '''
 
-    s = string.ascii_uppercase
-    drives = ['%s:' % d for d in s if os.path.exists('%s:' % d)]
+    s = _string.ascii_uppercase
+    drives = ['%s:' % d for d in s if _os.path.exists('%s:' % d)]
     uuids = [drive_get_uuid(drv, strip, return_when_unidentified)
              for drv in drives]
     return dict(zip(uuids, drives))
@@ -387,10 +417,10 @@ def folder_generator(paths):
     if isinstance(paths, str):
         paths = [paths]
 
-    paths = [os.path.normpath(p) for p in paths]
+    paths = [_os.path.normpath(p) for p in paths]
     for pth in paths:
-        for dir, subdir, filelist in os.walk(pth):
-            yield dir
+        for fld, dummy, dummy1 in _os.walk(pth):
+            yield fld
 
 
 def file_list_generator(paths, wildcards):
@@ -401,16 +431,16 @@ def file_list_generator(paths, wildcards):
     paths = ('c:/','d:/')     wildcards=('*.ini','*.txt')
     Will generate: c:/*.ini, c:/*.txt, d:/*.ini, d:/*.txt
 
-    ie. Yields wildcards for consumption a glob.
+    ie. Yields wildcards for consumption a _glob.glob.
     '''
     assert not isinstance(
-        paths, str), 'paths argument is a string, it should be a list or tuple'
+        paths, str), 'paths argument is a _string, it should be a list or tuple'
     assert not isinstance(
-        wildcards, str), 'wildcards argument is a string, it should be a list or tuple'
+        wildcards, str), 'wildcards argument is a _string, it should be a list or tuple'
 
-    for vals in (add_right(x[0]) + x[1]
-                 for x in itertools.product(paths, wildcards)):
-        yield os.path.normpath(vals)
+    for vals in (_stringslib.add_right(x[0]) + x[1]
+                 for x in _itertools.product(paths, wildcards)):
+        yield _os.path.normpath(vals)
 
 
 def file_list_generator1(paths, wildcards, recurse=False):
@@ -424,27 +454,27 @@ def file_list_generator1(paths, wildcards, recurse=False):
     Now supports recurssion
     '''
     assert not isinstance(
-        paths, str), 'paths argument is a string, it should be a list or tuple'
+        paths, str), 'paths argument is a _string, it should be a list or tuple'
     assert not isinstance(
-        wildcards, str), 'wildcards argument is a string, it should be a list or tuple'
+        wildcards, str), 'wildcards argument is a _string, it should be a list or tuple'
 
     for ind, v in enumerate(paths):
-        paths[ind] = os.path.normpath(v)
+        paths[ind] = _os.path.normpath(v)
 
-    for vals in (add_right(x[0]) + x[1]
-                 for x in itertools.product(paths, wildcards)):
+    for vals in (_stringslib.add_right(x[0]) + x[1]
+                 for x in _itertools.product(paths, wildcards)):
         if recurse:
             for f in file_list_glob_generator(vals, recurse=True):
                 yield f
         else:
-            for myfile in glob(vals):
-                yield os.path.normpath(myfile)
+            for myfile in _glob.glob(vals):
+                yield _os.path.normpath(myfile)
 
 
 def file_list_glob_generator(wilded_path, recurse=False):
     '''(str,bool)->yields strings (file paths)
-    Glob generator from wildcarded path
-    Wilded path would be something like 'c:\*.tmp' or c:\*.*
+    _glob.glob generator from wildcarded path
+    Wilded path would be something like 'c:/*.tmp' or c:/*.*
 
     Yields actual file names, e.g. c:/temp/a.tmp
 
@@ -453,23 +483,23 @@ def file_list_glob_generator(wilded_path, recurse=False):
     fld, f = get_file_parts2(wilded_path)[0:2]
 
     if recurse:
-        wilded_path = os.path.normpath(os.path.join(fld, '**', f))
+        wilded_path = _os.path.normpath(_os.path.join(fld, '**', f))
 
-    for file in iglob(wilded_path, recursive=recurse):
-        yield os.path.normpath(file)
+    for file in _glob.iglob(wilded_path, recursive=recurse):
+        yield _os.path.normpath(file)
 
 
 def files_delete(folder, delsubdirs=False):
     '''(str)->void'''
-    folder = os.path.normpath(folder)
-    for the_file in os.listdir(folder):
-        file_path = os.path.join(folder, the_file)
+    folder = _os.path.normpath(folder)
+    for the_file in _os.listdir(folder):
+        file_path = _os.path.join(folder, the_file)
     try:
-        if os.path.isfile(file_path):
-            os.unlink(file_path)
-        elif os.path.isdir(file_path):
+        if _os.path.isfile(file_path):
+            _os.unlink(file_path)
+        elif _os.path.isdir(file_path):
             if delsubdirs:
-                shutil.rmtree(file_path)
+                _shutil.rmtree(file_path)
     except Exception as e:
         print(e)
 
@@ -483,25 +513,25 @@ def get_file_name(path='', prefix='', ext='.txt'):
     generally used to quickly writeout results to a new file
     '''
     if path == '':
-        path = os.getcwd()
+        path = _os.getcwd()
 
-    return os.path.normpath(
-        os.path.join(
+    return _os.path.normpath(
+        _os.path.join(
             path,
             prefix +
-            stringslib.datetime_stamp() +
-            add_left(
+            _stringslib.datetime_stamp() +
+            _stringslib.add_left(
                 ext,
-                os.path.extsep)))
+                _os.path.extsep)))
 
 
 def folder_open(folder='.'):
-    '''(string) -> void
+    '''(_string) -> void
     opens a windows folder at path folder'''
-    if os.name == 'nt':
+    if _os.name == 'nt':
         folder = folder.replace('/', '\\')
-    with fuckit:
-        subprocess.check_call(['explorer', folder])
+    with _fuckit:
+        _subprocess.check_call(['explorer', folder])
 
 
 def notepadpp_open_file(filename):
@@ -510,9 +540,9 @@ def notepadpp_open_file(filename):
 
     File name should be in the C:\\dirA\\dirB\\xx.txt format
     '''
-    with fuckit:
+    with _fuckit:
         openpth = _NOTEPADPP_PATH + ' ' + '"' + filename + '"'
-        subprocess.Popen(openpth)
+        _subprocess.Popen(openpth)
 
 
 def write_to_file(results, prefix='', open_in_npp=True, full_file_path=''):
@@ -525,32 +555,32 @@ def write_to_file(results, prefix='', open_in_npp=True, full_file_path=''):
 
     Use to quickly right single results set to a file
 
-    If results is a string then it writes out the string, otherwise it iterates through
+    If results is a _string then it writes out the _string, otherwise it iterates through
     results writing all elements to the file.
 
     If full_file_path is defined, saves the file as this, otherwise creates it in CWD with a datetime stamp
     '''
     if full_file_path == '':
-        filename = os.getcwd() + '\\RESULT' + prefix + \
-            stringslib.datetime_stamp() + '.txt'
+        filename = _os.getcwd() + '\\RESULT' + prefix + \
+            _stringslib.datetime_stamp() + '.txt'
     else:
         fld, f = full_file_path[0:2]
         create_folder(fld)
         filename = full_file_path
 
-    nl = '\r\n' if get_platform() == 'windows' else '\n'
+    n = '\r\n' if _get_platform() == 'windows' else '\n'
 
     with open(filename, 'w+') as f:
         if isinstance(results, str):
             f.write(results)
         else:
             for s in results:
-                f.write(str(s) + nl)
+                f.write(str(s) + n)
 
     print(results)
     print(filename)
     if open_in_npp:
-        if get_platform() == 'windows':
+        if _get_platform() == 'windows':
             notepadpp_open_file(filename)
         else:
             print('Option to open in NPP only available on Windows.')
@@ -561,7 +591,7 @@ def file_create(file_name):
     '''(str) -> void
     creates file if it doesnt exist
     '''
-    if not os.path.isfile(file_name):
+    if not _os.path.isfile(file_name):
         write_to_eof(file_name, '')
 
 
@@ -569,27 +599,27 @@ def fixp(pth):
     '''(str)->str
     basically path.normpath
     '''
-    return os.path.normpath(pth)
+    return _os.path.normpath(pth)
 
 
 def file_exists(file_name):
     '''(str) -> bool
     Returns true if file exists
     '''
-    return os.path.isfile(file_name)
+    return _os.path.isfile(file_name)
 
 
 def folder_exists(folder_name):
     '''check if folder exists'''
-    return os.path.exists(folder_name)
+    return _os.path.exists(folder_name)
 
 
 def create_folder(folder_name):
     '''(str) -> void
     creates a folder
     '''
-    if not os.path.exists(folder_name):
-        os.mkdir(folder_name)
+    if not _os.path.exists(folder_name):
+        _os.mkdir(folder_name)
 
 
 def pickleit(full_file_name, obj):
@@ -597,8 +627,8 @@ def pickleit(full_file_name, obj):
     Takes full_file path and pickles (dumps) obj to the file system.
     Does a normpath on full_file_name
     '''
-    with open(os.path.normpath(full_file_name), 'wb') as myfile:
-        pickle.dump(obj, myfile)
+    with open(_os.path.normpath(full_file_name), 'wb') as myfile:
+        _pickle.dump(obj, myfile)
 
 
 def unpickle(path):
@@ -608,7 +638,7 @@ def unpickle(path):
     '''
     if file_exists(path):
         with open(path, 'rb') as myfile:
-            return pickle.load(myfile)
+            return _pickle.load(myfile)
     else:
         return None
 # endregion
@@ -618,10 +648,10 @@ def unpickle(path):
 def input_int(prompt='Input number', default=0):
     '''get console input from user and force to int'''
     try:
-        input = raw_input
+        inp = raw_input
     except NameError:
         pass
-    return int(stringslib.read_number(input(prompt), default))
+    return int(_stringslib.read_number(inp(prompt), default))
 
 
 def print_progress(
@@ -636,8 +666,8 @@ def print_progress(
     @params:
         iteration   - Required  : current iteration (Int)
         total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
+        prefix      - Optional  : prefix _string (Str)
+        suffix      - Optional  : suffix _string (Str)
         decimals    - Optional  : number of decimals in percent complete (Int)
         bar_length   - Optional  : character length of progbar (Int)
     """
@@ -650,9 +680,9 @@ def print_progress(
     else:
         progbar = ''
 
-    sys.stdout.write(
+    _sys.stdout.write(
         '%s [%s] %s%s %s\r' %
-        (prefix, progbar, percents, '%', suffix)), sys.stdout.flush()
+        (prefix, progbar, percents, '%', suffix)), _sys.stdout.flush()
     if iteration == total:
         print("\n")
 # endregion

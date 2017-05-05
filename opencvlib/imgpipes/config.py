@@ -2,30 +2,29 @@
 Set the config variable.
 '''
 
-import configparser as cp
-from inspect import getsourcefile
-from os.path import abspath
-from os.path import join
+import configparser as _cp
+from inspect import getsourcefile as _getsourcefile
+import os.path as _path
 #import json
 
-from funclib.iolib import fixp
-from funclib.iolib import get_file_parts2
+from funclib.iolib import fixp as _fixp
+from funclib.iolib import get_file_parts2 as _get_file_parts2
 
 
-def cfg_path():
+def _cfg_path():
     '''()->str
     returns full path to config file
     '''
-    pth = get_file_parts2(abspath(getsourcefile(lambda: 0)))[0]
-    pth = fixp(pth)
-    return fixp(join(pth, 'imgpipes.cfg'))
+    pth = _get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
+    pth = _fixp(pth)
+    return _fixp(_path.join(pth, 'imgpipes.cfg'))
 
 
 
-config = cp.RawConfigParser()
-config.read(cfg_path())
+_config = _cp.RawConfigParser()
+_config.read(_cfg_path())
 
-digikamdb = fixp(config.get("DIGIKAM", "dbpath"))
+digikamdb = _fixp(_config.get("DIGIKAM", "dbpath"))
 
 #orientations = config.getint("hog", "orientations")
 #cells_per_block = json.loads(config.get("hog", "cells_per_block"))

@@ -3,10 +3,8 @@
 '''base classes and misc functions for manipulatin other base classes
 Stick list/tuple/dic functions in here
 '''
-from collections import OrderedDict
-
-from sys import version_info
-from sys import platform
+import collections as _collections
+import sys as _sys
 
 #########
 #CLASSES#
@@ -57,7 +55,7 @@ class switch(object):
 # region dict
 
 # region dict classes
-class odict(OrderedDict):
+class odict(_collections.OrderedDict):
     '''subclass OrderedDict to support item retreival by index'''
     def getbyindex(self, ind):
         '''(int)->tuple
@@ -178,7 +176,7 @@ def list_append_unique(list_in, val):
 
 def list_flatten(items, seqtypes=(list, tuple)):
     '''flatten a list'''
-    for i, x in enumerate(items):
+    for i, dummy in enumerate(items):
         while i < len(items) and isinstance(items[i], seqtypes):
             items[i:i + 1] = items[i]
     return items
@@ -189,13 +187,13 @@ def list_flatten(items, seqtypes=(list, tuple)):
 def isPython3():
     '''->bool
     '''
-    return version_info.major == 3
+    return _sys.version_info.major == 3
 
 
 def isPython2():
     '''->bool
     '''
-    return version_info.major == 2
+    return _sys.version_info.major == 2
 # also implemented in iolib
 
 
@@ -203,7 +201,7 @@ def get_platform():
     '''-> str
     returns windows, mac, linux
     '''
-    s = platform.lower()
+    s = _sys.platform.lower()
     if s == "linux" or s == "linux2":
         return 'linux'
     elif s == "darwin":

@@ -1,29 +1,25 @@
-# pylint: disable=too-few-public-methods,too-many-statements,
-# unused-import, unused-variable,
-# no-member,dangerous-default-value,unbalanced-tuple-unpacking
+# pylint: disable=too-few-public-methods, too-many-statements, unused-import, unused-variable, no-member, dangerous-default-value, unbalanced-tuple-unpacking
 
 '''My library of statistics based functions'''
 
 # base imports
 import copy
-import itertools
 import numbers
 
 # packages
 import pandas
-import pandas.rpy.common as com
-import numpy as np
+import pandas.rpy.common as _com
+import numpy as _np
 import scipy
 import scipy.stats
-import rpy2.robjects as ro
-import xlwings
+import rpy2.robjects as _ro
 
 # mine
 from enum import Enum
 from funclib.baselib import switch
-import funclib.baselib as baselib
-import funclib.iolib as iolib
-import funclib.arraylib as arraylib
+import funclib.baselib as _baselib
+import funclib.iolib as _iolib
+import funclib.arraylib as _arraylib
 
 
 # region Enuerations
@@ -67,9 +63,9 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMet
     # we will permute list_b but don't need to permute list_a
     permuted = copy.deepcopy(list_b)
     cnt = 0
-    for counter in range(0, int(iterations)):
+    for dummy in range(0, int(iterations)):
         cnt += 1
-        permuted = np.random.permutation(permuted)
+        permuted = _np.random.permutation(permuted)
 
         for case in switch(method):
             if case(EnumMethod.kendall):
@@ -90,7 +86,7 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMet
         results.append([teststat, pval])
         justtest.append([teststat])
         pre = '/* iter:' + str(cnt) + ' */'
-        iolib.print_progress(cnt, iterations, prefix=pre, bar_length=30)
+        _iolib.print_progress(cnt, iterations, prefix=pre, bar_length=30)
 
     return results
 
@@ -112,14 +108,14 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
     list_a = df[col_a_name].tolist()
     list_b = df[col_b_name].tolist()
 
-    for case in baselib.switch(test_type):
+    for case in _baselib.switch(test_type):
         if case(EnumMethod.kendall):
             if engine == EnumStatsEngine.r:
-                df_r = com.convert_to_r_dataframe(df)
-                ro.globalenv['cordf'] = df_r
+                df_r = _com.convert_to_r_dataframe(df)
+                _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$' + col_a_name + \
                     ',cordf$' + col_b_name + ', method="kendall")'
-                result = ro.r(tmpstr)
+                result = _ro.r(tmpstr)
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
@@ -127,11 +123,11 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
             break
         if case(EnumMethod.pearson):
             if engine == EnumStatsEngine.r:
-                df_r = com.convert_to_r_dataframe(df)
-                ro.globalenv['cordf'] = df_r
+                df_r = _com.convert_to_r_dataframe(df)
+                _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$' + col_a_name + \
                     ',cordf$' + col_b_name + ', method="pearson")'
-                result = ro.r(tmpstr)
+                result = _ro.r(tmpstr)
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
@@ -139,11 +135,11 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
             break
         if case(EnumMethod.spearman):
             if engine == EnumStatsEngine.r:
-                df_r = com.convert_to_r_dataframe(df)
-                ro.globalenv['cordf'] = df_r
+                df_r = _com.convert_to_r_dataframe(df)
+                _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$' + col_a_name + \
                     ',cordf$' + col_b_name + ', method="spearman")'
-                result = ro.r(tmpstr)
+                result = _ro.r(tmpstr)
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
@@ -163,8 +159,8 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
     scipy cant cope with nans. Matched nans will be removed if a and b are numpy arrays
     '''
 
-    if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-        if isinstance(a, np.ndarray) is False or isinstance(b, np.ndarray) is False:
+    if isinstance(a, _np.ndarray) or isinstance(b, _np.ndarray):
+        if isinstance(a, _np.ndarray) is False or isinstance(b, _np.ndarray) is False:
             raise ValueError(
                 'If numpy arrays are used, both must be ndarray types')
 
@@ -173,8 +169,8 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
 
         # scipy doesnt like nans. We drop out paired nans, leaving
         # all other pairings the same
-        if arraylib.np_contains_nan(a) and arraylib.np_contains_nan(b):
-            dic = arraylib.np_delete_paired_nans_flattened(a, b)
+        if _arraylib.np_contains_nan(a) and _arraylib.np_contains_nan(b):
+            dic = _arraylib.np_delete_paired_nans_flattened(a, b)
         else:
             dic = {'a': a, 'b': b}
 
@@ -182,10 +178,10 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
         # with a scalar in the other
         # this is an error state - could modify later to exclude
         # all values from both arrays where there is any nan
-        if arraylib.np_contains_nan(dic['a']):
+        if _arraylib.np_contains_nan(dic['a']):
             raise ValueError('Numpy array a contains NaNs')
 
-        if arraylib.np_contains_nan(dic['b']):
+        if _arraylib.np_contains_nan(dic['b']):
             raise ValueError('Numpy array b contains NaNs')
 
         lst_a = dic['a'].flatten().tolist()
@@ -202,14 +198,14 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
     assert isinstance(lst_a, list)
     assert isinstance(lst_b, list)
 
-    for case in baselib.switch(method):
+    for case in _baselib.switch(method):
         if case(EnumMethod.kendall):
             if engine == EnumStatsEngine.r:
                 df = pandas.DataFrame({'a': lst_a, 'b': lst_b})
-                df_r = com.convert_to_r_dataframe(df)
-                ro.globalenv['cordf'] = df_r
+                df_r = _com.convert_to_r_dataframe(df)
+                _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="kendall")'
-                result = ro.r(tmpstr)
+                result = _ro.r(tmpstr)
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
@@ -218,10 +214,10 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
         if case(EnumMethod.pearson):
             if engine == EnumStatsEngine.r:
                 df = pandas.DataFrame({'a': lst_a, 'b': lst_b})
-                df_r = com.convert_to_r_dataframe(df)
-                ro.globalenv['cordf'] = df_r
+                df_r = _com.convert_to_r_dataframe(df)
+                _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="pearson")'
-                result = ro.r(tmpstr)
+                result = _ro.r(tmpstr)
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
@@ -230,10 +226,10 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
         if case(EnumMethod.spearman):
             if engine == EnumStatsEngine.r:
                 df = pandas.DataFrame({'a': lst_a, 'b': lst_b})
-                df_r = com.convert_to_r_dataframe(df)
-                ro.globalenv['cordf'] = df_r
+                df_r = _com.convert_to_r_dataframe(df)
+                _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="spearman")'
-                result = ro.r(tmpstr)
+                result = _ro.r(tmpstr)
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
@@ -303,20 +299,20 @@ def focal_permutation(x, y, teststat, iters=1000):
     taus = []
     # only need to do focal mean once on y as this doesnt need to be permuted
     # each time
-    y = arraylib.np_focal_mean(y, False)
+    y = _arraylib.np_focal_mean(y, False)
 
     for cnt in range(iters):
         pre = '/* iter:' + str(cnt + 1) + ' */'
 
         # just permute one of them
-        a = arraylib.np_permute_2d(x)
-        a = arraylib.np_focal_mean(a, False)
+        a = _arraylib.np_permute_2d(x)
+        a = _arraylib.np_focal_mean(a, False)
 
         # use scipy - p will be wrong, but the taus will be right
         res = correlation(a, y, engine=EnumStatsEngine.scipy)
         taus.append(res['teststat'])
 
-        iolib.print_progress(cnt + 1, iters, prefix=pre, bar_length=30)
+        _iolib.print_progress(cnt + 1, iters, prefix=pre, bar_length=30)
 
     dic = permuted_teststat_check1(taus, teststat)
     return {'p': dic['p'], 'more_extreme_n': dic['more_extreme_n']}
@@ -357,18 +353,18 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
         #assert isinstance(nd, numpy.ndarray)
 
         ret = []
-        a = np.array(nd).flatten()  # default dtype is float
-        assert isinstance(a, np.ndarray)
+        a = _np.array(nd).flatten()  # default dtype is float
+        assert isinstance(a, _np.ndarray)
 
         if exclude_zeros:
-            np.place(a, a == 0, np.nan)
+            _np.place(a, a == 0, _np.nan)
 
-        a = arraylib.np_delete_zeros(a)
+        a = _arraylib.np_delete_zeros(a)
         labels = range(1, len(percentiles) + 2)  # [25,50,75] -> [1,2,3,4]
 
         percentiles.sort()
         ranges = [scipy.stats.scoreatpercentile(
-            a, x) for x in percentiles] if use_scipy else np.percentile(a, percentiles)
+            a, x) for x in percentiles] if use_scipy else _np.percentile(a, percentiles)
 
         for ind, item in enumerate(ranges):
             if ind == 0:
@@ -394,8 +390,8 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
                 ret = 0
                 assigned = True
                 break
-            elif np.isnan(x):
-                ret = np.nan
+            elif _np.isnan(x):
+                ret = _np.nan
                 assigned = True
                 break
             elif item[0] < x <= item[1]:
@@ -414,8 +410,8 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
             'Array should be of type float. Try recasting using ndarray.astype(float)')
 
     gqr = get_quantile_ranges(nd, percentiles, zero_as_zero)
-    out = np.copy(nd)
-    func = np.vectorize(get_bin_label, excluded=['ranges', 'zero_as_zero'])
+    out = _np.copy(nd)
+    func = _np.vectorize(get_bin_label, excluded=['ranges', 'zero_as_zero'])
     out = func(out, ranges=gqr, zero_as_zero=zero_as_zero)
 
     return out
@@ -430,19 +426,19 @@ def contingency_conditional(a, bycol=True):
 
     Also adds a marginal row (bycol=False) or marginal col (bycol=True)
     '''
-    assert isinstance(a, np.ndarray)
+    assert isinstance(a, _np.ndarray)
     b = contigency_joint(a)
-    assert isinstance(b, np.ndarray)
+    assert isinstance(b, _np.ndarray)
     marg_rows, marg_cols = scipy.stats.contingency.margins(b)
 
     if bycol:
-        b = np.vstack([b, marg_cols])  # add marginal col
+        b = _np.vstack([b, marg_cols])  # add marginal col
         # loop through each col and use the column marginal to calculate
         # conditional
         for i in range(int(b.shape[1])):
             b[0:-1, i:i + 1] = b[0:-1, i:i + 1] / b[-1, i:i + 1]
     else:
-        b = np.hstack([b, marg_rows])
+        b = _np.hstack([b, marg_rows])
         for i in range(int(b.shape[0])):
             b[i:i + 1, 0:-1] = b[i:i + 1, 0:-1] / b[i:i + 1, -1]
     return b
@@ -453,7 +449,7 @@ def contigency_joint(a):
     calculates conditional contingency by rows or columns
     as specified by bycol
     '''
-    assert isinstance(a, np.ndarray)
+    assert isinstance(a, _np.ndarray)
     b = a.astype(float)
-    return b / np.sum(b)
+    return b / _np.sum(b)
 # endregion

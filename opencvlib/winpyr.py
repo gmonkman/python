@@ -43,34 +43,6 @@ def slide_win_abs(image, win_sz, step_sz, discard_partial=True):
                 yield (x, y, window)
 
 
-#@decgetimg
-#def slide_win_prop(image, prop_sz, step_sz, discard_partial=True):
-#    '''(str|ndarray, float, (int,int), bool)->yield (int,int,ndarray)
-#    Sliding window of defined absolute pixel size.
-
-#    Returns a region of the input image `image with the window size used
-#    calculated from prop_sz. This is to handle images of different resolutions.
-
-#    The first image returned top-left co-ordinates (0, 0)
-#    and are increment in both x and y directions by the `step_size` supplied.
-#    So, the input parameters are -
-#    * `image` - Input Image
-#    * `window_size` - Size of Sliding Window
-#    * `step_size` - Incremented Size of Window
-
-#    The function returns a tuple -
-#    (x, y, im_window)
-#    where
-#    * x is the top-left x co-ordinate
-#    * y is the top-left y co-ordinate
-#    * im_window is the sliding window image
-#    '''
-#    w, h = ImageInfo.getsize(image)
-
-#    # TODO finish coding this by calculating appropriate w and h
-#    return slide_win_abs(image, (w, h), step_sz, discard_partial)
-
-
 # DEBUG debug decorator used for pyramid
 @decgetimg
 def pyramid(image, scale=1.5, min_pyr_sz=(30, 30)):

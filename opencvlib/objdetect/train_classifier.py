@@ -15,6 +15,7 @@ from opencvlib.objdetect import config
 
 #import opencvlib.objdetect.config as config
 def parse_args():
+    '''parse  args'''
     parser = ap.ArgumentParser()
     parser.add_argument(
         '-p', "--posfeat", help="Path to the positive features directory", required=True)
