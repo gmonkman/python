@@ -37,6 +37,8 @@ if __name__ == "__main__":
 
     print("Calculating the descriptors for the positive samples and saving them")
     for im_path in glob.glob(os.path.join(pos_im_path, "*")):
+class HOGFeatures(outdir, generator_func, **options):
+
         im = imread(im_path, as_grey=True)
         if des_type == "HOG":
             fd = hog(im, config.orientations, config.pixels_per_cell,

@@ -606,12 +606,18 @@ def file_exists(file_name):
     '''(str) -> bool
     Returns true if file exists
     '''
-    return _os.path.isfile(file_name)
+    if isinstance(file_name, str):
+        return _os.path.isfile(fixp(file_name))
+    else:
+        return False
 
 
 def folder_exists(folder_name):
     '''check if folder exists'''
-    return _os.path.exists(folder_name)
+    if isinstance(file_name, str):
+        return _os.path.exists(fixp(folder_name))
+    else:
+        return False
 
 
 def create_folder(folder_name):

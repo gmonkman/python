@@ -22,7 +22,7 @@ __all__ = ['show', 'getimg', 'Info', 'ImageInfo', 'homotrans', 'checkwaitkey', '
 # endregion
 
 
-def getimg(img):
+def getimg(img, outflag=_cv2.IMREAD_UNCHANGED):
     '''(ndarray|str)->ndarray
     tries to load the image if its a path and returns the loaded ndarray
     otherwise returns input img if it is an ndarray
@@ -30,7 +30,7 @@ def getimg(img):
     Also consider using @decs._decs.decgetimg decorator
     '''
     if isinstance(img, str):
-        return _cv2.imread(_fixp(img), -1)
+        return _cv2.imread(_fixp(img), outflag)
     else:
         return img
 

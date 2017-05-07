@@ -50,7 +50,13 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="imgpipes\digikamlib.py" />
+    <Compile Include="imgpipes\filters.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="imgpipes\generators.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="imgpipes\transforms.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_faces\blur_faces.py" />
@@ -64,8 +70,8 @@
     <Compile Include="objdetect\knn.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="objdetect\test_classifier.py" />
-    <Compile Include="objdetect\train_classifier.py" />
+    <Compile Include="script_objdetect\test_hogsvm_classifier.py" />
+    <Compile Include="script_objdetect\train_hogsvm_classifier.py" />
     <Compile Include="objdetect\__init__.py" />
     <Compile Include="perspective.py">
       <SubType>Code</SubType>
@@ -89,6 +95,9 @@
     <Compile Include="scripts_vgg\write_attr.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="transforms.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="winpyr.py">
       <SubType>Code</SubType>
     </Compile>
@@ -98,9 +107,9 @@
     <Folder Include="calibration\" />
     <Folder Include="calibration\nextbase512g\" />
     <Folder Include="imgpipes\" />
+    <Folder Include="script_objdetect\" />
     <Folder Include="scripts_faces\" />
     <Folder Include="lenscorrection\" />
-    <Folder Include="scripts_object_detect\" />
     <Folder Include="objdetect\" />
     <Folder Include="objdetect\bin\" />
     <Folder Include="objdetect\data\" />

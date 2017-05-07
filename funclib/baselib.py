@@ -6,6 +6,7 @@ Stick list/tuple/dic functions in here
 import collections as _collections
 import sys as _sys
 
+
 #########
 #CLASSES#
 #########
@@ -64,6 +65,7 @@ class odict(_collections.OrderedDict):
         '''
         items = list(self.items())
         return items[ind]
+
 
 class dictp(dict):
     '''allow values to be accessed with partial key match
@@ -183,7 +185,7 @@ def list_flatten(items, seqtypes=(list, tuple)):
 # endregion
 
 
-# region base python stuff
+# region Python Info Stuff
 def isPython3():
     '''->bool
     '''
@@ -209,3 +211,39 @@ def get_platform():
     elif s == "win32" or s == "windows":
         return 'windows'
 # endregion
+
+
+#region Other
+def isIterable(i, strIsIter=False):
+    if isinstance(i, str) and strIsIter == False:
+        return False
+    else:
+        return isinstance(i, _collections.Iterable)
+
+def item_from_iterable_by_type(iterable, match_type):
+    '''(iterable,class type)->item
+    given an iterable and a type, return the item
+    which first matches type
+    '''
+    if _baselib.isIterable(iterable):
+        for i in iterable:
+            if isinstance(iterable, match_type):
+                return i
+    else:
+        return iterable if isinstance(iterable, match_type) else None
+
+
+def isempty(x):
+    '''(something)->bool
+    Check of a variable looks empty
+    '''
+
+    try:
+        if x is None: return True
+        if x=='': return True
+        if len(x)==0: return True
+    except Exception:
+        return True
+
+    return False
+#endreion

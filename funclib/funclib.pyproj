@@ -36,6 +36,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="iolib.py" />
+    <Compile Include="log.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="numericslib.py" />
     <Compile Include="pandaslib.py">
       <SubType>Code</SubType>
