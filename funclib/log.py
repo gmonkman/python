@@ -4,12 +4,18 @@ Create in __init__ (with error handling).
 '''
 
 import logging as _logging
+import logging.handlers as _handlers
 import tempfile as _tempfile
 from os.path import normpath as _normpath
 import os as _os
-import os.path as _path
+
 
 class RootLogger(object):
+    '''global logger
+
+    Instantiate in a packages __init__ for global use
+    from the __init__log snippet
+    '''
     _LOGGER_NAME = 'root'
     USER_TEMP_FOLDER = _normpath(_tempfile.gettempdir())
 
@@ -38,11 +44,9 @@ class RootLogger(object):
         log_format = "%(asctime)s [%(levelname)s]: %(filename)s(%(funcName)s:%(lineno)s) >> %(message)s"
         log_filemode = "w" # w: overwrite; a: append
 
-        _logging.basicConfig(filename=self._LOGGER_NAME, format=log_format, filemode=log_filemode ,level=_logging.DEBUG)
-        rotate_file = _logging.handlers.RotatingFileHandler(
-            self._LOGGER_NAME, maxBytes=self._sizeKB, backupCount=self._nrbaks
-        )
-        logger = _logging.getLogger(LOGGER_NAME)
+        _logging.basicConfig(filename=self._LOGGER_NAME, format=log_format, filemode=log_filemode, level=_logging.DEBUG)
+        rotate_file = _handlers.RotatingFileHandler(self._LOGGER_NAME, maxBytes=self._sizeKB, backupCount=self._nrbaks)
+        logger = _logging.getLogger(self._LOGGER_NAME)
         logger.addHandler(rotate_file)
 
         # print log messages to console

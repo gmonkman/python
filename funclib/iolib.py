@@ -322,9 +322,9 @@ def hasfile(path, fname):
     fname can be a list of file names
     '''
     if isinstance(path, str):
-        return get_file_parts2(path)[1] == fld
+        return get_file_parts2(path)[1] == fname
     else:
-        return get_file_parts2(path)[1] in fld
+        return get_file_parts2(path)[1] in fname
 
 
 def drive_get_uuid(drive='C:', strip=['-'], return_when_unidentified='??'):
@@ -614,7 +614,7 @@ def file_exists(file_name):
 
 def folder_exists(folder_name):
     '''check if folder exists'''
-    if isinstance(file_name, str):
+    if isinstance(folder_name, str):
         return _os.path.exists(fixp(folder_name))
     else:
         return False

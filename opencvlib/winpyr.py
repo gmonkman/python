@@ -7,12 +7,12 @@
 # this decorators handles func taking an image (ndarray) or imagepath as
 # the first arg
 
-from opencvlib.processing import resize
-from opencvlib.decs import decgetimg
+import opencvlib.transforms as _transforms
+import opencvlib.decs as _decs
 
-#from skimage.transform import resize
+#from skimage.transform import _transforms.resize
 
-@decgetimg
+@_decs.decgetimg
 def slide_win_abs(image, win_sz, step_sz, discard_partial=True):
     # http://www.pyimagesearch.com/2015/03/23/sliding-windows-for-object-detection-with-python-and-opencv/
     '''(str|ndarray, (int,int), int)-> yield (int, int, ndarray)
@@ -44,7 +44,7 @@ def slide_win_abs(image, win_sz, step_sz, discard_partial=True):
 
 
 # DEBUG debug decorator used for pyramid
-@decgetimg
+@_decs.decgetimg
 def pyramid(image, scale=1.5, min_pyr_sz=(30, 30)):
     '''(ndarray|str, float, (int,int))->yield ndarray
     Yields suceesively downsampled images (ndarrays)
@@ -56,9 +56,9 @@ def pyramid(image, scale=1.5, min_pyr_sz=(30, 30)):
 
     # keep looping over the pyramid
     while True:
-        # compute the new dimensions of the image and resize it
+        # compute the new dimensions of the image and _transforms.resize it
         w = int(image.shape[1] / scale)
-        image = resize(image, width=w)
+        image = _transforms.resize(image, width=w)
 
         # if the resized image does not meet the supplied minimum
         # size, then stop constructing the pyramid
@@ -69,7 +69,7 @@ def pyramid(image, scale=1.5, min_pyr_sz=(30, 30)):
         yield image
 
 
-@decgetimg
+@_decs.decgetimg
 def pyrwin(image, scale=1.5, min_pyr_size=(100, 100), win_func=slide_win_abs, **win_func_args):
     '''(str|ndarray, float, (int,int), bool, function, function kwargs)->yield (int, int, ndarray)
     combines pyramid and a sliding window function (win_func) to yield window regions

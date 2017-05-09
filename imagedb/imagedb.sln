@@ -16,6 +16,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{76D1877F-C40F-4E34-9148-BAB8F2F473F9}"
 	ProjectSection(SolutionItems) = preProject
 		..\pep8imagedb.cmd = ..\pep8imagedb.cmd
+		..\startup.py = ..\startup.py
 	EndProjectSection
 EndProject
 Global

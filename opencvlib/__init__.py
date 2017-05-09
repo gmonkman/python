@@ -4,6 +4,7 @@
 from opencvlib.common import getimg, show, checkwaitkey, getwaitkey
 from opencvlib.common import ImageInfo, Info
 
+
 IMAGE_EXTENSIONS = ('.bmp',
                     '.jpg',
                     '.jpeg',
@@ -32,6 +33,7 @@ __all__ = ['common', 'distance', 'edges', 'faces',
 #<package>.info("informational message")
 #<package>.debug("debug message")
 #<package>.critical("informational message")
+
 
 try:
     import os.path as _path

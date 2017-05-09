@@ -12,6 +12,10 @@ import opencvlib
 from opencvlib.decs import decgetimg
 from opencvlib import show
 from opencvlib import ImageInfo
+
+import opencvlib.transforms as transforms
+from opencvlib.imgpipes import filters
+
 import opencvlib.imgpipes.generators as gnr
 
 from funclib.iolib import get_file_parts2
@@ -77,17 +81,31 @@ def test_decgetimg(img):
     pass
 
 def test_image_pipeline():
+    #Get training region
     vgg_sp = gnr.VGGSearchParams('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler', 'whole','bass')
     dk_sp = gnr.DigikamSearchParams(key_value_bool_type='OR', is_train=['head','whole'])
-    Pipe = gnr.Images(dk_sp, vgg_sp)
 
-    dk_sample = gnr.DigikamSearchParams(key_value_bool_type='OR', species='bullhuss') #, 'cod', 'dab', 'dogfish', 'flatfish', 'flounder', 'garfish', 'eel common', 'eel conger'
-    RR = gnr.RandomRegions(dk_sample)
+    t1 = transforms.Transform(transforms.togreyscale)
+    t2 = transforms.Transform(transforms.histeq)
+    T = transforms.Transforms(None, t1, t2)
+
+    f1 = filters.Filter(filters.is_higher_res, w=100, h=100)
+    f2 = filters.Filter(filters.is_lower_res, w=10000, h=10000)
+    F = filters.Filters(None, f1, f2)
+
+    Pipe = gnr.VGGRegions(dk_sp, vgg_sp, filters=F, transforms=T)
+
+    #Get random sample for testing
+    dk_sample = gnr.DigikamSearchParams(key_value_bool_type='OR', species=['bullhuss','dab','flatfish']) #, 'cod', 'dab', 'dogfish', 'flatfish', 'flounder', 'garfish', 'eel common', 'eel conger'
+    RR = gnr.RandomRegions(dk_sample, filters=F, transforms=T)
 
     res = []
-    for img, spp, part, img_path in Pipe.generate_regions():
+    for img, img_path, d in Pipe.generate():
+        if img is None:
+            continue
+
         w, h = ImageInfo.resolution(img)
-        test_region, testfile = RR.digikam_region(img_path, w, h, 10)
+        test_region, testfile, dummy = RR.generate(img_path, w, h, 10)
 
         i, title = show(img, title=get_file_parts2(img_path)[1], waitsecs=10)
         if opencvlib.checkwaitkey('n', i): #pressed n
@@ -99,6 +117,7 @@ def test_image_pipeline():
 
 
     if res: write_to_file(res)
+
 
 
 def main():

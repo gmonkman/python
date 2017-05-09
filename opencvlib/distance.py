@@ -26,7 +26,7 @@ def L1dist(v1, v2):
     '''
     return _np.sum(abs(v1 - v2))
 
-#TODO Test nearN eculidean
+
 def nearN_euclidean(point, points, nr=1):
     '''(ndarray|list|tuple|ndarray|list|tuple,int)->list [[ind1,dist1]int (index of tuple), point of same type as points
     Given a point and an array of points

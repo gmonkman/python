@@ -215,7 +215,12 @@ def get_platform():
 
 #region Other
 def isIterable(i, strIsIter=False):
-    if isinstance(i, str) and strIsIter == False:
+    '''(any, bool)->bool
+    Tests to see if i looks like an iterable.
+
+    To count strings a noniterable, strIsIter should be False
+    '''
+    if isinstance(i, str) and strIsIter is False:
         return False
     else:
         return isinstance(i, _collections.Iterable)
@@ -225,7 +230,7 @@ def item_from_iterable_by_type(iterable, match_type):
     given an iterable and a type, return the item
     which first matches type
     '''
-    if _baselib.isIterable(iterable):
+    if isIterable(iterable):
         for i in iterable:
             if isinstance(iterable, match_type):
                 return i
@@ -240,8 +245,8 @@ def isempty(x):
 
     try:
         if x is None: return True
-        if x=='': return True
-        if len(x)==0: return True
+        if x == '': return True
+        if len(x) == 0: return True
     except Exception:
         return True
 

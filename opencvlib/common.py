@@ -1,12 +1,12 @@
-# pylint: disable=C0103, too-few-public-methods,
-# locally-disabled,no-self-use, unused-argument,reimported
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, reimported, superfluous-parens
 
 '''
 This module contains some common routines used by other samples.
 From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 '''
-# region imports
+
 from glob import glob as _glob
+from enum import Enum as _Enum
 
 import numpy as _np
 import cv2 as _cv2
@@ -19,7 +19,25 @@ from funclib.stringslib import read_number as _read_number
 import decs as _decs
 
 __all__ = ['show', 'getimg', 'Info', 'ImageInfo', 'homotrans', 'checkwaitkey', 'getwaitkey']
-# endregion
+
+
+
+
+class eImgType(_Enum):
+    '''bitwise enum to hold img information'''
+    COLOR_BW = 2**0
+    COLOR_COLOR = 2**1
+    COLOR_UNKNOWN = 2**2
+    CHANNEL_1 = 2**3
+    CHANNEL_2 = 2**4
+    CHANNEL_3 = 2**5
+    CHANNEL_4 = 2**6
+    CHANNEL_UNKOWN = 2**7
+    DEPTH8BIT = 2**8
+    DEPTH16BIT = 2**9
+    DEPTH32BIT = 2**10
+    DEPTH_UNKNOWN = 2**11
+
 
 
 def getimg(img, outflag=_cv2.IMREAD_UNCHANGED):
@@ -90,6 +108,9 @@ def show(img, title='img', max_width=800, waitsecs=0):
     _cv2.destroyAllWindows()
     return key, title
 
+
+
+
 # region UTIL CLASSES
 class _BaseImg(object):
     '''inherit from, sets up an image in the init
@@ -107,11 +128,12 @@ class _BaseImg(object):
                     print('Failed to load image in init. Error was ' + str(e))
 
 
+
 class Info(object):
     '''general info about versions, system etc'''
-
     def __init(self):
         pass
+
 
     @staticmethod
     def is_cv2():
@@ -120,6 +142,7 @@ class Info(object):
         '''
         return Info.opencv_check_version("2.")
 
+
     @staticmethod
     def is_cv3():
         '''
@@ -127,6 +150,7 @@ class Info(object):
         with '3.'
         '''
         return Info.opencv_check_version("3.")
+
 
     @staticmethod
     def opencv_check_version(major):
@@ -139,11 +163,78 @@ class Info(object):
         return _cv2.__version__.startswith(major)
 
 
+
+
 class ImageInfo(_BaseImg):
     '''general info about an image'''
 
     def __init__(self, img=None):
         super().__init__(img)
+
+
+    @staticmethod
+    @_decs.decgetimg
+    def _isbw(img):
+        #img is a numpy.ndarray, loaded using cv2.imread
+        if len(img.shape) > 2:
+            looks_like_rgbbw = not False in ((img[:, :, 0:1] == img[:, :, 1:2]) == (img[:, :, 1:2] == img[:, :, 2:3]))
+            looks_like_hsvbw = not False in ((img[:, :, 0:1] == 0) == (img[:, :, 1:2]) == 0)
+            return looks_like_rgbbw or looks_like_hsvbw
+        else:
+            return True
+
+
+    @staticmethod
+    @_decs.decgetimg
+    def isbw(img):
+        '''is img black and white, even if it has multichannels'''
+        return bool(eImgType.COLOR_BW & ImageInfo.typeinfo(img))
+
+
+    @staticmethod
+    @_decs.decgetimg
+    def typeinfo(img):
+        '''(ndarray|str)->int
+        Return information about the image
+        which can be compared bitwise with
+        the enum eImgType
+
+        Returns 0 if not an ndarray
+        '''
+        if not isinstance(img, _np.ndarray):
+            return 0
+
+        out = 0
+        if img.dtype == 'uint8':
+            out += eImgType.DEPTH8BIT
+        elif img.dtype == 'uint16':
+            out += eImgType.DEPTH16BIT
+        elif img.dtype == 'uint32':
+            out += eImgType.DEPTH32BIT
+        else:
+            out += eImgType.DEPTH_UNKNOWN
+            raise ValueError('Unknown image color depth. Numpy array type not IN uint8, uint16, uint32.')
+
+        if len(img.shape) == 2:
+            out += eImgType.COLOR_BW
+            out += eImgType.CHANNEL_1
+        elif len(img.shape) == 3:
+            if img.shape[2] == 3:
+                out += eImgType.CHANNEL_3
+                if ImageInfo._isbw(img):
+                    out += eImgType.COLOR_BW
+                else:
+                    out += eImgType.COLOR_COLOR
+            elif img.shape[2] == 4:
+                out += eImgType.CHANNEL_4
+                if ImageInfo._isbw(img):
+                    out += eImgType.COLOR_BW
+                else:
+                    out += eImgType.COLOR_COLOR
+            elif img.shape[2] == 2:
+                out += eImgType.CHANNEL_2
+                out += eImgType.COLOR_UNKNOWN
+
 
     @staticmethod
     @_decs.decgetimgpil
@@ -166,6 +257,7 @@ class ImageInfo(_BaseImg):
             else:
                 return False
 
+
     @staticmethod
     @_decs.decgetimgpil
     def is_lower_res(img, w, h, either=True):
@@ -186,6 +278,7 @@ class ImageInfo(_BaseImg):
                 return x > w and y > h
             else:
                 return False
+
 
     @staticmethod
     @_decs.decgetimgpil
@@ -217,6 +310,7 @@ class ImageInfo(_BaseImg):
                         ret = True
         return ret
 
+
     @staticmethod
     def get_image_resolutions(glob_str):
         '''(str)->list of lists
@@ -237,6 +331,7 @@ class ImageInfo(_BaseImg):
                         dims.append(e)
         return dims
 
+
     @staticmethod
     def getsize(img):
         '''(ndarray|str)->int, int
@@ -249,6 +344,7 @@ class ImageInfo(_BaseImg):
 
         h, w = img.shape[:2]
         return w, h
+
 
     @staticmethod
     def getsize_dict(img):
