@@ -63,6 +63,25 @@ def add_left(s, char):
         return s
 
 
+def trim(s, trim=' '):
+    '''(str,str) -> str
+    remove leading and trailing chars
+
+    trim('12asc12','12)
+    >>>'asc'
+    '''
+    assert isinstance(s,str)
+
+
+    while s[0:len(trim)] == trim:
+        s = s.lstrip(trim)
+
+    while s[len(s)-len(trim):len(s)] == trim:
+        s = s.rstrip(trim)
+
+    return s
+
+
 def rreplace(s, match, replacewith, cnt=1):
     '''(str,str,str,int)->str'''
     return replacewith.join(s.rsplit(match, cnt))

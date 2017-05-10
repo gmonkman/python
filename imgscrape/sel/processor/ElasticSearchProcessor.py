@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, broad-except
+#pylint: skip-file
 
 '''Elastic Search Processor'''
 from .BaseProcessor import BaseProcessor

@@ -86,7 +86,7 @@ def test_image_pipeline():
     dk_sp = gnr.DigikamSearchParams(key_value_bool_type='OR', is_train=['head','whole'])
 
     t1 = transforms.Transform(transforms.togreyscale)
-    t2 = transforms.Transform(transforms.histeq)
+    t2 = transforms.Transform(transforms.equalize_adapthist)
     T = transforms.Transforms(None, t1, t2)
 
     f1 = filters.Filter(filters.is_higher_res, w=100, h=100)

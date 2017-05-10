@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>1d9b1083-600c-4118-83fd-de48f0fd0b3b</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>sel\example_google.py</StartupFile>
+    <StartupFile>exec.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>
     </WorkingDirectory>
@@ -32,6 +32,9 @@
     </Compile>
     <Compile Include="items.py" />
     <Compile Include="pipelines.py" />
+    <Compile Include="processors.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="sel\crawler\BaseCrawler.py" />
     <Compile Include="sel\crawler\GoogleCrawler.py" />
     <Compile Include="sel\crawler\YandexCrawler.py" />
@@ -51,6 +54,7 @@
     <Compile Include="spiders\angling_addicts.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="spiders\fox.py" />
     <Compile Include="spiders\seaanglingireland.py" />
     <Compile Include="spiders\goangling.py" />
     <Compile Include="spiders\sunnyrhyl.py" />
@@ -59,9 +63,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="spiders\__init__.py" />
-    <Compile Include="utils.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -69,7 +70,6 @@
   <ItemGroup>
     <Content Include="sel\fati-test-products.csv" />
     <Content Include="sel\README.md" />
-    <Content Include="utils.ini" />
     <Content Include="pylintrc" />
     <Content Include="README.txt" />
     <Content Include="scrapy.cfg" />

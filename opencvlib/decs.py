@@ -117,7 +117,10 @@ def _BGR2RGB(img):
     BGR  to RGB
     opencv to skimage
     '''
-    return _cv2.cvtColor(img, _cv2.COLOR_BGR2RGB)
+    if _isbw(img):
+        return img
+    else:
+        return _cv2.cvtColor(img, _cv2.COLOR_BGR2RGB)
 
 
 def _RGB2BGR(img):
@@ -125,5 +128,19 @@ def _RGB2BGR(img):
     RGB  to BGR
     skimage to opencv
     '''
-    return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
+    if _isbw(img):
+        return img
+    else:
+        return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
+
+
+def _isbw(img):
+    #img is a numpy.ndarray, loaded using cv2.imread
+    if len(img.shape) > 2:
+        looks_like_rgbbw = not False in ((img[:, :, 0:1] == img[:, :, 1:2]) == (img[:, :, 1:2] == img[:, :, 2:3]))
+        looks_like_hsvbw = not False in ((img[:, :, 0:1] == 0) == (img[:, :, 1:2]) == 0)
+        return looks_like_rgbbw or looks_like_hsvbw
+    else:
+        return True
+
 #endregion

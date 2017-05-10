@@ -1,5 +1,11 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, dangerous-default-value, attribute-defined-outside-init, return-in-init, unnecessary-pass, arguments-differ
-'''simple image file generators'''
+'''simple image file generators.
+
+All yielded generators have an error handler wrapping which logs errors
+to prevent stop failures during big processing tasks
+
+The RandomRegion generator returns None on err'''
+
 from os import path as _path
 import abc as _abc
 
@@ -249,19 +255,26 @@ class DigiKam(_Generator):
         image region (ndarray), full image path (eg c:/images/myimage.jpg)
 
         If yeild_path_only, then the yielded ndarray will be none.
+
+        Has an error handler which logs failures in the generator
         '''
         if DigikamSearchParams.no_digikam_filters(self.digikam_params):
             return None, None, {}
 
         dk_image_list = self._get_digikam_image_list(self._digikam_params)
         for imgpath in dk_image_list:
-            if yield_path_only:
-                yield None, imgpath, {}
-            else:
-                img = _getimg(imgpath, outflag)
-                img = super().generate(img) #Check filters an execute transforms
-                if isinstance(img, _np.ndarray):
-                    yield img, imgpath, {}
+            try:
+                if yield_path_only:
+                    yield None, imgpath, {}
+                else:
+                    img = _getimg(imgpath, outflag)
+                    img = super().generate(img) #Check filters an execute transforms
+                    if isinstance(img, _np.ndarray):
+                        yield img, imgpath, {}
+            except Exception as dummy:
+                s = 'Processing of %s failed.' % imgpath
+                _log.exception(s)
+
 
 
 
@@ -314,16 +327,22 @@ class FromPaths(_Generator):
         0 - Force grayscale
         >0 - 3 channel color iage (stripping alpha if present
         http://docs.opencv.org/3.0-beta/modules/imgcodecs/doc/reading_and_writing_images.html#Mat%20imread(const%20String&%20filename,%20int%20flags)
+
+        Has an error handler which logs failures in the generator
          '''
 
         for imgpath in _iolib.file_list_generator1(self._paths, self._wildcards):
-            if pathonly:
-                yield None, imgpath, {}
-            else:
-                img = _cv2.imread(imgpath, outflag)
-                img = super().generate(img) #delegate to base method to transform and filter (if specified)
-                if isinstance(img, _np.ndarray):
-                    yield img, imgpath, {}
+            try:
+                if pathonly:
+                    yield None, imgpath, {}
+                else:
+                    img = _cv2.imread(imgpath, outflag)
+                    img = super().generate(img) #delegate to base method to transform and filter (if specified)
+                    if isinstance(img, _np.ndarray):
+                        yield img, imgpath, {}
+            except Exception as dummy:
+                s = 'Processing of %s failed.' % imgpath
+                _log.exception(s)
 
 
 
@@ -373,6 +392,8 @@ class VGGRegions(_Generator):
         cv2.IMREAD_COLOR
         cv2.IMREAD_GRAYSCALE
         cv2.IMREAD_UNCHANGED
+
+        Has an error handler which logs failures in the generator
         '''
         if DigikamSearchParams.no_digikam_filters(self.digikamParams):
             dk_image_list = []
@@ -382,59 +403,71 @@ class VGGRegions(_Generator):
 
         if self.vggParams.recurse:
             for fld in _iolib.folder_generator(self.vggParams.folders):
-                if _dir_has_vgg(fld):
 
-                    p = _iolib.fixp(_path.join(fld, VGG_FILE))
-                    _vgg.load_json(p)
-                    if not self.silent:
-                        print('Opened regions file %s' % p)
+                try:
+                    if _dir_has_vgg(fld):
 
-                    for Img in _vgg.imagesGenerator():
+                        p = _iolib.fixp(_path.join(fld, VGG_FILE))
+                        _vgg.load_json(p)
+                        if not self.silent:
+                            print('Opened regions file %s' % p)
 
-                        if dk_image_list:
-                            if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
-                                continue
+                        for Img in _vgg.imagesGenerator():
 
-                        for spp in self.vggParams.species:
-                            for subject in Img.subjects_generator(spp):
-                                assert isinstance(subject, _vgg.Subject)
-                                for part in self.vggParams.parts:  # try all parts, eg whole, head
-                                    for region in subject.regions_generator(part):
-                                        assert isinstance(region, _vgg.Region)
-                                        i = _getimg(Img.filepath, outflag)
-                                        i = super().generate(i)
-                                        if isinstance(i, _np.ndarray):
-                                            cropped_image = _roi_polygons_get(i, region.all_points)[3] #3 is the image cropped to a rectangle, with black outside the region
-                                            yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape}
-                                        else:
-                                            _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                            if dk_image_list:
+                                if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
+                                    continue
+
+                            for spp in self.vggParams.species:
+                                for subject in Img.subjects_generator(spp):
+                                    assert isinstance(subject, _vgg.Subject)
+                                    for part in self.vggParams.parts:  # try all parts, eg whole, head
+                                        for region in subject.regions_generator(part):
+                                            assert isinstance(region, _vgg.Region)
+                                            i = _getimg(Img.filepath, outflag)
+                                            i = super().generate(i)
+                                            if isinstance(i, _np.ndarray):
+                                                cropped_image = _roi_polygons_get(i, region.all_points)[3] #3 is the image cropped to a rectangle, with black outside the region
+                                                yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape}
+                                            else:
+                                                _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                except Exception as dummy:
+                    s = 'Processing of file:%s failed.' % Img.filepath
+                    _log.exception(s)
+
         else:
             for fld in self.vggParams.folders:
-                if _dir_has_vgg(fld):
-                    p = _iolib.fixp(_path.join(fld, VGG_FILE))
-                    _vgg.load_json(p)
-                    if not self.silent:
-                        print('Opened regions file %s' % p)
 
-                    for Img in _vgg.imagesGenerator():
+                try:
+                    if _dir_has_vgg(fld):
+                        p = _iolib.fixp(_path.join(fld, VGG_FILE))
+                        _vgg.load_json(p)
+                        if not self.silent:
+                            print('Opened regions file %s' % p)
 
-                        if dk_image_list:
-                            if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
-                                continue
+                        for Img in _vgg.imagesGenerator():
 
-                        for spp in self.vggParams.species:
-                            for subject in Img.subjects_generator(spp):
-                                assert isinstance(subject, _vgg.Subject)
-                                for part in self.vggParams.parts:  # try all parts, eg whole, head
-                                    for region in subject.regions_generator(part):
-                                        assert isinstance(region, _vgg.Region)
-                                        i = _getimg(Img.filepath, outflag)
-                                        i = super().generate(i) #Delegate back to apply filters and transforms
-                                        if isinstance(i, _np.ndarray):
-                                            cropped_image = _roi_polygons_get(i, region.all_points)[3] #3 is the image cropped to a rectangle, with black outside the region
-                                            yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'folder':fld}
-                                        else:
-                                            _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                            if dk_image_list:
+                                if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
+                                    continue
+
+                            for spp in self.vggParams.species:
+                                for subject in Img.subjects_generator(spp):
+                                    assert isinstance(subject, _vgg.Subject)
+                                    for part in self.vggParams.parts:  # try all parts, eg whole, head
+                                        for region in subject.regions_generator(part):
+                                            assert isinstance(region, _vgg.Region)
+                                            i = _getimg(Img.filepath, outflag)
+                                            i = super().generate(i) #Delegate back to apply filters and transforms
+                                            if isinstance(i, _np.ndarray):
+                                                cropped_image = _roi_polygons_get(i, region.all_points)[3] #3 is the image cropped to a rectangle, with black outside the region
+                                                yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'folder':fld}
+                                            else:
+                                                _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                except Exception as dummy:
+                    s = 'Processing of file:%s failed.' % Img.filepath
+                    _log.exception(s)
+
 
 
 class RandomRegions(DigiKam):
@@ -470,51 +503,58 @@ class RandomRegions(DigiKam):
         cv2.IMREAD_COLOR
         cv2.IMREAD_GRAYSCALE
         cv2.IMREAD_UNCHANGED
+
+        No error handler
         '''
-        if self._no_digikam_filters():
-            raise ValueError('No digikam filters set. '
-                             'Create a class instance of generators.DigikamSearchParams and '
-                             'pass to RandomRegions.digikamParams property, or set at creation')
 
-        self._loadres() #refresh if needed
-        if isinstance(img, _np.ndarray):
-            h = img.shape[0]
-            w = img.shape[1]
-        elif isinstance(img, list) or isinstance(img, tuple):
-            w = img[0]
-            h = img[1]
-        else:
-            w, h = _ImageInfo.resolution(img)
+        try:
+            if self._no_digikam_filters():
+                raise ValueError('No digikam filters set. '
+                                 'Create a class instance of generators.DigikamSearchParams and '
+                                 'pass to RandomRegions.digikamParams property, or set at creation')
 
-        #Now get a random sample image of about closest resolution
-        samples = _nearN_euclidean((w, h), self.pt_res, sample_size)
-        samples = [self.d_res.getbyindex(ind) for ind, dist in samples]
+            self._loadres() #refresh if needed
+            if isinstance(img, _np.ndarray):
+                h = img.shape[0]
+                w = img.shape[1]
+            elif isinstance(img, list) or isinstance(img, tuple):
+                w = img[0]
+                h = img[1]
+            else:
+                w, h = _ImageInfo.resolution(img)
 
-        counter = 0 #counter to break out if we are stuck in the loop
-        while True:
-            samp_path = samples[_randint(0, len(samples))]
-            sample_image = _getimg(samp_path, outflag)[0]
+            #Now get a random sample image of about closest resolution
+            samples = _nearN_euclidean((w, h), self.pt_res, sample_size)
+            samples = [self.d_res.getbyindex(ind) for ind, dist in samples]
 
-            if self.isimagevalid(sample_image):
-                sample_image = self.executeTransforms(sample_image)
-                if not sample_image is None:
-                    if region_w <= samp_path[1][0] or region_h <= samp_path[1][1]:
-                        imgout = _sample_rect(sample_image, region_w, region_h)
-                        break
-                    elif len(samples) > 1: #image too small to get region sample, delete it and try again
-                        samples.remove(samp_path)
-                    elif counter > 20: #lets not get in an infinite loop
-                        imgout = sample_image
-                        break
-                    else: #Last one, just use it
-                        imgout = sample_image
-                        break
-            counter += 1
+            counter = 0 #counter to break out if we are stuck in the loop
+            while True:
+                samp_path = samples[_randint(0, len(samples))]
+                sample_image = _getimg(samp_path, outflag)[0]
 
-        if imgout is None: #catch all
-            imgout = sample_image
+                if self.isimagevalid(sample_image):
+                    sample_image = self.executeTransforms(sample_image)
+                    if not sample_image is None:
+                        if region_w <= samp_path[1][0] or region_h <= samp_path[1][1]:
+                            imgout = _sample_rect(sample_image, region_w, region_h)
+                            break
+                        elif len(samples) > 1: #image too small to get region sample, delete it and try again
+                            samples.remove(samp_path)
+                        elif counter > 20: #lets not get in an infinite loop
+                            imgout = sample_image
+                            break
+                        else: #Last one, just use it
+                            imgout = sample_image
+                            break
+                counter += 1
+        except Exception as e:
+            print('Error was ' + str(e))
+        finally:
+            if imgout is None: #catch all
+                imgout = sample_image
 
         return imgout, samp_path[0], {}
+
 
 
     @staticmethod

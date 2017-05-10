@@ -212,7 +212,10 @@ def RGB2BGR(img):
     RGB  to BGR
     skimage to opencv
     '''
-    return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
+    if ImageInfo.isbw(img):
+        return img
+    else:
+        return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
 
 
 @_decs.decgetimg
@@ -220,7 +223,10 @@ def togreyscale(img):
     '''(str|ndarray)->ndarray
     Convert image to greyscale
     '''
-    return _cv2.cvtColor(img, _cv2.COLOR_BGR2GRAY)
+    if ImageInfo.isbw(img):
+        return img
+    else:
+        return _cv2.cvtColor(img, _cv2.COLOR_BGR2GRAY)
 
 
 @_decs.decgetimg

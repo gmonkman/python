@@ -170,7 +170,7 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
     if _sys.version_info.major == 2:
         csvfile = open(filename, 'wb')
     elif _sys.version_info.major == 3:
-        csvfile = open('pythonTest._csv', 'w', newline='')
+        csvfile = open(filename, 'w', newline='')
     else:
         _sys.stderr.write('You need to use python 2* or 3* \n')
         exit(1)
