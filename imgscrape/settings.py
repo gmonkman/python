@@ -19,7 +19,7 @@ NEWSPIDER_MODULE = 'imgscrape.spiders'
 
 #FEED
 FEED_FORMAT = 'csv'
-FEED_URI = 'file:.c:/temp/mp.csv'
+FEED_URI = 'file:.c:/temp/mp_fox_straglers.csv'
 
 
 #USER_AGENT = 'quotesbot (+http://www.yourdomain.com)'

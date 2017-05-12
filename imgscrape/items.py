@@ -7,8 +7,10 @@ import scrapy.loader.processors as _processors
 
 
 from imgscrape.processors import Clean_xa0 as _Clean_xa0
+from imgscrape.processors import CleanStrict as _CleanStrict
+from imgscrape.processors import VoteForOrAgainst as _VoteForOrAgainst
 
-import funclib.stringslib as _stringslib
+
 # TakeFirst, MapCompose, Join
 
 class PostedImages(_Item):
@@ -24,7 +26,6 @@ class itmMPDetails(_Item):
     firstname = _Field()
     party = _Field()
     constituency = _Field()
-    foxvote = _Field()
 
 
 class ldrMPDetails(_loader.ItemLoader):
@@ -38,3 +39,20 @@ class ldrMPDetails(_loader.ItemLoader):
 
     surname_in = _Clean_xa0()
     firstname_in = _Clean_xa0()
+
+
+
+class policy_vote_ldr(_loader.ItemLoader):
+    '''policy vote loader'''
+    default_input_processor = _processors.Identity()
+    default_output_processor = _processors.Identity()
+
+    policy_in = _CleanStrict()
+    stance_in = _VoteForOrAgainst()
+
+
+class policy_vote(_Item):
+    '''policy vote, should handle all policy stances'''
+    name = _Field() #this is effectively the key
+    policy = _Field()
+    stance = _Field()

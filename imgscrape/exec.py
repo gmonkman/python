@@ -16,7 +16,7 @@ process = CrawlerProcess(get_project_settings())
 #c = sai.SeaAnglingIrelandArchives()
 #c = sai.SeaAnglingIrelandArchives()
 #c = sar.SeaAnglingReportsGallery()
-c = fox.MPNames()
+c = fox.MPVotesFox()
 
 process.crawl(c)
 process.start()

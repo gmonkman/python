@@ -506,8 +506,9 @@ class RandomRegions(DigiKam):
 
         No error handler
         '''
-
+        imgout = None
         try:
+            
             if self._no_digikam_filters():
                 raise ValueError('No digikam filters set. '
                                  'Create a class instance of generators.DigikamSearchParams and '

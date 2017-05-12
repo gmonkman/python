@@ -4,6 +4,7 @@ from functools import wraps  # decorator for decorator funcs
 import sys
 import cv2
 from numpy import ndarray
+import numpy as np
 
 import opencvlib.imgpipes.digikamlib as digikamlib
 import opencvlib.imgpipes.vgg as vgg
@@ -12,7 +13,7 @@ import opencvlib
 from opencvlib.decs import decgetimg
 from opencvlib import show
 from opencvlib import ImageInfo
-
+import opencvlib.processing as processing
 import opencvlib.transforms as transforms
 from opencvlib.imgpipes import filters
 
@@ -80,6 +81,12 @@ def test_decgetimg(img):
     show(img)
     pass
 
+def test_padimg():
+    imlist = ['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/scraped/1d/1d2ada5bf427c8e02ec0368ae9ad159781447574.jpg', 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/scraped/1d/1d2b0381c6046005ce24d8b3de75d8a07844b882.jpg', 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/scraped/1d/1d2d6745aa0a0bb2292d9ab59b49bb5708a29b31.jpg', 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/scraped/1d/1d4aa79954da8c09cb60431e8b5dd1300bb2bc8a.jpg']
+    I = processing.pad_images(imlist)
+    out = processing.mosaic(I,2)
+    show(out)
+
 def test_image_pipeline():
     #Get training region
     vgg_sp = gnr.VGGSearchParams('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler', 'whole','bass')
@@ -100,13 +107,14 @@ def test_image_pipeline():
     RR = gnr.RandomRegions(dk_sample, filters=F, transforms=T)
 
     res = []
-    for img, img_path, d in Pipe.generate():
+    for img, img_path, dummy in Pipe.generate(): #Pipe is a region generator
         if img is None:
             continue
 
         w, h = ImageInfo.resolution(img)
         test_region, testfile, dummy = RR.generate(img_path, w, h, 10)
 
+       # mosaic = np.
         i, title = show(img, title=get_file_parts2(img_path)[1], waitsecs=10)
         if opencvlib.checkwaitkey('n', i): #pressed n
             res.append([opencvlib.getwaitkey(i), title])
@@ -126,7 +134,8 @@ def main():
     # test_vgg()
     #test_vgg_fix()
     #test_decgetimg('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/smoothhound/angler/DSCF0907.JPG')
-    test_image_pipeline()
+    #test_image_pipeline()
+    test_padimg()
 
 
 if __name__ == "__main__":

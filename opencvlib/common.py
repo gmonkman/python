@@ -16,7 +16,7 @@ import fuckit as _fuckit
 from funclib.iolib import fixp as _fixp
 from funclib.stringslib import read_number as _read_number
 
-import decs as _decs
+import opencvlib.decs as _decs
 
 __all__ = ['show', 'getimg', 'Info', 'ImageInfo', 'homotrans', 'checkwaitkey', 'getwaitkey']
 

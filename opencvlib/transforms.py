@@ -11,6 +11,7 @@ import numpy as _np
 import funclib.baselib as _baselib
 
 import opencvlib.decs as _decs
+from opencvlib.common import ImageInfo as _ImageInfo
 from opencvlib.common import getimg as _getimg
 
 #from scikit-image
@@ -212,7 +213,7 @@ def RGB2BGR(img):
     RGB  to BGR
     skimage to opencv
     '''
-    if ImageInfo.isbw(img):
+    if _ImageInfo.isbw(img):
         return img
     else:
         return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
@@ -223,7 +224,7 @@ def togreyscale(img):
     '''(str|ndarray)->ndarray
     Convert image to greyscale
     '''
-    if ImageInfo.isbw(img):
+    if _ImageInfo.isbw(img):
         return img
     else:
         return _cv2.cvtColor(img, _cv2.COLOR_BGR2GRAY)

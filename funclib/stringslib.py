@@ -34,11 +34,46 @@ def read_number(test, default=0):
         return default
 
 
-def toASCII(str_val):
-    '''(str)->(str)'''
-    return str_val.encode('ascii', 'ignore')
-
 # region files and paths related
+def filter_alphanumeric(char, to_ascii=True, strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and'):
+    '''(str, bool, bool, bool, bool, tuple, tuple) -> bool
+    Use as a helper function for custom string filters
+    for example in scrapy item processors
+
+    to_ascii : bool
+        replace foreign letters to ASCII ones, e.g, umlat to u
+
+    strict : bool
+        only letters and numbers are returned
+
+    allow_cr, allow_lf : bool
+        include or exclude cr lf
+
+    exclude,include : tuple(str,..)
+        force true or false for passed chars
+
+    Example:
+    l = lambda x: _filter_alphanumeric(x, strict=True)
+    s = [c for c in 'abcef' if l(c)]
+
+    '''
+    if char in exclude: return False
+    if char in include: return True
+
+    if replace_ampersand:
+        char = char.replace('&', 'and')
+    if to_ascii:
+        char = char.encode('ascii', 'ignore')
+
+    if allow_cr and ord(char) == 13: return char
+    if allow_lf and ord(char) == 10: return char
+
+
+    if strict:
+        return 48 <= ord(char) <= 57 or 65 <= ord(char) <= 90 or 97 <= ord(char) <= 122 or ord(char) == 32 #32 is space
+    else:
+        return 32 <= ord(char) <= 126
+
 
 
 def add_right(s, char='/'):

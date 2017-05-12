@@ -3,6 +3,8 @@
 '''Provides preprocessing routines
 '''
 import itertools as _it
+import math as _math
+
 import cv2 as _cv2
 import numpy as _np
 
@@ -49,18 +51,56 @@ def make_cmap(name, n=256):
     return _np.uint8(_np.array(channels).T * 255)
 
 
-def mosaic(w, imgs):
-    '''Make a grid from images.
-    w    -- number of grid columns
-    imgs -- images (must have same size and format)
+@_decs.decgetimg
+def mosaic(imgs, cols=None, pad=True):
+    '''(list|tuple, int|None, bool) -> ndarray
+
+    Make a grid from images.
+    imgs:
+        mixed str|ndarray list or tuple of images
+    cols:
+        number of grid columns. If None, then assumes square matrix
+    pad:
+        padding will be used so all images are the same (maximum) size
+        If pad is false, an error will be raised if image dimensions differ
     '''
+
+    cols = _math.ceil(_math.sqrt(len(imgs))) if cols is None else cols
+
+    imgs = pad_images(imgs)
+
     imgs = iter(imgs)
     img0 = next(imgs)
 
     pad = _np.zeros_like(img0)
     imgs = _it.chain([img0], imgs)
-    rows = _grouper(w, imgs, pad)
+    rows = _grouper(cols, imgs, pad)
     return _np.vstack(map(_np.hstack, rows))
+
+
+@_decs.decgetimg
+def pad_images(imgs):
+    '''(list|tuple:ndarray|str) -> list
+    Pad images so that they are all the same size
+    as the maximum dimensions
+    '''
+    maxh = max([x.shape[0] for x in imgs])
+    maxw = max([x.shape[1] for x in imgs])
+
+    outimgs = []
+
+    for img in imgs:
+        if isinstance(img, _np.ndarray):
+            add_h = maxh - img.shape[0]
+            add_w = maxw - img.shape[1]
+            i = _cv2.copyMakeBorder(img, 0, add_h, 0, add_w, borderType=_cv2.BORDER_CONSTANT, value=[255, 255, 255])
+            assert maxh == i.shape[0] and maxw == i.shape[1]
+        else:
+            i = None
+
+        outimgs.append(i)
+
+    return outimgs
 
 
 @_decs.decgetimg

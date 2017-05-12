@@ -1,5 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled,
-# no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, superfluous-parens
 '''my decorators'''
 
 from functools import wraps as _wraps
@@ -20,6 +19,8 @@ def decgetimgmethod(meth):
     '''
     decorator to wrap opening an
     image using opencv.imread
+
+    This is intended for use with class methods
     '''
     #this decorator makes a function accept an image path or ndarray
     @_wraps(meth)
@@ -39,20 +40,45 @@ def decgetimgmethod(meth):
 def decgetimg(func):
     '''
     decorator to wrap opening an
-    image using opencv.imread
+    image using opencv.imread.
+
+    Supports a mixed tuple|list of ndarrays and strings (paths)
+    or single str (path)
+
+    img(s) elements of type ndarray are simply returned
+
+    Intended for use with functions.
+    **NOT** for use with class methods
     '''
     #this decorator makes a function accept an image path or ndarray
     @_wraps(func)
     def _getimg_wrapper(img, *args, **kwargs):
-        if not img is None:
 
+        g = lambda g: _cv2.imread(_fixp(g))
+
+        if img is None:
+            return func(None, *args, **kwargs)
+
+        if isinstance(img, list) or isinstance(img, tuple):
+            imgsout = []
+            for im in img:
+                if isinstance(im, str):
+                    i = g(im)
+                elif isinstance(im, _np.ndarray):
+                    i = im
+                else:
+                    i = None
+                imgsout.append(i)
+            return func(imgsout, *args, **kwargs)
+        else:
             if isinstance(img, str):
-                i = _cv2.imread(_fixp(img))
+                i = g(img)
             elif isinstance(img, _np.ndarray):
                 i = img
             else:
                 i = None
             return func(i, *args, **kwargs)
+
     return _getimg_wrapper
 
 
