@@ -508,7 +508,7 @@ class RandomRegions(DigiKam):
         '''
         imgout = None
         try:
-            
+
             if self._no_digikam_filters():
                 raise ValueError('No digikam filters set. '
                                  'Create a class instance of generators.DigikamSearchParams and '
@@ -583,6 +583,57 @@ class RandomRegions(DigiKam):
             self.pt_res.append([w, h])
 #endregion
 
+
+class RegionTrainPosAndNeg():
+    ''' wrapper to generate a region with
+    a corresponding random negative image of equal region
+    size from an image of same approximate resolution.
+
+    Train images require a VGGSearch parameter to
+    extract prelabelled regions.
+    '''
+    def __init__(self, vggSP, pos_dkSP, neg_dkSP, T, F):
+        '''(VGGSearchParams, DigiKamSearchParams, DigiKamSearchParams, Transforms, Filters)
+
+        All classes in opencvlib.generators
+        '''
+        self.vggSP = vggSP
+        self.pos_dkSP = pos_dkSP
+        self.neg_dkSP = neg_dkSP
+        self.T = T
+        self.F = F
+
+
+    def __call__(self, vggSP, pos_dkSP, neg_dkSP, T, F):
+        '''(VGGSearchParams, DigiKamSearchParams, DigiKamSearchParams, Transforms, Filters)
+
+        All classes in opencvlib.generators
+        '''
+        self.vggSP = vggSP
+        self.pos_dkSP = pos_dkSP
+        self.neg_dkSP = neg_dkSP
+        self.T = T
+        self.F = F
+
+
+    def generate(self, outflag=_cv2.IMREAD_UNCHANGED):
+        '''
+        Generate train and test image regions.
+        '''
+        #Get training region
+        Pipe = VGGRegions(self.pos_dkSP, self.vggSP, filters=self.F, transforms=self.T)
+
+        #Instantiate random sample generator class
+        RR = RandomRegions(self.neg_dkSP, filters=self.F, transforms=self.T)
+
+        for img, img_path, dummy in Pipe.generate(outflag=outflag): #Pipe is a region generator
+            if img is None:
+                continue
+
+            w, h = _ImageInfo.resolution(img)
+            test_region, dummy, dummy1 = RR.generate(img_path, w, h, 10, outflag=outflag)
+
+            yield img, test_region
 
 
 #region Helper funcs

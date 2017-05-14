@@ -6,7 +6,7 @@ import argparse
 import os.path as path
 from shutil import copyfile
 
-from funclib.iolib import get_file_parts
+from funclib.iolib import get_file_parts as _get_file_parts
 from funclib.iolib import datetime_stamp as dts
 from funclib.iolib import print_progress
 from funclib.iolib import file_list_generator1 as flg
@@ -46,8 +46,8 @@ def main():
     for f in fs:
         try:
             if not args.nobackup:
-                backup = path.join(get_file_parts(f)[0], get_file_parts(f)[
-                                   1] + suffix + get_file_parts(f)[2])
+                backup = path.join(_get_file_parts(f)[0], _get_file_parts(f)[
+                                   1] + suffix + _get_file_parts(f)[2])
                 copyfile(f, backup)
 
             fileContents = open(f, "r").read()

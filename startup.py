@@ -6,7 +6,7 @@ from cv2 import imread
 import cv2
 import numpy as np
 
-from opencvlib import show
+from opencvlib import show, mosaic, to8bit
 
 
 from matplotlib import pyplot
@@ -14,6 +14,7 @@ from matplotlib import pyplot
 from skimage import exposure
 from skimage.io import imshow as skimshow
 from skimage.io import imread as skimread
+
 
 testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'
 

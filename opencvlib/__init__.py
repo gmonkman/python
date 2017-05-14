@@ -2,8 +2,9 @@
 
 '''opencvlib'''
 from opencvlib.common import getimg, show, checkwaitkey, getwaitkey
-from opencvlib.common import ImageInfo, Info
+from opencvlib.common import ImageInfo, Info, mosaic
 
+from opencvlib.transforms import to8bit
 
 IMAGE_EXTENSIONS = ('.bmp',
                     '.jpg',

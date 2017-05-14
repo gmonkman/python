@@ -1,88 +1,54 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled,
 # no-self-use, unused-argument
 '''Fix up JSON file to create region attributes where
-two regions have been defined for a single subject'''
+there is a single region without attributes'''
 
 import argparse
 from os import path
+#import jmespath
 
 import opencvlib.imgpipes.vgg as vgg
 from funclib.iolib import print_progress
 
 
-def write_region_attributes(species, backup=True):
-    '''(str)->void
-    Species is the species name to write to the VGG file.
+def write_region_attributes(spp, part, regionid, subjectid, backup=True):
+    '''(str, str, int, int, bool)->void
+    Writes region_attributes according to the argumenst
+    to the region key specied by regionid.
 
-    Will write the region tags:
-    species=bass, subjectid=1, part=head|tail
-    Decides to write head/tail based on the shape area.
-
-    Only works if there is a single subject (fish) with shapes.
+    region_attributes must be empty e.g.:
+    5.jpg102254": {
+    "regions": {
+      "0": {"shape_attributes": {"name": "rect", ...},
+            "region_attributes": { } }}
 
     This is purely a fix to save manual entry.
-
-    *Note, load_json needs to be called fits.
     '''
-    max_area = 0
-    max_region_key = None
-    region_cnt = 0
-    region_shape_cnt = 0
-    docontinue = False
     dosave = False
     cnt = 0
-    fixed = 0
-    targ_cnt = 0
 
     if not vgg.JSON_FILE:
         raise ValueError(
-            'Unable to load VGG JSON file. Check the path and that the file is not in use.')
+            'Unable to load VGG JSON file. Check the path is correct and that the file is not in use.')
 
     # first pass to get some stats
+    dosave = False
     for key in vgg.JSON_FILE:
-        subj = vgg.Subject(key)
-        region_cnt = 0
-        region_shape_cnt = 0
-        for region in subj.regions_generator():
-            assert isinstance(region, vgg.Region)
-            if region.has_attrs:
-                docontinue = True
-                break
 
-            region_cnt += 1
-            region_shape_cnt = region_shape_cnt + \
-                (1 if region.shape in vgg.VALID_SHAPES_2D else 0)
-            if region.area > max_area:
-                max_area = region.area
-                max_region_key = region.region_key
+        if vgg.JSON_FILE[key]:
+            if vgg.JSON_FILE[key]['regions']:
+                if vgg.JSON_FILE[key]['regions'][str(regionid)]:
+                    if  not vgg.JSON_FILE[key]['regions'][str(regionid)]['region_attributes']:
+                        vgg.JSON_FILE[key]['regions'][str(regionid)]['region_attributes'] = {'subjectid':subjectid, 'part':part, 'species':spp}
+                        cnt += 1
+                        dosave = True
 
-        if docontinue:  # move to next image if there is not two shapes
-            docontinue = False
-            cnt += 1
-            continue
-
-        if region_cnt == 2 and region_cnt == region_shape_cnt:
-            targ_cnt += 1
-            for region in subj.regions_generator():
-                if not region.has_attrs:
-                    region.species = species
-                    region.subjectid = 1
-                    region.part = ('whole' if region.region_key ==
-                                   max_region_key else 'head')
-                    region.write()
-                    s = '\nUpdated regions in %s, part: %s' % (
-                        key, region.part)
-                    #_prints(s)
-                    dosave = True
-                    fixed += 1
-        cnt += 1
         print_progress(cnt, len(vgg.JSON_FILE), '%s of %s' %
                        (cnt, len(vgg.JSON_FILE)), bar_length=30)
 
     if dosave:
         vgg.save_json(backup)
-        s = '\nWrote %s regions in %s images of %s' % (
-            fixed, targ_cnt, len(vgg.JSON_FILE))
+        s = 'Wrote %s region_attributes of %s vgg defined images' % (cnt, len(vgg.JSON_FILE))
         print(s)
     else:
         print('\nCompleted without error. No regions matched criteria to fix.')
@@ -94,36 +60,57 @@ def main():
     Example:
     write_attr.py -s bass -b "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/bass-angler.json"
     '''
-    cmdline = argparse.ArgumentParser(description='Write region attributes in a VGG file for a defined species (or ALL) where'
-                                      'shapes already exist.\n'
-                                      'Currently just writes for head and whole.\n'
+    cmdline = argparse.ArgumentParser(description='Write region_attributes in a VGG file for a defined species where'
+                                      'a shape already exist.\n'
                                       'Example:\n'
-                                      'write_attr.py -s bass -b "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/bass-angler.json"'
+                                      'write_attr.py -regionid 0 -subjectid 1 -part cephalothorax -spp lobster "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster/vgg.json"'
                                       )
 
-    # position argument
-    cmdline.add_argument('-s', '--species', help='Species name to write to the VGG image files',
-                         required=False, default='bass')
+    # optional arguments
     cmdline.add_argument('-b', '--backup', help='Backup the VGG file before updating',
                          action='store_true')
+
+    # position arguments
     cmdline.add_argument('file', help='VGG JSON file to manipulate')
+    cmdline.add_argument('-part', '--part', help='The part label, eg head or body')
+    cmdline.add_argument('-spp', '--spp', help='Species name to write to the VGG image files')
+    cmdline.add_argument('-regionid', '--regionid', help='The Region identifier to write to, this is autmatically generated by VGG editor')
+    cmdline.add_argument('-subjectid', '--subjectid', help='SubjectID to use which uniquely identify the subject')
+
     args = cmdline.parse_args()
 
-    spp = args.species
+
     vgg.SILENT = False
-    vgg.load_json(path.normpath(args.file))
+    vgg.load_json(path.normpath(args.file), args.backup is True)
 
-    if spp == '':
-        spp = 'bass'
 
-    if spp not in vgg.VALID_SPECIES:
+    if args.spp not in vgg.VALID_SPECIES:
         print('Species not found. Valid species are ' +
               ", ".join(vgg.VALID_SPECIES))
         return
 
-    print("Updating regions, subject target is %s....\n" % spp)
+    if args.part not in vgg.VALID_PARTS:
+        print('Part not found. Valid parts are ' +
+              ", ".join(vgg.VALID_PARTS))
+        return
 
-    write_region_attributes(spp, args.backup)
+
+    try:
+        dummy = int(args.regionid)
+    except Exception:
+        print('regionid must be an integer')
+        return
+
+    try:
+        dummy = int(args.subjectid)
+    except Exception:
+        print('subjectid must be an integer')
+        return
+
+    print('Target file: %s' % path.normpath(args.file))
+    print("Adding attributes species: %s, part: %s, regionid: %s, subjectid: %s ..." % (args.spp, args.part, args.regionid, args.subjectid))
+
+    write_region_attributes(args.spp, args.part, args.regionid, args.subjectid, args.backup)
 
 
 if __name__ == "__main__":

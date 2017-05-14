@@ -52,33 +52,6 @@ def make_cmap(name, n=256):
 
 
 @_decs.decgetimg
-def mosaic(imgs, cols=None, pad=True):
-    '''(list|tuple, int|None, bool) -> ndarray
-
-    Make a grid from images.
-    imgs:
-        mixed str|ndarray list or tuple of images
-    cols:
-        number of grid columns. If None, then assumes square matrix
-    pad:
-        padding will be used so all images are the same (maximum) size
-        If pad is false, an error will be raised if image dimensions differ
-    '''
-
-    cols = _math.ceil(_math.sqrt(len(imgs))) if cols is None else cols
-
-    imgs = pad_images(imgs)
-
-    imgs = iter(imgs)
-    img0 = next(imgs)
-
-    pad = _np.zeros_like(img0)
-    imgs = _it.chain([img0], imgs)
-    rows = _grouper(cols, imgs, pad)
-    return _np.vstack(map(_np.hstack, rows))
-
-
-@_decs.decgetimg
 def pad_images(imgs):
     '''(list|tuple:ndarray|str) -> list
     Pad images so that they are all the same size

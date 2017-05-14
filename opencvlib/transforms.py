@@ -169,6 +169,21 @@ def equalize_adapthist(img, kernel_size=8, clip_limit=0.5, nbins=255):
     return RGB2BGR(i)
 
 
+def to8bit(img):
+    '''(ndarray:float)->ndarray:uint8
+    Convert float image representation to
+    8 bit image.
+    '''
+    assert isinstance(img, _np.ndarray)
+    if 'float' in str(img.dtype):
+        return _np.array(float_img * 255, dtype = np.uint8)
+    elif str(img.dtype) == 'uint8':
+        return img
+    else:
+        assert(img.dtype == 'uint8') #unexpected, debug if occurs
+        return img
+
+
 @_decs.decgetimgsk
 def equalize_hist(img, nbins=256, mask=None):
     '''(ndarray|str, int, ndarray of bools, 0 or 1s) -> BGR-ndarray
@@ -199,15 +214,17 @@ def rescale_intensity(img, in_range='image', out_range='dtype'):
     return RGB2BGR(i)
 #endregion
 
-
+@_decs.decgetimg8bit
 def BGR2RGB(img):
     '''(ndarray)->ndarray
     BGR  to RGB
     opencv to skimage
     '''
+    from cv2 import err
     return _cv2.cvtColor(img, _cv2.COLOR_BGR2RGB)
 
 
+@_decs.decgetimg8bit
 def RGB2BGR(img):
     '''(ndarray)->ndarray
     RGB  to BGR
@@ -227,7 +244,8 @@ def togreyscale(img):
     if _ImageInfo.isbw(img):
         return img
     else:
-        return _cv2.cvtColor(img, _cv2.COLOR_BGR2GRAY)
+        i = to8bit(img)
+        return _cv2.cvtColor(i, _cv2.COLOR_BGR2GRAY)
 
 
 @_decs.decgetimg

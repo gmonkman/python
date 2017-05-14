@@ -81,6 +81,59 @@ def decgetimg(func):
 
     return _getimg_wrapper
 
+def decgetimg8bit(func):
+    '''
+    decorator to wrap opening an
+    image using opencv.imread.
+
+    Converts float ndarray to uint8 if float in dtype.
+
+    Supports a mixed tuple|list of ndarrays and strings (paths)
+    or single str (path)
+
+    img(s) elements of type ndarray are simply returned
+
+    Intended for use with functions.
+    **NOT** for use with class methods
+    '''
+    #this decorator makes a function accept an image path or ndarray
+    @_wraps(func)
+    def _getimg_wrapper(img, *args, **kwargs):
+
+        g = lambda g: _cv2.imread(_fixp(g))
+
+        if img is None:
+            return func(None, *args, **kwargs)
+
+        if isinstance(img, list) or isinstance(img, tuple):
+            imgsout = []
+            for im in img:
+                if isinstance(im, str):
+                    i = g(im)
+                elif isinstance(im, _np.ndarray):
+                    if float in im.dtype:
+                        i = to8bit(im)
+                    else:
+                        i = im
+                else:
+                    i = None
+                imgsout.append(i)
+            return func(imgsout, *args, **kwargs)
+        else:
+            if isinstance(img, str):
+                i = g(img)
+            elif isinstance(img, _np.ndarray):
+                i = img
+                if 'float' in str(i.dtype):
+                    i = to8bit(i)
+                else:
+                    i = img
+            else:
+                i = None
+            return func(i, *args, **kwargs)
+
+    return _getimg_wrapper
+
 
 def decgetimgpil(func):
     '''
@@ -164,9 +217,23 @@ def _isbw(img):
     #img is a numpy.ndarray, loaded using cv2.imread
     if len(img.shape) > 2:
         looks_like_rgbbw = not False in ((img[:, :, 0:1] == img[:, :, 1:2]) == (img[:, :, 1:2] == img[:, :, 2:3]))
-        looks_like_hsvbw = not False in ((img[:, :, 0:1] == 0) == (img[:, :, 1:2]) == 0)
+        looks_like_hsvbw = not False in ((img[:, :, 0:1] == 0) == ((img[:, :, 1:2]) == 0))
         return looks_like_rgbbw or looks_like_hsvbw
     else:
         return True
 
+
+def to8bit(img):
+    '''(ndarray:float)->ndarray:uint8
+    Convert float image representation to
+    8 bit image.
+    '''
+    assert isinstance(img, _np.ndarray)
+    if 'float' in str(img.dtype):
+        return _np.array(img * 255, dtype = _np.uint8)
+    elif str(img.dtype) == 'uint8':
+        return img
+    else:
+        assert(str(img.dtype) == 'uint8') #unexpected, debug if occurs
+        return img
 #endregion

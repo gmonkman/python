@@ -36,7 +36,8 @@ class eImgType(_Enum):
     DEPTH8BIT = 2**8
     DEPTH16BIT = 2**9
     DEPTH32BIT = 2**10
-    DEPTH_UNKNOWN = 2**11
+    DEPTH_FLOAT = 2**11
+    DEPTH_UNKNOWN = 2**12
 
 
 
@@ -109,6 +110,31 @@ def show(img, title='img', max_width=800, waitsecs=0):
     return key, title
 
 
+@_decs.decgetimg
+def mosaic(imgs, cols=None, pad=True):
+    '''(list|tuple, int|None, bool) -> ndarray
+
+    Make a grid from images.
+    imgs:
+        mixed str|ndarray list or tuple of images
+    cols:
+        number of grid columns. If None, then assumes square matrix
+    pad:
+        padding will be used so all images are the same (maximum) size
+        If pad is false, an error will be raised if image dimensions differ
+    '''
+
+    cols = _math.ceil(_math.sqrt(len(imgs))) if cols is None else cols
+
+    imgs = pad_images(imgs)
+
+    I = iter(imgs)
+    img0 = next(I)
+
+    pad = _np.zeros_like(img0)
+    I = _it.chain([img0], I)
+    rows = _grouper(cols, I, pad)
+    return _np.vstack(map(_np.hstack, rows))
 
 
 # region UTIL CLASSES
@@ -126,7 +152,6 @@ class _BaseImg(object):
             except Exception as e:
                 if not ImageInfo.silent:
                     print('Failed to load image in init. Error was ' + str(e))
-
 
 
 class Info(object):
@@ -178,7 +203,7 @@ class ImageInfo(_BaseImg):
         #img is a numpy.ndarray, loaded using cv2.imread
         if len(img.shape) > 2:
             looks_like_rgbbw = not False in ((img[:, :, 0:1] == img[:, :, 1:2]) == (img[:, :, 1:2] == img[:, :, 2:3]))
-            looks_like_hsvbw = not False in ((img[:, :, 0:1] == 0) == (img[:, :, 1:2]) == 0)
+            looks_like_hsvbw = not False in ((img[:, :, 0:1] == 0) == ((img[:, :, 1:2]) == 0))
             return looks_like_rgbbw or looks_like_hsvbw
         else:
             return True
@@ -188,7 +213,7 @@ class ImageInfo(_BaseImg):
     @_decs.decgetimg
     def isbw(img):
         '''is img black and white, even if it has multichannels'''
-        return bool(eImgType.COLOR_BW & ImageInfo.typeinfo(img))
+        return bool(eImgType.COLOR_BW.value & ImageInfo.typeinfo(img))
 
 
     @staticmethod
@@ -206,35 +231,37 @@ class ImageInfo(_BaseImg):
 
         out = 0
         if img.dtype == 'uint8':
-            out += eImgType.DEPTH8BIT
+            out += eImgType.DEPTH8BIT.value
         elif img.dtype == 'uint16':
-            out += eImgType.DEPTH16BIT
+            out += eImgType.DEPTH16BIT.value
         elif img.dtype == 'uint32':
-            out += eImgType.DEPTH32BIT
+            out += eImgType.DEPTH32BIT.value
+        elif 'float' in str(img.dtype):
+            out += eImgType.DEPTH_FLOAT.value
         else:
-            out += eImgType.DEPTH_UNKNOWN
-            raise ValueError('Unknown image color depth. Numpy array type not IN uint8, uint16, uint32.')
+            out += eImgType.DEPTH_UNKNOWN.value
+            raise ValueError('Unknown image color depth. Numpy array type not IN uint8, uint16, uint32, float.')
 
         if len(img.shape) == 2:
-            out += eImgType.COLOR_BW
-            out += eImgType.CHANNEL_1
+            out += eImgType.COLOR_BW.value
+            out += eImgType.CHANNEL_1.value
         elif len(img.shape) == 3:
             if img.shape[2] == 3:
-                out += eImgType.CHANNEL_3
+                out += eImgType.CHANNEL_3.value
                 if ImageInfo._isbw(img):
-                    out += eImgType.COLOR_BW
+                    out += eImgType.COLOR_BW.value
                 else:
-                    out += eImgType.COLOR_COLOR
+                    out += eImgType.COLOR_COLOR.value
             elif img.shape[2] == 4:
-                out += eImgType.CHANNEL_4
+                out += eImgType.CHANNEL_4.value
                 if ImageInfo._isbw(img):
-                    out += eImgType.COLOR_BW
+                    out += eImgType.COLOR_BW.value
                 else:
-                    out += eImgType.COLOR_COLOR
+                    out += eImgType.COLOR_COLOR.value
             elif img.shape[2] == 2:
-                out += eImgType.CHANNEL_2
-                out += eImgType.COLOR_UNKNOWN
-
+                out += eImgType.CHANNEL_2.value
+                out += eImgType.COLOR_UNKNOWN.value
+        return out
 
     @staticmethod
     @_decs.decgetimgpil

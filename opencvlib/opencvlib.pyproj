@@ -12,7 +12,7 @@
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-b "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/bass-angler.json"</CommandLineArguments>
+    <CommandLineArguments>-regionid 0 -subjectid 1 -part cephalothorax -spp lobster "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster/vgg.json"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
@@ -70,6 +70,7 @@
     <Compile Include="objdetect\knn.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts_vgg\write_attr.py" />
     <Compile Include="script_objdetect\test_hogsvm_classifier.py" />
     <Compile Include="script_objdetect\train_hogsvm_classifier.py" />
     <Compile Include="objdetect\__init__.py" />
@@ -92,7 +93,7 @@
     <Compile Include="scripts_vgg\subjectless.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="scripts_vgg\write_attr.py">
+    <Compile Include="scripts_vgg\write_attr_whole_head.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="transforms.py">

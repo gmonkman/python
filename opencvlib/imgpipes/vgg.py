@@ -13,48 +13,53 @@ y = Rows, with origin at top
 So: 50x50 image. Top Left x=0,y=0: Bottom Right x=50, y=50
 '''
 
-import os.path as path
+import os.path as _path
 import json
 import logging
 
 
-from shutil import copy
-from math import pi
+from shutil import copy as _copy
+from math import pi as _pi
 
-from funclib.stringslib import datetime_stamp
-from funclib.baselib import dictp
+from funclib.stringslib import datetime_stamp as _datetime_stamp
+from funclib.baselib import dictp as _dictp
 
-from funclib.iolib import get_file_parts
-from funclib.iolib import get_file_parts2
+from funclib.iolib import get_file_parts as _get_file_parts
+from funclib.iolib import get_file_parts2 as _get_file_parts2
 
-from funclib.iolib import print_progress
-from funclib.baselib import list_not
-from funclib.baselib import list_and
+from funclib.iolib import print_progress as _print_progress
+from funclib.baselib import list_not as _list_not
+from funclib.baselib import list_and as _list_and
 
-from opencvlib.roi import rect_as_points
-from opencvlib.roi import bounding_rect_of_poly
-from opencvlib.roi import poly_area
-from opencvlib.roi import bounding_rect_of_ellipse
-from opencvlib import ImageInfo
+import opencvlib.roi as _roi
+from opencvlib.common import ImageInfo as _ImageInfo
 
 SILENT = True
 _JSON_FILE_NAME = ''
 JSON_FILE = []
-_LOG_FILE_NAME = 'vgg.py.' + datetime_stamp() + '.log'
+_LOG_FILE_NAME = 'vgg.py.' + _datetime_stamp() + '.log'
 
 VALID_SHAPES_ALL = ['', 'polygon', 'rect', 'circle', 'ellipse', 'point']
 VALID_SHAPES_2D = ['polygon', 'rect', 'circle', 'ellipse']
 
-VALID_PARTS = ['', 'whole', 'head']
+VALID_PARTS = ['', 'antenna', 'abdomen', 'body', 'cephalothorax',
+               'claw', 'exclude', 'head', 'perelopods-legs',
+               'telson-tail', 'thorax', 'whole']
+
+
 VALID_SPECIES = ['bass',
+                 'cod',
+                 'crab-edible',
                  'dab',
-                 'mackerel',
-                 'flounder',
                  'dogfish',
-                 'plaice',
-                 'gurnard grey',
                  'flatfish',
-                 'cod']
+                 'flounder',
+                 'gurnard grey',
+                 'lobster',
+                 'mackerel',
+                 'plaice'
+                 ]
+
 
 def _prints(s):
     if not SILENT:
@@ -73,20 +78,20 @@ def valid_parts_in_list(parts, silent=False):
     '''(iterable)->list
     Return valid parts in parts against the master list
     '''
-    for r in list_not(parts, VALID_PARTS):
+    for r in _list_not(parts, VALID_PARTS):
         if not silent:
             print('Part %s invalid' % r)
-    return list_and(parts, VALID_PARTS)
+    return _list_and(parts, VALID_PARTS)
 
 
 def valid_species_in_list(species, silent=False):
     '''(iterable)->list
     check if a part is in the valid parts list
     '''
-    for r in list_not(species, VALID_SPECIES):
+    for r in _list_not(species, VALID_SPECIES):
         if not silent:
             print('Species %s invalid' % r)
-    return list_and(species, VALID_SPECIES)
+    return _list_and(species, VALID_SPECIES)
 
 
 def fix_keys(backup=True, show_progress=False):
@@ -96,17 +101,17 @@ def fix_keys(backup=True, show_progress=False):
     _prints('\n\nFixing keys...\n')
     for key in JSON_FILE:
         # relies on VGG JSON file being in same dir as files
-        filepath = get_file_parts(_JSON_FILE_NAME)[0]
+        filepath = _get_file_parts(_JSON_FILE_NAME)[0]
         filename = JSON_FILE[key]['filename']
-        fullname = path.join(filepath, filename)
-        size_in_bytes = path.getsize(fullname)
+        fullname = _path.join(filepath, filename)
+        size_in_bytes = _path.getsize(fullname)
         newkey = filename + str(size_in_bytes)
         JSON_FILE[newkey] = JSON_FILE.pop(key)
 
         if not SILENT or show_progress:
             cnt += 1
             s = '%s of %s' % (cnt, len(JSON_FILE))
-            print_progress(cnt, len(JSON_FILE), s, bar_length=30)
+            _print_progress(cnt, len(JSON_FILE), s, bar_length=30)
 
     save_json(backup)
     _prints('\n\nKey fixing complete.\n')
@@ -117,9 +122,9 @@ def imagesGenerator():
     for every image in the vgg file
     '''
     for img in JSON_FILE:
-        pth = get_file_parts2(_JSON_FILE_NAME)[0]
-        img_pth = path.join(pth, JSON_FILE[img]['filename'])
-        if ImageInfo.is_image(img_pth):
+        pth = _get_file_parts2(_JSON_FILE_NAME)[0]
+        img_pth = _path.join(pth, JSON_FILE[img]['filename'])
+        if _ImageInfo.is_image(img_pth):
             i = Image(img_pth)
             yield i
 
@@ -133,7 +138,6 @@ class Image(object):
         '''(str)
         optionally provide a filepath - ie a path including the file name
         '''
-        self.size_in_bytes = 0
         self.filepath = filepath
         self.size_in_bytes = 0
         self.key = ''
@@ -149,9 +153,9 @@ class Image(object):
         Returns None if image file does not exist
         or an error occurs
         '''
-        if path.isfile(self.filepath):
+        if _path.isfile(self.filepath):
             try:
-                self.size_in_bytes = path.getsize(self.filepath)
+                self.size_in_bytes = _path.getsize(self.filepath)
                 # return self.filename + str(self.size_in_bytes)
                 return self.filename  # Not using exact key as file sizes can change when image tags change
             except Exception:
@@ -165,14 +169,15 @@ class Image(object):
 
     def load_image(self, filepath):
         '''(str,int)->void
-        try loading image data from JSON file, key is unique per image
+       set key and instance variables relating to the file path
         '''
         self.filepath = filepath
         if filepath != '':
-            self.filefolder, self.filename, self.fileext = get_file_parts(
-                path.abspath(path.normpath(self.filepath)))
+            self.filefolder, self.filename, self.fileext = _get_file_parts(
+                _path.abspath(_path.normpath(self.filepath)))
             self.filename = self.filename + self.fileext
             self.key = self._get_key()
+
 
     def subjects_generator(self, species):
         '''(str)->Subject
@@ -182,7 +187,7 @@ class Image(object):
         if species not in VALID_SPECIES:
             raise ValueError('Invalid species ' + species)
 
-        d = dictp(JSON_FILE)
+        d = _dictp(JSON_FILE)
         regions = d[self.key]['regions']
 
         if regions:
@@ -222,7 +227,7 @@ class Image(object):
         '''->int
         Returns number of shapes
         '''
-        d = dictp(JSON_FILE)
+        d = _dictp(JSON_FILE)
         regions = d[self.key]['regions']
         cnt = 0
         if regions:
@@ -260,7 +265,7 @@ class Subject(object):
         saved to region_ids for access later
         '''
 
-        d = dictp(JSON_FILE)
+        d = _dictp(JSON_FILE)
         regions = d.getp(self.key).get('regions')
 
         for key, region in regions.items():
@@ -308,7 +313,7 @@ class Subject(object):
         if shape not in VALID_SHAPES_ALL:
             raise ValueError('Invalid shape ' + part)
 
-        d = dictp(JSON_FILE)
+        d = _dictp(JSON_FILE)
         regions = d.getp(self.key).get('regions')
 
         # region_ids is the ids of all regions which share a common
@@ -410,25 +415,25 @@ class Region(object):
 
         if self.shape == 'polygon':
             self.all_points = list(zip(self.all_points_x, self.all_points_y))
-            self.area = poly_area(pts=self.all_points)
-            self.bounding_rectangle_as_points = bounding_rect_of_poly(
+            self.area = _roi.poly_area(pts=self.all_points)
+            self.bounding_rectangle_as_points = _roi.bounding_rect_of_poly(
                 self.all_points, as_points=True)
-            self.bounding_rectangle_xywh = bounding_rect_of_poly(self.all_points, as_points=False) # x,y,w,h
+            self.bounding_rectangle_xywh = _roi.bounding_rect_of_poly(self.all_points, as_points=False) # x,y,w,h
         elif self.shape == 'point':
             self.all_points = [(self.x, self.y)]
             self.bounding_rectangle_as_points = None
         elif self.shape == 'rect':
-            self.all_points = rect_as_points(self.y, self.x, self.w, self.h)
-            self.area = poly_area(pts=self.all_points)
+            self.all_points = _roi.rect_as_points(self.y, self.x, self.w, self.h)
+            self.area = _roi.poly_area(pts=self.all_points)
         elif self.shape == 'circle':
-            self.area = pi * self.r ** 2
-            self.bounding_rectangle_as_points = bounding_rect_of_ellipse(
+            self.area = _pi * self.r ** 2
+            self.bounding_rectangle_as_points = _roi.bounding_rect_of_ellipse(
                 (self.x, self.y), self.r, self.r)  # circle is just an ellipse
             self.bounding_rectangle_xywh = [
                 self.rx - self.r, self.ry - self.r, self.r * 2, self.r * 2]
         elif self.shape == 'ellipse':
-            self.area = pi * self.rx * self.ry
-            self.bounding_rectangle_as_points = bounding_rect_of_ellipse(
+            self.area = _pi * self.rx * self.ry
+            self.bounding_rectangle_as_points = _roi.bounding_rect_of_ellipse(
                 (self.x, self.y), self.rx, self.ry)
             self.bounding_rectangle_xywh = [
                 self.rx - self.rx, self.ry - self.ry, self.rx * 2, self.ry * 2]
@@ -449,7 +454,7 @@ def load_json(vgg_file, fixkeys=True, backup=True):
     '''(str)->void
     Load the VGG JSON file into the module variable _JSON_FILE
     '''
-    pth = path.normpath(vgg_file)
+    pth = _path.normpath(vgg_file)
     global JSON_FILE
     global _JSON_FILE_NAME
     with open(pth) as data_file:
@@ -468,10 +473,10 @@ def save_json(backup=True):
     If backup then the file is backed up before writing out
     the in memory JSON file
     '''
-    filepath, filename, ext = get_file_parts(_JSON_FILE_NAME)
+    filepath, filename, ext = _get_file_parts(_JSON_FILE_NAME)
     if backup:
-        bk = path.join(filepath, filename + datetime_stamp() + ext + '.bak')
-        copy(_JSON_FILE_NAME, bk)
+        bk = _path.join(filepath, filename + _datetime_stamp() + ext + '.bak')
+        _copy(_JSON_FILE_NAME, bk)
         s = '\nCreated backup of VGG file %s' % bk
         _prints(s)
         logging.info(s)

@@ -81,16 +81,20 @@ def test_decgetimg(img):
     show(img)
     pass
 
+
 def test_padimg():
     imlist = ['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/scraped/1d/1d2ada5bf427c8e02ec0368ae9ad159781447574.jpg', 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/scraped/1d/1d2b0381c6046005ce24d8b3de75d8a07844b882.jpg', 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/scraped/1d/1d2d6745aa0a0bb2292d9ab59b49bb5708a29b31.jpg', 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/scraped/1d/1d4aa79954da8c09cb60431e8b5dd1300bb2bc8a.jpg']
-    I = processing.pad_images(imlist)
-    out = processing.mosaic(I,2)
+    #I = processing.pad_images(imlist)
+    out = processing.mosaic(imlist,2)
     show(out)
 
+
+#DEBUG Double check test_image_pipeline
 def test_image_pipeline():
     #Get training region
     vgg_sp = gnr.VGGSearchParams('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler', 'whole','bass')
     dk_sp = gnr.DigikamSearchParams(key_value_bool_type='OR', is_train=['head','whole'])
+    dk_sample = gnr.DigikamSearchParams(key_value_bool_type='OR', species=['bullhuss','dab','flatfish'])
 
     t1 = transforms.Transform(transforms.togreyscale)
     t2 = transforms.Transform(transforms.equalize_adapthist)
@@ -100,32 +104,10 @@ def test_image_pipeline():
     f2 = filters.Filter(filters.is_lower_res, w=10000, h=10000)
     F = filters.Filters(None, f1, f2)
 
-    Pipe = gnr.VGGRegions(dk_sp, vgg_sp, filters=F, transforms=T)
-
-    #Get random sample for testing
-    dk_sample = gnr.DigikamSearchParams(key_value_bool_type='OR', species=['bullhuss','dab','flatfish']) #, 'cod', 'dab', 'dogfish', 'flatfish', 'flounder', 'garfish', 'eel common', 'eel conger'
-    RR = gnr.RandomRegions(dk_sample, filters=F, transforms=T)
-
-    res = []
-    for img, img_path, dummy in Pipe.generate(): #Pipe is a region generator
-        if img is None:
-            continue
-
-        w, h = ImageInfo.resolution(img)
-        test_region, testfile, dummy = RR.generate(img_path, w, h, 10)
-
-       # mosaic = np.
-        i, title = show(img, title=get_file_parts2(img_path)[1], waitsecs=10)
-        if opencvlib.checkwaitkey('n', i): #pressed n
-            res.append([opencvlib.getwaitkey(i), title])
-
-        i, title = show(test_region, title=get_file_parts2(testfile)[1], waitsecs=10)
-        if opencvlib.checkwaitkey('n', i): #pressed n
-            res.append([opencvlib.getwaitkey(i), title])
-
-
-    if res: write_to_file(res)
-
+    Gen = gnr.RegionTrainPosAndNeg(vgg_sp, dk_sp, dk_sample, F=F, T=T)
+    for train, test in Gen.generate():
+        I = processing.mosaic(train, test)
+        show(I)
 
 
 def main():
@@ -134,8 +116,8 @@ def main():
     # test_vgg()
     #test_vgg_fix()
     #test_decgetimg('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/smoothhound/angler/DSCF0907.JPG')
-    #test_image_pipeline()
-    test_padimg()
+    #test_padimg()
+    test_image_pipeline()
 
 
 if __name__ == "__main__":

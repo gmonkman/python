@@ -36,6 +36,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="iolib.py" />
+    <Compile Include="jsonlib.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="log.py">
       <SubType>Code</SubType>
     </Compile>
