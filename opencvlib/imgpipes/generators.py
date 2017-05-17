@@ -619,6 +619,8 @@ class RandomRegions(DigiKam):
             w, h = _ImageInfo.resolution(img_path) #use the pil lazy loader
             self.d_res[img_path] = (w, h) #ordered dict, matching order of pts, order is critical for getting random image
             self.pt_res.append([w, h])
+
+        self._dirty_filters = False
 #endregion
 
 
