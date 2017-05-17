@@ -9,6 +9,7 @@ The RandomRegion generator returns None on err'''
 from os import path as _path
 import abc as _abc
 
+
 import cv2 as _cv2
 import numpy as _np
 from numpy.random import randint as _randint
@@ -30,6 +31,7 @@ from opencvlib.imgpipes import config as _config
 
 from opencvlib.roi import roi_polygons_get as _roi_polygons_get
 from opencvlib.roi import sample_rect as _sample_rect
+from opencvlib.roi import get_image_from_mask as _get_image_from_mask
 
 import opencvlib.transforms as _transforms
 from opencvlib import Log as _log
@@ -114,7 +116,7 @@ class _Generator(_BaseGenerator):
     def isimagevalid(self, img):
         '''does the image pass a filter
         '''
-        img = _getimg(img)
+        #img = _getimg(img)
         assert isinstance(self.filters, _filters.Filters)
         return self.filters.executeQueue(img)
 
@@ -128,8 +130,8 @@ class _Generator(_BaseGenerator):
 
         Returns None if filter fails
         '''
-        img = self.executeTransforms(img)
         if self.isimagevalid(img):
+            img = self.executeTransforms(img)
             return img
         else:
             return None
@@ -235,7 +237,17 @@ class DigiKam(_Generator):
         #super call to base supports passing kawrgs for
         #transforms and filters
         self._digikam_params = digikam_params
+        assert isinstance(self._digikam_params, DigikamSearchParams)
+        self._dirty_filters = True
+        self._image_list = None
+        self._refresh_image_list()
         super().__init__(*args, **kwargs)
+
+
+    @property
+    def image_list(self):
+        '''image_list getter'''
+        return self._image_list
 
 
     @property
@@ -246,6 +258,8 @@ class DigiKam(_Generator):
     def digikam_params(self, digikam_params):
         '''digikam_params setter'''
         self._digikam_params = digikam_params
+        self._dirty_filters = True
+        self._refresh_image_list()
 
 
     def generate(self, yield_path_only=False, outflag=_cv2.IMREAD_UNCHANGED):
@@ -258,11 +272,11 @@ class DigiKam(_Generator):
 
         Has an error handler which logs failures in the generator
         '''
-        if DigikamSearchParams.no_digikam_filters(self.digikam_params):
+
+        if self._digikam_params.no_filters() or not self.image_list:
             return None, None, {}
 
-        dk_image_list = self._get_digikam_image_list(self._digikam_params)
-        for imgpath in dk_image_list:
+        for imgpath in self.image_list:
             try:
                 if yield_path_only:
                     yield None, imgpath, {}
@@ -277,27 +291,29 @@ class DigiKam(_Generator):
 
 
 
+    def _refresh_image_list(self, force=False):
+        '''(bool)->list
+        force:
+            force reload of the image list even if filters are not dirty
 
-    def _get_digikam_image_list(self, digikam_search_param):
-        '''(DigikamSearchParams)->list
-        returns list of digikam images which match specified criteria
-
-        Note that Images.dkImages must be set by calling init_db
+        Loads list of digikam images according to the digikamsearch parameters
         '''
-        if digikam_search_param.no_filters():
+
+        if self.digikam_params.no_filters():
+            self.image_list = []
             return None
 
-        assert isinstance(digikam_search_param, DigikamSearchParams)
+        assert isinstance(self.digikam_params, DigikamSearchParams)
         assert DigiKam.dkImages is not None
-        imgs = DigiKam.dkImages.images_by_tags(
-            filename=digikam_search_param.filename,
-            album_label=digikam_search_param.album_label,
-            relative_path=digikam_search_param.relative_path,
-            bool_type=digikam_search_param.key_value_bool_type,
-            **digikam_search_param.keyvaluetags
-        )
-        imgs_out = [_iolib.fixp(i) for i in imgs]
-        return imgs_out
+        if force or self._dirty_filters:
+            imgs = DigiKam.dkImages.images_by_tags(
+                filename=self.digikam_params.filename,
+                album_label=self.digikam_params.album_label,
+                relative_path=self.digikam_params.relative_path,
+                bool_type=self.digikam_params.key_value_bool_type,
+                **self.digikam_params.keyvaluetags
+            )
+            self._image_list = [_iolib.fixp(i) for i in imgs]
 
 
 
@@ -312,26 +328,32 @@ class FromPaths(_Generator):
         super().__init__(*args, **kwargs)
 
 
-    def generate(self, outflag=_cv2.IMREAD_UNCHANGED, pathonly=False):
-        '''(cv2.imread option)->ndarray (an image)
+    @property
+    def paths(self):
+        '''paths getter'''
+        return self._paths
+    @paths.setter
+    def paths(self, paths):
+        '''paths setter'''
+        self._paths = paths
+
+
+    def generate(self, outflag=_cv2.IMREAD_UNCHANGED, pathonly=False, recurse=False):
+        '''(cv2.imread option, bool, bool) -> ndarray, str, dict
         Globs through every file in paths matching wildcards returning
         the image as an ndarray
 
-        paths: List of paths
-        wildcards: List of wildcards. eg ['*.bmp', '*.gif']
-
-        If paths and/or wildcards are None, it uses those set on instantiation of the class instance
-
-        Flags:
-        <0 - Loads as is, with alpha channel if present)
-        0 - Force grayscale
-        >0 - 3 channel color iage (stripping alpha if present
-        http://docs.opencv.org/3.0-beta/modules/imgcodecs/doc/reading_and_writing_images.html#Mat%20imread(const%20String&%20filename,%20int%20flags)
-
-        Has an error handler which logs failures in the generator
+        recurse:
+            Recurse through paths
+        outflag:
+            <0 - Loads as is, with alpha channel if present)
+            0 - Force grayscale
+            >0 - 3 channel color iage (stripping alpha if present
+        pathonly:
+            only generate image paths, the ndarray will be None
          '''
 
-        for imgpath in _iolib.file_list_generator1(self._paths, self._wildcards):
+        for imgpath in _iolib.file_list_generator1(self._paths, self._wildcards, recurse=recurse):
             try:
                 if pathonly:
                     yield None, imgpath, {}
@@ -427,8 +449,8 @@ class VGGRegions(_Generator):
                                             i = _getimg(Img.filepath, outflag)
                                             i = super().generate(i)
                                             if isinstance(i, _np.ndarray):
-                                                cropped_image = _roi_polygons_get(i, region.all_points)[3] #3 is the image cropped to a rectangle, with black outside the region
-                                                yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape}
+                                                mask, dummy, dummy1, cropped_image = _roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
+                                                yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask}
                                             else:
                                                 _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
                 except Exception as dummy:
@@ -460,10 +482,10 @@ class VGGRegions(_Generator):
                                             i = _getimg(Img.filepath, outflag)
                                             i = super().generate(i) #Delegate back to apply filters and transforms
                                             if isinstance(i, _np.ndarray):
-                                                cropped_image = _roi_polygons_get(i, region.all_points)[3] #3 is the image cropped to a rectangle, with black outside the region
-                                                yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'folder':fld}
+                                                mask, dummy, dummy1, cropped_image = _roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
+                                                yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'folder':fld, 'mask':mask}
                                             else:
-                                                _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                                                _log.info('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
                 except Exception as dummy:
                     s = 'Processing of file:%s failed.' % Img.filepath
                     _log.exception(s)
@@ -484,32 +506,37 @@ class RandomRegions(DigiKam):
         super().__init__(digikam_params, *args, **kwargs)
 
 
-    def generate(self, img, region_w, region_h, sample_size=1, outflag=_cv2.IMREAD_UNCHANGED):
-        '''(ndarray|str|tuple, int, int, int)->ndarray,str
+    def generate(self, img, region_w, region_h, sample_size=10, mask=None, outflag=_cv2.IMREAD_UNCHANGED):
+        '''(ndarray|str|tuple, int, int, int, ndarray, int)->ndarray|None, str, dict
         Retrieve a random image region sampled from the digikam library
         nearest in resolution to the passed in image.
 
         **NOT A GENERATOR, RETURNS A SINGLE IMAGE**
 
-        img:Original image to get resolution. This can be an ndarray, path (c:/pic.jpg) or list like point (w, h)
+        img:
+            Original image to get resolution. This can be an ndarray, path (c:/pic.jpg) or list like point (w, h)
+        region_w, region_h:
+            Size of region to sample from similiar resolution image
+        sample_size:
+            Randomly sample an image from the sample_size nearest in resolution from the digikam library
+        mask:
+            optional white mask to apply to the image
+        outflag:
+            cv2.imread flag, determining the format of the returned image
+            cv2.IMREAD_COLOR
+            cv2.IMREAD_GRAYSCALE
+            cv2.IMREAD_UNCHANGED
 
-        region_w, region_h:Size of region to sample from similiar resolution image
+        Returns an image (ndarray) and the image path.
 
-        sample_size:Randomly sample an image from the sample_size nearest in resolution from the digikam library
-
-        Returns an image (ndarray) and the image path
-
-        outflag is a cv2.imread flag, determining the format of the returned image
-        cv2.IMREAD_COLOR
-        cv2.IMREAD_GRAYSCALE
-        cv2.IMREAD_UNCHANGED
+        Can return None as image.
 
         No error handler
         '''
         imgout = None
         try:
 
-            if self._no_digikam_filters():
+            if self.digikam_params.no_filters():
                 raise ValueError('No digikam filters set. '
                                  'Create a class instance of generators.DigikamSearchParams and '
                                  'pass to RandomRegions.digikamParams property, or set at creation')
@@ -534,25 +561,35 @@ class RandomRegions(DigiKam):
                 sample_image = _getimg(samp_path, outflag)[0]
 
                 if self.isimagevalid(sample_image):
-                    sample_image = self.executeTransforms(sample_image)
-                    if not sample_image is None:
-                        if region_w <= samp_path[1][0] or region_h <= samp_path[1][1]:
-                            imgout = _sample_rect(sample_image, region_w, region_h)
-                            break
-                        elif len(samples) > 1: #image too small to get region sample, delete it and try again
-                            samples.remove(samp_path)
-                        elif counter > 20: #lets not get in an infinite loop
-                            imgout = sample_image
-                            break
-                        else: #Last one, just use it
-                            imgout = sample_image
-                            break
+                    if region_w <= samp_path[1][0] and region_h <= samp_path[1][1]:
+                        sample_image = self.executeTransforms(sample_image)
+                        imgout = _sample_rect(sample_image, region_w, region_h)
+                        break
+                    elif region_w <= samp_path[1][1] and region_h <= samp_path[1][0]: #see if ok
+                        sample_image = self.executeTransforms(sample_image)
+                        imgout = _sample_rect(sample_image, region_h, region_w)
+                        imgout = _cv2.rotate(imgout, _cv2.ROTATE_90_CLOCKWISE)
+                        assert imgout.shape[0] == region_h and imgout.shape[1] == region_w
+                        break
+                    elif len(samples) > 1: #image too small to get region sample, delete it and try again
+                        samples.remove(samp_path)
+                    elif counter > 20: #lets not get in an infinite loop
+                        sample_image = self.executeTransforms(sample_image)
+                        imgout = sample_image
+                        break
+                    else: #Last one, just use it
+                        sample_image = self.executeTransforms(sample_image)
+                        imgout = sample_image
+                        break
                 counter += 1
         except Exception as e:
             print('Error was ' + str(e))
         finally:
             if imgout is None: #catch all
-                imgout = sample_image
+                return None, samp_path[0], {}
+
+        if not mask is None:
+            imgout = _get_image_from_mask(imgout, mask=mask)
 
         return imgout, samp_path[0], {}
 
@@ -574,10 +611,11 @@ class RandomRegions(DigiKam):
 
         self.d_res = _baselib.odict()
         self.pt_res = []
-        if self._no_digikam_filters():
+
+        if self.digikam_params.no_filters():
             return
 
-        for dummy, img_path in self.digikam_generator(True):
+        for dummy, img_path, dummy in super().generate(yield_path_only=True):
             w, h = _ImageInfo.resolution(img_path) #use the pil lazy loader
             self.d_res[img_path] = (w, h) #ordered dict, matching order of pts, order is critical for getting random image
             self.pt_res.append([w, h])
@@ -626,14 +664,20 @@ class RegionTrainPosAndNeg():
         #Instantiate random sample generator class
         RR = RandomRegions(self.neg_dkSP, filters=self.F, transforms=self.T)
 
-        for img, img_path, dummy in Pipe.generate(outflag=outflag): #Pipe is a region generator
+        for img, img_path, argsout in Pipe.generate(outflag=outflag): #Pipe is a region generator
             if img is None:
                 continue
 
-            w, h = _ImageInfo.resolution(img)
-            test_region, dummy, dummy1 = RR.generate(img_path, w, h, 10, outflag=outflag)
+            mask = argsout.get('mask', None)
 
-            yield img, test_region
+            w, h = _ImageInfo.resolution(img)
+            test_region, dummy, dummy1 = RR.generate(img_path, w, h, 10, mask, outflag=outflag)
+
+            if test_region is None:
+                _log.warning('Failed to generate a test region for %s' % img_path)
+                continue
+
+            yield img, test_region, {}
 
 
 #region Helper funcs

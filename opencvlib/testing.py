@@ -13,7 +13,6 @@ import opencvlib
 from opencvlib.decs import decgetimg
 from opencvlib import show
 from opencvlib import ImageInfo
-import opencvlib.processing as processing
 import opencvlib.transforms as transforms
 from opencvlib.imgpipes import filters
 
@@ -94,7 +93,7 @@ def test_image_pipeline():
     #Get training region
     vgg_sp = gnr.VGGSearchParams('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler', 'whole','bass')
     dk_sp = gnr.DigikamSearchParams(key_value_bool_type='OR', is_train=['head','whole'])
-    dk_sample = gnr.DigikamSearchParams(key_value_bool_type='OR', species=['bullhuss','dab','flatfish'])
+    dk_sample = gnr.DigikamSearchParams(key_value_bool_type='OR', species=['bullhuss','dab','flatfish','cod','plaice','dogfish','mini species','smoothhound','tope','whiting','pollock'])
 
     t1 = transforms.Transform(transforms.togreyscale)
     t2 = transforms.Transform(transforms.equalize_adapthist)
@@ -104,10 +103,9 @@ def test_image_pipeline():
     f2 = filters.Filter(filters.is_lower_res, w=10000, h=10000)
     F = filters.Filters(None, f1, f2)
 
-    Gen = gnr.RegionTrainPosAndNeg(vgg_sp, dk_sp, dk_sample, F=F, T=T)
-    for train, test in Gen.generate():
-        I = processing.mosaic(train, test)
-        show(I)
+    Gen = gnr.RegionTrainPosAndNeg(vgg_sp, dk_sp, dk_sample, F=F, T=None)
+    for train, test, dummy in Gen.generate():
+        show([train, test])
 
 
 def main():

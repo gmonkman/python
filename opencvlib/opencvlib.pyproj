@@ -77,7 +77,6 @@
     <Compile Include="perspective.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="processing.py" />
     <Compile Include="roi.py">
       <SubType>Code</SubType>
     </Compile>

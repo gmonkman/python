@@ -1,0 +1,4 @@
+2017-05-17 21:31:29,134 [INFO]: vgg.py(save_json:482) >> 
+Created backup of VGG file C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\vgg20170517210529.json.bak
+2017-05-17 21:31:32,135 [INFO]: vgg.py(save_json:487) >> 
+Saved VGG JSON file C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\vgg.json

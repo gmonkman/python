@@ -6,7 +6,7 @@ from cv2 import imread
 import cv2
 import numpy as np
 
-from opencvlib import show, mosaic, to8bit
+from opencvlib import show, mosaic, to8bpp
 
 
 from matplotlib import pyplot
@@ -17,6 +17,7 @@ from skimage.io import imread as skimread
 
 
 testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'
+I = cv2.imread(testimg, -1)
 
 #Doesnt really work
 def ddir():

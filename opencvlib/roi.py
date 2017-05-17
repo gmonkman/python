@@ -13,6 +13,8 @@ from numpy import ma as _ma
 
 import opencvlib.decs as _decs
 import opencvlib as _opencvlib
+from opencvlib import ImageInfo as _ImageInfo
+
 
 __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
            'rect2rect_mtx', 'rect_as_points', 'rects_intersect', 'roi_polygons_get',
@@ -39,7 +41,8 @@ def sample_rect(img, w, h):
     rnd_col = _randint(0, img_w - w)  # 0 index
     rnd_row = _randint(0, img_h - h)
 
-    return img[rnd_row:rnd_row + h, rnd_col:rnd_col + w, ::-1]
+    I = img[rnd_row:rnd_row + h, rnd_col:rnd_col + w]
+    return I
 
 
 @_decs.decgetimg
@@ -81,11 +84,11 @@ def roi_polygons_get(img, points):
     '''(ndarray or path, [tuple list|ndarray])->ndarray, ndarray, ndarray, ndarray
     Points are a tuple list e.g. [(0,0), (50,0), (0,50), (50,50)]
 
-    Returns 3 ndarrays
-    [0] White pixels for the bounding polygon
-    [1] A numpy masked array where pixels outside the polygon are masked (False)
-    [2] The original image inside the polygon, with black pixels outside the polygon
-    [3] The original image cropped to a rectangle bounding the polygon
+    Returns 3 ndarrays and a masked array
+    [0] White pixels for the bounding polygon, cropped to a rectangle bounding the roi
+    [1] A numpy masked array where pixels outside the roi are masked (False)
+    [2] The original image inside the polygon, with black pixels outside the roi
+    [3] The original image cropped to a rectangle bounding the roi
     '''
 
     # mask defaulting to black for 3-channel and transparent for 4-channel
@@ -95,16 +98,51 @@ def roi_polygons_get(img, points):
     roi_corners = _cv2.convexHull(_np.array([points], dtype=_np.int32))
     roi_corners = _np.squeeze(roi_corners)
 
-    channel_count = img.shape[2]  # i.e.  3 or 4 depending on your image
+    if _opencvlib.ImageInfo.typeinfo(img) & _opencvlib.eImgType.CHANNEL_1.value:
+        channel_count = 1
+    else:
+        channel_count = img.shape[2]  # i.e.  3 or 4 depending on your image
+
     ignore_mask_color = (255,) * channel_count
     _cv2.fillConvexPoly(white_mask, roi_corners, ignore_mask_color)
-
-    mask = _ma.masked_values(white_mask, 0)
 
     rect = bounding_rect_of_poly(_np.array([points], dtype=_np.int32), as_points=False) #x,y,w,h
     bitwise = _cv2.bitwise_and(img, white_mask)
     rectcrop = cropimg_xywh(bitwise, *rect)
-    return white_mask, mask, bitwise, rectcrop
+    white_mask_crop = cropimg_xywh(white_mask, *rect)
+    mask = _ma.masked_values(white_mask_crop, 0)
+
+    return white_mask_crop, mask, bitwise, rectcrop
+
+
+@_decs.decgetimg
+def get_image_from_mask(img, mask):
+    '''(ndarray, ndarray)->ndarray
+    Apply a white mask representing an roi
+    to image.
+
+    img and mask must be the same size,
+    otherwise None is returned
+    '''
+    #assert img.shape[0] == mask.shape[0] and img.shape[1] == mask.shape[1]
+
+    if img.shape[0] != mask.shape[0] or img.shape[1] != mask.shape[1]:
+        return None
+
+    if len(img.shape) != len(mask.shape):
+        if _ImageInfo.typeinfo(img) & _opencvlib.eImgType.CHANNEL_1.value: #1 channel image, need 1 channel mask
+            mask = _cv2.cvtColor(mask, _cv2.COLOR_BGR2GRAY)
+        elif _ImageInfo.typeinfo(img) & _opencvlib.eImgType.CHANNEL_3.value: #3 channel image, need 3 ch mask
+            mask = _cv2.cvtColor(mask, _cv2.COLOR_GRAY2BGR)
+        elif _ImageInfo.typeinfo(img) & _opencvlib.eImgType.CHANNEL_4.value:
+            mask = _cv2.cvtColor(mask, _cv2.COLOR_GRAY2BGR)
+            img = img[:, :, 0:3]
+        else:
+            assert 1 == 2 #looks like unexpected condition
+            return None
+
+    bitwise = _cv2.bitwise_and(img, mask)
+    return bitwise
 
 
 def to_rect(a):

@@ -2,9 +2,11 @@
 
 '''opencvlib'''
 from opencvlib.common import getimg, show, checkwaitkey, getwaitkey
-from opencvlib.common import ImageInfo, Info, mosaic
+from opencvlib.common import ImageInfo, Info, mosaic, eImgType
 
-from opencvlib.transforms import to8bit
+
+from opencvlib.transforms import to8bpp
+
 
 IMAGE_EXTENSIONS = ('.bmp',
                     '.jpg',
@@ -26,16 +28,16 @@ IMAGE_EXTENSIONS_AS_WILDCARDS = ('*.bmp',
                                  '*.pgm',
                                  '*.ppm')
 
-__all__ = ['common', 'distance', 'edges', 'faces',
-           'perspective', 'processing', 'roi', 'winpyr']
+__all__ = ['common', 'decs', 'distance', 'edges', 'faces',
+           'perspective', 'roi', 'transforms', 'winpyr']
+
+
 
 #Global logger
 #To use:
 #<package>.info("informational message")
 #<package>.debug("debug message")
 #<package>.critical("informational message")
-
-
 try:
     import os.path as _path
     import funclib.log as _log

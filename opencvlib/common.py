@@ -5,8 +5,10 @@ This module contains some common routines used by other samples.
 From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 '''
 
+import itertools as _it
 from glob import glob as _glob
 from enum import Enum as _Enum
+import math as _math
 
 import numpy as _np
 import cv2 as _cv2
@@ -15,12 +17,23 @@ import fuckit as _fuckit
 
 from funclib.iolib import fixp as _fixp
 from funclib.stringslib import read_number as _read_number
+from funclib.baselib import isPython2 as _isPython2
+import funclib.baselib as _baselib
 
 import opencvlib.decs as _decs
+
 
 __all__ = ['show', 'getimg', 'Info', 'ImageInfo', 'homotrans', 'checkwaitkey', 'getwaitkey']
 
 
+_JET_DATA = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1),
+                     (1, 0.5, 0.5)),
+             'green': ((0., 0, 0), (0.125, 0, 0), (0.375, 1, 1), (0.64, 1, 1),
+                       (0.91, 0, 0), (1, 0, 0)),
+             'blue': ((0., 0.5, 0.5), (0.11, 1, 1), (0.34, 1, 1), (0.65, 0, 0),
+                      (1, 0, 0))}
+
+_CMAP_DATA = {'jet': _JET_DATA}
 
 
 class eImgType(_Enum):
@@ -38,20 +51,6 @@ class eImgType(_Enum):
     DEPTH32BIT = 2**10
     DEPTH_FLOAT = 2**11
     DEPTH_UNKNOWN = 2**12
-
-
-
-def getimg(img, outflag=_cv2.IMREAD_UNCHANGED):
-    '''(ndarray|str)->ndarray
-    tries to load the image if its a path and returns the loaded ndarray
-    otherwise returns input img if it is an ndarray
-
-    Also consider using @decs._decs.decgetimg decorator
-    '''
-    if isinstance(img, str):
-        return _cv2.imread(_fixp(img), outflag)
-    else:
-        return img
 
 
 def homotrans(H, x, y):
@@ -76,10 +75,70 @@ def checkwaitkey(key_as_string, waitkeyval):
     return getwaitkey(waitkeyval) == key_as_string
 
 
+
+def make_cmap(name, n=256):
+    '''make a cmap'''
+    data = _CMAP_DATA[name]
+    xs = _np.linspace(0.0, 1.0, n)
+    channels = []
+    eps = 1e-6
+    for ch_name in ['blue', 'green', 'red']:
+        ch_data = data[ch_name]
+        xp, yp = [], []
+        for x, y1, y2 in ch_data:
+            xp += [x, x + eps]
+            yp += [y1, y2]
+        ch = _np.interp(xs, xp, yp)
+        channels.append(ch)
+    return _np.uint8(_np.array(channels).T * 255)
+
+
+def getimg(img, outflag=_cv2.IMREAD_UNCHANGED):
+    '''(ndarray|str)->ndarray
+    tries to load the image if its a path and returns the loaded ndarray
+    otherwise returns input img if it is an ndarray
+
+    Also consider using @decs._decs.decgetimg decorator
+    '''
+    if isinstance(img, str):
+        return _cv2.imread(_fixp(img), outflag)
+    else:
+        return img
+
+
+@_decs.decgetimg
+def pad_images(imgs):
+    '''(list|tuple:ndarray|str) -> list
+    Pad images so that they are all the same size
+    as the maximum dimensions
+    '''
+    maxh = max([x.shape[0] for x in imgs])
+    maxw = max([x.shape[1] for x in imgs])
+
+    outimgs = []
+
+    for img in imgs:
+        if isinstance(img, _np.ndarray):
+            add_h = maxh - img.shape[0]
+            add_w = maxw - img.shape[1]
+            i = _cv2.copyMakeBorder(img, 0, add_h, 0, add_w, borderType=_cv2.BORDER_CONSTANT, value=[255, 255, 255])
+            assert maxh == i.shape[0] and maxw == i.shape[1]
+        else:
+            i = None
+
+        outimgs.append(i)
+
+    return outimgs
+
+
+
 @_decs.decgetimg
 def show(img, title='img', max_width=800, waitsecs=0):
-    '''(str|ndarray)->int, str
+    '''(str|ndarray|iterable)->int, str
     Show an image, passing in a path or ndarray
+
+    A list of images can be passed, which will be mosaiced
+    prior to showing
 
     Returns the key value pressed and the title
     <no key>=255
@@ -87,7 +146,13 @@ def show(img, title='img', max_width=800, waitsecs=0):
     <space>=32
     n=110
     '''
-    w, h = ImageInfo.getsize(img)
+
+    if isinstance(img, _np.ndarray):
+        im = img
+    elif _baselib.isIterable(img):
+        im = mosaic([i for i in img])
+
+    w, h = ImageInfo.getsize(im)
 
     if w > max_width:
         ratio = max_width/w
@@ -97,13 +162,15 @@ def show(img, title='img', max_width=800, waitsecs=0):
         new_w = int(w)
         new_h = int(h)
 
+
     waitsecs = int(_read_number(waitsecs)*1000)
     if waitsecs < 0:
         waitsecs = 0
 
+
     _cv2.namedWindow(title, _cv2.WINDOW_NORMAL)
     _cv2.resizeWindow(title, new_w, new_h)
-    _cv2.imshow(title, img)
+    _cv2.imshow(title, im)
     key = _cv2.waitKey(waitsecs) #255 is no key press
 
     _cv2.destroyAllWindows()
@@ -124,9 +191,12 @@ def mosaic(imgs, cols=None, pad=True):
         If pad is false, an error will be raised if image dimensions differ
     '''
 
+    if isinstance(imgs, _np.ndarray):
+        return imgs
+
     cols = _math.ceil(_math.sqrt(len(imgs))) if cols is None else cols
 
-    imgs = pad_images(imgs)
+    imgs = pad_images(imgs) #make images the same size by adding padding
 
     I = iter(imgs)
     img0 = next(I)
@@ -134,7 +204,22 @@ def mosaic(imgs, cols=None, pad=True):
     pad = _np.zeros_like(img0)
     I = _it.chain([img0], I)
     rows = _grouper(cols, I, pad)
-    return _np.vstack(map(_np.hstack, rows))
+    out = _np.vstack(map(_np.hstack, rows))
+    return out
+
+
+
+# region Private
+def _grouper(n, iterable, fillvalue=None):
+    '''grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx'''
+    args = [iter(iterable)] * n
+    if not _isPython2():
+        output = _it.zip_longest(fillvalue=fillvalue, *args)
+    else:
+        output = _it.izip_longest(fillvalue=fillvalue, *args)
+    return output
+# endregion
+
 
 
 # region UTIL CLASSES
@@ -198,8 +283,33 @@ class ImageInfo(_BaseImg):
 
 
     @staticmethod
-    @_decs.decgetimg
+    @_decs.decgetimgpil
+    def is_higher_res(img, w, h, either=False):
+        '''(ndarray|str, int, int, bool)->bool
+        Check if img is
+        If either is false, image is considered higher res
+        if both w and h are greater than the image w, h
+        '''
+        x, y = ImageInfo.resolution(img)
+        if either:
+            if not w is None:
+                return x > w
+            if not h is None:
+                return y > h
+            return False
+        else:
+            if not w is None and not h is None:
+                return x > w and y > h
+            else:
+                return False
+
+
+    @staticmethod
     def _isbw(img):
+        '''this is a helper function and shouldnt be used directly.
+        It checks if multichannel images are black and white
+        '''
+        img = getimg(img)
         #img is a numpy.ndarray, loaded using cv2.imread
         if len(img.shape) > 2:
             looks_like_rgbbw = not False in ((img[:, :, 0:1] == img[:, :, 1:2]) == (img[:, :, 1:2] == img[:, :, 2:3]))
@@ -210,14 +320,21 @@ class ImageInfo(_BaseImg):
 
 
     @staticmethod
-    @_decs.decgetimg
-    def isbw(img):
-        '''is img black and white, even if it has multichannels'''
-        return bool(eImgType.COLOR_BW.value & ImageInfo.typeinfo(img))
+    def isbw(img, single_channel_only=False):
+        '''is img black and white, even if it has multichannels
+        Returns None if img invalid'''
+        img = getimg(img)
+
+        if not isinstance(img, _np.ndarray):
+            return None
+
+        if single_channel_only:
+            return bool(eImgType.CHANNEL_1.value & ImageInfo.typeinfo(img))
+        else:
+            return bool(eImgType.COLOR_BW.value & ImageInfo.typeinfo(img))
 
 
     @staticmethod
-    @_decs.decgetimg
     def typeinfo(img):
         '''(ndarray|str)->int
         Return information about the image
@@ -226,6 +343,8 @@ class ImageInfo(_BaseImg):
 
         Returns 0 if not an ndarray
         '''
+        img = getimg(img)
+
         if not isinstance(img, _np.ndarray):
             return 0
 
@@ -263,27 +382,6 @@ class ImageInfo(_BaseImg):
                 out += eImgType.COLOR_UNKNOWN.value
         return out
 
-    @staticmethod
-    @_decs.decgetimgpil
-    def is_higher_res(img, w, h, either=False):
-        '''(ndarray|str, int, int, bool)->bool
-        Check if img is
-        If either is false, image is considered higher res
-        if both w and h are greater than the image w, h
-        '''
-        x, y = ImageInfo.resolution(img)
-        if either:
-            if not w is None:
-                return x < w
-            if not h is None:
-                return y < h
-            return False
-        else:
-            if not w is None and not h is None:
-                return x < w and y < h
-            else:
-                return False
-
 
     @staticmethod
     @_decs.decgetimgpil
@@ -296,13 +394,13 @@ class ImageInfo(_BaseImg):
         x, y = ImageInfo.resolution(img)
         if either:
             if not w is None:
-                return x > w
+                return x < w
             if not h is None:
-                return y > h
+                return y < h
             return False
         else:
             if not w is None and not h is None:
-                return x > w and y > h
+                return x < w and y < h
             else:
                 return False
 

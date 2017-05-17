@@ -8,9 +8,6 @@ yielded from the generator
 
 Filters
 '''
-from collections import deque as _deque
-
-
 import opencvlib.decs as _decs
 from opencvlib.common import ImageInfo as _ImageInfo
 from opencvlib.common import getimg as _getimg
@@ -38,7 +35,7 @@ class Filter():
         self.valid = True
 
 
-    @_decs.decgetimg
+    @_decs.decgetimgmethod
     def imgisvalid(self, img):
 
         '''(str|ndarray)->bool
@@ -58,7 +55,7 @@ class Filters():
         '''(str|ndarray, Filter functions)
         '''
         self.img = _getimg(img)
-        self.fQueue = _deque()
+        self.fQueue = []
         self.fQueue.extend(args)
 
 
@@ -70,7 +67,7 @@ class Filters():
         self.fQueue.extend(args)
 
 
-    @_decs.decgetimgpil
+    @_decs.decgetimgmethod
     def executeQueue(self, img=None):
         '''(str|ndarray)->ndarray
         perform the transformations. Is FIFO.
@@ -83,8 +80,7 @@ class Filters():
         if _baselib.isempty(self.fQueue):
             return True
         else:
-            while len(self.fQueue) > 0:
-                F = self.fQueue.popleft()
+            for F in self.fQueue:
                 assert isinstance(F, Filter)
                 if not F.imgisvalid(self.img):
                     return False

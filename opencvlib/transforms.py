@@ -1,9 +1,6 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''transforms on an image which return an image'''
 
-from collections import deque as _deque
-
-
 import cv2 as _cv2
 import numpy as _np
 
@@ -11,12 +8,15 @@ import numpy as _np
 import funclib.baselib as _baselib
 
 import opencvlib.decs as _decs
+
+
 from opencvlib.common import ImageInfo as _ImageInfo
 from opencvlib.common import getimg as _getimg
 
+
+
 #from scikit-image
 #see http://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.is_low_contrast
-
 import skimage.exposure as _exposure
 
 
@@ -50,20 +50,18 @@ class Transform():
 
         force: force execution of the transform
         '''
-        if isinstance(self.img_transformed, _np.ndarray) and not force:
-            return self.img_transformed #dont apply again
-        else:
-            if not img is None:
-                img_transformed = self._func(img, *self._args, **self._kwargs)
-                if isinstance(img_transformed, _np.ndarray):
-                    self.img_transformed = img_transformed
-                elif isinstance(img_transformed, list) or isinstance(img_transformed, tuple):
-                    self.img_transformed = _baselib.item_from_iterable_by_type(img_transformed, _np.ndarray)
-                else:
-                    raise ValueError('Unexpectedly failed to get ndarray image from transforms.exectrans. Check the transformation function "%s" returns an ndarray.' % self._func.__name__)
-                return self.img_transformed
+
+        if not img is None:
+            img_transformed = self._func(img, *self._args, **self._kwargs)
+            if isinstance(img_transformed, _np.ndarray):
+                self.img_transformed = img_transformed
+            elif isinstance(img_transformed, list) or isinstance(img_transformed, tuple):
+                self.img_transformed = _baselib.item_from_iterable_by_type(img_transformed, _np.ndarray)
             else:
-                return None
+                raise ValueError('Unexpectedly failed to get ndarray image from transforms.exectrans. Check the transformation function "%s" returns an ndarray.' % self._func.__name__)
+            return self.img_transformed
+        else:
+            return None
 
 
 class Transforms():
@@ -77,7 +75,7 @@ class Transforms():
         '''
         self.img = _getimg(img)
         self.img_transformed = None
-        self.tQueue = _deque()
+        self.tQueue = []
         self.tQueue.extend(args)
 
 
@@ -105,8 +103,7 @@ class Transforms():
         if _baselib.isempty(self.tQueue):
             return self.img
         else:
-            while len(self.tQueue) > 0:
-                T = self.tQueue.popleft()
+            for T in self.tQueue:
                 assert isinstance(T, Transform)
                 if first:
                     self.img_transformed = T.exectrans(self.img)
@@ -126,8 +123,8 @@ def adjust_gamma(img, gamma=1, gain=1):
 
     eg: gamma_corrected = exposure.adjust_gamma(image, 2)
     '''
-
-    return RGB2BGR(_exposure.adjust_gamma(img, gamma, gain))
+    i = _exposure.adjust_gamma(img, gamma, gain)
+    return RGB2BGR(i)
 
 
 @_decs.decgetimgsk
@@ -135,6 +132,7 @@ def adjust_log(img, gain=1, inv=False):
     '''(ndarray|str, float, bool) -> BGR-ndarray
     '''
     i = _exposure.adjust_log(img, gain=gain, inv=inv)
+    assert str(i.dtype) == 'uint8'
     return RGB2BGR(i)
 
 
@@ -148,7 +146,7 @@ def adjust_sigmoid(img, cutoff=0.5, gain=10, inv=False):
 
 
 @_decs.decgetimgsk
-def equalize_adapthist(img, kernel_size=8, clip_limit=0.5, nbins=255):
+def equalize_adapthist(img, kernel_size=None, clip_limit=0.01, nbins=256):
     '''(ndarray|str, int|listlike, float, int) -> BGR-ndarray
     Contrast Limited Adaptive Histogram Equalization (CLAHE).
     Supports color.
@@ -165,22 +163,37 @@ def equalize_adapthist(img, kernel_size=8, clip_limit=0.5, nbins=255):
     nbins : int, optional
         Number of gray bins for histogram (“data range”).
     '''
-    i = _exposure.equalize_adapthist(img, kernel_size=8, clip_limit=0.05, nbins=255)
-    return RGB2BGR(i)
+    i = _exposure.equalize_adapthist(img, kernel_size=kernel_size, clip_limit=clip_limit, nbins=nbins)
+    return RGB2BGR(i) #this func is wrapped to handle black and white as well
 
 
-def to8bit(img):
+def to8bpp(img):
     '''(ndarray:float)->ndarray:uint8
     Convert float image representation to
     8 bit image.
     '''
     assert isinstance(img, _np.ndarray)
     if 'float' in str(img.dtype):
-        return _np.array(float_img * 255, dtype = np.uint8)
+        return _np.array(img * 255, dtype=_np.uint8)
     elif str(img.dtype) == 'uint8':
         return img
     else:
-        assert(img.dtype == 'uint8') #unexpected, debug if occurs
+        assert img.dtype == 'uint8' #unexpected, debug if occurs
+        return img
+
+
+def toFloat(img):
+    '''(ndarray:float)->ndarray:uint8
+    Convert float image representation to
+    8 bit image.
+    '''
+    assert isinstance(img, _np.ndarray)
+    if 'uint' in str(img.dtype):
+        return _np.array(img / 255, dtype=_np.float)
+    elif 'float' in str(img.dtype):
+        return img
+    else:
+        assert 'float' in str(img.dtype) #unexpected, debug if occurs
         return img
 
 
@@ -214,17 +227,17 @@ def rescale_intensity(img, in_range='image', out_range='dtype'):
     return RGB2BGR(i)
 #endregion
 
-@_decs.decgetimg8bit
+
+@_decs.decgetimg8bpp
 def BGR2RGB(img):
     '''(ndarray)->ndarray
     BGR  to RGB
     opencv to skimage
     '''
-    from cv2 import err
     return _cv2.cvtColor(img, _cv2.COLOR_BGR2RGB)
 
 
-@_decs.decgetimg8bit
+@_decs.decgetimg8bpp
 def RGB2BGR(img):
     '''(ndarray)->ndarray
     RGB  to BGR
@@ -236,16 +249,12 @@ def RGB2BGR(img):
         return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
 
 
-@_decs.decgetimg
+@_decs.decgettruegrey
 def togreyscale(img):
     '''(str|ndarray)->ndarray
     Convert image to greyscale
     '''
-    if _ImageInfo.isbw(img):
-        return img
-    else:
-        i = to8bit(img)
-        return _cv2.cvtColor(i, _cv2.COLOR_BGR2GRAY)
+    return img
 
 
 @_decs.decgetimg
@@ -296,6 +305,7 @@ def histeq_adapt(img, clip_limit=2, tile_size=(8, 8)):
 
     clip_limit set the threshold for contrast limiting.
     '''
+
     clahe = _cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_size)
     return clahe.apply(img)
 

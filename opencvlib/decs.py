@@ -81,7 +81,8 @@ def decgetimg(func):
 
     return _getimg_wrapper
 
-def decgetimg8bit(func):
+
+def decgetimg8bpp(func):
     '''
     decorator to wrap opening an
     image using opencv.imread.
@@ -100,7 +101,7 @@ def decgetimg8bit(func):
     @_wraps(func)
     def _getimg_wrapper(img, *args, **kwargs):
 
-        g = lambda g: _cv2.imread(_fixp(g))
+        g = lambda g: _cv2.imread(_fixp(g), _cv2.CV_LOAD_IMAGE_COLOR) #forces 8bits per pixel (32/24 bit image)
 
         if img is None:
             return func(None, *args, **kwargs)
@@ -112,7 +113,7 @@ def decgetimg8bit(func):
                     i = g(im)
                 elif isinstance(im, _np.ndarray):
                     if float in im.dtype:
-                        i = to8bit(im)
+                        i = _to8bpp(im)
                     else:
                         i = im
                 else:
@@ -125,7 +126,7 @@ def decgetimg8bit(func):
             elif isinstance(img, _np.ndarray):
                 i = img
                 if 'float' in str(i.dtype):
-                    i = to8bit(i)
+                    i = _to8bpp(i)
                 else:
                     i = img
             else:
@@ -133,6 +134,68 @@ def decgetimg8bit(func):
             return func(i, *args, **kwargs)
 
     return _getimg_wrapper
+
+
+def decgettruegrey(func):
+    '''
+    decorator to wrap opening or converting an image using opencv.imread.
+
+    Some cv2 functions expect true, single channel grayscale images
+    and raise an error if > 1 channel exists
+
+    Also Converts float ndarray to uint8 if float in dtype.
+
+    Supports a mixed tuple|list of ndarrays and strings (paths)
+    or single str (path)
+
+    img(s) elements of type ndarray are simply returned
+
+    Intended for use with functions.
+    **NOT** for use with class methods
+    '''
+    #this decorator makes a function accept an image path or ndarray
+    @_wraps(func)
+    def _getimg_wrapper(img, *args, **kwargs):
+
+        g = lambda g: _cv2.imread(_fixp(g), _cv2.IMREAD_GRAYSCALE) #forces 8bits per pixel (32/24 bit image)
+
+
+        if isinstance(img, list) or isinstance(img, tuple):
+            imgsout = []
+            for im in img:
+                if isinstance(im, str):
+                    i = g(im)
+                elif isinstance(im, _np.ndarray):
+
+                    if 'float' in str(im.dtype): #float, result of using non-cv2 funcs
+                        i = _to8bpp(im)
+
+                    if not _isbw(i, single_channel_only=True):
+                        i = _cv2.cvtColor(im, _cv2.COLOR_BGR2GRAY)
+                    else: #was already 1channel BW
+                        i = im
+                else:
+                    i = None
+                imgsout.append(i)
+            return func(imgsout, *args, **kwargs)
+        else:
+            if isinstance(img, str):
+                i = g(img) #forces load as grey scale
+            elif isinstance(img, _np.ndarray):
+
+                if 'float' in str(img.dtype):
+                    i = _to8bpp(img)
+
+                if not _isbw(img, single_channel_only=True):
+                    i = _cv2.cvtColor(img, _cv2.COLOR_BGR2GRAY)
+                else: #was already 1channel BW
+                    i = img
+            else:
+                i = None
+            return func(i, *args, **kwargs)
+
+    return _getimg_wrapper
+
 
 
 def decgetimgpil(func):
@@ -181,7 +244,7 @@ def decgetimgsk(func):
                 i = _cv2.imread(_fixp(img))
                 i = _BGR2RGB(i)
             elif isinstance(img, _np.ndarray):
-                i = _RGB2BGR(img)
+                i = _BGR2RGB(img)
             else:
                 i = None
 
@@ -213,24 +276,35 @@ def _RGB2BGR(img):
         return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
 
 
-def _isbw(img):
+def _isbw(img, single_channel_only=False):
     #img is a numpy.ndarray, loaded using cv2.imread
+
+    if not isinstance(img, _np.ndarray):
+        return None
+
+    if len(img.shape) == 2:
+        return True
+
+    if single_channel_only:
+        return True if len(img.shape) == 2 else False
+
     if len(img.shape) > 2:
         looks_like_rgbbw = not False in ((img[:, :, 0:1] == img[:, :, 1:2]) == (img[:, :, 1:2] == img[:, :, 2:3]))
         looks_like_hsvbw = not False in ((img[:, :, 0:1] == 0) == ((img[:, :, 1:2]) == 0))
         return looks_like_rgbbw or looks_like_hsvbw
     else:
-        return True
+        assert img.shape == 2 #looks like an error if we got here, debug
+        return False
 
 
-def to8bit(img):
+def _to8bpp(img):
     '''(ndarray:float)->ndarray:uint8
     Convert float image representation to
     8 bit image.
     '''
     assert isinstance(img, _np.ndarray)
     if 'float' in str(img.dtype):
-        return _np.array(img * 255, dtype = _np.uint8)
+        return _np.array(img * 255, dtype=_np.uint8)
     elif str(img.dtype) == 'uint8':
         return img
     else:
