@@ -31,6 +31,9 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="classifiers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="common.py">
       <SubType>Code</SubType>
     </Compile>
@@ -65,19 +68,18 @@
     <Compile Include="lenscorrection\lenscorrection.py" />
     <Compile Include="lenscorrection\lenscorrectiondb.py" />
     <Compile Include="lenscorrection\__init__.py" />
-    <Compile Include="objdetect\config.py" />
-    <Compile Include="objdetect\features.py" />
-    <Compile Include="objdetect\knn.py">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="script_objdetect\config.py" />
+    <Compile Include="features.py" />
     <Compile Include="scripts_vgg\write_attr.py" />
     <Compile Include="script_objdetect\test_hogsvm_classifier.py" />
     <Compile Include="script_objdetect\train_hogsvm_classifier.py" />
-    <Compile Include="objdetect\__init__.py" />
     <Compile Include="perspective.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="roi.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="streams.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="testing.py">
@@ -110,12 +112,6 @@
     <Folder Include="script_objdetect\" />
     <Folder Include="scripts_faces\" />
     <Folder Include="lenscorrection\" />
-    <Folder Include="objdetect\" />
-    <Folder Include="objdetect\bin\" />
-    <Folder Include="objdetect\data\" />
-    <Folder Include="objdetect\data\config\" />
-    <Folder Include="objdetect\data\images\" />
-    <Folder Include="objdetect\data\models\" />
     <Folder Include="scripts_vgg\" />
   </ItemGroup>
   <ItemGroup>
@@ -165,22 +161,7 @@
     </Content>
     <Content Include="lenscorrection\lenscorrection.py.ini" />
     <Content Include="make_model.bat" />
-    <Content Include="objdetect\.gitignore" />
-    <Content Include="objdetect\bin\test-object-detector" />
-    <Content Include="objdetect\data\config\config.cfg" />
-    <Content Include="objdetect\data\images\test-im-1-nms.png" />
-    <Content Include="objdetect\data\images\test-im-1.png" />
-    <Content Include="objdetect\data\images\test-im-2-nms.png" />
-    <Content Include="objdetect\data\images\test-im-2.png" />
-    <Content Include="objdetect\data\images\test-im-3-nms.png" />
-    <Content Include="objdetect\data\images\test-im-3.png" />
-    <Content Include="objdetect\data\images\test-im-4-nms.png" />
-    <Content Include="objdetect\data\images\test-im-4.png" />
-    <Content Include="objdetect\data\models\svm.model" />
-    <Content Include="objdetect\data\models\svm.model_01.npy" />
-    <Content Include="objdetect\data\models\svm.model_02.npy" />
-    <Content Include="objdetect\data\models\svm.model_03.npy" />
-    <Content Include="objdetect\README.md" />
+    <Content Include="script_objdetect\config.cfg" />
     <Content Include="pylintrc" />
   </ItemGroup>
   <ItemGroup>

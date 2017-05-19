@@ -196,6 +196,16 @@ def mosaic(imgs, cols=None, pad=True):
 
     cols = _math.ceil(_math.sqrt(len(imgs))) if cols is None else cols
 
+    #stacks funcs need same channel number
+    hasbw = False
+    for img in imgs:
+        if ImageInfo.typeinfo(img) & eImgType.CHANNEL_1.value:
+            hasbw = True
+            break
+
+    if hasbw:
+        imgs = [i[:, :, 0:1] for i in imgs]
+
     imgs = pad_images(imgs) #make images the same size by adding padding
 
     I = iter(imgs)

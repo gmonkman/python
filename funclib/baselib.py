@@ -6,6 +6,8 @@ Stick list/tuple/dic functions in here
 import collections as _collections
 import sys as _sys
 
+import numpy as _np
+
 
 #########
 #CLASSES#
@@ -242,12 +244,14 @@ def isempty(x):
     '''(something)->bool
     Check of a variable looks empty
     '''
-
     try:
+        if isinstance(x, _np.ndarray):
+            return x.size == 0
         if x is None: return True
         if x == '': return True
         if len(x) == 0: return True
     except Exception:
+        assert False #how did we get here?
         return True
 
     return False

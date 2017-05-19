@@ -103,7 +103,7 @@ def test_image_pipeline():
     f2 = filters.Filter(filters.is_lower_res, w=10000, h=10000)
     F = filters.Filters(None, f1, f2)
 
-    Gen = gnr.RegionTrainPosAndNeg(vgg_sp, dk_sp, dk_sample, F=F, T=None)
+    Gen = gnr.RegionPosRandomNeg(vgg_sp, dk_sp, dk_sample, F=F, T=None)
     for train, test, dummy in Gen.generate():
         show([train, test])
 

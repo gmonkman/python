@@ -106,7 +106,7 @@ class _Generator(_BaseGenerator):
         #img = _getimg(img)
         if isinstance(self._transforms, _transforms.Transforms):
             try:
-                img = self.transforms.executeQueue(img)
+                img = self.transforms.validate(img)
             except ValueError as e:
                 _log.exception(str(e))
         return img
@@ -118,7 +118,7 @@ class _Generator(_BaseGenerator):
         '''
         #img = _getimg(img)
         assert isinstance(self.filters, _filters.Filters)
-        return self.filters.executeQueue(img)
+        return self.filters.validate(img)
 
 
     @_decs.decgetimgmethod
@@ -403,7 +403,7 @@ class VGGRegions(_Generator):
         self.dirty_filters = True #for use in inherited classes, not needed for this explicitly
 
 
-    def generate(self, outflag=_cv2.IMREAD_UNCHANGED, *args, **kwargs):
+    def generate(self, pathonly=False, outflag=_cv2.IMREAD_UNCHANGED, *args, **kwargs):
         '''(bool)-> ndarray,str,str,str
 
         Note that this uses the filters set in the VGGFilter and DigikamSearchParams
@@ -446,13 +446,20 @@ class VGGRegions(_Generator):
                                     for part in self.vggParams.parts:  # try all parts, eg whole, head
                                         for region in subject.regions_generator(part):
                                             assert isinstance(region, _vgg.Region)
-                                            i = _getimg(Img.filepath, outflag)
-                                            i = super().generate(i)
-                                            if isinstance(i, _np.ndarray):
-                                                mask, dummy, dummy1, cropped_image = _roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
-                                                yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask}
+                                            if pathonly:
+                                                cropped_image = None
                                             else:
-                                                _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                                                i = _getimg(Img.filepath, outflag)
+                                                i = super().generate(i)
+
+                                                if isinstance(i, _np.ndarray):
+                                                    mask, dummy, dummy1, cropped_image = _roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
+                                                else:
+                                                    _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                                                    cropped_image = None
+
+                                                yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask, 'roi':region.all_points}
+
                 except Exception as dummy:
                     s = 'Processing of file:%s failed.' % Img.filepath
                     _log.exception(s)
@@ -476,16 +483,19 @@ class VGGRegions(_Generator):
                             for spp in self.vggParams.species:
                                 for subject in Img.subjects_generator(spp):
                                     assert isinstance(subject, _vgg.Subject)
-                                    for part in self.vggParams.parts:  # try all parts, eg whole, head
-                                        for region in subject.regions_generator(part):
-                                            assert isinstance(region, _vgg.Region)
-                                            i = _getimg(Img.filepath, outflag)
-                                            i = super().generate(i) #Delegate back to apply filters and transforms
-                                            if isinstance(i, _np.ndarray):
-                                                mask, dummy, dummy1, cropped_image = _roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
-                                                yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'folder':fld, 'mask':mask}
-                                            else:
-                                                _log.info('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                                    if pathonly:
+                                        cropped_image = None
+                                    else:
+                                        i = _getimg(Img.filepath, outflag)
+                                        i = super().generate(i)
+
+                                        if isinstance(i, _np.ndarray):
+                                            mask, dummy, dummy1, cropped_image = _roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
+                                        else:
+                                            _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                                            cropped_image = None
+
+                                        yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask, 'roi':region.all_points}
                 except Exception as dummy:
                     s = 'Processing of file:%s failed.' % Img.filepath
                     _log.exception(s)
@@ -624,7 +634,105 @@ class RandomRegions(DigiKam):
 #endregion
 
 
-class RegionTrainPosAndNeg():
+class RegionDualPosNeg():
+    '''Generate positive and negative
+    training images using VGG defined regions and
+    a search specified by digikam tags.
+
+    Negative regions are generated by using
+    seperately defined digikam tags and picking randomly from
+    images closest in resolution to the training image
+    and deriving a randomly placed sample region of
+    the same shape of the positive region
+    '''
+    def __init__(self, vggPos, dkPos, vggNeg, dkNeg, T, F): 
+        '''(VGGSearchParams, DigiKamSearchParams, VGGSearchParams, DigiKamSearchParams, Transforms, Filters)
+
+        Generate a positive and negtive training image from
+        VGG configured regions
+        '''
+        self.vggPos = vggPos
+        self.vggNeg = vggNeg
+        self.dkPos = dkPos
+        self.dkNeg = dkNeg
+        self.T = T
+        self.F = F
+        self._pos_list = []
+        self._neg_list = []
+        assert isinstance(self.T, _transforms.Transforms)
+        assert isinstance(self.F, _filters.Filters)
+
+    def __call__(self, vggPos, dkPos, vggNeg, dkNeg, T, F):
+        '''(VGGSearchParams, DigiKamSearchParams, DigiKamSearchParams, Transforms, Filters)
+
+        All classes in opencvlib.generators
+        '''
+        self.vggPos = vggPos
+        self.vggNeg = vggNeg
+        self.dkPos = dkPos
+        self.dkNeg = dkNeg
+        self.T = T
+        self.F = F
+        self._pos_list = []
+        self._neg_list = []
+
+
+    def generate(self, outflag=_cv2.IMREAD_UNCHANGED):
+        '''(cv2 imread flag) -> ndarray|None, str, ndarray|None, str
+        Generate train and test image regions.
+
+        Yields:
+        positive image region,
+        postive image path,
+        negative image region,
+        negative image path
+
+        Images return None if an error occurs
+        '''
+        #Get training region
+        self._pos_list = []
+        self._neg_list = []
+
+        assert isinstance(self.T, _transforms.Transforms)
+        assert isinstance(self.F, _filters.Filters)
+
+        PipePos = VGGRegions(self.dkPos, self.vggPos, filters=None, transforms=None)
+        PipeNeg = VGGRegions(self.dkNeg, self.vggNeg, filters=None, transforms=None)
+
+        for dummy, img_path, argsout in PipePos.generate(pathonly=True, outflag=outflag): #Pipe is a region generator
+            self._pos_list.append([img_path, argsout.get('roi')])
+
+        for dummy, img_path, argsout in PipeNeg.generate(pathonly=True, outflag=outflag): #Pipe is a region generator
+            self._neg_list.append([img_path, argsout.get('roi')])
+
+        for ind, x in enumerate(self._pos_list):
+
+            try:
+                imgpos = _getimg(x[0])
+                imgneg = _getimg(self._neg_list[ind][0])
+
+                if not self.F.validate(imgpos): continue
+                if not self.F.validate(imgneg): continue
+
+                imgposT = self.T.executeQueue(imgpos)
+                imgnegT = self.T.executeQueue(imgneg)
+
+                if imgposT is None: continue
+                if imgnegT is None: continue
+
+                ipos = _roi_polygons_get(imgposT, x[1])
+                ineg = _roi_polygons_get(imgnegT, self._neg_list[ind][1])
+            except Exception as dummy:
+                s = 'Failed to generate a test region for %s' % img_path
+                _log.warning(s)
+                ipos = None
+                ineg = None
+            finally:
+                yield ipos, x[0], ineg, self._neg_list[ind][0]
+
+
+
+class RegionPosRandomNeg():
     ''' wrapper to generate a region with
     a corresponding random negative image of equal region
     size from an image of same approximate resolution.
@@ -676,7 +784,8 @@ class RegionTrainPosAndNeg():
             test_region, dummy, dummy1 = RR.generate(img_path, w, h, 10, mask, outflag=outflag)
 
             if test_region is None:
-                _log.warning('Failed to generate a test region for %s' % img_path)
+                s = 'Failed to generate a test region for %s' % img_path
+                _log.warning(s)
                 continue
 
             yield img, test_region, {}

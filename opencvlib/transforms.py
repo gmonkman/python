@@ -12,13 +12,13 @@ import opencvlib.decs as _decs
 
 from opencvlib.common import ImageInfo as _ImageInfo
 from opencvlib.common import getimg as _getimg
+from opencvlib import Log as _Log
 
 
 
 #from scikit-image
 #see http://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.is_low_contrast
 import skimage.exposure as _exposure
-
 
 
 #region Handling Transforms in Generators
@@ -86,6 +86,8 @@ class Transforms():
 
         Transforms are executed FIFO when executeQueue is invoked
         '''
+        s = 'Queued transforms ' + ' '.join([f.__name__ for f in args])
+        _Log.info(s)
         self.tQueue.extend(args)
 
 

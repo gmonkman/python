@@ -11,7 +11,7 @@ from sklearn.svm import LinearSVC
 #from sklearn.linear_model import LogisticRegression
 from sklearn.externals import joblib
 
-from opencvlib.objdetect import config
+#from opencvlib import config
 
 #import opencvlib.objdetect.config as config
 def parse_args():
@@ -51,7 +51,7 @@ def parse_args():
         print("Training a Linear SVM Classifier")
         clf.fit(fds, labels)
         # If feature directories don't exist, create them
-        if not os.path.isdir(os.path.split(config.model_path)[0]):
-            os.makedirs(os.path.split(config.model_path)[0])
-        joblib.dump(clf, config.model_path)
-        print("Classifier saved to {}".format(config.model_path))
+      #  if not os.path.isdir(os.path.split(config.model_path)[0]):
+       #     os.makedirs(os.path.split(config.model_path)[0])
+     #   joblib.dump(clf, config.model_path)
+      #  print("Classifier saved to {}".format(config.model_path))

@@ -68,7 +68,7 @@ class Filters():
 
 
     @_decs.decgetimgmethod
-    def executeQueue(self, img=None):
+    def validate(self, img=None):
         '''(str|ndarray)->ndarray
         perform the transformations. Is FIFO.
         Set img_transformed property, and returns

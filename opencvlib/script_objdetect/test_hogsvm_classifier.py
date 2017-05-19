@@ -9,7 +9,7 @@ from sklearn.externals import joblib
 import cv2
 
 from opencvlib.roi import nms_rects
-from opencvlib.objdetect.config import cells_per_block, min_wdw_sz, model_path, normalize, orientations, \
+from config import cells_per_block, min_wdw_sz, model_path, normalize, orientations, \
     pixels_per_cell, step_size, threshold, visualize
 from opencvlib.winpyr import slide_win_abs
 
