@@ -6,7 +6,8 @@ from cv2 import imread
 import cv2
 import numpy as np
 
-from opencvlib import show, mosaic, to8bpp
+from opencvlib import show, mosaic
+from opencvlib.transforms import to8bpp
 
 
 from matplotlib import pyplot

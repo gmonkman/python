@@ -417,11 +417,14 @@ class VGGRegions(_Generator):
 
         Has an error handler which logs failures in the generator
         '''
-        if DigikamSearchParams.no_digikam_filters(self.digikamParams):
+        if DigikamSearchParams is None:
             dk_image_list = []
         else:
-            dkGen = DigiKam(self.digikamParams)
-            dk_image_list = [i for unused_, i, dummy in dkGen.generate(yield_path_only=True)]
+            if DigikamSearchParams.no_digikam_filters(self.digikamParams):
+                dk_image_list = []
+            else:
+                dkGen = DigiKam(self.digikamParams)
+                dk_image_list = [i for unused_, i, dummy in dkGen.generate(yield_path_only=True)]
 
         if self.vggParams.recurse:
             for fld in _iolib.folder_generator(self.vggParams.folders):
@@ -483,19 +486,22 @@ class VGGRegions(_Generator):
                             for spp in self.vggParams.species:
                                 for subject in Img.subjects_generator(spp):
                                     assert isinstance(subject, _vgg.Subject)
-                                    if pathonly:
-                                        cropped_image = None
-                                    else:
-                                        i = _getimg(Img.filepath, outflag)
-                                        i = super().generate(i)
+                                    for part in self.vggParams.parts:
+                                        for region in subject.regions_generator(part):
+                                            assert isinstance(region, _vgg.Region)
+                                            if pathonly:
+                                                cropped_image = None
+                                            else:
+                                                i = _getimg(Img.filepath, outflag)
+                                                i = super().generate(i)
 
-                                        if isinstance(i, _np.ndarray):
-                                            mask, dummy, dummy1, cropped_image = _roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
-                                        else:
-                                            _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
-                                            cropped_image = None
+                                                if isinstance(i, _np.ndarray):
+                                                    mask, dummy, dummy1, cropped_image = _roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
+                                                else:
+                                                    _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                                                    cropped_image = None
 
-                                        yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask, 'roi':region.all_points}
+                                            yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask, 'roi':region.all_points}
                 except Exception as dummy:
                     s = 'Processing of file:%s failed.' % Img.filepath
                     _log.exception(s)
@@ -722,7 +728,7 @@ class RegionDualPosNeg():
 
                 ipos = _roi_polygons_get(imgposT, x[1])
                 ineg = _roi_polygons_get(imgnegT, self._neg_list[ind][1])
-            except Exception as dummy:
+            except Exception as dummy1:
                 s = 'Failed to generate a test region for %s' % img_path
                 _log.warning(s)
                 ipos = None

@@ -1,0 +1,17 @@
+2017-05-21 20:49:30,756 [INFO]: vgg.py(save_json:482) >> 
+Created backup of VGG file C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\vgg20170521200530.json.bak
+2017-05-21 20:49:33,709 [INFO]: vgg.py(save_json:487) >> 
+Saved VGG JSON file C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\vgg.json
+2017-05-21 20:50:09,506 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\DSCF8222.JPG
+2017-05-21 20:50:15,006 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\DSCF8249.JPG
+2017-05-21 20:50:28,412 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\p1020790-1.jpg
+2017-05-21 20:50:42,256 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\6068431451_552dea3bd6_o.jpg
+2017-05-21 20:50:50,943 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\857625_612964715462888_1240782896_o.jpg
+2017-05-21 20:51:02,022 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\DSCF8321.JPG
+2017-05-21 20:51:09,147 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\13568903_1119815231374531_1440177840940017650_o.jpg
+2017-05-21 20:51:09,584 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\13458691_1108345172521537_3195037556029657132_o.jpg
+2017-05-21 20:51:12,162 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\13475202_1108629909159730_4685199012788955887_o.jpg
+2017-05-21 20:51:25,725 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\9611135931_68a56f7bca_k.jpg
+2017-05-21 20:51:33,053 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\6251205546_aeaa27c0c4_o.jpg
+2017-05-21 20:51:35,412 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\13724995_1131521493537238_8894713576637647494_o.jpg
+2017-05-21 20:51:48,053 [WARNING]: generators.py(generate:791) >> Failed to generate a test region for C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\angler\13963045_1140465825976138_3469193657665812_o.jpg
