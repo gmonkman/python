@@ -49,6 +49,6 @@ except Exception as e:
 def loginfo():
     '''print log file status'''
     try:
-        print(Log)
+        print(_rootlogger)
     except Exception as e:
         print('Failed to get log info for file %s.\nError: %s' % (_logfile, str(e)))

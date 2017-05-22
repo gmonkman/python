@@ -1,4 +1,4 @@
-# Import the required modules
+#pylint: skip-file
 '''classify stuff'''
 import argparse as ap
 

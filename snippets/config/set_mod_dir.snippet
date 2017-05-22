@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>set_mod_dir</Title>
+      <Author>Graham Monkman</Author>
+      <Description>Set folder of executing module as a global module level variable</Description>
+      <HelpUrl></HelpUrl>
+      <Shortcut></Shortcut>
+    </Header>
+    <Snippet>
+    <Declarations>
+      <Literal>
+        <ID>type</ID>
+        <ToolTip>the expected variable type</ToolTip>
+        <Default>variable_type</Default>
+      </Literal>
+    </Declarations>
+      <Code Language="Python" Delimiter="$"><![CDATA[
+from inspect import getsourcefile as _getsourcefile
+import os.path as _path
+import funclib.iolib as _iolib
+
+pth = _iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
+_MODPATH = _path.normpath(_path.join(pth, 'myconfig.cfg'))$end$]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

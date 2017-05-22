@@ -77,7 +77,7 @@ class dictp(dict):
     '''
 
     def __getitem__(self, partial_key):
-        keys = [k for k in self.keys() if partial_key in k]
+        keys = [k for k in self.keys() if partial_key in k and k.startswith(partial_key)]
         if keys:
             if len(keys) > 1:
                 raise KeyError('Partial key matched more than 1 element')
@@ -90,7 +90,7 @@ class dictp(dict):
         Support partial key matches,
         return d if key not found
         '''
-        keys = [k for k in self.keys() if partial_key in k]
+        keys = [k for k in self.keys() if partial_key in k and k.startswith(partial_key)]
         if keys:
             if len(keys) > 1:
                 raise KeyError('Partial key matched more than 1 element')

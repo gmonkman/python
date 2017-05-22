@@ -204,7 +204,7 @@ def mosaic(imgs, cols=None, pad=True):
             break
 
     if hasbw:
-        imgs = [i[:, :, 0:1] for i in imgs]
+        imgs = [i[:, :, ...] for i in imgs]
 
     imgs = pad_images(imgs) #make images the same size by adding padding
 

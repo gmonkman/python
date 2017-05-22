@@ -1,10 +1,20 @@
 # pylint: disable=C0302, no-member, expression-not-assigned,
 # not-context-manager
 ''' helper for interacting with application ini files'''
-import configparser as cp
-import os
+import configparser as _cp
+import os as _os
+import ast as _ast
+from enum import Enum as _Enum
 
-import funclib.iolib as iolib
+
+import funclib.iolib as _iolib
+
+
+class eReadAs(_Enum):
+    ersDict = 1
+    ersList = 2
+    ersStr = 3
+    ersTuple = 4
 
 
 class ConfigFile(object):
@@ -13,44 +23,64 @@ class ConfigFile(object):
     '''
 
     def __init__(self, ini_file):
-        self.ini_file_path, self.ini_file_name = os.path.split(
-            os.path.abspath(ini_file))
+        self.ini_file_path, self.ini_file_name = _os.path.split(
+            _os.path.abspath(ini_file))
         self.ini_file = ini_file
-        if not str(ini_file).endswith('ini') or str(ini_file).endswith('cfg'):
+        if not str(ini_file).endswith('ini') and not str(ini_file).endswith('cfg'):
             raise ValueError('Expected ini file to have extension ini or cfg')
 
-        if not os.path.isfile(ini_file):
-            iolib.file_create(ini_file)
-        self._config = cp.ConfigParser()
+        if not _os.path.isfile(ini_file):
+            _iolib.file_create(ini_file)
+        self._config = _cp.ConfigParser()
         self._config.read(ini_file)
 
     def __str__(self):
-        assert isinstance(self._config, cp.ConfigParser)
+        assert isinstance(self._config, _cp.ConfigParser)
         return str(self._config.options)
 
-    def tryread(self, section, option, force_create=True, value_on_create=''):
-        '''(str,str) -> str
-        section is the section [DEFAULT]
-        option is the key.
-        if force_create is true then the section and option will be create with the value value_on_create
+
+    def tryread(self, section, option, force_create=False, value_on_create='', asType=eReadAs.ersStr):
+        '''(str, str, bool, str|dict, Enum:eReadAs) -> str
         Returns the value read, which will default to value_on_create if no section or option is found.
         Saves to disk if new option created.
+
+        section:
+            The section [DEFAULT]
+        option:
+            The key of an attribute
+        force_create: 
+            Create the section and option with value value_on_create
+        asType:
+            The type to try to load the value as, so we can force
+            reading a value in the config file as a dictionary for example
         '''
-        assert isinstance(self._config, cp.ConfigParser)
-        if self._config.has_section(section):
-            if self._config.has_option(section, option):
-                return self._config.get(section, option)
+        assert isinstance(self._config, _cp.ConfigParser)
+        if self._config.has_section(section): #have the section eg [CONFIG]
+            if self._config.has_option(section, option): #has entry, eg mysetting:3
+                s = self._config.get(section, option)
+                if asType != eReadAs.ersStr:
+                    d = _ast.literal_eval(s)
+                    return d
+                else:
+                    return s
             else:
                 if force_create:
-                    self._config.set(section, option, value_on_create)
+                    if isinstance(value_on_create, dict):
+                        self._config.set(section, option, str(value_on_create))
+                    else:
+                        value_on_create = value_on_create
                     self.save()
                 return value_on_create
         else:
             if force_create:
                 self._config.add_section(section)
-                self._config.set(section, option, value_on_create)
+                if isinstance(value_on_create, dict):
+                    self._config.set(section, option, str(value_on_create))
+                else:
+                    self._config.set(section, option, value_on_create)
                 self.save()
             return value_on_create
+
 
     def trywrite(self, section, option, value):
         '''(str,str,str) ->void
@@ -60,8 +90,8 @@ class ConfigFile(object):
         '''
         if not self._config.has_section(section):
             self._config.add_section(section)
-        self._config.set(section, option, value)
-        self.save()
+        self._config.set(section, option, str(value))
+
 
     def save(self):
         '''save the config to disk'''
@@ -73,4 +103,4 @@ def iniexists(file):
     '''(str) -> bool
     Checks if the file exists
     '''
-    return iolib.file_exists(file)
+    return _iolib.file_exists(file)

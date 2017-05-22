@@ -11,6 +11,8 @@ import opencvlib.decs as _decs
 
 
 from opencvlib.common import ImageInfo as _ImageInfo
+from opencvlib import eImgType
+
 from opencvlib.common import getimg as _getimg
 from opencvlib import Log as _Log
 
@@ -236,7 +238,10 @@ def BGR2RGB(img):
     BGR  to RGB
     opencv to skimage
     '''
-    return _cv2.cvtColor(img, _cv2.COLOR_BGR2RGB)
+    if _ImageInfo.isbw(img):
+        return img
+    else:
+        return _cv2.cvtColor(img, _cv2.COLOR_BGR2RGB)
 
 
 @_decs.decgetimg8bpp

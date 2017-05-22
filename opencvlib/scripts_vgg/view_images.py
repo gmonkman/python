@@ -4,7 +4,9 @@
 import argparse
 import os.path as path
 
+
 import opencvlib.imgpipes.generators as G
+from opencvlib.imgpipes import transforms
 from opencvlib.common import show
 import funclib.iolib as iolib
 
@@ -27,17 +29,23 @@ def main():
                                       'view_images.py -part whole "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler"'
                                       )
     cmdline.add_argument('-part', '--part', help='The region part eg. head.', required=True)
+    cmdline.add_argument('-spp', '--spp', help='The species.', required=True)
     cmdline.add_argument('vggfolder', help='VGG JSON file to manipulate')
     args = cmdline.parse_args()
 
 
     fld = path.normpath(args.vggfolder)
-    vggsp = G.VGGSearchParams(fld, parts=[args.part])
+    vggsp = G.VGGSearchParams(fld, parts=[args.part], species=[args.spp])
 
-    cnt = 1     
+    #t1 = transforms.Transform(transforms.togreyscale)
+    t2 = transforms.Transform(transforms.equalize_adapthist)
+    T = transforms.Transforms(None, t2)
+
     out = []
-    for img, f, dummy in G.VGGRegions(None, vggsp):
-        k, title = show(img)
+    reg = G.VGGRegions(None, vggsp, transforms=T)
+    
+    for img, f, dummy in reg.generate():
+        k, dummy1 = show(img)
         if k == 110: #n
             out.append(f)
     iolib.write_to_file(out)

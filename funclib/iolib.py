@@ -568,14 +568,14 @@ def write_to_file(results, prefix='', open_in_npp=True, full_file_path=''):
         create_folder(fld)
         filename = full_file_path
 
-    n = '\r\n' if _get_platform() == 'windows' else '\n'
+   # n = '\r\n' if _get_platform() == 'windows' else '\n'
 
     with open(filename, 'w+') as f:
         if isinstance(results, str):
             f.write(results)
         else:
             for s in results:
-                f.write(str(s) + n)
+                f.write(str(s))
 
     print(results)
     print(filename)

@@ -106,7 +106,7 @@ class _Generator(_BaseGenerator):
         #img = _getimg(img)
         if isinstance(self._transforms, _transforms.Transforms):
             try:
-                img = self.transforms.validate(img)
+                img = self.transforms.executeQueue(img)
             except ValueError as e:
                 _log.exception(str(e))
         return img
@@ -117,8 +117,11 @@ class _Generator(_BaseGenerator):
         '''does the image pass a filter
         '''
         #img = _getimg(img)
-        assert isinstance(self.filters, _filters.Filters)
-        return self.filters.validate(img)
+        #assert isinstance(self.filters, _filters.Filters)
+        if isinstance(self.filters, _filters.Filters):
+            return self.filters.validate(img)
+        else:
+            return True
 
 
     @_decs.decgetimgmethod
@@ -210,18 +213,6 @@ class DigikamSearchParams():
         returns true if no filters set
         '''
         return self.filename == '' and self.album_label == '' and self.relative_path == '' and not self.keyvaluetags
-
-    @staticmethod
-    def no_digikam_filters(dkparam):
-        '''(DigikamSearchParams)->bool
-        Return bool indicating if
-        there are any digikam filters set
-        in the passed DigikamSearchParams class instance
-        '''
-        if dkparam is None:
-            return True
-        else:
-            return dkparam.no_filters()
 #endregion
 
 
@@ -417,10 +408,10 @@ class VGGRegions(_Generator):
 
         Has an error handler which logs failures in the generator
         '''
-        if DigikamSearchParams is None:
+        if self.digikamParams is None:
             dk_image_list = []
         else:
-            if DigikamSearchParams.no_digikam_filters(self.digikamParams):
+            if self.digikamParams.no_filters():
                 dk_image_list = []
             else:
                 dkGen = DigiKam(self.digikamParams)
@@ -466,7 +457,6 @@ class VGGRegions(_Generator):
                 except Exception as dummy:
                     s = 'Processing of file:%s failed.' % Img.filepath
                     _log.exception(s)
-
         else:
             for fld in self.vggParams.folders:
 
@@ -667,6 +657,7 @@ class RegionDualPosNeg():
         self._neg_list = []
         assert isinstance(self.T, _transforms.Transforms)
         assert isinstance(self.F, _filters.Filters)
+
 
     def __call__(self, vggPos, dkPos, vggNeg, dkNeg, T, F):
         '''(VGGSearchParams, DigiKamSearchParams, DigiKamSearchParams, Transforms, Filters)

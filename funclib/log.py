@@ -31,11 +31,11 @@ class RootLogger(object):
 
     def __str__(self):
         info = _os.stat(self._logpath)
-        kb = lambda x: str(x/1024) + ' Kb'
+        kb = lambda x: '{:n}'.format(x/1024) + ' Kb'
         s = ('Logging to file: %s\n'
             'Max Size: %s\n'
             'Current Size: %s\n'
-            'Remaining: %s' % (self._logpath, kb(self._sizeKB), kb(info.size), kb(self._sizeKB - info.size)))
+            'Remaining: %s' % (self._logpath, kb(self._sizeKB), kb(info.st_size), kb(self._sizeKB - info.st_size)))
         return s
 
 
@@ -44,8 +44,8 @@ class RootLogger(object):
         log_format = "%(asctime)s [%(levelname)s]: %(filename)s(%(funcName)s:%(lineno)s) >> %(message)s"
         log_filemode = "w" # w: overwrite; a: append
 
-        _logging.basicConfig(filename=self._LOGGER_NAME, format=log_format, filemode=log_filemode, level=_logging.DEBUG)
-        rotate_file = _handlers.RotatingFileHandler(self._LOGGER_NAME, maxBytes=self._sizeKB, backupCount=self._nrbaks)
+        _logging.basicConfig(filename=self._logpath, format=log_format, filemode=log_filemode, level=_logging.DEBUG)
+        rotate_file = _handlers.RotatingFileHandler(self._logpath, maxBytes=self._sizeKB, backupCount=self._nrbaks)
         logger = _logging.getLogger(self._LOGGER_NAME)
         logger.addHandler(rotate_file)
 
