@@ -552,7 +552,6 @@ class _OpenCVDetector(_BaseDetector):
         k = _np.array([[]], dtype='float')
         if self._has_keypoints(): #array of opencv KeyPoint class instances
             for point in self.keypoints:
-                assert isinstance(point, _cv2.KeyPoint)
                 temp = _np.ndarray([[point.pt[0], point.pt[1], point.size, point.angle, point.response, point.octave, point.class_id]])
                 k = _np.append(k, temp, 0)
 
