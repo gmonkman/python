@@ -442,6 +442,7 @@ class VGGRegions(_Generator):
                                             assert isinstance(region, _vgg.Region)
                                             if pathonly:
                                                 cropped_image = None
+                                                mask = None
                                             else:
                                                 i = _getimg(Img.filepath, outflag)
                                                 i = super().generate(i)
@@ -452,7 +453,7 @@ class VGGRegions(_Generator):
                                                     _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
                                                     cropped_image = None
 
-                                                yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask, 'roi':region.all_points}
+                                            yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask, 'roi':region.all_points}
 
                 except Exception as dummy:
                     s = 'Processing of file:%s failed.' % Img.filepath
@@ -481,6 +482,7 @@ class VGGRegions(_Generator):
                                             assert isinstance(region, _vgg.Region)
                                             if pathonly:
                                                 cropped_image = None
+                                                mask = None
                                             else:
                                                 i = _getimg(Img.filepath, outflag)
                                                 i = super().generate(i)

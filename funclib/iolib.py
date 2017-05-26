@@ -505,12 +505,16 @@ def files_delete(folder, delsubdirs=False):
 
 
 def get_file_name(path='', prefix='', ext='.txt'):
-    '''(str, str, str) -> str
-    returns a filename, based on a datetime stamp
+    '''(str|None, str, str) -> str
+    Returns a filename, based on a datetime stamp
 
-    If path is not specified then the CWD is used.
-
-    generally used to quickly writeout results to a new file
+    path:
+        path to use, if path='', use CWD,
+        if None, then just the filename is returned
+    prefix:
+        prefix to use
+    ext:
+        extension
     '''
     if path == '':
         path = _os.getcwd()

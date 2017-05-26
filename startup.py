@@ -6,7 +6,7 @@ from cv2 import imread
 import cv2
 import numpy as np
 
-from opencvlib import show, mosaic
+from opencvlib import show, mosaic, CVColors
 from opencvlib.transforms import to8bpp
 
 
@@ -15,11 +15,27 @@ from matplotlib import pyplot
 from skimage import exposure
 from skimage.io import imshow as skimshow
 from skimage.io import imread as skimread
+from scipy import signal
 
 
 testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'
 I = cv2.imread(testimg, -1)
 Isk = skimread(testimg)
+
+PATCH = np.array([[0,0,0,0,0],[0,255,255,255,0],[0,255,255,255,0],[0,255,255,255,0],[0,0,0,0,0]])
+PATCH = PATCH.astype('uint8')
+
+MG = np.meshgrid(list(range(0,250,10)),list(range(0,250,10)))
+Gradient = np.stack([MG[0],MG[0],MG[0]],2).astype('uint8') #3channel greyscale
+Gradient = Gradient[:,:,0] #ok back to 1channel
+
+hogx_kern = np.array([[0,0,0],[-1,0,1],[0,0,0]])
+hogy_kern = np.array([[0,-1,0],[0,0,0],[0,1,0]])
+Gx = abs(signal.convolve2d(Gradient, hogx_kern, mode='valid'))
+Gy = abs(signal.convolve2d(Gradient, hogy_kern,mode='valid'))
+Theta = np.arctan(Gy/Gx) #Gradient direction
+g = np.sqrt(Gx**2 + Gy**2) #gradient magnitude
+
 
 #Doesnt really work
 def ddir():

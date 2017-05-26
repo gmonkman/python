@@ -11,7 +11,6 @@ import opencvlib.decs as _decs
 
 
 from opencvlib.common import ImageInfo as _ImageInfo
-from opencvlib import eImgType
 
 from opencvlib.common import getimg as _getimg
 from opencvlib import Log as _Log
@@ -138,6 +137,23 @@ def adjust_log(img, gain=1, inv=False):
     i = _exposure.adjust_log(img, gain=gain, inv=inv)
     assert str(i.dtype) == 'uint8'
     return RGB2BGR(i)
+
+
+def int32_to_uint8(ndarray, absolute=True):
+    '''(ndarray)->ndarray
+    Convert array to uint8 if it is int32
+
+    abs:
+        perform an abs if True
+
+    return
+        converted array
+    '''
+    assert isinstance(ndarray, _np.ndarray)
+    if ndarray.dtype == 'int32':
+        return absolute(ndarray).astype('uint8') if absolute else ndarray.astype('uint8')
+    else:
+        return ndarray
 
 
 @_decs.decgetimgsk

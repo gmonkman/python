@@ -28,10 +28,10 @@ if __name__ == "__main__":
     T = transforms.Transforms(None, t2)
     RegionsG = G.VGGRegions(None, vggsp, transforms=T)
 
-    #TODO DEBUG THE SAVE
-    D = features.HOGDetector(cfg.MakeLobsterDescriptors.output_dir)
-    for img, f, dummy in RegionsG.generate():
-        D(img, load_keypoint_visual=True)
+    #D = features.skHOGDetector(cfg.MakeLobsterDescriptors.output_dir)
+    D = features.OpenCV_HOG(cfg.MakeLobsterDescriptors.output_dir)
+    for img, f, dummy2 in RegionsG.generate():
+        D(img, f, load_keypoint_visual=True)
         D.extract_descriptors()
         D.view(show=True)
-        D.save_descriptors_to_file()
+        D.write()

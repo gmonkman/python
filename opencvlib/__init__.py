@@ -2,7 +2,7 @@
 
 '''opencvlib'''
 from opencvlib.common import getimg, show, checkwaitkey, getwaitkey
-from opencvlib.common import ImageInfo, Info, mosaic, eImgType
+from opencvlib.common import ImageInfo, Info, mosaic, eImgType, CVColors
 
 
 IMAGE_EXTENSIONS = ('.bmp',

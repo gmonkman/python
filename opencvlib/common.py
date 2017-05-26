@@ -35,6 +35,20 @@ _JET_DATA = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1),
 
 _CMAP_DATA = {'jet': _JET_DATA}
 
+class CVColors():
+    '''BGR base color tuples'''
+    blue = (255, 0, 0)
+    red = (0, 0, 255)
+    green = (0, 255, 0)
+    light_grey = (200, 200, 200)
+    grey = (130, 130, 130)
+    dark_grey = (75, 75, 75)
+    yellow = (0, 255, 255)
+    magenta = (255, 0, 255)
+    cyan = (255, 255, 0)
+    black = (0, 0, 0)
+    white = (255, 255, 255)
+
 
 class eImgType(_Enum):
     '''bitwise enum to hold img information'''
@@ -107,7 +121,7 @@ def getimg(img, outflag=_cv2.IMREAD_UNCHANGED):
 
 
 @_decs.decgetimg
-def pad_images(imgs):
+def pad_images(imgs, pad_color=CVColors.black):
     '''(list|tuple:ndarray|str) -> list
     Pad images so that they are all the same size
     as the maximum dimensions
@@ -121,7 +135,9 @@ def pad_images(imgs):
         if isinstance(img, _np.ndarray):
             add_h = maxh - img.shape[0]
             add_w = maxw - img.shape[1]
-            i = _cv2.copyMakeBorder(img, 0, add_h, 0, add_w, borderType=_cv2.BORDER_CONSTANT, value=[255, 255, 255])
+
+            i = _cv2.cvtColor(img, _cv2.COLOR_GRAY2BGR)
+            i = _cv2.copyMakeBorder(img, 0, add_h, 0, add_w, borderType=_cv2.BORDER_CONSTANT, value=pad_color)
             assert maxh == i.shape[0] and maxw == i.shape[1]
         else:
             i = None
@@ -133,24 +149,37 @@ def pad_images(imgs):
 
 
 @_decs.decgetimg
-def show(img, title='img', max_width=800, waitsecs=0):
+def show(img, title='img', max_width=800, waitsecs=0, pad_color=CVColors.black, absolute=True):
     '''(str|ndarray|iterable)->int, str
     Show an image, passing in a path or ndarray
 
     A list of images can be passed, which will be mosaiced
     prior to showing
 
-    Returns the key value pressed and the title
-    <no key>=255
-    y=121
-    <space>=32
-    n=110
-    '''
+    max_width:
+        maximum width, aspect ratio is maintained
+    waitsecs
+        seconds to wait before closing the window
+    pad_color
+        color to use to fill in gaps when mosaicing multiple images
+    absolute
+        absolute the image, (ie negative->positive), useful
+        for visualising some convolutions
 
+    Returns
+        the key value pressed and the title
+        <no key>=255
+        y=121
+        <space>=32
+        n=110
+    '''
+    
     if isinstance(img, _np.ndarray):
         im = img
+        if absolute:
+            im = _np.abs(im).astype('uint8')
     elif _baselib.isIterable(img):
-        im = mosaic([i for i in img])
+        im = mosaic([_np.abs(i).astype('uint8') if absolute else i for i in img], pad_color=pad_color)
 
     w, h = ImageInfo.getsize(im)
 
@@ -178,7 +207,7 @@ def show(img, title='img', max_width=800, waitsecs=0):
 
 
 @_decs.decgetimg
-def mosaic(imgs, cols=None, pad=True):
+def mosaic(imgs, cols=None, pad=True, pad_color=CVColors.black):
     '''(list|tuple, int|None, bool) -> ndarray
 
     Make a grid from images.
@@ -206,7 +235,7 @@ def mosaic(imgs, cols=None, pad=True):
     if hasbw:
         imgs = [i[:, :, ...] for i in imgs]
 
-    imgs = pad_images(imgs) #make images the same size by adding padding
+    imgs = pad_images(imgs, pad_color=pad_color) #make images the same size by adding padding
 
     I = iter(imgs)
     img0 = next(I)
@@ -494,3 +523,17 @@ class ImageInfo(_BaseImg):
         h, w = img.shape[:2]
         return {'w': w, 'h': h}
 # endregion
+
+
+def main():
+    '''entry point'''
+    import scipy.signal as signal
+    PATCH = _np.array([[0, 0, 0, 0, 0], [0, 255, 255, 255, 0], [0, 255, 255, 255, 0], [0, 255, 255, 255, 0], [0, 0, 0, 0, 0]])
+    PATCH = PATCH.astype('uint8')
+
+    Gx = signal.convolve2d(PATCH, _np.identity(2))
+    show([Gx, PATCH], pad_color=CVColors.green)
+
+if __name__ == "__main__":
+    main()
+    #sys.exit(int(main() or 0))
