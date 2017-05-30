@@ -1,7 +1,7 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled
+# pylint: disable=C0103, locally-disabled
 
 '''opencvlib'''
-from opencvlib.common import getimg, show, checkwaitkey, getwaitkey
+from opencvlib.common import getimg, show, checkwaitkey, getwaitkey, showarray
 from opencvlib.common import ImageInfo, Info, mosaic, eImgType, CVColors
 
 
@@ -25,8 +25,13 @@ IMAGE_EXTENSIONS_AS_WILDCARDS = ('*.bmp',
                                  '*.pgm',
                                  '*.ppm')
 
-__all__ = ['common', 'decs', 'distance', 'edges', 'faces',
-           'perspective', 'roi', 'transforms', 'winpyr']
+__all__ = ['classifiers', 'common',
+           'decs', 'distance',
+           'edges', 'errors',
+           'faces', 'features',
+           'hogview', 'keypoints',
+           'perspective', 'roi', 'streams',
+           'transforms', 'winpyr']
 
 
 

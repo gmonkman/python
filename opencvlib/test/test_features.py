@@ -18,22 +18,26 @@ class Test(unittest.TestCase):
         '''setup variables etc for use in test cases
         '''
         self.pth = _iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
-        self.modpath = _path.normpath(_path.join(pth, 'myconfig.cfg'))
-        self.imgpath = _path.normpath(_path.join(modpath, 'images/matt_pemb5.jpg'))
+        self.modpath = _path.normpath(self.pth)
+        self.imgpath = _path.normpath(_path.join(self.modpath, 'images/matt_pemb5.jpg'))
         self.I = cv2.imread(self.imgpath)
-        self.mask = np.tri(I.shape[0], I.shape[1], dtype=int) #creates a mask where top 'sandwich' is masked out
+        self.mask = np.tri(self.I.shape[0], self.I.shape[1], dtype=int) #creates a mask where top 'sandwich' is masked out
+        self.output_folder = _path.normpath(_path.join(self.modpath, 'output'))
 
 
     def test_OpenCV_DensSIFT(self):
-        D = features.OpenCV_DenseSIFT('c:/temp/')
-        D(I, mask=None)
+        '''test'''
+        D = features.OpenCV_DenseSIFT(self.output_folder)
+        D(self.I, self.imgpath, mask=None)
         D.extract_keypoints()
         D.extract_descriptors()
+        D.write()
+        D.view(show=True)
 
-        D(I, mask)
+        D(self.I, self.imgpath, self.mask)
         D.extract_keypoints()
         D.extract_descriptors()
-
+        D.view(show=True)
 
 
 if __name__ == '__main__':

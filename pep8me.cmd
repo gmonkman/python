@@ -8,51 +8,48 @@ IF "%~1"=="" GOTO endparse
 echo Working for folders ...:
 
 IF NOT [%1] == [] (
-	autopep8 %1 --recursive --in-place --pep8-passes 100
 	echo %1
+	autopep8 %1 --recursive --in-place --pep8-passes 100
 	)
 	
 IF NOT [%2] == [] (
-	autopep8 %2 --recursive --in-place --pep8-passes 100
 	echo %2
+	autopep8 %2 --recursive --in-place --pep8-passes 100
 	)
 	
 IF NOT [%3] == [] (
-	autopep8 %3 --recursive --in-place --pep8-passes 100
 	echo %3
+	autopep8 %3 --recursive --in-place --pep8-passes 100
 	)
 
 IF NOT [%4] == [] (
-	autopep8 %4 --recursive --in-place --pep8-passes 100
 	echo %4
+	autopep8 %4 --recursive --in-place --pep8-passes 100
 	)
 
 IF NOT [%5] == [] (
-	autopep8 %5 --recursive --in-place --pep8-passes 100
 	echo %5
+	autopep8 %5 --recursive --in-place --pep8-passes 100
 	)
 
 IF NOT [%6] == [] (
-	echo.
-	autopep8 %6 --recursive --in-place --pep8-passes 100
 	echo %6
+	autopep8 %6 --recursive --in-place --pep8-passes 100
 	)
 
 IF NOT [%7] == [] (
-	autopep8 %7 --recursive --in-place --pep8-passes 100
 	echo %7
+	autopep8 %7 --recursive --in-place --pep8-passes 100
 	)
 
 IF NOT [%8] == [] (
-	echo.
-	autopep8 %8 --recursive --in-place --pep8-passes 100
 	echo %8
+	autopep8 %8 --recursive --in-place --pep8-passes 100
 	)
 
 IF NOT [%9] == [] (
-	echo.
-	autopep8 %9 --recursive --in-place --pep8-passes 100
 	echo %9
+	autopep8 %9 --recursive --in-place --pep8-passes 100
 	)
 echo Finished
 exit

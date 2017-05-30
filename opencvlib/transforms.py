@@ -301,6 +301,7 @@ def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
     elif height is None:
         r = width / float(w)
         dim = (width, int(h * r))
+    dim = (int(dim[0]), int(dim[1]))
     return _cv2.resize(image, dim, interpolation=inter)
 
 

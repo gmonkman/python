@@ -1,14 +1,12 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+import math
+
 import importlib.util as _util
 from importlib import reload
 
 from cv2 import imread
 import cv2
 import numpy as np
-
-from opencvlib import show, mosaic, CVColors
-from opencvlib.transforms import to8bpp
-
 
 from matplotlib import pyplot
 
@@ -17,9 +15,13 @@ from skimage.io import imshow as skimshow
 from skimage.io import imread as skimread
 from scipy import signal
 
+from opencvlib import show, mosaic, CVColors, showarray
+from opencvlib.transforms import to8bpp
+
 
 testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'
 I = cv2.imread(testimg, -1)
+Ibw = cv2.cvtColor(I, cv2.COLOR_BGR2GRAY,0) #blackwhite version
 Isk = skimread(testimg)
 
 PATCH = np.array([[0,0,0,0,0],[0,255,255,255,0],[0,255,255,255,0],[0,255,255,255,0],[0,0,0,0,0]])

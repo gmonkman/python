@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{f324c9b2-58cd-4696-af8e-64ee52f96a99}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>c10\create_features.py</StartupFile>
+    <SearchPath>..\</SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
+    <InterpreterVersion>3.5</InterpreterVersion>
+    <IsWindowsApplication>False</IsWindowsApplication>
+    <CommandLineArguments>-sample bass C:/development/python/joshi/training_images -codebook-file C:/development/python/joshi/c10/codebook.cbk  -feature-map-file C:/development/python/joshi/c10/featuremap.fmp</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="c10\classify_data.py" />
+    <Compile Include="c10\create_features.py" />
+    <Compile Include="c10\dense_detector.py" />
+    <Compile Include="c10\training.py" />
+    <Compile Include="c11\find_fund_matrix.py" />
+    <Compile Include="c11\stereo_match.py" />
+    <Compile Include="c12\augmented_reality.py" />
+    <Compile Include="c12\augmented_reality_circular_motion.py" />
+    <Compile Include="c12\augmented_reality_dancing.py" />
+    <Compile Include="c12\augmented_reality_linear_motion.py" />
+    <Compile Include="c12\augmented_reality_variable_height.py" />
+    <Compile Include="c12\pose_estimation.py" />
+    <Compile Include="c1\affine.py" />
+    <Compile Include="c1\color_spaces.py" />
+    <Compile Include="c1\geometric_transformations.py" />
+    <Compile Include="c1\projective.py" />
+    <Compile Include="c1\read_display_save.py" />
+    <Compile Include="c1\warping.py" />
+    <Compile Include="c2\convolution.py" />
+    <Compile Include="c2\edge_detection.py" />
+    <Compile Include="c2\histogram.py" />
+    <Compile Include="c2\image_filters.py" />
+    <Compile Include="c2\vignette.py" />
+    <Compile Include="c3\bilateral_filter.py" />
+    <Compile Include="c3\cartoonize.py" />
+    <Compile Include="c3\keyboard.py" />
+    <Compile Include="c3\median_filter.py" />
+    <Compile Include="c3\mouse_simple.py" />
+    <Compile Include="c3\mouse_webcam.py" />
+    <Compile Include="c3\webcam.py" />
+    <Compile Include="c4\ear_detector.py" />
+    <Compile Include="c4\eye_detector.py" />
+    <Compile Include="c4\eye_sunglasses.py" />
+    <Compile Include="c4\face_detector.py" />
+    <Compile Include="c4\face_hannibal.py" />
+    <Compile Include="c4\face_skull.py" />
+    <Compile Include="c4\mouth_detector.py" />
+    <Compile Include="c4\mouth_moustache.py" />
+    <Compile Include="c4\nose_detector.py" />
+    <Compile Include="c4\pupil_detector.py" />
+    <Compile Include="c5\brief_with_fast.py" />
+    <Compile Include="c5\brief_with_star.py" />
+    <Compile Include="c5\fast.py" />
+    <Compile Include="c5\good_features_to_track.py" />
+    <Compile Include="c5\harris_corners.py" />
+    <Compile Include="c5\orb.py" />
+    <Compile Include="c5\sift_features.py" />
+    <Compile Include="c5\surf_features.py" />
+    <Compile Include="c6\feature_matching.py" />
+    <Compile Include="c6\pano_stitch.py" />
+    <Compile Include="c7\object_removal.py" />
+    <Compile Include="c7\seam_carver_compress.py" />
+    <Compile Include="c7\seam_carver_expand.py" />
+    <Compile Include="c8\contour_approx.py" />
+    <Compile Include="c8\convexity_defects_ver1.py" />
+    <Compile Include="c8\convexity_defects_ver2.py" />
+    <Compile Include="c8\grabcut.py" />
+    <Compile Include="c8\shape_censor.py" />
+    <Compile Include="c8\shape_matcher.py" />
+    <Compile Include="c9\background_subtraction.py" />
+    <Compile Include="c9\camshift.py" />
+    <Compile Include="c9\colorspaces.py" />
+    <Compile Include="c9\frame_diff.py" />
+    <Compile Include="c9\optical_flow.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="training_images\1305083121687.jpg" />
+    <Content Include="training_images\9908f84474270b07.jpg" />
+    <Content Include="training_images\a-european-sea-bass-dicentrarchus-labrax-caught-on-a-west-wales-surf-F00MM3.jpg" />
+    <Content Include="training_images\Bar.jpg" />
+    <Content Include="training_images\Bass1024-960x280.jpg" />
+    <Content Include="training_images\Branzini-European-Sea-Bass-979C-resized-for-stie-1170x430.jpg" />
+    <Content Include="training_images\european-sea-bass-dicentrarchus-labrax-EH45W6.jpg" />
+    <Content Include="training_images\o_amarriott200610xx.jpg" />
+    <Content Include="training_images\sea-bass.jpg" />
+    <Content Include="training_images\seafish_sea_bass_dicentrarchus_labrax_02-05-07.jpg" />
+    <Content Include="training_images\shutterstock_72351679-500x500.jpg" />
+    <Content Include="training_images\spigola.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="c1" />
+    <Folder Include="c10" />
+    <Folder Include="c11" />
+    <Folder Include="c12" />
+    <Folder Include="c2" />
+    <Folder Include="c3" />
+    <Folder Include="c4" />
+    <Folder Include="c5" />
+    <Folder Include="c6" />
+    <Folder Include="c7" />
+    <Folder Include="c8" />
+    <Folder Include="c9" />
+    <Folder Include="training_images" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="{2af0f10d-7135-4994-9156-5d01c9c11b7e}\3.5" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>

@@ -18,7 +18,7 @@ import opencvlib as _opencvlib
 #    visual_image = _opencvlib.transforms.resize(#  _cv2.resize(origImg,  visual_image, Size(origImg.cols*scaleFactor, origImg.rows*scaleFactor))
  
 #    int gradientBinSize = 9
-#    # dividing 180� into 9 bins, how large (in rad) is one bin?
+#    # dividing 180 into 9 bins, how large (in rad) is one bin?
 #    radRangeForOneBin = 3.14/float(gradientBinSize) 
  
 #    # prepare data structure: 9 orientation / gradient strenghts for each cell

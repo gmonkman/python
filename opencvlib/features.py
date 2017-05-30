@@ -5,7 +5,8 @@ all images are opened as cv2 BGR
 from enum import Enum as _Enum
 from os import path as _path
 from abc import ABC as _ABC
-from abc import abstractmethod
+from abc import abstractmethod as _abstractmethod
+import tempfile as _tempfile
 
 import cv2 as _cv2
 import skimage.feature as _skfeature
@@ -17,6 +18,7 @@ import numpy as _np
 import opencvlib as _opencvlib
 import opencvlib.decs as _decs
 import opencvlib.keypoints as _keypoints
+import opencvlib.transforms as _transforms
 
 from opencvlib import Log as _Log
 from opencvlib import show as _show
@@ -140,6 +142,13 @@ class _BaseDetector(_ABC):
         These are used when persisting the
         pointers/descriptors to file
         '''
+        if _baselib.isempty(self._imgpath):
+            #just make up a filename, it wont get used except to create
+            #names to persist features if they are saved
+            self._imgpath = _tempfile.mktemp(suffix='.jpg')
+            s = 'No imagepath provided on call. Using ghost name %s to create feature/keypoint names. Save dir is %s' % (self._imgpath, _tempfile.gettempdir())
+            _prints(s)
+
         self._imgfolder, self._imgname, dummy = _iolib.get_file_parts2(self._imgpath)
 
 
@@ -151,67 +160,9 @@ class _BaseDetector(_ABC):
                 raise ValueError('Mask shape %s did not match the image shape %s' % (str(self._img.shape), StopIteration(self._mask.shape)))
 
 
-    def _set_dense_keypoints(self,
-        initFeatureScale=1.,
-        featureScaleLevels=1, 
-        featureScaleMul=0.1,
-        initXyStep=6,
-        initImgBound=0, 
-        varyXyStepWithScale=True,
-        varyImgBoundWithScale=False
-                            ):
-        ''' (float, int, float, int, int, bool, bool) -> void
-
-        Populates keypoints with a dense
-        keypoint grid, to support dense 
-        feature detection. 
-        
-        Obeys instance mask if set
-        
-        Args:
-            initFeatureScale:
-            featureScaleLevels:
-            featureScaleMul:
-            initXyStep:
-            initImgBound:
-            varyXyStepWithScale:
-            varyImgBoundWithScale:
-
-        Returns:
-            list of cv2.Keypoints
-        '''
-        #other variables
-        #img - the input image
-        #mask - mask
-
-        self.keypoints = []
-        curScale = float(initFeatureScale)
-        curStep = initXyStep
-        curBound = initImgBound
-        for dummy in range(featureScaleLevels):  #( int curLevel = 0 curLevel < featureScaleLevels curLevel++ )
-            x = curBound
-            y = 0
-            while x < self._img.shape[1] - curBound:
-                while y < self._img.shape[0] - curBound:
-                    self.keypoints.append(_cv2.KeyPoint(x, y, curScale))
-                    y += curStep
-                x += curStep
-
-            curScale = float(curScale * featureScaleMul)
-
-            if varyXyStepWithScale:
-                curStep = int(curStep * featureScaleMul + 0.5)
-
-            if varyImgBoundWithScale:
-                curBound = int(curBound * featureScaleMul + 0.5)
-        
-        self.keypoints = _keypoints.applymask(self.keypoints, self._mask)
-        #KeyPointsFilter::runByPixelsMask( keypoints, mask )
 
 
-
-
-    @abstractmethod
+    @_abstractmethod
     def extract_keypoints(self):
         '''(void) -> ndarray
         Extract keypoints using the
@@ -226,7 +177,7 @@ class _BaseDetector(_ABC):
 
 
 
-    @abstractmethod
+    @_abstractmethod
     def extract_descriptors(self):
         '''
         Extract descriptors (usually of the image
@@ -244,7 +195,7 @@ class _BaseDetector(_ABC):
 
 
 
-    @abstractmethod
+    @_abstractmethod
     def view(self, dump=False, show=True, show_original=True):
         '''(ndarray, bool, bool) -> ndarray
 
@@ -296,12 +247,12 @@ class _BaseDetector(_ABC):
         Sets the instance img property as well.
 
         imgpath:
-            if provided loads specified image, overriding
+            if provided trys to load specified image, overriding
             any presets in class calls or instantiation
         force:
             force load if self.img looks like it already is valid (loaded)
         '''
-        if not _baselib.isempty(imgpath):
+        if not _baselib.isempty(imgpath): #this is an override condition
             if _iolib.file_exists(imgpath):
                 if self._is_grey:
                     self._img = _opengrey(imgpath)
@@ -312,9 +263,9 @@ class _BaseDetector(_ABC):
                 self._imgfolder, self._imgname, dummy = _iolib.get_file_parts2(imgpath)
                 self._imgpath = imgpath
                 s = 'Opened image %s' % imgpath
-                prints(s)
+                _prints(s)
             else:
-                prints('Asked to load image %s, but the file doesnt exist.' % imgpath)
+                _prints('Asked to load image %s, but the file doesnt exist.' % imgpath)
             return
 
         if force and _iolib.file_exists(self._imgpath):
@@ -329,42 +280,66 @@ class _BaseDetector(_ABC):
             
             self._mask_size_check()
 
-            prints(s)
+            _prints(s)
 
             return
             
         if force and not _iolib.file_exists(self._imgpath):
             s = 'Requested force load of image %s, but the file doesnt exist' % self._imgpath
             self._img = None
-            prints(s)
+            _prints(s)
 
-        if not force and isinstance(self._img, _np.ndarray):
+        if not force and isinstance(self._img, _np.ndarray): #make grey if should be grey is multichannel
             if not _opencvlib.ImageInfo.typeinfo(self._img) & _opencvlib.eImgType.CHANNEL_1.value:
-                self._img = _opencvlib.transforms.togreyscale(self._img)
+                if self._is_grey:
+                    self._img = _transforms.togreyscale(self._img)
         return
 
 
-    @abstractmethod
-    def write(self, nd_keypoints, nd_descriptors):
-        '''(ndarray|None, ndarray|None) -> void
+
+    @_abstractmethod
+    def write_descriptors(self, nd_descriptors):
+        '''(ndarray|None) -> void
         
-        Save features and points to hdd.
+        Save descriptors to hdd.
 
         The inheriting class provides the logic to
-        convert outputs to ndarrays. These arrays
-        are saved in this function by call to
-        super().write(ndarray, ndarray)
+        convert output to ndarray. Arrays
+        is saved in this function by call to
+        super().write(ndarray, ndarray) by the inheriting
+        class
         '''      
         _iolib.create_folder(self._output_folder)
         
-        if isinstance(nd_descriptors, _np.ndarray): nd_descriptors.dump(self._descriptor_filename) 
-        if isinstance(nd_keypoints, _np.ndarray): nd_keypoints.dump(self._keypoints_filename)
+        if isinstance(nd_descriptors, _np.ndarray):
+            nd_descriptors.dump(self._descriptor_filename) 
+            msg = 'Dumped descriptors for image (or region) %s to %s' % (self._imgpath, self._output_folder)
+            _prints(msg)
 
-        msg = 'Dumped keypoints and descriptors for image (or region) %s to %s' % (self._imgpath, self._output_folder)
-        prints(msg)
+
+
+    @_abstractmethod
+    def write_keypoints(self, nd_keypoints):
+        '''(ndarray|None) -> void
+        
+        Save points to hdd.
+
+        The inheriting class provides the logic to
+        convert keypoints to an ndarray. The array
+        is saved in this function by call to
+        super().write(ndarray, ndarray) by the inheriting
+        class
+        '''      
+        _iolib.create_folder(self._output_folder)
+        
+        if isinstance(nd_keypoints, _np.ndarray):
+            nd_keypoints.dump(self._keypoints_filename)
+            msg = 'Dumped keypoints for image (or region) %s to %s' % (self._imgpath, self._output_folder)
+            _prints(msg)
 
     
-    @abstractmethod
+
+    @_abstractmethod
     def read(self):
         '''(void) -> ndarray, ndarray
         Loads keypoints and descriptors from file
@@ -396,7 +371,7 @@ class _BaseDetector(_ABC):
         '''
         if isinstance(self.keypoints, list):
             if len(self.keypoints) > 0:
-                return isinstance(self.keypoints[0], _cv2.KeyPoint)
+                return 'KeyPoint' in repr(self.keypoints[0])
             else:
                 return False
         else:
@@ -496,15 +471,15 @@ class _OpenCVDetector(_BaseDetector):
             we will use the existing keypoints image if present
         '''
         if _baselib.isempty(self._img):
-            prints('View was called, but there was no image set')
+            _prints('View was called, but there was no image set. Some detectors do not provide a visualisation, eg. OpenCV_HOG')
             return
 
         if not self._has_keypoints:
-            prints('View was called, but no keypoints have been calculated. Call extract_keypoints first.')
+            _prints('View was called, but no keypoints have been calculated. Call extract_keypoints first.')
             return
-
+        dummy = None
         if _baselib.isempty(self._img_descriptors) or force:
-            self._img_descriptors = _cv2.drawKeypoints(self._img, self.keypoints, color=_OpenCVDetector._keypoint_color, flags=0)
+            self._img_descriptors = _cv2.drawKeypoints(self._img, self.keypoints, dummy, color=_OpenCVDetector._keypoint_color, flags=_cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         super().view(dump, show, show_original)
 
 
@@ -514,50 +489,68 @@ class _OpenCVDetector(_BaseDetector):
         keypoints if they don't already exist
         '''
         super().extract_descriptors() #parent handles loading the image
-        if repr(self._Detector).startswith('<HOGDescriptor'): #Detect and compute not supported for HOGDescriptor
+        if repr(self._Detector).startswith('<HOGDescriptor'): #Detect and compute not supported for HOGDescriptor, and HOG is implicitly dense
             self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
         else:
             if _baselib.isempty(self.keypoints):
-                self.keypoints, self.descriptors = self._Detector.detectAndCompute(image=self._img, mask=self.mask)
+                if 'dense' in repr(self).tolower(): #are we dense and without keypoints
+                    self.extract_keypoints()
+                    self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
+                else:
+                    self.keypoints, self.descriptors = self._Detector.detectAndCompute(image=self._img, mask=self.mask)
             else:
-                self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
+                self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
 
 
     def extract_keypoints(self):
-        if 'dense' in repr(self._Detector).lower():
-            self._set_dense_keypoints(self.initFeatureScale, self.featureScaleLevels,
-                            self.featureScaleMul, self.initXyStep, self.initImgBound,
-                            self.varyXyStepWithScale, self.varyImgBoundWithScale
-                            )
+        if 'dense' in repr(self).lower():
+            D = _keypoints.DenseKeypoints(
+                    self.initFeatureScale,
+                    self.featureScaleLevels,
+                    self.featureScaleMul,
+                    self.initXyStep,
+                    self.initImgBound,
+                    self.varyXyStepWithScale,
+                    self.varyImgBoundWithScale
+                    )
+            self.keypoints = D(self._img, self._mask)
         else:
             super().extract_keypoints() #parent handles loading the image
             self.keypoints = self._Detector.detect(image=self._img, mask=self.mask)
 
 
-    def write(self):
+
+    def write_keypoints(self):
         '''write descriptors and keypoints to the file system,
         this function handles converting keypoints to an ndarray
         '''
-        if not self._has_keypoints() and not self._has_descriptors():
-            s = 'keypoint and descriptor write called, but they are empty. The image was %s' % self._imgpath
-            prints(s)
+        if not self._has_keypoints():
+            s = 'No keypoints to write. The image was %s' % self._imgpath
+            _prints(s)
             return
 
-        if self._has_descriptors():
-            d = self.descriptors #opencv outputs descriptors as an ndarray
-        else:
-            d = _np.array([[]])
-
-
         k = _np.array([[]], dtype='float')
-        if self._has_keypoints(): #array of opencv KeyPoint class instances
-            for point in self.keypoints:
-                temp = _np.ndarray([[point.pt[0], point.pt[1], point.size, point.angle, point.response, point.octave, point.class_id]])
-                k = _np.append(k, temp, 0)
+        for point in self.keypoints:
+            temp = _np.ndarray([[point.pt[0], point.pt[1], point.size, point.angle, point.response, point.octave, point.class_id]])
+            k = _np.append(k, temp, 0)
 
-        super().write(k, d)
+        super().write_keypoints(k)
         return
     
+
+
+    def write_descriptors(self):
+        '''write descriptors to the file system
+        '''
+        if not self._has_descriptors():
+            s = 'No descriptors to write. The image was %s' % self._imgpath
+            _prints(s)
+            return
+
+        super().write_descriptors(self.descriptors)
+        return
+
+
 
     def read(self):
         '''read keypoints from file and
@@ -610,6 +603,7 @@ class OpenCV_SIFT(_OpenCVDetector):
         super().__call__(img, mask, extract)
 
 
+
 class OpenCV_DenseSIFT(_OpenCVDetector):
     '''Dense SIFT Detector'''
     kwargs = {'nfeatures':500, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1.6}
@@ -626,19 +620,19 @@ class OpenCV_DenseSIFT(_OpenCVDetector):
                 varyImgBoundWithScale=False
                 ):
 
-        self.initFeatureScale = initFeatureScale,
-        self.featureScaleLevels = featureScaleLevels, 
-        self.featureScaleMul = featureScaleMul,
-        self.initXyStep = initXyStep,
-        self.initImgBound = initImgBound, 
-        self.varyXyStepWithScale = varyXyStepWithScale,
+        self.initFeatureScale = initFeatureScale
+        self.featureScaleLevels = featureScaleLevels
+        self.featureScaleMul = featureScaleMul
+        self.initXyStep = initXyStep
+        self.initImgBound = initImgBound
+        self.varyXyStepWithScale = varyXyStepWithScale
         self.varyImgBoundWithScale = varyImgBoundWithScale
 
-        super().__init__(output_folder, Detector, eFeatureDetectorType.cvSIFT, load_as_RGB=False, load_as_grey=True)
+        super().__init__(output_folder, OpenCV_DenseSIFT.Detector, eFeatureDetectorType.cvSIFT, load_as_RGB=False, load_as_grey=True)
 
 
-    def __call__(self, img, mask=None, extract=False):
-        super().__call__(img, mask, extract)
+    def __call__(self, img, imgpath, mask=None, extract=False):
+        super().__call__(img, imgpath, mask, extract)
     
 
 
@@ -693,7 +687,7 @@ class OpenCV_SURF(_OpenCVDetector):
     def __call__(self, img, mask=None, extract=False):
         super().__call__(img, mask, extract)
 
-    
+
 
 class OpenCV_HOG(_OpenCVDetector):
     '''HOG Detector using opencv
@@ -706,16 +700,19 @@ class OpenCV_HOG(_OpenCVDetector):
         nlevels
     '''
     args = [(64, 64), (16, 16), (8, 8), (8, 8), 9, 1, 4., 0, 2.0000000000000001e-01, 0, 64]
-    Detector = _cv2.HOGDescriptor(args)
+    Detector = _cv2.HOGDescriptor(*args)
 
 
     def __init__(self, output_folder):
-        OpenCV_HOG.Detector.cellSize = (OpenCV_HOG.kwargs['cellSize'])
         super().__init__(output_folder, OpenCV_HOG._Detector, eFeatureDetectorType.cvHOG, load_as_RGB=False, load_as_grey=True)
 
 
     def __call__(self, img, mask=None, extract=False):
         super().__call__(img, mask, extract)
+
+
+    def view(self, dump=False, show=False, force=False, show_original=False):
+        raise NotImplementedError('OpenCV_HOG does not provide a visualisation of the HOG descriptors')
 
 
 
@@ -770,13 +767,25 @@ class skHOGDetector(_BaseDetector):
 
 
     def extract_keypoints(self):
-        self.extract_descriptors()
+        '''extract keypoints'''
+        raise NotImplementedError('Extract keypoints is not supported for the skHOHDetector.')
+
 
     def read(self):
+        '''read keypoints'''
         self.keypoints, self.descriptors = super().read()
 
-    def write(self):
-        super().write(self.keypoints, self.descriptors)
+
+    def write_keypoints(self):
+        '''write descriptors'''
+        super().write(self.keypoints)
+
+
+    def write_descriptors(self):
+        '''write keypoints'''
+        super().write(self.descriptors)
+
+        
 
 
 
@@ -796,7 +805,7 @@ def _opengrey(img):
 
 
 
-def prints(s, log=True):
+def _prints(s, log=True):
     '''silent print'''
     if not SILENT:
         print(s)

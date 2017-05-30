@@ -23,6 +23,7 @@ import funclib.baselib as _baselib
 import opencvlib.decs as _decs
 
 
+
 __all__ = ['show', 'getimg', 'Info', 'ImageInfo', 'homotrans', 'checkwaitkey', 'getwaitkey']
 
 
@@ -34,6 +35,8 @@ _JET_DATA = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1),
                       (1, 0, 0))}
 
 _CMAP_DATA = {'jet': _JET_DATA}
+
+_SHOW_WIDTH = 800.
 
 class CVColors():
     '''BGR base color tuples'''
@@ -120,6 +123,58 @@ def getimg(img, outflag=_cv2.IMREAD_UNCHANGED):
         return img
 
 
+def split_channels(img):
+    '''(str|ndarray) -> list:ndarray
+
+    Given an image of n channels,
+    splits channels into list elements, if
+    img was OpenCV, this will be BGRA
+    
+    img:
+        path to an image or an ndarray of arbitary depth
+
+    Returns:
+        List of ndarrays, with each element representing
+        a channel
+    '''
+    return _np.dsplit(img, len(img.shape))
+
+
+
+def showarray(ndarrs, maximise_show_width=True):
+    '''(ndarray|list:ndarray) -> void
+    visualise an array or arrays'''
+    pixel_size = 1
+    if isinstance(ndarrs, _np.ndarray):
+        ndarrs = [ndarrs]
+
+    A = [square_array(a) for a in ndarrs]
+    w = [Z.shape[1] for Z in A]
+
+    if maximise_show_width:
+        pixel_size = _SHOW_WIDTH/max(w)
+    show(A, pixel_size=pixel_size)
+
+
+def square_array(ndarr):
+    '''(ndarray) -> ndarray
+    Flattens an array then
+    returns the array as a 2d
+    square array padded with 0s
+    primarily for display purposes
+    '''
+    assert isinstance(ndarr, _np.ndarray)
+    flt = ndarr.flatten()
+    _math.sqrt(len(flt))
+    sqr = _math.ceil(_math.sqrt(len(flt)))
+
+    tup = (0, sqr**2 - len(flt))
+    pad = _np.pad(flt, tup, mode='constant', constant_values=0)
+    pad = _np.reshape(pad, (sqr, sqr))
+    return pad
+
+
+
 @_decs.decgetimg
 def pad_images(imgs, pad_color=CVColors.black):
     '''(list|tuple:ndarray|str) -> list
@@ -149,7 +204,7 @@ def pad_images(imgs, pad_color=CVColors.black):
 
 
 @_decs.decgetimg
-def show(img, title='img', max_width=800, waitsecs=0, pad_color=CVColors.black, absolute=True):
+def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=CVColors.black, absolute=True, pixel_size=1.):
     '''(str|ndarray|iterable)->int, str
     Show an image, passing in a path or ndarray
 
@@ -165,6 +220,11 @@ def show(img, title='img', max_width=800, waitsecs=0, pad_color=CVColors.black, 
     absolute
         absolute the image, (ie negative->positive), useful
         for visualising some convolutions
+    pixel_size
+        increase or decrease image using basic interpolation, good for showing small
+        pixel based images. This occurs after mosaicing, but before max_width resize
+        A pixel_size=2 implies that each pixel in the original image will be
+        represented by 2x2 pixels in the new image
 
     Returns
         the key value pressed and the title
@@ -180,6 +240,13 @@ def show(img, title='img', max_width=800, waitsecs=0, pad_color=CVColors.black, 
             im = _np.abs(im).astype('uint8')
     elif _baselib.isIterable(img):
         im = mosaic([_np.abs(i).astype('uint8') if absolute else i for i in img], pad_color=pad_color)
+
+    w, h = ImageInfo.getsize(im)
+
+    w = w*pixel_size
+    h = h*pixel_size
+    
+    im = _resize(im, w, h, _cv2.INTER_NEAREST)
 
     w, h = ImageInfo.getsize(im)
 
@@ -257,6 +324,34 @@ def _grouper(n, iterable, fillvalue=None):
     else:
         output = _it.izip_longest(fillvalue=fillvalue, *args)
     return output
+
+
+
+#copy of one in transforms, avoiding stupid cyclic imports
+@_decs.decgetimg
+def _resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
+    '''(ndarray|str, int, int, constant)->ndarray
+    1) initialize the dimensions of the image to be resized and grab the image size
+    2) If both the width and height are None, then return the original image
+    3) Both not none then resize to specied width and height
+    4) Otherwise resize keeping the aspect ratio according to the provided width or height
+    '''
+    dim = None
+    (h, w) = image.shape[:2]
+
+    if width is None and height is None:
+        return image
+    elif width is not None and height is not None:
+        dim = (width, height)
+    elif width is None:
+        r = height / float(h)
+        dim = (int(w * r), height)
+    elif height is None:
+        r = width / float(w)
+        dim = (width, int(h * r))
+
+    dim = (int(dim[0]), int(dim[1]))
+    return _cv2.resize(image, dim, interpolation=inter)
 # endregion
 
 
@@ -457,6 +552,7 @@ class ImageInfo(_BaseImg):
             return [img.width, img.height]
 
 
+
     @staticmethod
     def is_image(file_path, try_load=False):
         '''(str)->bool
@@ -473,6 +569,7 @@ class ImageInfo(_BaseImg):
                     if isinstance(img, _np.ndarray):
                         ret = True
         return ret
+
 
 
     @staticmethod
@@ -494,6 +591,7 @@ class ImageInfo(_BaseImg):
                     if e not in dims:
                         dims.append(e)
         return dims
+
 
 
     @staticmethod
