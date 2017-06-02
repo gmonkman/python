@@ -395,18 +395,20 @@ class VGGRegions(_Generator):
 
 
     def generate(self, pathonly=False, outflag=_cv2.IMREAD_UNCHANGED, *args, **kwargs):
-        '''(bool)-> ndarray,str,str,str
+        '''(bool)-> ndarray,str, dict
 
-        Note that this uses the filters set in the VGGFilter and DigikamSearchParams
-        Yields:
-        image region (ndarray), species (eg bass), part (eg head, whole), full image path (eg c:/images/myimage.jpg)
+        Uses the filters set in the VGGFilter and DigikamSearchParams
+        to yield image regions to the caller.
+        
+        pathonly:
+            Only yield the image path, None will be returned for the ndarray
+        outflag:
+            cv2 flag for imread
+            cv2.IMREAD_COLOR|cv2.IMREAD_GRAYSCALE|cv2.IMREAD_UNCHANGED
 
-        outflag is a cv2.imread flag, determining the format of the returned image
-        cv2.IMREAD_COLOR
-        cv2.IMREAD_GRAYSCALE
-        cv2.IMREAD_UNCHANGED
-
-        Has an error handler which logs failures in the generator
+        Returns [Yields]
+            image region, imgpath, dictionary containing additional infornation
+            Dictionary output is: {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask, 'roi':region.all_points
         '''
         if self.digikamParams is None:
             dk_image_list = []

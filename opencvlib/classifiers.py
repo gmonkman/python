@@ -49,8 +49,6 @@ class KnnClassifier(object):
         dist_func:
             distance func taking 2 ndarray multidimensional point representations
             and returning a float distance measure (e.g. euclidean distance)
-
-
         '''
         # compute distance to all training points
         dist = np.array([dist_func(point, s) for s in self.samples])

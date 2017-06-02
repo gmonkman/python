@@ -17,6 +17,7 @@ from scipy import signal
 
 from opencvlib import show, mosaic, CVColors, showarray
 from opencvlib.transforms import to8bpp
+from opencvlib.keypoints import printkp
 
 
 testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'

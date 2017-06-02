@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_common.py</StartupFile>
+    <StartupFile>test\test_streams.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -53,6 +53,9 @@
     <Compile Include="faces.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="filters.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="hogview.py">
       <SubType>Code</SubType>
     </Compile>
@@ -95,6 +98,9 @@
     <Compile Include="roi.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="script_objdetect\view_sift.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="script_objdetect\__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -125,6 +131,9 @@
     <Compile Include="test\test_keypoints.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\test_streams.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="transforms.py">
       <SubType>Code</SubType>
     </Compile>
@@ -143,6 +152,7 @@
     <Folder Include="lenscorrection\" />
     <Folder Include="scripts_vgg\" />
     <Folder Include="test\images\" />
+    <Folder Include="test\movie\" />
     <Folder Include="test\output\" />
   </ItemGroup>
   <ItemGroup>
@@ -196,6 +206,7 @@
     <Content Include="pylintrc" />
     <Content Include="script_objdetect\make_lobster_descriptors.ini" />
     <Content Include="test\images\matt_pemb5.jpg" />
+    <Content Include="test\movie\test-mpeg_512kb.mp4" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="{2af0f10d-7135-4994-9156-5d01c9c11b7e}\3.5" />

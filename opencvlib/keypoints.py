@@ -57,6 +57,22 @@ def printkp(kp, spacer='\n'):
 
 
 
+class HistogramOfKeyPoints():
+    '''histogram of keypoints by a keypoint member'''
+    def __init__(self, keypoints):
+        self._keypoints = keypoints
+
+
+    def _orientation_histo(self):
+        '''build orientation histo'''
+        #vals = [x. for x in self._keypoints]
+        pass
+
+    def show(self):
+        '''show histo'''
+        pass
+
+
 class DenseKeypoints():
     '''Get grid of dense keypoints over an image
     

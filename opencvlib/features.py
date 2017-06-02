@@ -308,7 +308,11 @@ class _BaseDetector(_ABC):
         is saved in this function by call to
         super().write(ndarray, ndarray) by the inheriting
         class
-        '''      
+        ''' 
+        if _baselib.isempty(self._output_folder):
+            _prints('Cannot write descriptors, output_folder not set. The output folder is set on instantiation of the detector class.')
+            return
+             
         _iolib.create_folder(self._output_folder)
         
         if isinstance(nd_descriptors, _np.ndarray):
@@ -329,7 +333,11 @@ class _BaseDetector(_ABC):
         is saved in this function by call to
         super().write(ndarray, ndarray) by the inheriting
         class
-        '''      
+        '''
+        if _baselib.isempty(self._output_folder):
+            _prints('Cannot write descriptors, output_folder not set. The output folder is set on instantiation of the detector class.')
+            return
+      
         _iolib.create_folder(self._output_folder)
         
         if isinstance(nd_keypoints, _np.ndarray):
@@ -405,6 +413,9 @@ class _BaseDetector(_ABC):
         example output
             123.jpg_ORB.fpt, 123.jpg_ORB.dsc
         '''
+        if _baselib.isempty(self._output_folder):
+            _prints('Cannot set filenames, output_folder not set. The output folder is set on instantiation of the detector class.')
+            return
 
         s_ptr = '%s_%s%s' % (self._imgname, str(self._fdType.name), FEATURE_POINT_EXT) #123.jpg_ORB.fpt
         self._keypoints_filename = _path.normpath(_path.join(self._output_folder, s_ptr))
@@ -493,11 +504,11 @@ class _OpenCVDetector(_BaseDetector):
             self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
         else:
             if _baselib.isempty(self.keypoints):
-                if 'dense' in repr(self).tolower(): #are we dense and without keypoints
+                if 'dense' in repr(self).lower(): #are we dense and without keypoints
                     self.extract_keypoints()
                     self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
                 else:
-                    self.keypoints, self.descriptors = self._Detector.detectAndCompute(image=self._img, mask=self.mask)
+                    self.keypoints, self.descriptors = self._Detector.detectAndCompute(image=self._img, mask=self._mask)
             else:
                 self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
 
@@ -516,7 +527,7 @@ class _OpenCVDetector(_BaseDetector):
             self.keypoints = D(self._img, self._mask)
         else:
             super().extract_keypoints() #parent handles loading the image
-            self.keypoints = self._Detector.detect(image=self._img, mask=self.mask)
+            self.keypoints = self._Detector.detect(image=self._img, mask=self._mask)
 
 
 
@@ -578,11 +589,11 @@ class OpenCV_ORB(_OpenCVDetector):
     #http://docs.opencv.org/3.1.0/db/d95/classcv_1_1ORB.html
     Detector = _cv2.ORB_create(**kwargs)
 
-    def __init__(self, output_folder, load_as_RGB=False):
-        super().__init__(output_folder, OpenCV_ORB._Detector, eFeatureDetectorType.cvORB, load_as_RGB=False, load_as_grey=True)
+    def __init__(self, output_folder=None, load_as_RGB=False):
+        super().__init__(output_folder, OpenCV_ORB.Detector, eFeatureDetectorType.cvORB, load_as_RGB=False, load_as_grey=True)
     
-    def __call__(self, img, mask=None, extract=False):
-        super().__call__(img, mask, extract)
+    def __call__(self, img, imgpath, mask=None, extract_now=False):
+        super().__call__(img, imgpath, mask, extract_now)
 
 
 
@@ -596,11 +607,11 @@ class OpenCV_SIFT(_OpenCVDetector):
     Detector = _cv2.xfeatures2d.SIFT_create(**kwargs)
     
 
-    def __init__(self, output_folder, load_as_RGB=False):
-        super().__init__(output_folder, OpenCV_SIFT._Detector, eFeatureDetectorType.cvSIFT, load_as_RGB=False, load_as_grey=True)
+    def __init__(self, output_folder=None, load_as_RGB=False):
+        super().__init__(output_folder, OpenCV_SIFT.Detector, eFeatureDetectorType.cvSIFT, load_as_RGB=False, load_as_grey=True)
 
-    def __call__(self, img, mask=None, extract=False):
-        super().__call__(img, mask, extract)
+    def __call__(self, img, imgpath, mask=None, extract_now=False):
+        super().__call__(img, imgpath, mask, extract_now)
 
 
 
@@ -610,7 +621,7 @@ class OpenCV_DenseSIFT(_OpenCVDetector):
     Detector = _cv2.xfeatures2d.SIFT_create(**kwargs)
     
 
-    def __init__(self, output_folder, load_as_RGB=False,
+    def __init__(self, output_folder=None, load_as_RGB=False,
                 initFeatureScale=1.,
                 featureScaleLevels=1, 
                 featureScaleMul=0.1,
@@ -631,8 +642,8 @@ class OpenCV_DenseSIFT(_OpenCVDetector):
         super().__init__(output_folder, OpenCV_DenseSIFT.Detector, eFeatureDetectorType.cvSIFT, load_as_RGB=False, load_as_grey=True)
 
 
-    def __call__(self, img, imgpath, mask=None, extract=False):
-        super().__call__(img, imgpath, mask, extract)
+    def __call__(self, img, imgpath, mask=None, extract_now=False):
+        super().__call__(img, imgpath, mask, extract_now)
     
 
 
@@ -648,12 +659,12 @@ class OpenCV_FAST(_OpenCVDetector):
     _Detector = _cv2.FastFeatureDetector_create(**kwargs)
 
 
-    def __init__(self, output_folder, load_as_RGB=False):
-        super().__init__(output_folder, OpenCV_FAST._Detector, eFeatureDetectorType.cvFAST, load_as_RGB=False, load_as_grey=True)
+    def __init__(self, output_folder=None, load_as_RGB=False):
+        super().__init__(output_folder, OpenCV_FAST.Detector, eFeatureDetectorType.cvFAST, load_as_RGB=False, load_as_grey=True)
 
 
-    def __call__(self, img, mask=None, extract=False):
-        super().__call__(img, mask, extract)
+    def __call__(self, img, imgpath, mask=None, extract_now=False):
+        super().__call__(img, imgpath, mask, extract_now)
 
 
 
@@ -665,12 +676,12 @@ class OpenCV_BRISK(_OpenCVDetector):
     Detector = _cv2.BRISK_create(**kwargs)
     
 
-    def __init__(self, output_folder, load_as_RGB=False):
-        super().__init__(output_folder, OpenCV_BRISK._Detector, eFeatureDetectorType.BRISK, load_as_RGB=False, load_as_grey=True)
+    def __init__(self, output_folder=None, load_as_RGB=False):
+        super().__init__(output_folder, OpenCV_BRISK.Detector, eFeatureDetectorType.BRISK, load_as_RGB=False, load_as_grey=True)
 
 
-    def __call__(self, img, mask=None, extract=False):
-        super().__call__(img, mask, extract)
+    def __call__(self, img, imgpath, mask=None, extract_now=False):
+        super().__call__(img, imgpath, mask, extract_now)
 
 
 
@@ -680,12 +691,12 @@ class OpenCV_SURF(_OpenCVDetector):
     kwargs = {'nOctaves':4, 'nOctaveLayers':3, 'extended':False, 'upright':False}
     Detector = _cv2.xfeatures2d.SURF_create(**kwargs)
 
-    def __init__(self, output_folder):
-        super().__init__(output_folder, OpenCV_SURF._Detector, eFeatureDetectorType.cvSURF, load_as_RGB=False, load_as_grey=True)
+    def __init__(self, output_folder=None):
+        super().__init__(output_folder, OpenCV_SURF.Detector, eFeatureDetectorType.cvSURF, load_as_RGB=False, load_as_grey=True)
 
 
-    def __call__(self, img, mask=None, extract=False):
-        super().__call__(img, mask, extract)
+    def __call__(self, img, imgpath, mask=None, extract_now=False):
+        super().__call__(img, imgpath, mask, extract_now)
 
 
 
@@ -703,12 +714,12 @@ class OpenCV_HOG(_OpenCVDetector):
     Detector = _cv2.HOGDescriptor(*args)
 
 
-    def __init__(self, output_folder):
-        super().__init__(output_folder, OpenCV_HOG._Detector, eFeatureDetectorType.cvHOG, load_as_RGB=False, load_as_grey=True)
+    def __init__(self, output_folder=None):
+        super().__init__(output_folder, OpenCV_HOG.Detector, eFeatureDetectorType.cvHOG, load_as_RGB=False, load_as_grey=True)
 
 
-    def __call__(self, img, mask=None, extract=False):
-        super().__call__(img, mask, extract)
+    def __call__(self, img, imgpath, mask=None, extract_now=False):
+        super().__call__(img, imgpath, mask, extract_now)
 
 
     def view(self, dump=False, show=False, force=False, show_original=False):
@@ -727,7 +738,7 @@ class skHOGDetector(_BaseDetector):
     kwargs = {'transform_sqrt':True, 'block_norm':'L2-Hys', 'cells_per_block':(3, 3), 'pixels_per_cell':(8, 8), 'orientations':9}
     args = []
 
-    def __init__(self, output_folder):
+    def __init__(self, output_folder=None):
         '''(str, bool) -> void
         
         output_folder:
@@ -741,10 +752,10 @@ class skHOGDetector(_BaseDetector):
         super().__init__(output_folder, eFeatureDetectorType.skHOG, load_as_RGB=False, load_as_grey=True)
 
     
-    def __call__(self, img, imgpath, mask=None, extract=False, load_keypoint_visual=False):
+    def __call__(self, img, imgpath, mask=None, extract_now=False, load_keypoint_visual=False):
         self._load_keypoint_visual = load_keypoint_visual
         super().__call__(img, imgpath, mask)
-        if extract:
+        if extract_now:
             self.extract_descriptors()
 
 
@@ -810,7 +821,9 @@ def _prints(s, log=True):
     if not SILENT:
         print(s)
     if log:
+        _Log.propagate = False
         _Log.info(s)
+        _Log.propagate = True
 #endregion
 
 

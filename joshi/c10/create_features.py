@@ -49,18 +49,14 @@ def load_input_map(label, input_folder):
 
 
 class FeatureExtractor(object):
-    def extract_image_features(self, img):
-        D = _keypoints.DenseKeypoints(initFeatureScale=20)
-        kps = D(img)
-        S = cv2.xfeatures2d.SIFT_create()
-        kps, fvs = S.compute(img, kps)
-        return fvs
-
     def get_centroids(self, input_map, num_samples_to_fit=10):
-        kps_all = []
-
+        '''Builds the K-means centroids for training images
+        according to the training images label'''
+        D = _keypoints.DenseKeypoints(initFeatureScale=20)
+        descriptors = []
         count = 0
         cur_label = ''
+
         for item in input_map: #loop through labels and images in the folder eg. item['label'] == bass, item['image'] == c:/temp/bass.jpg
             if count >= num_samples_to_fit:
                 if cur_label != item['label']:
@@ -76,16 +72,53 @@ class FeatureExtractor(object):
             cur_label = item['label']
             img = cv2.imread(item['image'])
             img = resize_to_size(img)
+ 
+            kps = D(img)
+            S = cv2.xfeatures2d.SIFT_create()
+            dummy, fvs = S.compute(img, kps)
+            descriptors.extend(fvs)
 
-
-            fvs = self.extract_image_features(img)
-            kps_all.extend(fvs)
-
-        kmeans, centroids = Quantizer().quantize(kps_all)
+        kmeans, centroids = Quantizer().quantize(descriptors)
         return kmeans, centroids
 
+
+
+class Quantizer(object):
+    def __init__(self, num_clusters=32):
+        self.num_dims = 128
+        self.SIFTExtractor = cv2.xfeatures2d.SIFT_create()
+        self.num_clusters = num_clusters
+        self.num_retries = 10
+
+
+    def quantize(self, datapoints):
+        kmeans = KMeans(self.num_clusters, n_init=self.num_retries, max_iter=10, tol=1.0)
+        res = kmeans.fit(datapoints)
+        centroids = res.cluster_centers_
+        return kmeans, centroids
+
+
+    def normalize(self, input_data):
+        sum_input = np.sum(input_data)
+        if sum_input > 0:
+            return input_data / sum_input
+        else:
+            return input_data
+
+
     def get_feature_vector(self, img, kmeans, centroids):
-        return Quantizer().get_feature_vector(img, kmeans, centroids)
+        D = _keypoints.DenseKeypoints(initFeatureScale=20)
+        kps = D(img)
+        kps, fvs = self.SIFTExtractor.compute(img, kps)
+        labels = kmeans.predict(fvs)
+        fv = np.zeros(self.num_clusters)
+
+        for i, item in enumerate(fvs):
+            fv[labels[i]] += 1
+
+        fv_image = np.reshape(fv, ((1, fv.shape[0])))
+        return self.normalize(fv_image)
+
 
 
 def extract_feature_map(input_map, kmeans, centroids):
@@ -99,67 +132,12 @@ def extract_feature_map(input_map, kmeans, centroids):
         img = cv2.imread(item['image'])
         img = resize_to_size(img)
 
-        temp_dict['feature_vector'] = FeatureExtractor().get_feature_vector(
-            img, kmeans, centroids)
+        temp_dict['feature_vector'] = Quantizer().get_feature_vector(img, kmeans, centroids)
 
         if temp_dict['feature_vector'] is not None:
             feature_map.append(temp_dict)
 
     return feature_map
-
-
-
-class Quantizer(object):
-    def __init__(self, num_clusters=32):
-        self.num_dims = 128
-        self.extractor = cv2.xfeatures2d.SIFT_create()
-        self.num_clusters = num_clusters
-        self.num_retries = 10
-
-
-    def quantize(self, datapoints):
-        kmeans = KMeans(self.num_clusters,
-                        n_init=max(self.num_retries, 1),
-                        max_iter=10, tol=1.0)
-
-        res = kmeans.fit(datapoints)
-        centroids = res.cluster_centers_
-        return kmeans, centroids
-
-
-    def normalize(self, input_data):
-        sum_input = np.sum(input_data)
-        if sum_input > 0:
-            return input_data / sum_input
-        else:
-            return input_data
-
-    #just gets feature descriptors
-    def get_feature_vector(self, img, kmeans, centroids):
-        D = _keypoints.DenseKeypoints(initFeatureScale=20)
-        kps = D(img)
-        kps, fvs = self.extractor.compute(img, kps)
-        labels = kmeans.predict(fvs)
-        fv = np.zeros(self.num_clusters)
-
-        for i, item in enumerate(fvs):
-            fv[labels[i]] += 1
-
-        fv_image = np.reshape(fv, ((1, fv.shape[0])))
-        return self.normalize(fv_image)
-
-
-
-class SIFTExtractor(object):
-    def compute(self, image, kps):
-        if image is None:
-            print("Not a valid image")
-            raise TypeError
-
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        kps, des = cv2.SIFT().compute(gray_image, kps)
-        return kps, des
-
 
 
 # Resize the shorter dimension to 'new_size'

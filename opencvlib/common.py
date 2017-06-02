@@ -202,6 +202,22 @@ def pad_images(imgs, pad_color=CVColors.black):
     return outimgs
 
 
+def play(moviefile, title='movie'):
+    '''play a movie'''
+    cap = _cv2.VideoCapture(moviefile)
+    while True:
+        ret, frame = cap.read()
+
+        _cv2.namedWindow(title, _cv2.WINDOW_NORMAL)
+        #_cv2.resizeWindow(title, new_w, new_h)
+        _cv2.imshow(title, frame)
+
+        if _cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    _cv2.destroyAllWindows()
+
 
 @_decs.decgetimg
 def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=CVColors.black, absolute=True, pixel_size=1.):
