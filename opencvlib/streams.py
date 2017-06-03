@@ -2,11 +2,10 @@
 '''dealing with image streams, ie movies!'''
 from threading import Thread as _Thr
 #import sys as _sys
-import time as _time
+
 from queue import Queue as _Queue
 
 import cv2 as _cv2
-import numpy as _np
 
 #from opencvlib import Log as _Log
 
@@ -52,7 +51,7 @@ class BufferedFrameGenerator():
         'current_frame: {4!s}\n' \
         'position(secs): {5!s}' \
         .format(self.filepath, self.fps, self.width, self.height, self.current_frame, self.position_ratio)
-
+        return s
 
 
     def start(self):

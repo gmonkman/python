@@ -275,10 +275,17 @@ def RGB2BGR(img):
 @_decs.decgettruegrey
 def togreyscale(img):
     '''(str|ndarray)->ndarray
-    Convert image to greyscale
+    Convert image to greyscale, assumes BGR
     '''
     return img
 
+
+def HSVtoGrey(img):
+    '''(ndarray) -> ndarray
+    Convert hsv to grey
+    '''
+    return img[:, :, 2:3]
+    
 
 @_decs.decgetimg
 def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):

@@ -1,5 +1,3 @@
-# pylint: disable=C0103, locally-disabled
-
 '''opencvlib'''
 from opencvlib.common import getimg, show, checkwaitkey, getwaitkey, showarray, play
 from opencvlib.common import ImageInfo, Info, mosaic, eImgType, CVColors

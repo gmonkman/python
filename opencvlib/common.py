@@ -38,6 +38,7 @@ _CMAP_DATA = {'jet': _JET_DATA}
 
 _SHOW_WIDTH = 800.
 
+
 class CVColors():
     '''BGR base color tuples'''
     blue = (255, 0, 0)
@@ -51,6 +52,7 @@ class CVColors():
     cyan = (255, 255, 0)
     black = (0, 0, 0)
     white = (255, 255, 255)
+
 
 
 class eImgType(_Enum):
@@ -207,6 +209,8 @@ def play(moviefile, title='movie'):
     cap = _cv2.VideoCapture(moviefile)
     while True:
         ret, frame = cap.read()
+        if not ret:
+            break
 
         _cv2.namedWindow(title, _cv2.WINDOW_NORMAL)
         #_cv2.resizeWindow(title, new_w, new_h)

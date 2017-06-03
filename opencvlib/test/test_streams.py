@@ -2,7 +2,7 @@
 import unittest
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
-import time
+
 import cv2
 #import numpy as np
 
@@ -28,7 +28,7 @@ class Test(unittest.TestCase):
         BFG = streams.BufferedFrameGenerator(self.streampath)
         BFG.start()
         
-        start_time = time.time
+
         while True:
             img = BFG.read()
             cv2.putText(img, "Queue Size: {}".format(BFG.Q.qsize()),
@@ -40,9 +40,6 @@ class Test(unittest.TestCase):
             cv2.waitKey(1)
 
 
-
-        print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
-        print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
 if __name__ == '__main__':
     unittest.main()

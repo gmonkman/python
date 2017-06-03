@@ -39,6 +39,24 @@ Gy = abs(signal.convolve2d(Gradient, hogy_kern,mode='valid'))
 Theta = np.arctan(Gy/Gx) #Gradient direction
 g = np.sqrt(Gx**2 + Gy**2) #gradient magnitude
 
+BLUE_PATCH = np.zeros((100,100,3))
+BLUE_PATCH[:,:,0:1] = 255
+
+RED_PATCH = np.zeros((100,100,3))
+RED_PATCH[:,:,2:3] = 255
+
+GREEN_PATCH = np.zeros((100,100,3))
+GREEN_PATCH[:,:,1:2] = 255
+
+YELLOW_PATCH = np.zeros((100,100,3))
+YELLOW_PATCH[:,:,1:2] = 255
+YELLOW_PATCH[:,:,2:3] = 255
+
+BLACK_PATCH = np.zeros((100,100,3))
+WHITE_PATCH = np.ones((100,100,3))*255
+
+MOSAIC = np.vstack([np.hstack([BLUE_PATCH, RED_PATCH]), np.hstack([GREEN_PATCH, YELLOW_PATCH]),  np.hstack([BLACK_PATCH, WHITE_PATCH])])
+
 
 #Doesnt really work
 def ddir():
