@@ -7,18 +7,20 @@ from __future__ import print_function
 
 import config
 import constants
-import itertools
+import itertools as _it
 
 import matplotlib
 matplotlib.use('Agg')  # Disable the display, does not affect graph generation
-import matplotlib.cm as cm
-import matplotlib.pyplot as plt
+import matplotlib.cm as _cm
+import matplotlib.pyplot as _plt
 from matplotlib.patches import Polygon
 
-import networkx as nx
-import numpy as np
+import networkx as _nx
+import numpy as _np
 import utils
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+from funclib.baselib import lists_remove_empty_pairs as _remove_empty
 
 
 # Set font, globally
@@ -44,22 +46,6 @@ LINE_STYLES = ["-", "-.", ":", "--"]
 ##########################################################################
 
 
-def remove_empty(d1, d2):
-    """
-       Zip through datasets (pairwise),
-       make sure both are non-empty; erase if empty.
-       Return the non-empty corresponding pairs in two lists
-       and a list of their original indices
-    """
-    xs, ys, posns = [], [], []
-    for i in range(len(d1)):
-        if d1[i] and d2[i]:
-            xs.append(d1[i])
-            ys.append(d2[i])
-            posns.append(i)
-    return xs, ys, posns
-
-
 def bar(xvalues, yvalues, title, xlabel, ylabel, alpha=1, color='royalblue', xlabels=None, width=0.8, output=None, xmax=None, ymax=None, vlines=None):
     """
         Create and save a bar plot.
@@ -77,7 +63,7 @@ def bar(xvalues, yvalues, title, xlabel, ylabel, alpha=1, color='royalblue', xla
         - ymax    = max y-value
         - width   = width of bars
     """
-    fig, ax1 = plt.subplots()
+    fig, ax1 = _plt.subplots()
     # Size
     if xmax:
         xmin, _ = ax1.get_xlim()
@@ -86,92 +72,92 @@ def bar(xvalues, yvalues, title, xlabel, ylabel, alpha=1, color='royalblue', xla
         ymin, _ = ax1.get_ylim()
         ax1.set_ylim(ymin, ymax)
     # Add data
-    bar = plt.bar(xvalues, yvalues, width=width, color=color, alpha=alpha)
+    bar = _plt.bar(xvalues, yvalues, width=width, color=color, alpha=alpha)
     # Add extra lines
     for line in (vlines or []):
-        plt.axvline(line["xpos"], color=line["color"],
+        _plt.axvline(line["xpos"], color=line["color"],
                     linestyle=line["style"], linewidth=line["width"])
     # Labels
     if xlabels:
-        plt.xticks([x + width / 2 for x in xvalues], xlabels)
+        _plt.xticks([x + width / 2 for x in xvalues], xlabels)
     ax1.set_title(title)
     ax1.set_xlabel(xlabel)
     ax1.set_ylabel(ylabel)
     # Save
     output = output or "%s/%s-bar.png" % (constants.OUTPUT_DIR, title)
-    plt.savefig(output)
-    plt.clf()
-    plt.close()
+    _plt.savefig(output)
+    _plt.clf()
+    _plt.close()
     print("Saved bar chart to '%s'" % output)
     return output
 
 
 def dots(xs, yss, title, xlabel, ylabel, labels=None, skip=None, output=None, vlines=None):
-    fig, ax1 = plt.subplots()
+    fig, ax1 = _plt.subplots()
     # Add data
-    for (ys, c, m) in zip(yss, cm.rainbow(np.linspace(0, 1, len(yss))), itertools.cycle(markers)):
-        plt.plot(xs, ys, color=c, linestyle="dashed", marker=m)
+    for (ys, c, m) in zip(yss, _cm.rainbow(_np.linspace(0, 1, len(yss))), _it.cycle(markers)):
+        _plt.plot(xs, ys, color=c, linestyle="dashed", marker=m)
     # Legend
-    plt.legend(['%s' % (labels[i] if labels else (skip * i)) for i in range(len(yss))],
+    _plt.legend(['%s' % (labels[i] if labels else (skip * i)) for i in range(len(yss))],
                loc=2, bbox_to_anchor=(1, 1), borderaxespad=0., fontsize=11)
     # Add extra lines
     for line in (vlines or []):
-        plt.axvline(line["xpos"], color=line["color"],
+        _plt.axvline(line["xpos"], color=line["color"],
                     linestyle=line["style"], linewidth=line["width"])
     ax1.set_title(title)
     ax1.set_xlabel(xlabel)
     ax1.set_ylabel(ylabel)
     # Save
     output = output
-    plt.savefig(output)
-    plt.clf()
-    plt.close()
+    _plt.savefig(output)
+    _plt.clf()
+    _plt.close()
     print("Saved dots chart to '%s'" % output)
     return output
 
 
 def line(xbounds, y_funs, title=None, xlabel=None, ylabel=None, linelabels=None, samples=constants.GRAPH_SAMPLES, alpha=1, output=None, vlines=None, hlines=None, ymax=None, yticks=None, xticks=None):
-    fig, ax1 = plt.subplots()
+    fig, ax1 = _plt.subplots()
     # data
-    X = np.linspace(xbounds[0], xbounds[1], num=samples)
-    for (y_fun, c, i) in zip(y_funs, itertools.cycle(COLORS), range(0, 10, 2)):
+    X = _np.linspace(xbounds[0], xbounds[1], num=samples)
+    for (y_fun, c, i) in zip(y_funs, _it.cycle(COLORS), range(0, 10, 2)):
         Y = [y_fun(val) for val in X]
         style = 'solid'
         wd = 6 if i == 0 else 4
-        plt.plot(X, Y, color=c, alpha=alpha - (0.1 * i),
+        _plt.plot(X, Y, color=c, alpha=alpha - (0.1 * i),
                  linestyle=style, linewidth=wd)
     if linelabels:
-        plt.legend(['%s' % lbl for lbl in linelabels], loc=2,
+        _plt.legend(['%s' % lbl for lbl in linelabels], loc=2,
                    bbox_to_anchor=(1, 1), borderaxespad=0., fontsize=11)
     # Add extra lines
     for line in (hlines or []):
-        plt.axhline(line["ypos"], alpha=line.get(
+        _plt.axhline(line["ypos"], alpha=line.get(
             "alpha", 1), color=line["color"], linestyle=line["style"], linewidth=line["width"])
     for line in (vlines or []):
-        plt.axvline(line["xpos"], alpha=line.get(
+        _plt.axvline(line["xpos"], alpha=line.get(
             "alpha", 1), color=line["color"], linestyle=line["style"], linewidth=line["width"])
     if ymax:
         ymin, _ = ax1.get_ylim()
         ax1.set_ylim(ymin, ymax + 2)
     ax1.set_xlim(xbounds[0] - 0.5, xbounds[1])
     if title:
-        plt.suptitle(title, fontdict=title_font, y=1.0)
-    plt.gcf().subplots_adjust(bottom=0.15)
-    plt.xlabel(xlabel, fontdict=default_font)
+        _plt.suptitle(title, fontdict=title_font, y=1.0)
+    _plt.gcf().subplots_adjust(bottom=0.15)
+    _plt.xlabel(xlabel, fontdict=default_font)
     # y-label & yticks
-    plt.title(ylabel, fontdict=default_font, x=0.001, y=1.05)
+    _plt.title(ylabel, fontdict=default_font, x=0.001, y=1.05)
     if yticks:
-        plt.yticks(*yticks)
+        _plt.yticks(*yticks)
     if xticks:
         xposns, xlbls = xticks
-        plt.xticks(*xticks)
+        _plt.xticks(*xticks)
     # ax1.set_xticks([1] + ax1.get_xticks()[1:])
     # Save
-    plt.savefig(output)
-    plt.clf()
-    plt.close()
+    _plt.savefig(output)
+    _plt.clf()
+    _plt.close()
     print("Saved line to '%s'" % output)
-    return output
+    return output	  
 
 
 def histogram(values, title, xlabel, ylabel, num_bins, xmax, ymax, output, alpha=0.8, color='royalblue'):
@@ -201,36 +187,36 @@ def module_graph(graph, project_name, cfg, title=None, alpha=1, edgecolor="k", u
         - typedcolor   = Node color for typed modules
     """
     # Make networkx graph
-    g = nx.DiGraph()
+    g = _nx.DiGraph()
     for mn in graph.get_module_names():
         g.add_node(mn)
     for (src, dst) in graph.edges_iter():
         g.add_edge(src, dst)
     # Make pyplot
-    pos = nx.circular_layout(g, scale=1)
-    fig, ax1 = plt.subplots()
+    pos = _nx.circular_layout(g, scale=1)
+    fig, ax1 = _plt.subplots()
     # Untyped nodes, or the default
-    nx.draw_networkx_nodes(g, pos, node_size=1000, alpha=alpha, nodelist=[mn for mn in graph.get_module_names(
+    _nx.draw_networkx_nodes(g, pos, node_size=1000, alpha=alpha, nodelist=[mn for mn in graph.get_module_names(
     ) if config.untyped_at(cfg, graph.index_of_module(mn))], node_color=untypedcolor)
     # Typed nodes
-    nx.draw_networkx_nodes(g, pos, node_size=1000, alpha=alpha, nodelist=[mn for mn in graph.get_module_names(
+    _nx.draw_networkx_nodes(g, pos, node_size=1000, alpha=alpha, nodelist=[mn for mn in graph.get_module_names(
     ) if config.typed_at(cfg, graph.index_of_module(mn))], node_color=typedcolor)
-    nx.draw_networkx_labels(g, pos, dict(
+    _nx.draw_networkx_labels(g, pos, dict(
         [(k, k) for k in graph.get_module_names()]))
-    nx.draw_networkx_edges(g, pos, edge_color=edgecolor, alpha=alpha)
+    _nx.draw_networkx_edges(g, pos, edge_color=edgecolor, alpha=alpha)
     # Draw boundaries
     boundaries = [(src, dst) for (src, dst) in graph.edges_iter()
                   if config.is_boundary(cfg, graph.index_of_module(src), graph.index_of_module(dst))]
-    nx.draw_networkx_edges(g, pos, edgelist=boundaries,
+    _nx.draw_networkx_edges(g, pos, edgelist=boundaries,
                            edge_color="r", width=4)
     output = output or "%s/%s-module-graph-%s.png" % (
         constants.OUTPUT_DIR, project_name, cfg)
     title = title or "%s-modulegraph-%s.png" % (project_name, cfg)
     ax1.set_title(title)
-    plt.axis("off")
-    plt.savefig(output)
-    plt.clf()
-    plt.close()
+    _plt.axis("off")
+    _plt.savefig(output)
+    _plt.clf()
+    _plt.close()
     print("Saved module graph to '%s'" % output)
     return output
 
@@ -248,11 +234,11 @@ def box(dataset, title, xlabel, ylabel, alpha=1, color='royalblue', sym="+", xla
         - color : Box color
         - sym   : Symbol for outliers
     """
-    fig, ax1 = plt.subplots()
-    bp = plt.boxplot(dataset, notch=0, sym=sym, vert=True, whis=1)
-    plt.setp(bp['boxes'], color='black')
-    plt.setp(bp['whiskers'], color='black')
-    plt.setp(bp['fliers'], color='red', marker=sym)
+    fig, ax1 = _plt.subplots()
+    bp = _plt.boxplot(dataset, notch=0, sym=sym, vert=True, whis=1)
+    _plt.setp(bp['boxes'], color='black')
+    _plt.setp(bp['whiskers'], color='black')
+    _plt.setp(bp['fliers'], color='red', marker=sym)
     ax1.yaxis.grid(True, linestyle='-', which='major',
                    color='lightgrey', alpha=0.5)
     # Fancier boxes
@@ -270,16 +256,16 @@ def box(dataset, title, xlabel, ylabel, alpha=1, color='royalblue', sym="+", xla
         for j in range(2):
             mx.append(med.get_xdata()[j])
             my.append(med.get_ydata()[j])
-            plt.plot(mx, my, 'k')
+            _plt.plot(mx, my, 'k')
         # Draw avg. dot
-        plt.plot([np.average(med.get_xdata())], [np.average(
+        _plt.plot([_np.average(med.get_xdata())], [_np.average(
             dataset[i])], color='w', marker='*', markeredgecolor='k')
     # plot axis: runtime + num types
     posns = range(len(dataset))
     if xlabels:
-        plt.xticks(posns, xlabels)
+        _plt.xticks(posns, xlabels)
     else:
-        plt.xticks(posns)
+        _plt.xticks(posns)
     ax1.set_axisbelow(True)
     ax1.set_title(title)
     ax1.set_xlabel(xlabel)
@@ -288,15 +274,15 @@ def box(dataset, title, xlabel, ylabel, alpha=1, color='royalblue', sym="+", xla
     # Reset y limit
     ymin, ymax = ax1.get_ylim()
     ax1.set_ylim(ymin - 5, ymax)
-    plt.figtext(0.80, 0.01, '*', color='white',
+    _plt.figtext(0.80, 0.01, '*', color='white',
                 backgroundcolor=color, weight='roman', size='medium')
-    plt.figtext(0.82, 0.01, ' Average Value', color='black',
+    _plt.figtext(0.82, 0.01, ' Average Value', color='black',
                 weight='roman', size='x-small')
     ## Save & clear
     output = output or "%s/%s-boxplot.png" % (constants.OUTPUT_DIR, title)
-    plt.savefig(output)
-    plt.clf()
-    plt.close()
+    _plt.savefig(output)
+    _plt.clf()
+    _plt.close()
     print("Saved figure to %s" % output)
     return output
 
@@ -308,7 +294,7 @@ def draw_violin(dataset, posns, alpha=1, color='royalblue', meanmarker="*"):
         (Shared helper for `violin_plot` and `double_violin`)
     """
     # Add data
-    vp = plt.violinplot(dataset, positions=posns,
+    vp = _plt.violinplot(dataset, positions=posns,
                         showmeans=True, showextrema=True, showmedians=True)
     # Re-color bodies
     for v in vp['bodies']:
@@ -320,18 +306,18 @@ def draw_violin(dataset, posns, alpha=1, color='royalblue', meanmarker="*"):
     vp['cmeans'].set_alpha(0)
     # Draw data points
     for i in range(len(dataset)):
-        plt.plot([posns[i]] * len(dataset[i]), dataset[i], "r+")
+        _plt.plot([posns[i]] * len(dataset[i]), dataset[i], "r+")
     # Re-color median, min, max lines to be black
     for field in ['cmaxes', 'cmins', 'cbars', 'cmedians']:
         vp[field].set_color('k')
     # Draw the mean marker
     for i in range(len(dataset)):
-        plt.plot(posns[i], [np.average(dataset[i])], color='w',
+        _plt.plot(posns[i], [_np.average(dataset[i])], color='w',
                  marker=meanmarker, markeredgecolor='k')
     # Draw confidence interval (should be optional)
     for i in range(len(dataset)):
         stat = utils.stats_of_row(dataset[i])
-        plt.errorbar(posns[i], stat["mean"], yerr=stat["ci"]
+        _plt.errorbar(posns[i], stat["mean"], yerr=stat["ci"]
                      [1] - stat["mean"], ecolor="magenta", capthick=4)
     return
 
@@ -353,7 +339,7 @@ def violin(dataset, title, xlabel, ylabel, alpha=1, color='royalblue', meanmarke
     """
     # Set default values
     posns = positions or list(range(1, 1 + len(dataset)))
-    fig, ax1 = plt.subplots()  # add figsize?
+    fig, ax1 = _plt.subplots()  # add figsize?
     draw_violin(dataset, posns, alpha=alpha,
                 color=color, meanmarker=meanmarker)
     # Light gridlines
@@ -365,28 +351,28 @@ def violin(dataset, title, xlabel, ylabel, alpha=1, color='royalblue', meanmarke
     ax1.set_xlabel(xlabel)
     ax1.set_ylabel(ylabel)
     if xlabels:
-        plt.xticks(posns, xlabels)
+        _plt.xticks(posns, xlabels)
     else:
-        plt.xticks(posns)
+        _plt.xticks(posns)
     # Legend
     # Reset y limit
     ymin, ymax = ax1.get_ylim()
     ax1.set_ylim(ymin - 5, ymax)
-    plt.figtext(0.70, 0.043, "x", color="magenta", weight='roman',
+    _plt.figtext(0.70, 0.043, "x", color="magenta", weight='roman',
                 backgroundcolor="magenta", size='medium')
-    plt.figtext(0.72, 0.043, " 95% CI", color='black',
+    _plt.figtext(0.72, 0.043, " 95% CI", color='black',
                 weight='roman', size='x-small')
-    plt.figtext(0.80, 0.043, "+", color='red', weight='roman', size='medium')
-    plt.figtext(0.82, 0.043, " Sampled Point", color='black',
+    _plt.figtext(0.80, 0.043, "+", color='red', weight='roman', size='medium')
+    _plt.figtext(0.82, 0.043, " Sampled Point", color='black',
                 weight='roman', size='x-small')
-    plt.figtext(0.80, 0.01, meanmarker, color='white',
+    _plt.figtext(0.80, 0.01, meanmarker, color='white',
                 backgroundcolor=color, weight='roman', size='medium')
-    plt.figtext(0.82, 0.01, ' Average Value', color='black',
+    _plt.figtext(0.82, 0.01, ' Average Value', color='black',
                 weight='roman', size='x-small')
     output = output or "%s/%s-violin.png" % (constants.OUTPUT_DIR, title)
-    plt.savefig(output)
-    plt.clf()
-    plt.close()
+    _plt.savefig(output)
+    _plt.clf()
+    _plt.close()
     print("Saved violin plot to '%s'" % output)
     return output
 
@@ -400,8 +386,8 @@ def double_violin(series, title, xlabel, ylabel, alpha=0.8, colors=['royalblue',
         TODO get working for more than 2 datasets, if necessary
     """
     # Set default values
-    series1, series2, posns = remove_empty(series[0], series[1])
-    fig, ax1 = plt.subplots()  # add figsize?
+    series1, series2, posns = _remove_empty(series[0], series[1])
+    fig, ax1 = _plt.subplots()  # add figsize?
     draw_violin(series1, posns, alpha=alpha,
                 color=colors[0], meanmarker=markers[0])
     draw_violin(series2, posns, alpha=alpha,
@@ -413,13 +399,13 @@ def double_violin(series, title, xlabel, ylabel, alpha=0.8, colors=['royalblue',
     if legend and len(legend) == len(series):
         ymin, ymax = ax1.get_ylim()
         ax1.set_ylim(ymin - 5, ymax)
-        plt.figtext(
+        _plt.figtext(
             0.70, 0.04, "-", color=colors[0], backgroundcolor=colors[0], weight='roman', size='x-small')
-        plt.figtext(0.72, 0.04, legend[0], color='k',
+        _plt.figtext(0.72, 0.04, legend[0], color='k',
                     weight='roman', size='x-small')
-        plt.figtext(
+        _plt.figtext(
             0.70, 0.01, '-', color=colors[1], backgroundcolor=colors[1], weight='roman', size='x-small')
-        plt.figtext(
+        _plt.figtext(
             0.72, 0.01, legend[1], color='black', weight='roman', size='x-small')
     # Titles + legend
     ax1.set_axisbelow(True)
@@ -427,9 +413,9 @@ def double_violin(series, title, xlabel, ylabel, alpha=0.8, colors=['royalblue',
     ax1.set_xlabel(xlabel)
     ax1.set_ylabel(ylabel)
     output = "%s/%s-dv.png" % (constants.OUTPUT_DIR, title)
-    plt.savefig(output)
-    plt.clf()
-    plt.close()
+    _plt.savefig(output)
+    _plt.clf()
+    _plt.close()
     print("Saved double violin plot to '%s'" % output)
     return output
 # endregion
@@ -441,10 +427,10 @@ def bivariate_historgram(x, y):
     of each variable
     '''
     # the random data
-    x = np.random.randn(1000)
-    y = np.random.randn(1000)
+    x = _np.random.randn(1000)
+    y = _np.random.randn(1000)
 
-    fig, axScatter = plt.subplots(figsize=(5.5, 5.5))
+    fig, axScatter = _plt.subplots(figsize=(5.5, 5.5))
 
     # the scatter plot:
     axScatter.scatter(x, y)
@@ -458,15 +444,15 @@ def bivariate_historgram(x, y):
     axHisty = divider.append_axes("right", 1.2, pad=0.1, sharey=axScatter)
 
     # make some labels invisible
-    plt.setp(axHistx.get_xticklabels() + axHisty.get_yticklabels(),
+    _plt.setp(axHistx.get_xticklabels() + axHisty.get_yticklabels(),
              visible=False)
 
     # now determine nice limits by hand:
     binwidth = 0.25
-    xymax = np.max([np.max(np.fabs(x)), np.max(np.fabs(y))])
+    xymax = _np.max([_np.max(_np.fabs(x)), _np.max(_np.fabs(y))])
     lim = (int(xymax / binwidth) + 1) * binwidth
 
-    bins = np.arange(-lim, lim + binwidth, binwidth)
+    bins = _np.arange(-lim, lim + binwidth, binwidth)
     axHistx.hist(x, bins=bins)
     axHisty.hist(y, bins=bins, orientation='horizontal')
 
@@ -484,5 +470,7 @@ def bivariate_historgram(x, y):
         tl.set_visible(False)
     axHisty.set_xticks([0, 50, 100])
 
-    plt.draw()
-    plt.show()
+    _plt.draw()
+    _plt.show()
+
+

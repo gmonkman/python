@@ -4,10 +4,9 @@ from __future__ import print_function
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
-import matplotlib.pyplot as plt
-import numpy as np
+import matplotlib.pyplot as _plt
+import numpy as _np
 import matplotlib
-matplotlib.use('Agg')  # Disable the display, does not affect graph generation
 from mpl_toolkits.axes_grid1 import AxesGrid
 
 import constants
@@ -78,11 +77,11 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
         'alpha': []
     }
     # regular index to compute the colors
-    reg_index = np.linspace(start, stop, 257)
+    reg_index = _np.linspace(start, stop, 257)
     # shifted index to match the data
-    shift_index = np.hstack([
-        np.linspace(0.0, midpoint, 128, endpoint=False),
-        np.linspace(midpoint, 1.0, 129, endpoint=True)
+    shift_index = _np.hstack([
+        _np.linspace(0.0, midpoint, 128, endpoint=False),
+        _np.linspace(midpoint, 1.0, 129, endpoint=True)
     ])
     for ri, si in zip(reg_index, shift_index):
         r, g, b, a = cmap(ri)
@@ -91,7 +90,7 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
         cdict['blue'].append((si, b, b))
         cdict['alpha'].append((si, a, a))
     newcmap = matplotlib.colors.LinearSegmentedColormap(name, cdict)
-    plt.register_cmap(cmap=newcmap)
+    _plt.register_cmap(cmap=newcmap)
     return newcmap
 
 
@@ -107,21 +106,21 @@ def make_mesh(xbounds, ybounds, zfun, samples):
         - Y : matrix of y positions
         - Z : matrix of z positions
     """
-    xs = np.linspace(xbounds[0], xbounds[1], num=samples)
-    ys = np.linspace(ybounds[0], ybounds[1], num=samples)
+    xs = _np.linspace(xbounds[0], xbounds[1], num=samples)
+    ys = _np.linspace(ybounds[0], ybounds[1], num=samples)
     X, Y, Z = [], [], []
     for y in ys:
         X.append(xs)
         Y.append([y] * len(xs))
         Z.append([zfun(x, y) for x in xs])
-    return X, Y, np.ma.array(Z)
+    return X, Y, _np.ma.array(Z)
 
 # For info on colormaps, see
 # http://matplotlib.org/api/pyplot_summary.html?highlight=colormaps#matplotlib.pyplot.colormaps
 
 
 def contour(xbounds, ybounds, zfun, title=None, xlabel=None, ylabel=None, zlabel=None, samples=constants.GRAPH_SAMPLES, output=None, zlim=None, colormap=cm.cubehelix):
-    fig = plt.figure()
+    fig = _plt.figure()
     ax = fig.gca(projection='3d')
     X, Y, Z = make_mesh(xbounds, ybounds, zfun, samples)
     cmap = shiftedColorMap(colormap, start=0, midpoint=0.4,
@@ -131,13 +130,13 @@ def contour(xbounds, ybounds, zfun, title=None, xlabel=None, ylabel=None, zlabel
     # Override the x and y ticks
     xposns = list(range(xbounds[0], xbounds[1] + 1))
     yposns = [(ybounds[1] - ybounds[0]) // 2, ybounds[1]]
-    plt.xticks(xposns, ["%sx" % n for n in xposns])
-    plt.yticks(yposns, ["%sx" % m for m in yposns])
+    _plt.xticks(xposns, ["%sx" % n for n in xposns])
+    _plt.yticks(yposns, ["%sx" % m for m in yposns])
     ax.zaxis.get_major_ticks()[0].label1.set_visible(False)
 
     if title:
-        plt.suptitle(title, fontdict=title_font, y=0.88)
-    plt.title(zlabel, fontdict=default_font, x=0.1, y=0.87)
+        _plt.suptitle(title, fontdict=title_font, y=0.88)
+    _plt.title(zlabel, fontdict=default_font, x=0.1, y=0.87)
     #
     ax.set_xlim(xbounds[0], xbounds[1])
     ax.set_ylim(ybounds[0], ybounds[1])
@@ -147,10 +146,10 @@ def contour(xbounds, ybounds, zfun, title=None, xlabel=None, ylabel=None, zlabel
     # Save
     ax.view_init(elev=10, azim=240)
     out = "%s-%s.png" % (output, colormap.name)
-    plt.savefig(out)
-    plt.clf()
+    _plt.savefig(out)
+    _plt.clf()
     print("Saved contour to '%s'" % output)
-    plt.close()
+    _plt.close()
     return out
 
 
@@ -164,6 +163,6 @@ def make_figs(output):
         for r in range(0, 360, 20):
             out = "%s-%se-%sr.png" % (output, e, r)
             ax.view_init(elev=e, azim=r)
-            plt.savefig(out)
+            _plt.savefig(out)
             figs.append(out)
     return figs

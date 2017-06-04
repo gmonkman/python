@@ -19,6 +19,7 @@ from opencvlib import show, mosaic, CVColors, showarray
 from opencvlib.transforms import to8bpp
 from opencvlib.keypoints import printkp
 
+from plotlib.qplot import histo, scatter
 
 testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'
 I = cv2.imread(testimg, -1)
@@ -39,24 +40,32 @@ Gy = abs(signal.convolve2d(Gradient, hogy_kern,mode='valid'))
 Theta = np.arctan(Gy/Gx) #Gradient direction
 g = np.sqrt(Gx**2 + Gy**2) #gradient magnitude
 
-BLUE_PATCH = np.zeros((100,100,3))
+BLUE_PATCH = np.zeros((100,100,3)).astype('uint8')
 BLUE_PATCH[:,:,0:1] = 255
+BLUE_PATCH_HSV = cv2.cvtColor(BLUE_PATCH, cv2.COLOR_BGR2HSV)
 
-RED_PATCH = np.zeros((100,100,3))
+RED_PATCH = np.zeros((100,100,3)).astype('uint8')
 RED_PATCH[:,:,2:3] = 255
+RED_PATCH_HSV = cv2.cvtColor(RED_PATCH, cv2.COLOR_BGR2HSV)
 
-GREEN_PATCH = np.zeros((100,100,3))
+GREEN_PATCH = np.zeros((100,100,3)).astype('uint8')
 GREEN_PATCH[:,:,1:2] = 255
+GREEN_PATCH_HSV = cv2.cvtColor(GREEN_PATCH, cv2.COLOR_BGR2HSV)
 
-YELLOW_PATCH = np.zeros((100,100,3))
+YELLOW_PATCH = np.zeros((100,100,3)).astype('uint8')
 YELLOW_PATCH[:,:,1:2] = 255
 YELLOW_PATCH[:,:,2:3] = 255
+YELLOW_PATCH_HSV = cv2.cvtColor(YELLOW_PATCH, cv2.COLOR_BGR2HSV)
 
-BLACK_PATCH = np.zeros((100,100,3))
+BLACK_PATCH = np.zeros((100,100,3)).astype('uint8')
+BLACK_PATCH_HSV = cv2.cvtColor(BLACK_PATCH, cv2.COLOR_BGR2HSV)
+
 WHITE_PATCH = np.ones((100,100,3))*255
+WHITE_PATCH = WHITE_PATCH.astype('uint8')
+WHITE_PATCH_HSV = cv2.cvtColor(WHITE_PATCH, cv2.COLOR_BGR2HSV)
 
 MOSAIC = np.vstack([np.hstack([BLUE_PATCH, RED_PATCH]), np.hstack([GREEN_PATCH, YELLOW_PATCH]),  np.hstack([BLACK_PATCH, WHITE_PATCH])])
-
+MOSAIC_HSV = cv2.cvtColor(MOSAIC, cv2.COLOR_BGR2HSV)
 
 #Doesnt really work
 def ddir():

@@ -45,10 +45,11 @@ class Test(unittest.TestCase):
         self.BLACK_PATCH = np.zeros((100, 100, 3))
         self.WHITE_PATCH = np.ones((100, 100, 3))*255
 
-        self.MOSAIC = np.vstack([np.hstack([self.BLUE_PATCH, self.RED_PATCH]), np.hstack([self.GREEN_PATCH, self.YELLOW_PATCH]), np.hstack([self.BLACK_PATCH, self.WHITE_PATCH])])
+        self.MOSAIC_BGR = np.vstack([np.hstack([self.BLUE_PATCH, self.RED_PATCH]), np.hstack([self.GREEN_PATCH, self.YELLOW_PATCH]), np.hstack([self.BLACK_PATCH, self.WHITE_PATCH])]).astype('uint8')
+        self.MOSAIC_HSV = cv2.cvtColor(self.MOSAIC_BGR, cv2.COLOR_BGR2HSV)
 
 
-
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_ColorInterval(self):
         '''test colorinterval class
         Instances of this class can be consumed for
@@ -66,10 +67,29 @@ class Test(unittest.TestCase):
         self.assertTrue(CI.lower_interval().shape[0] == 1 and len(CI.lower_interval().shape) == 1)
         self.assertTrue(CI.upper_interval().shape[0] == 1 and len(CI.lower_interval().shape) == 1)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UserWarning):
             CI.color_space = filters.eColorSpace.BGR #this should error as we cant recreate from greyscale
 
+        with self.assertRaises(UserWarning):
+            CI = filters.ColorInterval(filters.eColorSpace.HSV, (0, 0, 0), (180, 0, 0))
+            CI = filters.ColorInterval(filters.eColorSpace.HSV, (180, 0, 0), (0, 0, 0))
+            CI = filters.ColorInterval(filters.eColorSpace.HSV, (0, 0, 0), (0, 0, 256))
+            CI = filters.ColorInterval(filters.eColorSpace.HSV, (0, 256, 0), (0, 0, 0))
 
+        CI = filters.ColorInterval(filters.eColorSpace.HSV, (0, 0, 0), (179, 0, 0))
+        self.assertTrue(np.array_equal(CI.upper_interval(), np.array([179, 0, 0]).astype('uint8')))
+
+        CI = filters.ColorInterval(filters.eColorSpace.HSV255255255, (255, 100, 250), (255, 100, 255))
+        self.assertTrue(np.array_equal(CI.lower_interval(), np.array([179, 100, 250]).astype('uint8')))
+        self.assertTrue(np.array_equal(CI.upper_interval(), np.array([179, 100, 255]).astype('uint8')))
+
+        CI = filters.ColorInterval(filters.eColorSpace.HSV360100100, (360, 100, 100), (360, 100, 100))
+        self.assertTrue(np.array_equal(CI.lower_interval(), np.array([179, 255, 255]).astype('uint8')))
+        self.assertTrue(np.array_equal(CI.upper_interval(), np.array([179, 255, 255]).astype('uint8')))
+
+
+
+    @unittest.skip("Temporaily disabled while debugging")
     def test_ColorDetectionRGB(self):
         '''test the colordetection algo
         which takes an image and
@@ -85,7 +105,7 @@ class Test(unittest.TestCase):
         #BR
         #GY
         #BW
-        mosaic = self.MOSAIC.copy()
+        mosaic = self.MOSAIC_BGR.copy()
         ciAll = []
 
         #BLUE picker
@@ -118,7 +138,58 @@ class Test(unittest.TestCase):
         sCols, sNoCols = _chkMBGR(CD.img_detected)
         self.assertTrue('red' in sCols and 'blue' in sCols and 'green' in sCols and 'yellow' in sCols)
 
-    
+
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_ColorDetectionHSV(self):
+        '''test the colordetection algo
+        which takes an image and
+        keeps colors (pixels) which match ranges
+        set by a ColorInterval class'''
+        ciBLUE = filters.ColorInterval(filters.eColorSpace.HSV, (220, 0, 0), (260, 255, 255)) #b
+        ciRED = filters.ColorInterval(filters.eColorSpace.HSV, (0, 0, 0), (0, 255, 255))
+        ciGREEN = filters.ColorInterval(filters.eColorSpace.HSV, (0, 0, 0), (0, 255, 255))
+        ciBLACK = filters.ColorInterval(filters.eColorSpace.HSV, (0, 0, 0), (0, 255, 255))
+        ciWHITE = filters.ColorInterval(filters.eColorSpace.HSV, (0, 0, 255), (0, 0, 255))
+        ciYELLOW = filters.ColorInterval(filters.eColorSpace.HSV, (0, 0, 0), (0, 255, 255))
+        #MOSAIC
+        #BR
+        #GY
+        #BW
+        mosaic = self.MOSAIC_HSV.copy()
+        ciAll = []
+
+        #BLUE picker
+        ciAll.append(ciBLUE)
+        CD = filters.ColorDetection(mosaic, ciAll, filters.eColorSpace.HSV)
+        CD.detect()
+
+        self.assertTrue(CD.boolmask.shape == CD.img_detected.shape[0:2])
+        self.assertTrue(CD._img.shape == CD.img_detected.shape)
+        sCols, sNoCols = _chkMBGR(CD.img_detected)
+        self.assertTrue('blue' in sCols)
+        
+        #BLUE and RED picker
+        ciAll.append(ciRED)
+        CD = filters.ColorDetection(mosaic, ciAll, filters.eColorSpace.HSV)
+        CD.detect()
+        sCols, sNoCols = _chkMBGR(CD.img_detected)
+        self.assertTrue('red' in sCols and 'blue' in sCols)
+
+        ciAll.append(ciGREEN)
+        CD = filters.ColorDetection(mosaic, ciAll, filters.eColorSpace.HSV)
+        CD.detect()
+        sCols, sNoCols = _chkMBGR(CD.img_detected)
+        self.assertTrue('red' in sCols and 'blue' in sCols and 'green' in sCols)
+
+        ciAll.append(ciYELLOW)
+        CD = filters.ColorDetection(mosaic, ciAll, filters.eColorSpace.HSV)
+        CD.detect()
+        Inverted = CD.get_inverted()
+        sCols, sNoCols = _chkMBGR(CD.img_detected)
+        self.assertTrue('red' in sCols and 'blue' in sCols and 'green' in sCols and 'yellow' in sCols)
+
+
 
 
 def _chkMBGR(mosaic):

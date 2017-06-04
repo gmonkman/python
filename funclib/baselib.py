@@ -136,6 +136,25 @@ def dic_merge_two(x, y):
 
 
 # region lists
+def lists_remove_empty_pairs(list1, list2):
+    '''(list|tuple, list|tuple) -> list, list, list
+       Zip through datasets (pairwise),
+       make sure both are non-empty; erase if empty.
+
+       Returns:
+        list1: non-empty corresponding pairs in list1
+        list2: non-empty corresponding pairs in list2
+        list3: list of original indices prior to erasing of empty pairs
+    '''
+    xs, ys, posns = [], [], []
+    for i in range(len(list1)):
+        if list1[i] and list2[i]:
+            xs.append(list1[i])
+            ys.append(list2[i])
+            posns.append(i)
+    return xs, ys, posns
+
+
 def list_not(lst, not_in_list):
     '''(list,list)->list
     return set of lst elements not in not_in_list
@@ -216,7 +235,7 @@ def get_platform():
 
 
 #region Other
-def isIterable(i, strIsIter=False):
+def isIterable(i, strIsIter=False, numpyIsIter=False):
     '''(any, bool)->bool
     Tests to see if i looks like an iterable.
 
@@ -224,8 +243,11 @@ def isIterable(i, strIsIter=False):
     '''
     if isinstance(i, str) and strIsIter is False:
         return False
+    elif isinstance(i, _np.ndarray) and numpyIsIter is False:
+        return False
     else:
         return isinstance(i, _collections.Iterable)
+
 
 def item_from_iterable_by_type(iterable, match_type):
     '''(iterable,class type)->item

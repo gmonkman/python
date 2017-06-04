@@ -15,6 +15,8 @@ class eColorSpace(_Enum):
     RGB = 1
     BGR = 2
     Grey = 3
+    HSV360100100 = 4
+    HSV255255255 = 5
 
 
 class ColorInterval():
@@ -30,16 +32,21 @@ class ColorInterval():
     BGR_GREEN = _np.array([[103, 86, 65], [145, 133, 128]]).astype('uint8')
 
     def __init__(self, color_space=eColorSpace.BGR, start=(None, None, None), finish=(None, None, None)):
-        self._start = start
-        self._finish = finish
         self._color_space = color_space
-        self._check_intervals()
-        if color_space == eColorSpace.Grey:
+        
+        if color_space == eColorSpace.Grey:    
+            self._check_intervals()
             if len(start) != 1 and len(finish) != 1:
-                raise ValueError('Color space set to grey, but tuple start and /or finish length greater not equal 1')
+                raise UserWarning('Color space set to grey, but tuple start and /or finish length greater not equal 1')
         else:
-            self._asnumpyinterval = _np.array([start, finish]).astype('uint8')
+            start = hsvtrans(start, color_space)
+            finish = hsvtrans(finish, color_space)
 
+            if 'HSV' in self.color_space.name:
+                self._color_space = eColorSpace.HSV
+
+            self._asnumpyinterval = _np.array([start, finish]).astype('uint8')
+            self._check_intervals() #check intervals only expects opencv color ranges, so do after any conversions
 
 
     
@@ -56,13 +63,29 @@ class ColorInterval():
 
 
     def _check_intervals(self):
-        f = lambda x: x if max(x) <= 255 and min(x) >= 0 else None
-        if f(self._start) is None:
-            raise ValueError('Start range was invalid')
+        fRGB = lambda x: x if max(x) <= 255 and min(x) >= 0 else None
+        fH = lambda x: x if max(x) <= 179 and min(x) >= 0 else None
+        fSV = lambda x: x if max(x) <= 255 and min(x) >= 0 else None
 
-        if f(self._finish) is None:
-            raise ValueError('Finish range was invalid')
-    
+        if self.color_space != eColorSpace.HSV:
+            if fRGB(self.lower_interval()) is None:
+                raise UserWarning('Start range was invalid')
+
+            if fRGB(self.upper_interval()) is None:
+                raise UserWarning('Finish range was invalid')
+        else:
+            if fH(self.lower_interval()[0:1]) is None:
+                raise UserWarning('Start range was invalid, hue value should not exceed 179')
+
+            if fSV(self.lower_interval()[1:3]) is None:
+                raise UserWarning('Start range was invalid for saturation and brightness')
+
+            if fH(self.upper_interval()[0:1]) is None:
+                raise UserWarning('Finish range was invalid, hue value should not exceed 179')
+
+            if fSV(self.upper_interval()[1:3]) is None:
+                raise UserWarning('Finish range was invalid for saturation and brightness')
+                            
 
     def lower_interval(self):
         '''return the lbound numpy array
@@ -118,7 +141,7 @@ class ColorInterval():
                 tmp = _cv2.cvtColor(tmp, _cv2.COLOR_BGR2RGB)
                 tmp = toBound(tmp)
             else:
-                raise ValueError('Unexpected conversion options encountered')
+                raise UserWarning('Unexpected conversion options encountered')
             return tmp
 
         if self._color_space == eColorSpace.HSV:
@@ -134,7 +157,7 @@ class ColorInterval():
                 tmp = _cv2.cvtColor(tmp, _cv2.COLOR_HSV2RGB)
                 tmp = toBound(tmp)
             else:
-                raise ValueError('Unexpected conversion options encountered')
+                raise UserWarning('Unexpected conversion options encountered')
             return tmp
         
         if self._color_space == eColorSpace.RGB:
@@ -150,7 +173,7 @@ class ColorInterval():
             elif to == eColorSpace.RGB:
                 tmp = self._asnumpyinterval
             else:
-                raise ValueError('Unexpected conversion options encountered')
+                raise UserWarning('Unexpected conversion options encountered')
             return tmp
 
 
@@ -158,9 +181,11 @@ class ColorInterval():
             if to == eColorSpace.Grey:
                 return self._asnumpyinterval
             else:
-                raise ValueError('Cannot get color intervals from a grey scale interval')
+                raise UserWarning('Cannot get color intervals from a grey scale interval')
 
-        raise ValueError('Unexpected conversion options encountered')
+        raise UserWarning('Unexpected conversion options encountered')
+
+
 
 
 
@@ -190,7 +215,7 @@ class ColorDetection():
         elif color_space == eColorSpace.Grey:
             img = _transforms.togreyscale(img)
         else:
-            raise ValueError('Unsupported color space enumeration')
+            raise UserWarning('Unsupported color space enumeration')
 
 
         self._color_space = color_space
@@ -228,3 +253,34 @@ class ColorDetection():
         #self.boolmask = m.astype('bool')
 
 
+
+def hsvtrans(color_in, format_in):
+    '''(tuple|list, Enum:eColorSpace)-> 3-tuple
+    Convert different HSV scales to the OpenCV HSV scale
+
+    color_in:
+        ndarray, eg [340, 90, 90]
+    formatin:
+        the eColorSpace enumeration,
+    HSV is expressed in multiple scales.
+    OpenCV: 0-179, 0-255, 0-255
+    Internet:0-360,0-100,0-100
+    ImageJ:0:255, 0:255, 0:255
+
+    Return:
+        HSV in opencv scale
+
+    If format_in is not eColorSpace.HSV255255255 or HSV360100100
+    returns color_in without change
+    '''
+    assert isinstance(format_in, eColorSpace)
+    perc_2_bit8 = lambda x: int(x*255/100)
+    d360_2_d179 = lambda x: int(x*179/360)
+    bit8_2_d179 = lambda x: int(x*179/255)
+
+    if format_in == eColorSpace.HSV255255255: #opencv
+        return ([bit8_2_d179(color_in[0]), color_in[1], color_in[2]])
+    elif format_in == eColorSpace.HSV360100100: #online pickers
+        return (d360_2_d179(color_in[0]), perc_2_bit8(color_in[1]), perc_2_bit8(color_in[2]))
+    else:
+        return color_in
