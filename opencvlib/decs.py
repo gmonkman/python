@@ -59,7 +59,7 @@ def decgetimg(func):
         if img is None:
             return func(None, *args, **kwargs)
 
-        if isinstance(img, list) or isinstance(img, tuple):
+        if isinstance(img, (list, tuple)):
             imgsout = []
             for im in img:
                 if isinstance(im, str):
@@ -106,7 +106,7 @@ def decgetimg8bpp(func):
         if img is None:
             return func(None, *args, **kwargs)
 
-        if isinstance(img, list) or isinstance(img, tuple):
+        if isinstance(img, (list, tuple)):
             imgsout = []
             for im in img:
                 if isinstance(im, str):
@@ -160,7 +160,7 @@ def decgettruegrey(func):
         g = lambda g: _cv2.imread(_fixp(g), _cv2.IMREAD_GRAYSCALE) #forces 8bits per pixel (32/24 bit image)
 
 
-        if isinstance(img, list) or isinstance(img, tuple):
+        if isinstance(img, (list, tuple)):
             imgsout = []
             for im in img:
                 if isinstance(im, str):
@@ -261,8 +261,8 @@ def _BGR2RGB(img):
     '''
     if _isbw(img):
         return img
-    else:
-        return _cv2.cvtColor(img, _cv2.COLOR_BGR2RGB)
+
+    return _cv2.cvtColor(img, _cv2.COLOR_BGR2RGB)
 
 
 def _RGB2BGR(img):
@@ -272,8 +272,8 @@ def _RGB2BGR(img):
     '''
     if _isbw(img):
         return img
-    else:
-        return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
+
+    return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
 
 
 def _isbw(img, single_channel_only=False):
@@ -294,7 +294,7 @@ def _isbw(img, single_channel_only=False):
         return looks_like_rgbbw or looks_like_hsvbw
     else:
         assert img.shape == 2 #looks like an error if we got here, debug
-        return False
+    return False
 
 
 def _to8bpp(img):
@@ -309,5 +309,5 @@ def _to8bpp(img):
         return img
     else:
         assert(str(img.dtype) == 'uint8') #unexpected, debug if occurs
-        return img
+    return img
 #endregion

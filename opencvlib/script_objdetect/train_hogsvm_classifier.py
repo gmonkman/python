@@ -44,7 +44,7 @@ def parse_args():
         fds.append(fd)
         labels.append(0)
 
-    if clf_type is "LIN_SVM":
+    if clf_type == "LIN_SVM":
         clf = LinearSVC()
         print("Training a Linear SVM Classifier")
         clf.fit(fds, labels)

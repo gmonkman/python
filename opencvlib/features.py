@@ -21,7 +21,7 @@ import opencvlib.keypoints as _keypoints
 import opencvlib.transforms as _transforms
 
 from opencvlib import Log as _Log
-from opencvlib import show as _show
+from opencvlib.view import show as _show
 
 from funclib import iolib as _iolib
 from funclib import baselib as _baselib
@@ -378,12 +378,12 @@ class _BaseDetector(_ABC):
         Check if we have keypoints
         '''
         if isinstance(self.keypoints, list):
-            if len(self.keypoints) > 0:
+            if self.keypoints:
                 return 'KeyPoint' in repr(self.keypoints[0])
-            else:
-                return False
-        else:
+
             return False
+
+        return False
 
 
     def _has_descriptors(self):
@@ -391,9 +391,9 @@ class _BaseDetector(_ABC):
         Check if we have descriptors
         '''
         if isinstance(self.descriptors, _np.ndarray):
-            return len(self.descriptors) > 0
-        else:
-            return False
+            return self.descriptors.size > 0
+
+        return False
 
 
     def _set_file_names(self):

@@ -90,6 +90,7 @@
     <Compile Include="c9\optical_flow.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="pylintrc" />
     <Content Include="training_images\1305083121687.jpg" />
     <Content Include="training_images\9908f84474270b07.jpg" />
     <Content Include="training_images\a-european-sea-bass-dicentrarchus-labrax-caught-on-a-west-wales-surf-F00MM3.jpg" />

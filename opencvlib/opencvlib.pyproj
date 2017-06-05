@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_filters.py</StartupFile>
+    <StartupFile>test\test_color.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -35,7 +35,22 @@
     <Compile Include="classifiers.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="common.py">
+    <Compile Include="test\imgpipes\test_digikamlib.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\imgpipes\test_generators.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_color.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_roi.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\imgpipes\test_vgg.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="view.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="decs.py">
@@ -53,7 +68,7 @@
     <Compile Include="faces.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="filters.py">
+    <Compile Include="color.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="hogview.py">
@@ -70,6 +85,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="imgpipes\transforms.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="info.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="keypoints.py">
@@ -107,9 +125,6 @@
     <Compile Include="streams.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="testing.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="scripts_vgg\fix_keys.py">
       <SubType>Code</SubType>
     </Compile>
@@ -122,13 +137,10 @@
     <Compile Include="scripts_vgg\write_attr_whole_head.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="test\test_common.py">
+    <Compile Include="test\test_view.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_features.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="test\test_filters.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_keypoints.py">
@@ -154,9 +166,13 @@
     <Folder Include="scripts_faces\" />
     <Folder Include="lenscorrection\" />
     <Folder Include="scripts_vgg\" />
-    <Folder Include="test\images\" />
-    <Folder Include="test\movie\" />
-    <Folder Include="test\output\" />
+    <Folder Include="test\bin\images\" />
+    <Folder Include="test\bin\movie\" />
+    <Folder Include="test\imgpipes\" />
+    <Folder Include="test\lenscorrection\" />
+    <Folder Include="test\calibration\" />
+    <Folder Include="test\bin\" />
+    <Folder Include="test\bin\output\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="calibration\nextbase512g\2016_1011_132058_001.JPG" />
@@ -208,8 +224,8 @@
     <Content Include="script_objdetect\detectors.cfg" />
     <Content Include="pylintrc" />
     <Content Include="script_objdetect\make_lobster_descriptors.ini" />
-    <Content Include="test\images\matt_pemb5.jpg" />
-    <Content Include="test\movie\test-mpeg_512kb.mp4" />
+    <Content Include="test\bin\images\matt_pemb5.jpg" />
+    <Content Include="test\bin\movie\test-mpeg_512kb.mp4" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="{2af0f10d-7135-4994-9156-5d01c9c11b7e}\3.5" />

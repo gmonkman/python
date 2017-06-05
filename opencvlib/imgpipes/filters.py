@@ -8,12 +8,13 @@ yielded from the generator
 
 Filters
 '''
-import opencvlib.decs as _decs
-from opencvlib.common import ImageInfo as _ImageInfo
-from opencvlib.common import getimg as _getimg
-
-
 import funclib.baselib as _baselib
+
+import opencvlib.decs as _decs
+import opencvlib.info as _info
+from opencvlib import getimg as _getimg
+
+
 
 
 #region Handling filters for generators, ie rules for 'dropping' an image
@@ -79,14 +80,14 @@ class Filters():
 
         if _baselib.isempty(self.fQueue):
             return True
-        else:
-            for F in self.fQueue:
-                assert isinstance(F, Filter)
-                if not F.imgisvalid(self.img):
-                    return False
-            return True
+
+        for F in self.fQueue:
+            assert isinstance(F, Filter)
+            if not F.imgisvalid(self.img):
+                return False
+        return True
 #endregion
 
-is_higher_res = _ImageInfo.is_higher_res
-is_lower_res = _ImageInfo.is_lower_res
-isbw = _ImageInfo.isbw
+is_higher_res = _info.ImageInfo.is_higher_res
+is_lower_res = _info.is_lower_res
+isbw = _info.isbw

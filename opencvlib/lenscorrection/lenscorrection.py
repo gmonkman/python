@@ -23,18 +23,22 @@ import os
 # region 3rd party imports
 import cv2
 import fuckit
-import numpy as np
+import numpy as _np
 # endregion
 
 # region my imports
-import opencvlib.imgpipes.digikamlib as digikamlib
-import funclib.iolib as iolib
-import funclib.inifilelib as inifilelib
-import funclib.pyqtlib as msgbox
-import opencvlib.common as common
-import opencvlib.lenscorrection.lenscorrectiondb as lenscorrectiondb
-from opencvlib import ImageInfo
+
 from funclib.baselib import list_append_unique
+import funclib.iolib as _iolib
+import funclib.inifilelib as _inifilelib
+import funclib.pyqtlib as _msgbox
+
+from opencvlib import IMAGE_EXTENSIONS_AS_WILDCARDS as _IMAGE_EXTENSIONS_AS_WILDCARDS
+import opencvlib.imgpipes.digikamlib as _digikamlib
+import opencvlib.info as _info
+import opencvlib.lenscorrection.lenscorrectiondb as _lenscorrectiondb
+import opencvlib.transforms as _transforms
+
 
 #from opencvlib.common import is_image
 # endregion
@@ -59,7 +63,7 @@ class PrintProgress(object):
 
     def increment(self):
         '''tick the progress bar'''
-        iolib.print_progress(
+        _iolib.print_progress(
             self.iteration, self.max, prefix='%i of %i' %
             (self.iteration, self.max), bar_length=self.bar_length)
         self.iteration += 1
@@ -121,7 +125,7 @@ class CameraIni(object):
             os.path.join(self.calibration_path, 'debug'))
         self._calibration_path_images = os.path.normpath(
             os.path.join(self.calibration_path, 'images'))
-        iolib.create_folder(self.calibration_path_debug)
+        _iolib.create_folder(self.calibration_path_debug)
 
     # region properties
     @property
@@ -197,7 +201,7 @@ class CameraIni(object):
         Creates it if it doesnt exist
         '''
         s = os.path.normpath(os.path.join(self._calibration_path, 'debug'))
-        iolib.create_folder(s)
+        _iolib.create_folder(s)
         return s
 
 
@@ -231,8 +235,8 @@ class Calibration(object):
     @property
     def _pattern_points(self):
         '''pattern_points getter'''
-        pattern_points = np.zeros((np.prod(self.pattern_size), 3), np.float32)
-        pattern_points[:, :2] = np.indices(self.pattern_size).T.reshape(-1, 2)
+        pattern_points = _np.zeros((_np.prod(self.pattern_size), 3), _np.float32)
+        pattern_points[:, :2] = _np.indices(self.pattern_size).T.reshape(-1, 2)
         pattern_points *= self.square_size
         return pattern_points
 
@@ -244,10 +248,10 @@ class Calibration(object):
         cnt = 0
       # for fn in
       # iolib.file_list_glob_generator(self.path_to_calibration_images):
-        for fn in iolib.file_list_glob_generator(self.wildcarded_images_path):
-            if common.is_image(fn):
+        for fn in _iolib.file_list_glob_generator(self.wildcarded_images_path):
+            if _info.ImageInfo.is_image(fn):
                 img = cv2.imread(os.path.normpath(fn), 0)
-                w, h = ImageInfo.resolution(img)
+                w, h = _info.ImageInfo.resolution(img)
                 if w == self.width and h == self.height:
                     cnt += 1
                     found, corners = cv2.findChessboardCorners(
@@ -279,8 +283,8 @@ class Calibration(object):
         rv = pickle.dumps(rvecs, pickle.HIGHEST_PROTOCOL)
         tv = pickle.dumps(tvecs, pickle.HIGHEST_PROTOCOL)
 
-        with lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
-            db = lenscorrectiondb.CalibrationCRUD(conn)
+        with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
+            db = _lenscorrectiondb.CalibrationCRUD(conn)
             modelid = db.crud_camera_upsert(self.camera_model)
             db.crud_calibration_upsert(
                 modelid, self.width, self.height, cm, dc, rms, rv, tv)
@@ -300,9 +304,9 @@ def get_camera(model):
     returning the camera class.
     model is generally parsed from a command line argument when this routine is executed.
     '''
-    if not inifilelib.iniexists(_INIFILE):
+    if not _inifilelib.iniexists(_INIFILE):
         raise IOError('Ini file %s not found.' % _INIFILE)
-    ini = inifilelib.ConfigFile(_INIFILE)
+    ini = _inifilelib.ConfigFile(_INIFILE)
 
     calpath = ini.tryread(model, 'CALIBRATION_PATH', force_create=False)
     if not os.path.exists(calpath):
@@ -333,9 +337,9 @@ def get_camera(model):
 
 def _ini_set_database_strings():
     '''load db config strings from the inifile'''
-    if not inifilelib.iniexists(_INIFILE):
+    if not _inifilelib.iniexists(_INIFILE):
         raise IOError('Ini file %s not found.' % _INIFILE)
-    ini = inifilelib.ConfigFile(_INIFILE)
+    ini = _inifilelib.ConfigFile(_INIFILE)
     global _DIGIKAM_CONNECTION_STRING
     _DIGIKAM_CONNECTION_STRING = ini.tryread(
         'DATABASE', 'DIGIKAM_CONNECTION_STRING', force_create=False)
@@ -351,7 +355,7 @@ def calibrate(cam):
     '''
     assert isinstance(cam, CameraIni)
 
-    dims = common.get_image_resolutions(cam.get_full_calibration_image_path())
+    dims = _info.ImageInfo.get_image_resolutions(cam.get_full_calibration_image_path())
 
     img_path = cam.get_full_calibration_image_path()
 
@@ -388,7 +392,7 @@ def _undistort(cam, img, mats, crop=True):
     Returns None if an exception occurs
     '''
     assert isinstance(cam, CameraIni)
-    assert isinstance(img, np.ndarray)
+    assert isinstance(img, _np.ndarray)
     try:
         h, w = img.shape[:2]
         newcameramtx, roi = cv2.getOptimalNewCameraMatrix(
@@ -445,9 +449,9 @@ def undistort(
             useglob = False
 
     if useglob:
-        globlist = iolib.file_list_generator(
+        globlist = _iolib.file_list_generator(
             imgpaths_or_imagelist,
-            common.IMAGE_EXTENSIONS_AS_WILDCARDS)
+            _IMAGE_EXTENSIONS_AS_WILDCARDS)
         newlist = []
         for wildcards in globlist:
             for fil in glob(wildcards):
@@ -457,21 +461,21 @@ def undistort(
 
     cnt = 1
     success = 0
-    logfilename = iolib.get_file_name(outpath)
+    logfilename = _iolib.get_file_name(outpath)
 
-    with lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
-        db = lenscorrectiondb.CalibrationCRUD(conn)
+    with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
+        db = _lenscorrectiondb.CalibrationCRUD(conn)
         last_width = 0
         last_height = 0
         for fil in newlist:
             try:
                 resize_suffix = ''
                 # used later to rebuild output file name
-                path, name, ext = common.splitfn(fil)
+                path, name, ext = _iolib.get_file_parts(fil)
                 path = path + ''
                 ext = ext + ''  # silly thing to get rid of unused varible in pylint
                 orig_img = cv2.imread(fil)
-                width, height = ImageInfo.resolution(orig_img)
+                width, height = _info.ImageInfo.resolution(orig_img)
                 if (last_width != width and last_height !=
                         height) and height > 0 and width > 0:
                     blobs = db.crud_read_calibration_blobs(
@@ -488,10 +492,10 @@ def undistort(
                                  height,
                                  w,
                                  h))
-                            orig_img = common.resize(orig_img, w, h)
+                            orig_img = _transforms.resize(orig_img, w, h)
                             resize_suffix = '_RZ%ix%i' % (w, h)
                 if blobs is None:
-                    iolib.write_to_eof(
+                    _iolib.write_to_eof(
                         logfilename, 'No calibration data for image %s, resolution [%sx%s]' %
                         (fil, width, height))
                     list_append_unique(bad_res, '%ix%i' % (width, height))
@@ -499,7 +503,7 @@ def undistort(
                     #{'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
                     img = _undistort(cam, orig_img, blobs, crop)
                     if img is None:
-                        iolib.write_to_eof(
+                        _iolib.write_to_eof(
                             logfilename,
                             'File %s failed in _undistort.\n' %
                             (fil))
@@ -509,7 +513,7 @@ def undistort(
                         cv2.imwrite(outfile, img)
                         success += 1
                         with fuckit:
-                            iolib.write_to_eof(
+                            _iolib.write_to_eof(
                                 logfilename,
                                 'Success:%s\n' %
                                 (fil))
@@ -517,16 +521,16 @@ def undistort(
                 last_height = height
 
             except Exception:
-                iolib.write_to_eof(
+                _iolib.write_to_eof(
                     logfilename, 'Failed:%s, Exception:%s\n' %
                     (fil, Exception.message))
             finally:
                 with fuckit:
-                    iolib.print_progress(
+                    _iolib.print_progress(
                         cnt, len(newlist), '%i of %i [Successes: %i]' %
                         (cnt, len(newlist), success), bar_length=30)
                     cnt += 1
-        if len(bad_res) > 0:
+        if bad_res:
             print(
                 'Resolutions with no calibration matricies: %s' %
                 (" ".join(bad_res)))
@@ -593,7 +597,7 @@ def main():
     if cmdargs.mode == 'undistort' and (
             cmdargs.path == '' or cmdargs.path is None):
         print('\nMode was undistort but no path argument was specified.')
-        iolib.exit()
+        _iolib.exit()
 
     cam = get_camera(cmdargs.camera)
     if cmdargs.mode == 'undistort':
@@ -611,20 +615,20 @@ def main():
             if os.path.isdir(cmdargs.outpath):
                 title = 'Delete Files?'
                 msg = 'Folder %s already exists. Do you wish to delete existing files from it?' % cmdargs.outpath
-                default = msgbox.QMessageBox.No
-                result = msgbox.question(
+                default = _msgbox.QMessageBox.No
+                result = _msgbox.question(
                     title,
                     msg,
                     default,
-                    msgbox.QMessageBox.Yes,
-                    msgbox.QMessageBox.No)
-                if result == msgbox.QMessageBox.Yes:
-                    iolib.files_delete(cmdargs.outpath)
+                    _msgbox.QMessageBox.Yes,
+                    _msgbox.QMessageBox.No)
+                if result == _msgbox.QMessageBox.Yes:
+                    _iolib.files_delete(cmdargs.outpath)
             else:
-                iolib.create_folder(cmdargs.outpath)
+                _iolib.create_folder(cmdargs.outpath)
 
             if cmdargs.path.lower() == 'digikam':
-                digikam = digikamlib.MeasuredImages(
+                digikam = _digikamlib.MeasuredImages(
                     _DIGIKAM_CONNECTION_STRING,
                     cam.digikam_measured_tag,
                     cam.digikam_camera_tag)
@@ -638,7 +642,7 @@ def main():
         print('Calibration(s) saved to database.')
     else:
         print('\nInvalid or missing mode argument. Valid values are undistort or calibrate')
-        iolib.exit()
+        _iolib.exit()
 
 
 if __name__ == '__main__':

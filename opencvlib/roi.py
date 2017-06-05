@@ -13,7 +13,7 @@ from numpy import ma as _ma
 
 import opencvlib.decs as _decs
 import opencvlib as _opencvlib
-from opencvlib import ImageInfo as _ImageInfo
+from opencvlib.info import ImageInfo as _ImageInfo
 
 
 __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
@@ -210,8 +210,8 @@ def bounding_rect_of_poly(points, as_points=True):
     x, y, w, h = _cv2.boundingRect(points)
     if as_points:
         return rect_as_points(x, y, w, h)
-    else:
-        return (x, y, w, h)
+
+    return (x, y, w, h)
 
 
 # DEBUG bounding_rect_of_ellipse
@@ -284,7 +284,7 @@ def nms_rects(detections, threshold=.5):
     the area with the lower confidence score is removed.
     The output is a list of detections.
     '''
-    if len(detections) == 0:
+    if not detections:
         return []
     # Sort the detections based on confidence score
     detections = sorted(detections, key=lambda detections: detections[2],

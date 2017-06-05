@@ -8,11 +8,8 @@ import numpy as _np
 import funclib.baselib as _baselib
 
 import opencvlib.decs as _decs
-
-
-from opencvlib.common import ImageInfo as _ImageInfo
-
-from opencvlib.common import getimg as _getimg
+from opencvlib import getimg as _getimg
+from opencvlib import color as _color
 from opencvlib import Log as _Log
 
 
@@ -56,13 +53,13 @@ class Transform():
             img_transformed = self._func(img, *self._args, **self._kwargs)
             if isinstance(img_transformed, _np.ndarray):
                 self.img_transformed = img_transformed
-            elif isinstance(img_transformed, list) or isinstance(img_transformed, tuple):
+            elif isinstance(img_transformed, (list, tuple)):
                 self.img_transformed = _baselib.item_from_iterable_by_type(img_transformed, _np.ndarray)
             else:
                 raise ValueError('Unexpectedly failed to get ndarray image from transforms.exectrans. Check the transformation function "%s" returns an ndarray.' % self._func.__name__)
             return self.img_transformed
-        else:
-            return None
+
+        return None
 
 
 class Transforms():
@@ -105,15 +102,16 @@ class Transforms():
         first = True
         if _baselib.isempty(self.tQueue):
             return self.img
-        else:
-            for T in self.tQueue:
-                assert isinstance(T, Transform)
-                if first:
-                    self.img_transformed = T.exectrans(self.img)
-                    first = False
-                else:
-                    self.img_transformed = T.exectrans(self.img_transformed)
-            return self.img_transformed
+
+        for T in self.tQueue:
+            assert isinstance(T, Transform)
+            if first:
+                self.img_transformed = T.exectrans(self.img)
+                first = False
+            else:
+                self.img_transformed = T.exectrans(self.img_transformed)
+
+        return self.img_transformed
 #endregion
 
 
@@ -127,7 +125,7 @@ def adjust_gamma(img, gamma=1, gain=1):
     eg: gamma_corrected = exposure.adjust_gamma(image, 2)
     '''
     i = _exposure.adjust_gamma(img, gamma, gain)
-    return RGB2BGR(i)
+    return _color.RGB2BGR(i)
 
 
 @_decs.decgetimgsk
@@ -136,7 +134,7 @@ def adjust_log(img, gain=1, inv=False):
     '''
     i = _exposure.adjust_log(img, gain=gain, inv=inv)
     assert str(i.dtype) == 'uint8'
-    return RGB2BGR(i)
+    return _color.RGB2BGR(i)
 
 
 def int32_to_uint8(ndarray, absolute=True):
@@ -152,8 +150,8 @@ def int32_to_uint8(ndarray, absolute=True):
     assert isinstance(ndarray, _np.ndarray)
     if ndarray.dtype == 'int32':
         return absolute(ndarray).astype('uint8') if absolute else ndarray.astype('uint8')
-    else:
-        return ndarray
+
+    return ndarray
 
 
 @_decs.decgetimgsk
@@ -162,7 +160,7 @@ def adjust_sigmoid(img, cutoff=0.5, gain=10, inv=False):
     Performs Sigmoid Correction on the input image.
     '''
     i = _exposure.adjust_sigmoid(img, cutoff=cutoff, gain=gain, inv=inv)
-    return RGB2BGR(i)
+    return _color.RGB2BGR(i)
 
 
 @_decs.decgetimgsk
@@ -184,7 +182,7 @@ def equalize_adapthist(img, kernel_size=None, clip_limit=0.01, nbins=256):
         Number of gray bins for histogram (“data range”).
     '''
     i = _exposure.equalize_adapthist(img, kernel_size=kernel_size, clip_limit=clip_limit, nbins=nbins)
-    return RGB2BGR(i) #this func is wrapped to handle black and white as well
+    return _color.RGB2BGR(i) #this func is wrapped to handle black and white as well
 
 
 def to8bpp(img):
@@ -197,9 +195,9 @@ def to8bpp(img):
         return _np.array(img * 255, dtype=_np.uint8)
     elif str(img.dtype) == 'uint8':
         return img
-    else:
-        assert img.dtype == 'uint8' #unexpected, debug if occurs
-        return img
+
+    assert img.dtype == 'uint8' #unexpected, debug if occurs
+    return img
 
 
 def toFloat(img):
@@ -212,9 +210,9 @@ def toFloat(img):
         return _np.array(img / 255, dtype=_np.float)
     elif 'float' in str(img.dtype):
         return img
-    else:
-        assert 'float' in str(img.dtype) #unexpected, debug if occurs
-        return img
+
+    assert 'float' in str(img.dtype) #unexpected, debug if occurs
+    return img
 
 
 @_decs.decgetimgsk
@@ -224,7 +222,7 @@ def equalize_hist(img, nbins=256, mask=None):
     True mask values only are evaluated
     '''
     i = _exposure.equalize_hist(img, nbins, mask)
-    return RGB2BGR(i)
+    return _color.RGB2BGR(i)
 
 
 @_decs.decgetimgsk
@@ -244,47 +242,10 @@ def rescale_intensity(img, in_range='image', out_range='dtype'):
         Use range_values as explicit min/max intensities.
     '''
     i = _exposure.rescale_intensity(img, in_range=in_range, out_range=out_range)
-    return RGB2BGR(i)
+    return _color.RGB2BGR(i)
 #endregion
 
 
-@_decs.decgetimg8bpp
-def BGR2RGB(img):
-    '''(ndarray)->ndarray
-    BGR  to RGB
-    opencv to skimage
-    '''
-    if _ImageInfo.isbw(img):
-        return img
-    else:
-        return _cv2.cvtColor(img, _cv2.COLOR_BGR2RGB)
-
-
-@_decs.decgetimg8bpp
-def RGB2BGR(img):
-    '''(ndarray)->ndarray
-    RGB  to BGR
-    skimage to opencv
-    '''
-    if _ImageInfo.isbw(img):
-        return img
-    else:
-        return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
-
-
-@_decs.decgettruegrey
-def togreyscale(img):
-    '''(str|ndarray)->ndarray
-    Convert image to greyscale, assumes BGR
-    '''
-    return img
-
-
-def HSVtoGrey(img):
-    '''(ndarray) -> ndarray
-    Convert hsv to grey
-    '''
-    return img[:, :, 2:3]
     
 
 @_decs.decgetimg
@@ -347,7 +308,7 @@ def histeq(im):
     '''(ndarray|str, int)->ndarray
     Histogram equalization of a grayscale image.
     '''
-    img_bw = togreyscale(im)
+    img_bw = _color.togreyscale(im)
     return _cv2.equalizeHist(img_bw)
 
 
@@ -400,3 +361,13 @@ def compute_average2(img, imlist, silent=True):
     if not silent:
         print('Skipped %s images of %s' % (skipped, len(imlist)))
     return _np.array(averageim, 'uint8')
+
+
+def homotrans(H, x, y):
+    '''(3x3 ndarray,float,float)->float,float
+    return homogenous coordinates
+    '''
+    xs = H[0, 0] * x + H[0, 1] * y + H[0, 2]
+    ys = H[1, 0] * x + H[1, 1] * y + H[1, 2]
+    s = H[2, 0] * x + H[2, 1] * y + H[2, 2]
+    return xs / s, ys / s

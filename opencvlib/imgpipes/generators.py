@@ -19,7 +19,7 @@ import funclib.baselib as _baselib
 import funclib.iolib as _iolib
 
 import opencvlib.decs as _decs
-from opencvlib import ImageInfo as _ImageInfo
+from opencvlib.info import ImageInfo as _ImageInfo
 from opencvlib import getimg as _getimg
 
 from opencvlib.distance import nearN_euclidean as _nearN_euclidean
@@ -120,8 +120,8 @@ class _Generator(_BaseGenerator):
         #assert isinstance(self.filters, _filters.Filters)
         if isinstance(self.filters, _filters.Filters):
             return self.filters.validate(img)
-        else:
-            return True
+
+        return True
 
 
     @_decs.decgetimgmethod
@@ -136,8 +136,8 @@ class _Generator(_BaseGenerator):
         if self.isimagevalid(img):
             img = self.executeTransforms(img)
             return img
-        else:
-            return None
+
+        return None
 #endregion
 
 
@@ -555,7 +555,7 @@ class RandomRegions(DigiKam):
             if isinstance(img, _np.ndarray):
                 h = img.shape[0]
                 w = img.shape[1]
-            elif isinstance(img, list) or isinstance(img, tuple):
+            elif isinstance(img, (list, tuple)):
                 w = img[0]
                 h = img[1]
             else:

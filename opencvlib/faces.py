@@ -9,7 +9,7 @@ import cv2 as _cv2
 import funclib.iolib as _iolib
 from funclib.stringslib import datetime_stamp as _datetime_stamp
 
-# TODO Test blur_face
+
 def blur_face(imagepath, save_face=False, overwrite_original=False):
     '''(str, bool, bool)
     Blur faces found in an image
@@ -19,7 +19,6 @@ def blur_face(imagepath, save_face=False, overwrite_original=False):
     to a subfolder with datetime stamp.
 
     Otherwise the blurred images will be created in this subdir
-.
     '''
 
     folder, file_part, ext_with_dot = _iolib.get_file_parts2(imagepath)

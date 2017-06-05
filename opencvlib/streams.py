@@ -84,11 +84,11 @@ class BufferedFrameGenerator():
         '''get next frame'''
         if self.Q.empty():
             return
-        else:
-            F = self.Q.get()
-            assert isinstance(F, _Frame)
-            self.current_frame = F.frame_nr
-            return F.img
+
+        F = self.Q.get()
+        assert isinstance(F, _Frame)
+        self.current_frame = F.frame_nr
+        return F.img
 
 
     def queued(self):
@@ -156,3 +156,23 @@ class BufferedFrameGenerator():
         self.position_in_ms = None
         self.position_in_secs = None
         self.current_frame = None
+
+
+
+def play(moviefile, title='movie'):
+    '''play a movie'''
+    cap = _cv2.VideoCapture(moviefile)
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        _cv2.namedWindow(title, _cv2.WINDOW_NORMAL)
+        #_cv2.resizeWindow(title, new_w, new_h)
+        _cv2.imshow(title, frame)
+
+        if _cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    _cv2.destroyAllWindows()

@@ -15,7 +15,8 @@ from skimage.io import imshow as skimshow
 from skimage.io import imread as skimread
 from scipy import signal
 
-from opencvlib import show, mosaic, CVColors, showarray
+from opencvlib.view import show, mosaic, showarray
+from opencvlib.color import CVColors
 from opencvlib.transforms import to8bpp
 from opencvlib.keypoints import printkp
 
@@ -25,6 +26,7 @@ testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/
 I = cv2.imread(testimg, -1)
 Ibw = cv2.cvtColor(I, cv2.COLOR_BGR2GRAY,0) #blackwhite version
 Isk = skimread(testimg)
+Ihsv = cv2.cvtColor(I, cv2.COLOR_BGR2HSV)
 
 PATCH = np.array([[0,0,0,0,0],[0,255,255,255,0],[0,255,255,255,0],[0,255,255,255,0],[0,0,0,0,0]])
 PATCH = PATCH.astype('uint8')

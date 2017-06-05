@@ -39,8 +39,8 @@ def equal(kp1, kp2, xy_only=False):
     '''
     if xy_only:
         return kp1.pt == kp2.pt
-    else:
-        return kp1.angle == kp2.angle and kp1.octave == kp2.octave and kp1.pt == kp2.pt and kp1.size == kp2.size
+
+    return kp1.angle == kp2.angle and kp1.octave == kp2.octave and kp1.pt == kp2.pt and kp1.size == kp2.size
 
 
 

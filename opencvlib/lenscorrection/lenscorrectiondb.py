@@ -171,18 +171,18 @@ class CalibrationCRUD(object):
         res = cur.execute(sql)
         assert isinstance(res, sqlite3.Cursor)
         for row in res:
-            if len(row) == 0:
+            if not row:
                 return None
-            else:
-                cmat = pickle.loads(str(row['camera_matrix']))
-                dcoef = pickle.loads(str(row['distortion_coefficients']))
-                rvect = pickle.loads(str(row['rotational_vectors']))
-                tvect = pickle.loads(str(row['translational_vectors']))
-                return {
-                    'cmat': cmat,
-                    'dcoef': dcoef,
-                    'rvect': rvect,
-                    'tvect': tvect}
+
+            cmat = pickle.loads(str(row['camera_matrix']))
+            dcoef = pickle.loads(str(row['distortion_coefficients']))
+            rvect = pickle.loads(str(row['rotational_vectors']))
+            tvect = pickle.loads(str(row['translational_vectors']))
+            return {
+                'cmat': cmat,
+                'dcoef': dcoef,
+                'rvect': rvect,
+                'tvect': tvect}
 
     def executeSQL(self, sql):
         '''execute sql against the db'''
@@ -221,25 +221,25 @@ class CalibrationCRUD(object):
         res = cur.execute(sql, [camera_model, aspect])
         assert isinstance(res, sqlite3.Cursor)
         for row in res:
-            if len(row) == 0:
+            if not row:
                 return None
-            else:
-                cmat = pickle.loads(str(row['camera_matrix']))
-                dcoef = pickle.loads(str(row['distortion_coefficients']))
-                rvect = pickle.loads(str(row['rotational_vectors']))
-                tvect = pickle.loads(str(row['translational_vectors']))
-                w = row['width']
-                h = row['height']
-                aspect = w / float(h)
-                return {
-                    'cmat': cmat,
-                    'dcoef': dcoef,
-                    'rvect': rvect,
-                    'tvect': tvect,
-                    'matched_resolution_w_by_h': (
-                        w,
-                        h),
-                    'new_aspect': aspect}
+
+            cmat = pickle.loads(str(row['camera_matrix']))
+            dcoef = pickle.loads(str(row['distortion_coefficients']))
+            rvect = pickle.loads(str(row['rotational_vectors']))
+            tvect = pickle.loads(str(row['translational_vectors']))
+            w = row['width']
+            h = row['height']
+            aspect = w / float(h)
+            return {
+                'cmat': cmat,
+                'dcoef': dcoef,
+                'rvect': rvect,
+                'tvect': tvect,
+                'matched_resolution_w_by_h': (
+                    w,
+                    h),
+                'new_aspect': aspect}
     # endregion
 
     # helpers
@@ -261,7 +261,7 @@ class CalibrationCRUD(object):
         returns None if there is no row
         First row only
         '''
-        if len(cur) == 0:
+        if not cur:
             return None
         else:
             for results in cur:
@@ -313,16 +313,17 @@ class CalibrationCRUD(object):
             sql_update.append(", ".join(update))
             sql_update.append(" WHERE %s" % (" AND ".join(where)))
             return "".join(sql_update)
-        else:
-            keys = ["%s" % k for k in allargs]
-            values = ["'%s'" % v for v in allargs.values()]
-            sql_insert = list()
-            sql_insert.append("INSERT INTO %s (" % table)
-            sql_insert.append(", ".join(keys))
-            sql_insert.append(") VALUES (")
-            sql_insert.append(", ".join(values))
-            sql_insert.append(");")
-            return "".join(sql_insert)
+
+
+        keys = ["%s" % k for k in allargs]
+        values = ["'%s'" % v for v in allargs.values()]
+        sql_insert = list()
+        sql_insert.append("INSERT INTO %s (" % table)
+        sql_insert.append(", ".join(keys))
+        sql_insert.append(") VALUES (")
+        sql_insert.append(", ".join(values))
+        sql_insert.append(");")
+        return "".join(sql_insert)
 
     @staticmethod
     def _sql_delete(table, **kwargs):

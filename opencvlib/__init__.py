@@ -1,6 +1,8 @@
-'''opencvlib'''
-from opencvlib.common import getimg, show, checkwaitkey, getwaitkey, showarray, play
-from opencvlib.common import ImageInfo, Info, mosaic, eImgType, CVColors
+'''main init file for package opencvlib'''
+import os.path as _path
+
+import cv2 as _cv2
+
 
 
 IMAGE_EXTENSIONS = ('.bmp',
@@ -24,7 +26,7 @@ IMAGE_EXTENSIONS_AS_WILDCARDS = ('*.bmp',
                                  '*.ppm')
 
 __all__ = ['classifiers', 'common',
-           'decs', 'distance',
+           'color', 'decs', 'distance',
            'edges', 'errors',
            'faces', 'features',
            'hogview', 'keypoints',
@@ -39,7 +41,6 @@ __all__ = ['classifiers', 'common',
 #<package>.debug("debug message")
 #<package>.critical("informational message")
 try:
-    import os.path as _path
     import funclib.log as _log
     _logfile = _path.join(_log.RootLogger.USER_TEMP_FOLDER, 'opencvlib.log')
     _rootlogger = _log.RootLogger(_logfile)
@@ -55,3 +56,17 @@ def loginfo():
         print(_rootlogger)
     except Exception as e:
         print('Failed to get log info for file %s.\nError: %s' % (_logfile, str(e)))
+
+
+
+def getimg(img, outflag=_cv2.IMREAD_UNCHANGED):
+    '''(ndarray|str)->ndarray
+    tries to load the image if its a path and returns the loaded ndarray
+    otherwise returns input img if it is an ndarray
+
+    Also consider using @decs._decs.decgetimg decorator
+    '''
+    if isinstance(img, str):
+        return _cv2.imread(_path.normpath(img), outflag)
+
+    return img

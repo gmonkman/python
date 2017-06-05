@@ -33,8 +33,8 @@ def read_specific_path(pathin):
     '''
     if SPECIFIC_PATH_OVERRIDE == '':
         return pathin
-    else:
-        return SPECIFIC_PATH_OVERRIDE
+
+    return SPECIFIC_PATH_OVERRIDE
 
 
 class _ImagesValidator(object):

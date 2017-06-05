@@ -32,7 +32,7 @@ from funclib.baselib import list_not as _list_not
 from funclib.baselib import list_and as _list_and
 
 import opencvlib.roi as _roi
-from opencvlib.common import ImageInfo as _ImageInfo
+from opencvlib.info import ImageInfo as _ImageInfo
 
 SILENT = True
 _JSON_FILE_NAME = ''

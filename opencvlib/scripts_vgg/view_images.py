@@ -7,7 +7,7 @@ import os.path as path
 
 import opencvlib.imgpipes.generators as G
 from opencvlib.imgpipes import transforms
-from opencvlib.common import show
+from opencvlib.view import show
 import funclib.iolib as iolib
 
 

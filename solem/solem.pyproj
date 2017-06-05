@@ -110,6 +110,9 @@
     <Folder Include="PCV\tools" />
     <Folder Include="pcv_book" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="pylintrc" />
+  </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
 </Project>

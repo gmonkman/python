@@ -19,7 +19,9 @@
       <Code Language="Python"><![CDATA[
 '''unit tests for features'''
 import unittest
-
+from inspect import getsourcefile as _getsourcefile
+import os.path as _path
+import funclib.iolib as iolib
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -27,9 +29,12 @@ class Test(unittest.TestCase):
     def setUp(self):
         '''setup variables etc for use in test cases
         '''
+        self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
+        self.modpath = _path.normpath(self.pth)
         pass
 
 
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_func(self):
         pass
 
