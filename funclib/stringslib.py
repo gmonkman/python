@@ -9,6 +9,23 @@ import numbers
 import funclib.numericslib
 
 
+
+class Visible():
+    visible_strict_with_space = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ '
+    visible_strict_sans_space = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+    
+    
+    @staticmethod
+    def ord_dict(with_space=False):
+        '''(bool) -> dict
+        Get dictionary of printable chars
+        with their ord number as the key
+        '''
+        s = Visible.visible_strict_with_space if with_space else Visible.visible_strict_sans_space
+        dic = {ord(value): value for value in s}
+        return dic
+
+
 def datetime_stamp(datetimesep=''):
     '''(str) -> str
     Returns clean date-time stamp for file names etc
@@ -57,6 +74,7 @@ def filter_alphanumeric(char, to_ascii=True, strict=False, allow_cr=True, allow_
     s = [c for c in 'abcef' if l(c)]
 
     '''
+
     if char in exclude: return False
     if char in include: return True
 

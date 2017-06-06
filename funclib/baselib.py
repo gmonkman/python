@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled,
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, consider-using-enumerate
 # unused-variable
 '''base classes and misc functions for manipulatin other base classes
 Stick list/tuple/dic functions in here
@@ -52,8 +52,8 @@ class switch(object):
         elif self.value in args:  # changed for v1.5, see below
             self.fall = True
             return True
-        else:
-            return False
+
+        return False
 
 # region dict
 
@@ -94,14 +94,12 @@ class dictp(dict):
         if keys:
             if len(keys) > 1:
                 raise KeyError('Partial key matched more than 1 element')
-
             key = keys[0] if keys else None
             if key is None:
                 return d
-            else:
-                return self.get(key)
-        else:
-            return d
+            return self.get(key)
+
+        return d
 
 
 class DictList(dict):
@@ -245,8 +243,7 @@ def isIterable(i, strIsIter=False, numpyIsIter=False):
         return False
     elif isinstance(i, _np.ndarray) and numpyIsIter is False:
         return False
-    else:
-        return isinstance(i, _collections.Iterable)
+    return isinstance(i, _collections.Iterable)
 
 
 def item_from_iterable_by_type(iterable, match_type):
@@ -271,7 +268,7 @@ def isempty(x):
             return x.size == 0
         if x is None: return True
         if x == '': return True
-        if len(x) == 0: return True
+        if not x: return True
     except Exception:
         assert False #how did we get here?
         return True

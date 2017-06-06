@@ -11,6 +11,7 @@ import funclib.iolib as _iolib
 
 
 class eReadAs(_Enum):
+    '''enum'''
     ersDict = 1
     ersList = 2
     ersStr = 3
@@ -61,8 +62,7 @@ class ConfigFile(object):
                 if asType != eReadAs.ersStr:
                     d = _ast.literal_eval(s)
                     return d
-                else:
-                    return s
+                return s
             else:
                 if force_create:
                     if isinstance(value_on_create, dict):

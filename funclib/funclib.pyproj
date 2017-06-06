@@ -46,13 +46,6 @@
     <Compile Include="pandaslib.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="plotlib\matplotlib-2d.py" />
-    <Compile Include="plotlib\matplotlib-3d.py" />
-    <Compile Include="plotlib\matplotliblib.py" />
-    <Compile Include="plotlib\seabornlib.py" />
-    <Compile Include="plotlib\stackedbargraph.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="pyqtlib.py">
       <SubType>Code</SubType>
     </Compile>
@@ -79,7 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="scripts\" />
-    <Folder Include="plotlib\" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />

@@ -1,12 +1,10 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''dealing with image streams, ie movies!'''
 from threading import Thread as _Thr
-#import sys as _sys
-
 from queue import Queue as _Queue
 
 import cv2 as _cv2
-
+import numpy as _np
 #from opencvlib import Log as _Log
 
 class _Frame():
@@ -158,10 +156,15 @@ class BufferedFrameGenerator():
         self.current_frame = None
 
 
-
-def play(moviefile, title='movie'):
-    '''play a movie'''
+def play(moviefile, title='movie', buffer=128):
+    '''(str, str, int|None) -> void
+    Play a movie without buffering
+    
+    title:
+        window title
+    '''
     cap = _cv2.VideoCapture(moviefile)
+
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -176,3 +179,40 @@ def play(moviefile, title='movie'):
 
     cap.release()
     _cv2.destroyAllWindows()
+
+
+
+def playb(moviefile, title='movie', buffer=128):
+    '''(str, str, int|None) -> void
+    Play a movie with buffering
+    
+    title:
+        window title
+    buffer:
+        Number of frames to buffer, if
+        None, no buffer is used
+    '''
+    #https://github.com/maximus009/VideoPlayer/blob/master/new_test_3.py
+
+
+    _cv2.namedWindow(title)
+    _cv2.moveWindow(title, 250, 150)
+    _cv2.namedWindow('controls')
+    _cv2.moveWindow('controls', 250, 50)
+
+    controls = _np.zeros((50, 750), _np.uint8)
+    _cv2.putText(controls, 'W/w: Play, S/s: Stay, A/a: Prev, D/d: Next, E/e: Fast, Q/q: Slow, Esc: Exit', (40, 20), _cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
+
+    BFG = BufferedFrameGenerator(moviefile)
+    BFG.start()
+        
+
+    while True:
+        img = BFG.read()
+        _cv2.putText(img, "Queue Size: {}".format(BFG.Q.qsize()),
+		    (10, 30), _cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)	
+
+        if img is None:
+            break
+        _cv2.imshow(title, img)
+        _cv2.waitKey(1)

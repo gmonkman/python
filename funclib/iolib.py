@@ -206,7 +206,7 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
                 return
     # if header is present, make sure it is the same length as the number of
     # cols
-    if len(header) != 0:
+    if header:
         if len(header) != num_lists:
             _sys.stderr.write(
                 'Header length did not match the number of columns, ignoring header.\n')
@@ -270,8 +270,8 @@ def get_platform():
         return 'mac'
     elif s == "win32" or s == "windows":
         return 'windows'
-    else:
-        return 'linux'
+
+    return 'linux'
 
 
 def get_file_count(paths, recurse=False):
@@ -301,8 +301,8 @@ def hasext(path, ext):
     '''
     if isinstance(ext, str):
         return get_file_parts2(path)[2] == ext
-    else:
-        return get_file_parts2(path)[2] in ext
+
+    return get_file_parts2(path)[2] in ext
 
 
 def hasdir(path, fld):
@@ -312,8 +312,8 @@ def hasdir(path, fld):
     '''
     if isinstance(path, str):
         return get_file_parts2(path)[0] == fld
-    else:
-        return get_file_parts2(path)[0] in fld
+
+    return get_file_parts2(path)[0] in fld
 
 
 def hasfile(path, fname):
@@ -323,14 +323,14 @@ def hasfile(path, fname):
     '''
     if isinstance(path, str):
         return get_file_parts2(path)[1] == fname
-    else:
-        return get_file_parts2(path)[1] in fname
+
+    return get_file_parts2(path)[1] in fname
 
 
 def drive_get_uuid(drive='C:', strip=['-'], return_when_unidentified='??'):
     '''get uuid of drive'''
     drive = _os.popen('vol %s' % drive).readlines()[1].split()[-1]
-    if len(drive) == 0:
+    if not drive:
         drive = return_when_unidentified
 
     for char in strip:
@@ -405,8 +405,8 @@ def get_drive_from_uuid(uuid, strip=['-']):
         return drives[uuid]
     elif uuid.lower() in drives:
         return drives[uuid]
-    else:
-        return None
+
+    return None
 
 
 def folder_generator(paths):
@@ -612,16 +612,16 @@ def file_exists(file_name):
     '''
     if isinstance(file_name, str):
         return _os.path.isfile(fixp(file_name))
-    else:
-        return False
+
+    return False
 
 
 def folder_exists(folder_name):
     '''check if folder exists'''
     if isinstance(folder_name, str):
         return _os.path.exists(fixp(folder_name))
-    else:
-        return False
+
+    return False
 
 
 def create_folder(folder_name):

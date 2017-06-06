@@ -1,4 +1,4 @@
-# pylint: disable=redefined-variable-type
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 """
 Wrapper for executing system commands and returning the result as a string.
 """

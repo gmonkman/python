@@ -2,9 +2,9 @@
 <CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
   <CodeSnippet Format="1.0.0">
     <Header>
-      <Title>unittest</Title>
-      <Shortcut>unittest</Shortcut>
-      <Description>unit test module</Description>
+      <Title>unittest_with_image</Title>
+      <Shortcut>unittesti</Shortcut>
+      <Description>unit test template, with image init</Description>
       <Author>Graham Monkman</Author>
       <SnippetTypes>
         <SnippetType>Expansion</SnippetType>
@@ -21,6 +21,9 @@
 import unittest
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
+
+import cv2
+
 import funclib.iolib as iolib
 
 class Test(unittest.TestCase):
@@ -31,11 +34,14 @@ class Test(unittest.TestCase):
         '''
         self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
         self.modpath = _path.normpath(self.pth)
+        self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
+        self.I = cv2.imread(self.imgpath)
 
 
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_func(self):
+        '''test'''
 
 
 

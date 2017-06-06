@@ -50,7 +50,6 @@ def col_append_rand_fill(df, col_name, lower=0, upper=1):
     df is BYREF
     adds a column to dataframe filling it with random values from a standard normal
     '''
-    # TODO Untested
     df[col_name] = _np.random.choice(range(lower, upper), df.shape[0])
 
 
@@ -106,8 +105,7 @@ def col_index(df, col_name):
     '''
     if col_exists(df, col_name):
         return df.columns.get_loc(col_name)
-    else:
-        return None
+    return None
 
 
 def cols_get_indexes_from_names(df, *args):

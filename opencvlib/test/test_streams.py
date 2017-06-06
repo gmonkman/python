@@ -4,7 +4,7 @@ from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 
 import cv2
-#import numpy as np
+
 
 
 import opencvlib.streams as streams
@@ -28,7 +28,6 @@ class Test(unittest.TestCase):
         BFG = streams.BufferedFrameGenerator(self.streampath)
         BFG.start()
         
-
         while True:
             img = BFG.read()
             cv2.putText(img, "Queue Size: {}".format(BFG.Q.qsize()),
@@ -38,8 +37,9 @@ class Test(unittest.TestCase):
                 break
             cv2.imshow('Frame', img)
             cv2.waitKey(1)
+        raise ValueError
 
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)

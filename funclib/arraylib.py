@@ -73,8 +73,7 @@ def _focal_mean_filter(arg):
     '''
     if _np.isnan(arg[4]):
         return _np.NaN
-    else:
-        return _np.nanmean(arg)
+    return _np.nanmean(arg)
 
 
 def np_focal_mean(a, pad=True):
