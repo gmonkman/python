@@ -30,10 +30,10 @@ class KeyBoardInput():
         'return', 'backspace', 'escape',
         'tab', 'space', 'unknowable', 'none'
     '''
-    key_dic = _Vis.ord_dict()
+    _key_dic = _Vis.ord_dict()
     
-    for v in eSpecialKeys:
-        key_dic[v.value] = v.name
+    for _v in eSpecialKeys:
+        _key_dic[_v.value] = _v.name
 
 
     @staticmethod
@@ -58,7 +58,7 @@ class KeyBoardInput():
         '''
         if is_raw:
             i = waitkeyval & 255
-        return KeyBoardInput.key_dic[i]
+        return KeyBoardInput._key_dic[i]
 
 
     @staticmethod

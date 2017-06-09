@@ -27,7 +27,15 @@ class Test(unittest.TestCase):
     def test_func(self):
         '''testfunc'''
         SW = stopwatch.StopWatch(event_name='test')
-        time.sleep(0.5)    
+        time.sleep(3)
+        SW.lap(3)
+        self.assertAlmostEqual(SW.event_rate, 1, places=2)
+        print(SW.Times[-1])
+        time.sleep(7)
+        SW.lap(97) #time 10secs, ticks 100
+        self.assertAlmostEqual(SW.event_rate, 7/97, places=2)
+        self.assertAlmostEqual(SW.event_rate_global, 10/100, places=2)
+
         for dummy in range(10):
             SW.lap(10)
             time.sleep(0.5)

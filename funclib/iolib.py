@@ -10,6 +10,7 @@ import os as _os
 import time as _time
 import shutil as _shutil
 import string as _string
+import tempfile as _tempfile
 
 try:
     import cPickle as _pickle
@@ -240,6 +241,16 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
 
 
 # region file system
+def temp_folder(subfolder=''):
+    '''Returns a folder in the users temporary space.
+    subfolder:
+        if !== '': create the defined subfolder
+        otherwise uses a datetime stamp
+    '''   
+    fld = datetime_stamp() if subfolder == '' else subfolder
+    return _os.path.normpath(_os.path.join(_tempfile.gettempdir(), fld))
+
+
 def datetime_stamp(datetimesep=''):
     '''(str) -> str
     Returns clean date-_time stamp for file names etc

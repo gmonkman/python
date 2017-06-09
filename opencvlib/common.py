@@ -90,6 +90,15 @@ def mtx2rvec(R):
 
 
 def draw_str(dst, target, s):
+    '''(ndarray, 2:tuple, str) -> void
+    Draw text on dst - ByRef
+
+    dst:
+        Image to draw text on, byref
+    target:
+        draw text on dst at these coordinates.
+        tuple is (x, y)
+    '''
     x, y = target
     cv2.putText(dst, s, (x + 1, y + 1), cv2.FONT_HERSHEY_PLAIN,
                 1.0, (0, 0, 0), thickness=2, lineType=cv2.LINE_AA)

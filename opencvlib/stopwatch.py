@@ -58,14 +58,32 @@ class _StopWatchInterval():
 
 
 class StopWatch():
-    '''Create a queue of lapped times'''
+    '''
+    Provides access to timed metrics
+    using a stopwatch like operation
+    and access to a queue of lapped times.
+
+    Provides smoothed estimates.
+
+    lap:
+            snapshot the time
+    '''
     def __init__(self, qsize=5, event_name=''):
-        self.birth_time = _clock()
-        self.Times = _deque(maxlen=qsize)
+        self.qsize = qsize
         self._event_name = event_name
-        self.firstInterval = _StopWatchInterval(0, None, self._event_name)
-        self._prevInterval = self.firstInterval
-        self.Times.append(self.firstInterval)
+        self.reset()    
+        self._prevInterval = None
+
+    def reset(self):
+        '''reset the stopwatch,
+        Clears the queue, and
+        sets birth_time to current system ticks
+        '''
+        self.Times = _deque(maxlen=self.qsize)
+        self._birth_time = _clock()
+        self._firstInterval = _StopWatchInterval(0, None, self._event_name)
+        self._prevInterval = self._firstInterval
+        self.Times.append(self._firstInterval)
 
 
     def lap(self, event_ticks=1):
@@ -81,6 +99,13 @@ class StopWatch():
         self._prevInterval = Int
 
     
+    @property
+    def birth_time(self):
+        '''birth_time getter'''
+        return self._birth_time
+
+
+    @property
     def event_rate(self):
         '''(void) -> float
         Get the latest "raw" rate.
@@ -90,6 +115,7 @@ class StopWatch():
         return t.event_rate
 
 
+    @property
     def event_rate_smoothed(self):
         '''(void) -> float
         Get the latest smoothed rate.
@@ -99,6 +125,7 @@ class StopWatch():
         return t.event_rate
 
 
+    @property
     def event_rate_global(self):
         '''(void) -> float
         Get rate over the
@@ -106,11 +133,21 @@ class StopWatch():
         '''
         t = self.Times[-1]
         assert isinstance(t, _StopWatchInterval)
-        return (t.time - self.birth_time)/t.running_event_ticks
+        return (t.time - self._birth_time)/t.running_event_ticks
 
-   
+    
+    @property
     def laptime(self):
         '''(void) -> float
         Get last "laptime".
         '''
         return self.Times[-1].laptime
+
+
+    def __repr__(self):
+        if self.Times:
+            s = str(self.Times[-1])
+            s = 'Birth time %s. Last "lap":%s' % (self._birth_time, s)
+        else:
+            s = 'Birth time %s. No laps.' % self._birth_time
+        return s
