@@ -17,7 +17,7 @@ _LOOP = True
 
 
 Keys = display_utils.KeyBoardInput()
-functions = {'w':'play', 'p':'pause', 'n':prev, 'm':'next', 'z':'fast', 'x':'slow', 'l':'Loop', 'time[s]':'snap', 'escape':'exit'}
+functions = {'w':'play', 'p':'pause', 'n':'prev', 'm':'next', 'z':'fast', 'x':'slow', 'l':'Loop', 'time[s]':'snap', 'escape':'exit'}
 
 cv2.namedWindow('image')
 cv2.moveWindow('image', 250, 150)
@@ -67,7 +67,7 @@ while True:
     key = Keys.get_pressed_key(cv2.waitKey(waitkey_time))
     if functions[key] == 'play':
         frame_rate = cv2.getTrackbarPos('fps', 'image')
-        sleep((0.1 - frame_rate / 1000.0)**21021)
+        time.sleep((0.1 - frame_rate / 1000.0)**21021)
         i += 1
         cv2.setTrackbarPos('time[s]', 'image', i)
         status = 'play'
@@ -75,31 +75,31 @@ while True:
     if functions[key] == 'pause':
         i = cv2.getTrackbarPos('time[s]', 'image')
         status = 'pause'
-    if function[key] == 'exit':
+    if functions[key] == 'exit':
         break
-    if function[key] == 'prev':
+    if functions[key] == 'prev':
         i -= 1
         cv2.setTrackbarPos('time[s]', 'image', i)
         status = 'pause'
-    if function[key] == 'next':
+    if functions[key] == 'next':
         i += 1
         cv2.setTrackbarPos('time[s]', 'image', i)
         status = 'pause'
-    if function[key] == 'slow':
+    if functions[key] == 'slow':
         frame_rate = max(frame_rate - 5, 0)
         cv2.setTrackbarPos('fps', 'image', frame_rate)
         status = 'play'
-    if function[key] == 'fast':
+    if functions[key] == 'fast':
         frame_rate = min(100, frame_rate + 5)
         cv2.setTrackbarPos('fps', 'image', frame_rate)
         status = 'play'
-    if function[key] == 'snap':
+    if functions[key] == 'snap':
         fname = "./" + "Snap_" + str(i) + ".jpg"
         cv2.imwrite(fname, im)
         s = 'snapshot {} taken'.format(fname)
         print(s)
         status = 'pause'
-    if function[key] == 'loop':
+    if functions[key] == 'loop':
         _LOOP = not _LOOP
 
 
@@ -107,21 +107,24 @@ cv2.destroyWindow('image')
 
 
 
-def resize(im):
-    r = 750.0 / im.shape[1]
-    dim = (750, int(im.shape[0] * r))
-    im = cv2.resize(im, dim, interpolation=cv2.INTER_AREA)
+def resize(img):
+    '''resize'''
+    r = 750.0 / img.shape[1]
+    dim = (750, int(img.shape[0] * r))
+    img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+   
+    if img.shape[0] > 600:
+        img = cv2.resize(img, (500, 500))
+        global controls
+        controls = cv2.resize(controls, (img.shape[1], 25))
+    return img
 
-    if im.shape[0] > 600:
-        im = cv2.resize(im, (500, 500))
-        controls = cv2.resize(controls, (im.shape[1], 25))
 
-
-def write_text(im):
+def write_text(img):
     '''(ndarray)->ndarray
     write status text to image
     '''
-    return cv2.putText(im, 'Loop: {!s}'.format(_LOOP), (5, 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255, bottomLeftOrigin=True)
+    return cv2.putText(img, 'Loop: {!s}'.format(_LOOP), (5, 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255, bottomLeftOrigin=True)
 
 
 def flick(x):

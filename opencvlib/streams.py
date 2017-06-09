@@ -15,7 +15,8 @@ class _Frame():
 
 
 class BufferedFrameGenerator():
-    '''yeild frames
+    '''yield frames using a buffer
+    and threading
     '''
     def __init__(self, filepath, queue_size=128):
         '''(str) -> void
@@ -156,7 +157,7 @@ class BufferedFrameGenerator():
         self.current_frame = None
 
 
-def play(moviefile, title='movie', buffer=128):
+def play(moviefile, title='movie'):
     '''(str, str, int|None) -> void
     Play a movie without buffering
     

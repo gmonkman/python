@@ -23,6 +23,10 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "joshi", "..\joshi\joshi.pyp
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "plotlib", "..\plotlib\plotlib.pyproj", "{008BC738-5450-45B4-9D24-61DE8A3B0096}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "scripts", "..\scripts\scripts.pyproj", "{8BFE2BB3-3712-45C1-8B9F-010AC3D0B523}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "cv2samples", "..\cv2samples\python\cv2samples.pyproj", "{83CAD8DF-8C5E-4D72-9D29-726091B50AC3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +47,10 @@ Global
 		{F324C9B2-58CD-4696-AF8E-64EE52F96A99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{008BC738-5450-45B4-9D24-61DE8A3B0096}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{008BC738-5450-45B4-9D24-61DE8A3B0096}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BFE2BB3-3712-45C1-8B9F-010AC3D0B523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BFE2BB3-3712-45C1-8B9F-010AC3D0B523}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83CAD8DF-8C5E-4D72-9D29-726091B50AC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83CAD8DF-8C5E-4D72-9D29-726091B50AC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

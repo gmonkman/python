@@ -70,11 +70,25 @@ class Transforms():
     '''
     def __init__(self, img=None, *args):
         '''(str|ndarray, Transform(s))
+
+        Transforms can be queued before
+        setting img.
         '''
         self.img = _getimg(img)
         self.img_transformed = None
         self.tQueue = []
         self.tQueue.extend(args)
+    
+    
+    def __call__(self, img=None, execute=True):
+        '''(str|ndarray) -> void
+        Set image if not done previously
+        '''
+        if not img is None:
+            self.img = _getimg(img)
+        
+        if execute:
+            self.executeQueue()
 
 
     def add(self, *args):

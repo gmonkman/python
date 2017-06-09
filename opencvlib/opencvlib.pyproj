@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_display_utils.py</StartupFile>
+    <StartupFile>test\test_stopwatch.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -35,12 +35,17 @@
     <Compile Include="classifiers.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="common.py" />
     <Compile Include="display_utils.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="player.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_streams\play.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="stopwatch.py" />
     <Compile Include="test\imgpipes\test_digikamlib.py">
       <SubType>Code</SubType>
     </Compile>
@@ -59,6 +64,10 @@
     <Compile Include="test\imgpipes\test_vgg.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\test_stopwatch.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="video.py" />
     <Compile Include="view.py">
       <SubType>Code</SubType>
     </Compile>

@@ -1,0 +1,945 @@
+{
+  {
+    "name": ".gitignore",
+    "path": "samples/python/.gitignore",
+    "sha": "e449f6968a9de09b7bb4d4af3d6841a1ca9ae634",
+    "size": 119,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/.gitignore?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/.gitignore",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/e449f6968a9de09b7bb4d4af3d6841a1ca9ae634",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/.gitignore",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/.gitignore?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/e449f6968a9de09b7bb4d4af3d6841a1ca9ae634",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/.gitignore"
+    }
+  },
+  {
+    "name": "CMakeLists.txt",
+    "path": "samples/python/CMakeLists.txt",
+    "sha": "31c2bd1893f7b2b9466aa1c506a782841131de27",
+    "size": 238,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/CMakeLists.txt?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/CMakeLists.txt",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/31c2bd1893f7b2b9466aa1c506a782841131de27",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/CMakeLists.txt",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/CMakeLists.txt?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/31c2bd1893f7b2b9466aa1c506a782841131de27",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/CMakeLists.txt"
+    }
+  },
+  {
+    "name": "_coverage.py",
+    "path": "samples/python/_coverage.py",
+    "sha": "5ec3e18a92aacd102a4f1771ddbee9880630f045",
+    "size": 794,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/_coverage.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/_coverage.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/5ec3e18a92aacd102a4f1771ddbee9880630f045",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/_coverage.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/_coverage.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/5ec3e18a92aacd102a4f1771ddbee9880630f045",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/_coverage.py"
+    }
+  },
+  {
+    "name": "_doc.py",
+    "path": "samples/python/_doc.py",
+    "sha": "5a2a81bcc369541ea0798518fa780e31a66c119e",
+    "size": 573,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/_doc.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/_doc.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/5a2a81bcc369541ea0798518fa780e31a66c119e",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/_doc.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/_doc.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/5a2a81bcc369541ea0798518fa780e31a66c119e",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/_doc.py"
+    }
+  },
+  {
+    "name": "_run_winpack_demo_python27.cmd",
+    "path": "samples/python/_run_winpack_demo_python27.cmd",
+    "sha": "a4a65184b548040e68e68e1005631e9c477257f8",
+    "size": 1015,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/_run_winpack_demo_python27.cmd?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/_run_winpack_demo_python27.cmd",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/a4a65184b548040e68e68e1005631e9c477257f8",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/_run_winpack_demo_python27.cmd",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/_run_winpack_demo_python27.cmd?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/a4a65184b548040e68e68e1005631e9c477257f8",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/_run_winpack_demo_python27.cmd"
+    }
+  },
+  {
+    "name": "asift.py",
+    "path": "samples/python/asift.py",
+    "sha": "ec74930c5697cd19be0588e79c1ee4e38278c198",
+    "size": 5316,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/asift.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/asift.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/ec74930c5697cd19be0588e79c1ee4e38278c198",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/asift.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/asift.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/ec74930c5697cd19be0588e79c1ee4e38278c198",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/asift.py"
+    }
+  },
+  {
+    "name": "browse.py",
+    "path": "samples/python/browse.py",
+    "sha": "317a8db11be12d78d04a237c1dd54d71e0ce257f",
+    "size": 1506,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/browse.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/browse.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/317a8db11be12d78d04a237c1dd54d71e0ce257f",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/browse.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/browse.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/317a8db11be12d78d04a237c1dd54d71e0ce257f",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/browse.py"
+    }
+  },
+  {
+    "name": "calibrate.py",
+    "path": "samples/python/calibrate.py",
+    "sha": "00dfe57fe6984f2087311b0e56fb6e6042b6dc1e",
+    "size": 3313,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/calibrate.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/calibrate.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/00dfe57fe6984f2087311b0e56fb6e6042b6dc1e",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/calibrate.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/calibrate.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/00dfe57fe6984f2087311b0e56fb6e6042b6dc1e",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/calibrate.py"
+    }
+  },
+  {
+    "name": "camshift.py",
+    "path": "samples/python/camshift.py",
+    "sha": "d55c1ac76c647b95ccea2a0f1ca817dc32e72246",
+    "size": 3982,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/camshift.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/camshift.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/d55c1ac76c647b95ccea2a0f1ca817dc32e72246",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/camshift.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/camshift.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/d55c1ac76c647b95ccea2a0f1ca817dc32e72246",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/camshift.py"
+    }
+  },
+  {
+    "name": "coherence.py",
+    "path": "samples/python/coherence.py",
+    "sha": "a1e34b86f45f7a01bf9d4b8d8595647fbabdff7a",
+    "size": 2303,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/coherence.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/coherence.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/a1e34b86f45f7a01bf9d4b8d8595647fbabdff7a",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/coherence.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/coherence.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/a1e34b86f45f7a01bf9d4b8d8595647fbabdff7a",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/coherence.py"
+    }
+  },
+  {
+    "name": "color_histogram.py",
+    "path": "samples/python/color_histogram.py",
+    "sha": "c1e5d56e4c816bf6adccdfcf1f47fb5584cfa9d3",
+    "size": 1366,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/color_histogram.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/color_histogram.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/c1e5d56e4c816bf6adccdfcf1f47fb5584cfa9d3",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/color_histogram.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/color_histogram.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/c1e5d56e4c816bf6adccdfcf1f47fb5584cfa9d3",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/color_histogram.py"
+    }
+  },
+  {
+    "name": "common.py",
+    "path": "samples/python/common.py",
+    "sha": "09159bbe8cdca1a4de71a7c71c8d5335a853e7da",
+    "size": 6701,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/common.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/common.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/09159bbe8cdca1a4de71a7c71c8d5335a853e7da",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/common.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/common.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/09159bbe8cdca1a4de71a7c71c8d5335a853e7da",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/common.py"
+    }
+  },
+  {
+    "name": "contours.py",
+    "path": "samples/python/contours.py",
+    "sha": "73b9f2f8211505dbfaca4c3e5122b648a0ebd65e",
+    "size": 2455,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/contours.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/contours.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/73b9f2f8211505dbfaca4c3e5122b648a0ebd65e",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/contours.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/contours.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/73b9f2f8211505dbfaca4c3e5122b648a0ebd65e",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/contours.py"
+    }
+  },
+  {
+    "name": "deconvolution.py",
+    "path": "samples/python/deconvolution.py",
+    "sha": "74f51a714b8021c46f7ae78b33fcf30ea545e847",
+    "size": 3752,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/deconvolution.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/deconvolution.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/74f51a714b8021c46f7ae78b33fcf30ea545e847",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/deconvolution.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/deconvolution.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/74f51a714b8021c46f7ae78b33fcf30ea545e847",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/deconvolution.py"
+    }
+  },
+  {
+    "name": "demo.py",
+    "path": "samples/python/demo.py",
+    "sha": "81c6a8590b4cdf036679d580ddf858a491a7ac72",
+    "size": 5542,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/demo.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/demo.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/81c6a8590b4cdf036679d580ddf858a491a7ac72",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/demo.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/demo.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/81c6a8590b4cdf036679d580ddf858a491a7ac72",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/demo.py"
+    }
+  },
+  {
+    "name": "dft.py",
+    "path": "samples/python/dft.py",
+    "sha": "4437aad646ce5e57de5d976c6226587908eab260",
+    "size": 2784,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/dft.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/dft.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/4437aad646ce5e57de5d976c6226587908eab260",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/dft.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/dft.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/4437aad646ce5e57de5d976c6226587908eab260",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/dft.py"
+    }
+  },
+  {
+    "name": "digits.py",
+    "path": "samples/python/digits.py",
+    "sha": "16d76a13b0989185233984f6feb6f9ff32ac3ccc",
+    "size": 5439,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/digits.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/digits.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/16d76a13b0989185233984f6feb6f9ff32ac3ccc",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/digits.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/digits.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/16d76a13b0989185233984f6feb6f9ff32ac3ccc",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/digits.py"
+    }
+  },
+  {
+    "name": "digits_adjust.py",
+    "path": "samples/python/digits_adjust.py",
+    "sha": "79c46d65eea0417930ee8ea7344ccaee100e1bbd",
+    "size": 4370,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/digits_adjust.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/digits_adjust.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/79c46d65eea0417930ee8ea7344ccaee100e1bbd",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/digits_adjust.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/digits_adjust.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/79c46d65eea0417930ee8ea7344ccaee100e1bbd",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/digits_adjust.py"
+    }
+  },
+  {
+    "name": "digits_video.py",
+    "path": "samples/python/digits_video.py",
+    "sha": "2f79cb5cc07e56559fc16d63e406c2d7186b74e5",
+    "size": 2989,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/digits_video.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/digits_video.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/2f79cb5cc07e56559fc16d63e406c2d7186b74e5",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/digits_video.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/digits_video.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/2f79cb5cc07e56559fc16d63e406c2d7186b74e5",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/digits_video.py"
+    }
+  },
+  {
+    "name": "distrans.py",
+    "path": "samples/python/distrans.py",
+    "sha": "8abe460eda97f202b4b8963a602e980d864862dc",
+    "size": 1538,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/distrans.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/distrans.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/8abe460eda97f202b4b8963a602e980d864862dc",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/distrans.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/distrans.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/8abe460eda97f202b4b8963a602e980d864862dc",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/distrans.py"
+    }
+  },
+  {
+    "name": "edge.py",
+    "path": "samples/python/edge.py",
+    "sha": "b597729ee9e7c5f1adebd975af61dba5d6282d13",
+    "size": 1130,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/edge.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/edge.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/b597729ee9e7c5f1adebd975af61dba5d6282d13",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/edge.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/edge.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/b597729ee9e7c5f1adebd975af61dba5d6282d13",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/edge.py"
+    }
+  },
+  {
+    "name": "facedetect.py",
+    "path": "samples/python/facedetect.py",
+    "sha": "0f79663d7bd02b0a7af03a66cd0df86ccd14b2b2",
+    "size": 2122,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/facedetect.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/facedetect.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/0f79663d7bd02b0a7af03a66cd0df86ccd14b2b2",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/facedetect.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/facedetect.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/0f79663d7bd02b0a7af03a66cd0df86ccd14b2b2",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/facedetect.py"
+    }
+  },
+  {
+    "name": "feature_homography.py",
+    "path": "samples/python/feature_homography.py",
+    "sha": "37f269f52ed271c3e12db645d612935bbbfe3c3f",
+    "size": 2798,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/feature_homography.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/feature_homography.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/37f269f52ed271c3e12db645d612935bbbfe3c3f",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/feature_homography.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/feature_homography.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/37f269f52ed271c3e12db645d612935bbbfe3c3f",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/feature_homography.py"
+    }
+  },
+  {
+    "name": "find_obj.py",
+    "path": "samples/python/find_obj.py",
+    "sha": "a77024c4c07c1be171c6d8d77bee39baaed6aba5",
+    "size": 6389,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/find_obj.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/find_obj.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/a77024c4c07c1be171c6d8d77bee39baaed6aba5",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/find_obj.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/find_obj.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/a77024c4c07c1be171c6d8d77bee39baaed6aba5",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/find_obj.py"
+    }
+  },
+  {
+    "name": "fitline.py",
+    "path": "samples/python/fitline.py",
+    "sha": "c91144c2a05672bc96b997027252879cc228d5aa",
+    "size": 2573,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/fitline.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/fitline.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/c91144c2a05672bc96b997027252879cc228d5aa",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/fitline.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/fitline.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/c91144c2a05672bc96b997027252879cc228d5aa",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/fitline.py"
+    }
+  },
+  {
+    "name": "floodfill.py",
+    "path": "samples/python/floodfill.py",
+    "sha": "1b988d3763ef61c3f84e1e5039da4e6540f9914f",
+    "size": 2007,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/floodfill.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/floodfill.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/1b988d3763ef61c3f84e1e5039da4e6540f9914f",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/floodfill.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/floodfill.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/1b988d3763ef61c3f84e1e5039da4e6540f9914f",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/floodfill.py"
+    }
+  },
+  {
+    "name": "gabor_threads.py",
+    "path": "samples/python/gabor_threads.py",
+    "sha": "f7d62c17e285b31fc918c562e0cedc71e58cede5",
+    "size": 1882,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/gabor_threads.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/gabor_threads.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/f7d62c17e285b31fc918c562e0cedc71e58cede5",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/gabor_threads.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/gabor_threads.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/f7d62c17e285b31fc918c562e0cedc71e58cede5",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/gabor_threads.py"
+    }
+  },
+  {
+    "name": "gaussian_mix.py",
+    "path": "samples/python/gaussian_mix.py",
+    "sha": "79c69fcdc198da84e335c21b3e63c216dd6462b9",
+    "size": 2079,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/gaussian_mix.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/gaussian_mix.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/79c69fcdc198da84e335c21b3e63c216dd6462b9",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/gaussian_mix.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/gaussian_mix.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/79c69fcdc198da84e335c21b3e63c216dd6462b9",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/gaussian_mix.py"
+    }
+  },
+  {
+    "name": "grabcut.py",
+    "path": "samples/python/grabcut.py",
+    "sha": "1a5c2d0b3a90e870b1d616e9caaf98dd6c866d61",
+    "size": 6462,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/grabcut.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/grabcut.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/1a5c2d0b3a90e870b1d616e9caaf98dd6c866d61",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/grabcut.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/grabcut.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/1a5c2d0b3a90e870b1d616e9caaf98dd6c866d61",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/grabcut.py"
+    }
+  },
+  {
+    "name": "hist.py",
+    "path": "samples/python/hist.py",
+    "sha": "d1801c7e1b607fb143a24f5c58aa6f7804de6c53",
+    "size": 3653,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/hist.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/hist.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/d1801c7e1b607fb143a24f5c58aa6f7804de6c53",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/hist.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/hist.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/d1801c7e1b607fb143a24f5c58aa6f7804de6c53",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/hist.py"
+    }
+  },
+  {
+    "name": "houghcircles.py",
+    "path": "samples/python/houghcircles.py",
+    "sha": "c766c1cab28d1799ad07d8a6349890365fa4c385",
+    "size": 1189,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/houghcircles.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/houghcircles.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/c766c1cab28d1799ad07d8a6349890365fa4c385",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/houghcircles.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/houghcircles.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/c766c1cab28d1799ad07d8a6349890365fa4c385",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/houghcircles.py"
+    }
+  },
+  {
+    "name": "houghlines.py",
+    "path": "samples/python/houghlines.py",
+    "sha": "76e074cb1b1d6bc4b2654abde256b52312c45f59",
+    "size": 1512,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/houghlines.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/houghlines.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/76e074cb1b1d6bc4b2654abde256b52312c45f59",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/houghlines.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/houghlines.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/76e074cb1b1d6bc4b2654abde256b52312c45f59",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/houghlines.py"
+    }
+  },
+  {
+    "name": "inpaint.py",
+    "path": "samples/python/inpaint.py",
+    "sha": "3b738bb1419a7280785e3167ae1e9bd89caedb3d",
+    "size": 1137,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/inpaint.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/inpaint.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/3b738bb1419a7280785e3167ae1e9bd89caedb3d",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/inpaint.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/inpaint.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/3b738bb1419a7280785e3167ae1e9bd89caedb3d",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/inpaint.py"
+    }
+  },
+  {
+    "name": "kalman.py",
+    "path": "samples/python/kalman.py",
+    "sha": "96a6fa6fe48d2f2d27c55aac698f8ae9ec5fb650",
+    "size": 3318,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/kalman.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/kalman.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/96a6fa6fe48d2f2d27c55aac698f8ae9ec5fb650",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/kalman.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/kalman.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/96a6fa6fe48d2f2d27c55aac698f8ae9ec5fb650",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/kalman.py"
+    }
+  },
+  {
+    "name": "kmeans.py",
+    "path": "samples/python/kmeans.py",
+    "sha": "0fdc759b4e6220b08cf80f9b2565a79305c6d72b",
+    "size": 1211,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/kmeans.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/kmeans.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/0fdc759b4e6220b08cf80f9b2565a79305c6d72b",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/kmeans.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/kmeans.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/0fdc759b4e6220b08cf80f9b2565a79305c6d72b",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/kmeans.py"
+    }
+  },
+  {
+    "name": "lappyr.py",
+    "path": "samples/python/lappyr.py",
+    "sha": "c68e5e8126eefb0d2d21fe9348ed1d6de27de041",
+    "size": 1654,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/lappyr.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/lappyr.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/c68e5e8126eefb0d2d21fe9348ed1d6de27de041",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/lappyr.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/lappyr.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/c68e5e8126eefb0d2d21fe9348ed1d6de27de041",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/lappyr.py"
+    }
+  },
+  {
+    "name": "letter_recog.py",
+    "path": "samples/python/letter_recog.py",
+    "sha": "7d0c43764790f75ce78ee92303f6da42310f91ac",
+    "size": 6282,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/letter_recog.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/letter_recog.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/7d0c43764790f75ce78ee92303f6da42310f91ac",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/letter_recog.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/letter_recog.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/7d0c43764790f75ce78ee92303f6da42310f91ac",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/letter_recog.py"
+    }
+  },
+  {
+    "name": "lk_homography.py",
+    "path": "samples/python/lk_homography.py",
+    "sha": "8cc3b695a79c09a57f34393355eecf7f5a583427",
+    "size": 3741,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/lk_homography.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/lk_homography.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/8cc3b695a79c09a57f34393355eecf7f5a583427",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/lk_homography.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/lk_homography.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/8cc3b695a79c09a57f34393355eecf7f5a583427",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/lk_homography.py"
+    }
+  },
+  {
+    "name": "lk_track.py",
+    "path": "samples/python/lk_track.py",
+    "sha": "ffa7dfa24838f23395e329f073be3df7cb8be628",
+    "size": 3148,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/lk_track.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/lk_track.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/ffa7dfa24838f23395e329f073be3df7cb8be628",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/lk_track.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/lk_track.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/ffa7dfa24838f23395e329f073be3df7cb8be628",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/lk_track.py"
+    }
+  },
+  {
+    "name": "logpolar.py",
+    "path": "samples/python/logpolar.py",
+    "sha": "fdf03f3f809cc29185bffa1f004b87763a930a2e",
+    "size": 772,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/logpolar.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/logpolar.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/fdf03f3f809cc29185bffa1f004b87763a930a2e",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/logpolar.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/logpolar.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/fdf03f3f809cc29185bffa1f004b87763a930a2e",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/logpolar.py"
+    }
+  },
+  {
+    "name": "morphology.py",
+    "path": "samples/python/morphology.py",
+    "sha": "0b62784d2f8d1c4ba1ac7c9e2979c1d5eeb1d866",
+    "size": 2448,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/morphology.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/morphology.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/0b62784d2f8d1c4ba1ac7c9e2979c1d5eeb1d866",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/morphology.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/morphology.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/0b62784d2f8d1c4ba1ac7c9e2979c1d5eeb1d866",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/morphology.py"
+    }
+  },
+  {
+    "name": "mosse.py",
+    "path": "samples/python/mosse.py",
+    "sha": "816c8e4238140354ed291745656b472572fe1a94",
+    "size": 6425,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/mosse.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/mosse.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/816c8e4238140354ed291745656b472572fe1a94",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/mosse.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/mosse.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/816c8e4238140354ed291745656b472572fe1a94",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/mosse.py"
+    }
+  },
+  {
+    "name": "mouse_and_match.py",
+    "path": "samples/python/mouse_and_match.py",
+    "sha": "f75b64cabfa159bdc8ddaabda49077b8a4447c5b",
+    "size": 2757,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/mouse_and_match.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/mouse_and_match.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/f75b64cabfa159bdc8ddaabda49077b8a4447c5b",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/mouse_and_match.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/mouse_and_match.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/f75b64cabfa159bdc8ddaabda49077b8a4447c5b",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/mouse_and_match.py"
+    }
+  },
+  {
+    "name": "mser.py",
+    "path": "samples/python/mser.py",
+    "sha": "1c5c69bd9afe32ab4796e1ee81e1c4530c1a3948",
+    "size": 817,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/mser.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/mser.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/1c5c69bd9afe32ab4796e1ee81e1c4530c1a3948",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/mser.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/mser.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/1c5c69bd9afe32ab4796e1ee81e1c4530c1a3948",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/mser.py"
+    }
+  },
+  {
+    "name": "opencv_version.py",
+    "path": "samples/python/opencv_version.py",
+    "sha": "b26b55c1dd2186c904030bed3e86e29ef35639e8",
+    "size": 649,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/opencv_version.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/opencv_version.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/b26b55c1dd2186c904030bed3e86e29ef35639e8",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/opencv_version.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/opencv_version.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/b26b55c1dd2186c904030bed3e86e29ef35639e8",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/opencv_version.py"
+    }
+  },
+  {
+    "name": "opt_flow.py",
+    "path": "samples/python/opt_flow.py",
+    "sha": "3d4ef34dc213f7d14845005079c35c2fdf8efe0e",
+    "size": 2532,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/opt_flow.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/opt_flow.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/3d4ef34dc213f7d14845005079c35c2fdf8efe0e",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/opt_flow.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/opt_flow.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/3d4ef34dc213f7d14845005079c35c2fdf8efe0e",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/opt_flow.py"
+    }
+  },
+  {
+    "name": "peopledetect.py",
+    "path": "samples/python/peopledetect.py",
+    "sha": "84db09639ef885d4bd12da6f9a3a5bfb8f0fa91f",
+    "size": 2011,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/peopledetect.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/peopledetect.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/84db09639ef885d4bd12da6f9a3a5bfb8f0fa91f",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/peopledetect.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/peopledetect.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/84db09639ef885d4bd12da6f9a3a5bfb8f0fa91f",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/peopledetect.py"
+    }
+  },
+  {
+    "name": "plane_ar.py",
+    "path": "samples/python/plane_ar.py",
+    "sha": "8994833c0933d47daa68814b9672a7fc6a4e905d",
+    "size": 3653,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/plane_ar.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/plane_ar.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/8994833c0933d47daa68814b9672a7fc6a4e905d",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/plane_ar.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/plane_ar.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/8994833c0933d47daa68814b9672a7fc6a4e905d",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/plane_ar.py"
+    }
+  },
+  {
+    "name": "plane_tracker.py",
+    "path": "samples/python/plane_tracker.py",
+    "sha": "e285c085d7add165c06e76c31797e17ec4ed444e",
+    "size": 6018,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/plane_tracker.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/plane_tracker.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/e285c085d7add165c06e76c31797e17ec4ed444e",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/plane_tracker.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/plane_tracker.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/e285c085d7add165c06e76c31797e17ec4ed444e",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/plane_tracker.py"
+    }
+  },
+  {
+    "name": "squares.py",
+    "path": "samples/python/squares.py",
+    "sha": "be28f1a3e7010222577a3b763be1a703710c04d4",
+    "size": 1772,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/squares.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/squares.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/be28f1a3e7010222577a3b763be1a703710c04d4",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/squares.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/squares.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/be28f1a3e7010222577a3b763be1a703710c04d4",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/squares.py"
+    }
+  },
+  {
+    "name": "stereo_match.py",
+    "path": "samples/python/stereo_match.py",
+    "sha": "1f67330153129a6e589087f4132b1fe3f2454bb5",
+    "size": 2303,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/stereo_match.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/stereo_match.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/1f67330153129a6e589087f4132b1fe3f2454bb5",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/stereo_match.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/stereo_match.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/1f67330153129a6e589087f4132b1fe3f2454bb5",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/stereo_match.py"
+    }
+  },
+  {
+    "name": "texture_flow.py",
+    "path": "samples/python/texture_flow.py",
+    "sha": "fe835fbe505430c8322bcb68b3475ebd8fde0182",
+    "size": 1130,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/texture_flow.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/texture_flow.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/fe835fbe505430c8322bcb68b3475ebd8fde0182",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/texture_flow.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/texture_flow.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/fe835fbe505430c8322bcb68b3475ebd8fde0182",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/texture_flow.py"
+    }
+  },
+  {
+    "name": "tst_scene_render.py",
+    "path": "samples/python/tst_scene_render.py",
+    "sha": "ce956f59d233111c2be342a38fe02e0bb289fd1c",
+    "size": 3779,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/tst_scene_render.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/tst_scene_render.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/ce956f59d233111c2be342a38fe02e0bb289fd1c",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/tst_scene_render.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/tst_scene_render.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/ce956f59d233111c2be342a38fe02e0bb289fd1c",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/tst_scene_render.py"
+    }
+  },
+  {
+    "name": "turing.py",
+    "path": "samples/python/turing.py",
+    "sha": "5733d056bd9ed494599a0e70f2c25d6d38e5b2f2",
+    "size": 1815,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/turing.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/turing.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/5733d056bd9ed494599a0e70f2c25d6d38e5b2f2",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/turing.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/turing.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/5733d056bd9ed494599a0e70f2c25d6d38e5b2f2",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/turing.py"
+    }
+  },
+  {
+    "name": "tutorial_code",
+    "path": "samples/python/tutorial_code",
+    "sha": "07ec0c181ef828c1a3512ab9b4f874a031e27e23",
+    "size": 0,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/tutorial_code?ref=master",
+    "html_url": "https://github.com/opencv/opencv/tree/master/samples/python/tutorial_code",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/trees/07ec0c181ef828c1a3512ab9b4f874a031e27e23",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/tutorial_code?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/trees/07ec0c181ef828c1a3512ab9b4f874a031e27e23",
+      "html": "https://github.com/opencv/opencv/tree/master/samples/python/tutorial_code"
+    }
+  },
+  {
+    "name": "video.py",
+    "path": "samples/python/video.py",
+    "sha": "be15641b11add1b40531610370cb652d3b754dd6",
+    "size": 7065,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/video.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/video.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/be15641b11add1b40531610370cb652d3b754dd6",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/video.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/video.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/be15641b11add1b40531610370cb652d3b754dd6",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/video.py"
+    }
+  },
+  {
+    "name": "video_threaded.py",
+    "path": "samples/python/video_threaded.py",
+    "sha": "896a5c3e9995c5b229c5724385f3327b0dcd8436",
+    "size": 2358,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/video_threaded.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/video_threaded.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/896a5c3e9995c5b229c5724385f3327b0dcd8436",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/video_threaded.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/video_threaded.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/896a5c3e9995c5b229c5724385f3327b0dcd8436",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/video_threaded.py"
+    }
+  },
+  {
+    "name": "video_v4l2.py",
+    "path": "samples/python/video_v4l2.py",
+    "sha": "0af68e5d9d155d58dd9eda8ea091ab4cf17abef3",
+    "size": 1962,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/video_v4l2.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/video_v4l2.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/0af68e5d9d155d58dd9eda8ea091ab4cf17abef3",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/video_v4l2.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/video_v4l2.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/0af68e5d9d155d58dd9eda8ea091ab4cf17abef3",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/video_v4l2.py"
+    }
+  },
+  {
+    "name": "watershed.py",
+    "path": "samples/python/watershed.py",
+    "sha": "30be82cf0ca1605479a173e87f00444bf6c6dd25",
+    "size": 2355,
+    "url": "https://api.github.com/repos/opencv/opencv/contents/samples/python/watershed.py?ref=master",
+    "html_url": "https://github.com/opencv/opencv/blob/master/samples/python/watershed.py",
+    "git_url": "https://api.github.com/repos/opencv/opencv/git/blobs/30be82cf0ca1605479a173e87f00444bf6c6dd25",
+    "download_url": "https://raw.githubusercontent.com/opencv/opencv/master/samples/python/watershed.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/opencv/opencv/contents/samples/python/watershed.py?ref=master",
+      "git": "https://api.github.com/repos/opencv/opencv/git/blobs/30be82cf0ca1605479a173e87f00444bf6c6dd25",
+      "html": "https://github.com/opencv/opencv/blob/master/samples/python/watershed.py"
+    }
+  }

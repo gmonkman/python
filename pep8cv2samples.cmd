@@ -1,0 +1,1 @@
+C:\DEVELO~1\python\pep8me.cmd "c:/development/python/cv2samples"
