@@ -7,7 +7,7 @@ import os.path as _path
 
 import opencvlib.player as player
 import funclib.iolib as _iolib
-
+import opencvlib.transforms as transforms
 
 class Test(unittest.TestCase):
     '''unittest for streams'''
@@ -23,7 +23,10 @@ class Test(unittest.TestCase):
 
     def test(self):
         '''test'''
-        P = player.MultiProcessStream(self.streampath)
+        T = transforms.Transforms()
+        T.add(transforms.Transform(transforms.equalize_adapthist))
+        P = player.MultiProcessStream(self.streampath, T)
+
         P.play()
 
 

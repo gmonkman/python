@@ -23,6 +23,9 @@ from opencvlib.keypoints import printkp
 from plotlib.qplot import histo, scatter
 
 testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'
+testmovie = 'C:/development/python/opencvlib/test/bin/movie/test-mpeg_512kb.mp4'
+
+
 I = cv2.imread(testimg, -1)
 Ibw = cv2.cvtColor(I, cv2.COLOR_BGR2GRAY,0) #blackwhite version
 Isk = skimread(testimg)

@@ -98,7 +98,7 @@ class Transforms():
 
         Transforms are executed FIFO when executeQueue is invoked
         '''
-        s = 'Queued transforms ' + ' '.join([f.__name__ for f in args])
+        s = 'Queued transforms ' + ' '.join([f._func.__name__ for f in args])
         _Log.info(s)
         self.tQueue.extend(args)
 
