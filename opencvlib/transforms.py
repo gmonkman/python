@@ -1,6 +1,5 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access
 '''transforms on an image which return an image'''
-
 import cv2 as _cv2
 import numpy as _np
 

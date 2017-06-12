@@ -67,6 +67,8 @@ class StopWatch():
 
     lap:
             snapshot the time
+
+    All times are seconds.
     '''
     def __init__(self, qsize=5, event_name=''):
         self.qsize = qsize
@@ -98,7 +100,17 @@ class StopWatch():
         self.Times.append(Int)
         self._prevInterval = Int
 
+
+    @property 
+    def run_time(self):
+        ''' -> float
+        Returns:
+            Time elapsed in seconds
+            since timer initialised or reset
+        '''
+        return _clock() -  self._birth_time
     
+
     @property
     def birth_time(self):
         '''birth_time getter'''

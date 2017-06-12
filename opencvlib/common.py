@@ -89,7 +89,7 @@ def mtx2rvec(R):
     return axis * np.arctan2(s, c)
 
 
-def draw_str(dst, target, s):
+def draw_str(dst, x, y, s, color=(255, 255, 255), bottom_left_origin=False):
     '''(ndarray, 2:tuple, str) -> void
     Draw text on dst - ByRef
 
@@ -99,11 +99,8 @@ def draw_str(dst, target, s):
         draw text on dst at these coordinates.
         tuple is (x, y)
     '''
-    x, y = target
-    cv2.putText(dst, s, (x + 1, y + 1), cv2.FONT_HERSHEY_PLAIN,
-                1.0, (0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
     cv2.putText(dst, s, (x, y), cv2.FONT_HERSHEY_PLAIN,
-                1.0, (255, 255, 255), lineType=cv2.LINE_AA)
+                1.0, color, lineType=cv2.LINE_AA, bottomLeftOrigin=bottom_left_origin)
 
 
 class Sketcher:

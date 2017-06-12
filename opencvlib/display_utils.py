@@ -3,7 +3,6 @@
 eg stream and image viewing'''
 from enum import Enum as _Enum
 
-
 from funclib.stringslib import Visible as _Vis
 
 
@@ -85,3 +84,15 @@ class KeyBoardInput():
             return keyOrSpecial == special[0].name or keyOrSpecial == special[0]
 
         return KeyBoardInput.get_pressed_key(waitkeyval) == str(keyOrSpecial)
+
+
+
+    #def create_trackbar_window(win_name, trackbar_name, max):
+    #    x = 300
+    #    y = 200
+
+    #    x = _np.zeros(x*y).reshape(y, x)
+    #    _cv2.namedWindow(win_name, _cv2.
+    #    _cv2.imshow(win_name, x)
+    #    _cv2.waitKey(1)
+    #    x = _np.zeros([[0]])

@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access
 '''
 Multithreaded video processing
 '''
@@ -7,19 +7,21 @@ from collections import deque as _deque
 from time import sleep as _sleep
 import os.path as _path
 
+
 import cv2 as _cv2
-import numpy as _np
+
 
 #from common import draw_str as _draw_str
 from opencvlib import transforms as _transforms
 from opencvlib import stopwatch as _stopwatch
+from opencvlib import common as _common
 import opencvlib.display_utils as _display_utils
 import funclib.iolib as _iolib
-from funclib.baselib import isempty as _isempty
+
 
 _Keys = _display_utils.KeyBoardInput()
 
-_FUNCTIONS = {'t':'forward/back', 'l':'loop', 's':'snapshot', 'escape':'exit', 'r':'restart', 'p':'pause'}
+_FUNCTIONS = {'f':'framebyframe', 'l':'loop', 's':'snapshot', 'escape':'exit', 'r':'restart', 'p':'pause', 'x':'xform'}
 
 
 
@@ -39,8 +41,7 @@ class MultiProcessStream():
     
 
 #        def draw(self, img, x=20, y=20):
- #               img = _draw_str(img, (x, y), "latency        :  %.1f ms" %
-          #              (fps.latency.value * 1000))
+ #               
 
 #_draw_str(frame, (20, 60), "frame interval :  %.1f ms" %
             #  (fps.frame_interval.value * 1000))
@@ -54,22 +55,33 @@ class MultiProcessStream():
             Class of Transforms, representing queued transforms
             to be applied per frame.
         '''
-        self._source = source
+        self._threadn = _cv2.getNumberOfCPUs()
         self.VideoCapture = None
-        self._at_end = False
-        self._selected_function = ''
+        self._source = source
         self._loop = False
-        self._reverse = False #play direction
-        self._frame_out = None #holds the movie frame
+
+        self._selected_function = ''
+
+        self._frame_out = None #holds the current movie frame, without overlays
+        
         self.Transforms = Transforms if isinstance(Transforms, _transforms.Transforms) else _transforms.Transforms()
+        self._xform = True
+
         self._initialise()
-        self._Status = _StatusInfo(self.VideoCapture)
-        self.wk_time = 1 #waitkey time
+        
+        self._wk_time = 1 #waitkey time       
 
         #mouse selection stuff
         self._region_img = None
         self._region_selection = 0, 0, 0, 0
         self._drag_start = None
+
+        #frame stuff        
+        self._pending = _deque()
+        self._at_end = False
+        self._frame_current = 0
+        self._buffered_frame_nr = 0
+        self._Status = _StatusInfo(self.VideoCapture)
 
 
     def __call__(self, source=None, Transforms=None):
@@ -92,87 +104,77 @@ class MultiProcessStream():
             self._source = _path.normpath(self._source)
         self.VideoCapture = _cv2.VideoCapture(self._source)
         self.FrameSpeed = _stopwatch.StopWatch(event_name='imshow')
+        self._pending = _deque()
+        self._at_end = False
+        self._frame_current = 0
+        self._buffered_frame_nr = 0
+        self._frame_out = None #holds the movie frame
+        self._selected_function = ''
+        self._buffered_frame_nr = 0
 
 
-    def _transform(self, frame):
+    def _transform(self, img, fr_nr):
         '''(ndarray, int) -> ndarray, int
-        Pass in image and result and
-        return them after applying
-        queued transforms in self.Transforms
+        perform the transform and pass the frame nr
+
+        Return:
+            transformed  image, frame number
         '''
-        frame = self.Transforms.executeQueue(frame)
-        return frame
-
-
-    @staticmethod
-    def testprocess(frame):
-        return frame
+        if self._xform:
+            img = self.Transforms.executeQueue(img)
+        return img, fr_nr
             
 
     #Main play loop
     def play(self):
         '''READ'''
-        threadn = _cv2.getNumberOfCPUs()
-        pool = _ThreadPool(processes=threadn)
-        pending = _deque()
+        pool = _ThreadPool(processes=self._threadn)
         is_start = True
-        self.FrameSpeed.reset()
-        _cv2.namedWindow(self._source, _cv2.WINDOW_NORMAL)
-        _cv2.namedWindow('region', _cv2.WINDOW_NORMAL)
+        
 
-        _cv2.createTrackbar('Frames', self._source, 0, 
+        _cv2.namedWindow(self._source, _cv2.WINDOW_NORMAL) #main movie window
+        _cv2.namedWindow('region', _cv2.WINDOW_NORMAL) #selected region
+
+
+        #Progress bars
+        _cv2.createTrackbar('frames', self._source, self._frame_current, 
                             int(self._Status.total_frames), 
                             lambda v: self.tbProgressCallback(v, self))
 
-        cv2.setMouseCallback(self._source, onmouse, self)
 
-
+        #_cv2.setMouseCallback(self._source, self.onmouse, self)
+        self.FrameSpeed.reset()
         while True:
-
-            assert isinstance(self._region_img, _np.ndarray)
-
-            if self._region_img.size:
-                _cv2.imshow('region', self_region_img)
-
-
             #something is queued in pending and if pending
             #is it ready
-            while pending and pending[0].ready():
-                frame = pending.popleft().get()
+            while self._pending and self._pending[0].ready():
+                frame, self._buffered_frame_nr = self._pending.popleft().get()
                 self._frame_out = frame.copy()
+                _common.draw_str(frame, 20, 20, "run time (s):  %0.f" % (self.FrameSpeed.run_time))
                 _cv2.imshow(self._source, frame)        #show the image
+                _cv2.setTrackbarPos('frames', self._source, self._buffered_frame_nr)
                 self.FrameSpeed.lap(1)
-                if self._at_end:
-                    if not self._loop:
-                        break
-                    else:
-                        self.set_frame('restart')
+
 
             #process and add to display queue
-            if len(pending) < threadn:
-                if self._reverse:
-                    self.set_frame(self._Status.frame_current - 2)
-                ret, raw_frame = self.VideoCapture.read() 
+            if len(self._pending) < self._threadn:
+                self._frame_current = self._Status.frame_next
+                ret, raw_frame = self.VideoCapture.read()                
+
                 if not ret:
                     self._at_end = True
-                    if not pending: #nothing buffered to show
-                        if self._loop and self._reverse:
-                            self.set_frame('end')
-                        elif self._loop and not self._reverse:
-                            self.set_frame('start')
-                        else:
-                            break
+                    if not self._pending and self._loop: #nothing buffered to show
+                        self.set_frame(0)
                     else:
                         break
                 else:
-                    raw_frame_copy = raw_frame.copy()
-                    task = pool.apply_async(self.Transforms.executeQueue, (raw_frame_copy,))
-                    pending.append(task)
+                    task = pool.apply_async(self._transform, (raw_frame, self._frame_current))
+                    self._pending.append(task)
                     if is_start:
                         _sleep(0.1)
-                        is_start=False
+                        is_start = False
 
-            ch = _cv2.waitKey(self.wk_time)
+            ch = _cv2.waitKey(self._wk_time)
             if ch != 255:
                 print(ch)
             #persistent single status changes
@@ -183,87 +185,67 @@ class MultiProcessStream():
                 self.snap(self._frame_out)
             elif _FUNCTIONS.get(_Keys.get_pressed_key(ch)) == 'exit':
                 break
-            elif _FUNCTIONS.get(_Keys.get_pressed_key(ch)) == 'forward/back':
-                self._reverse = not self._reverse
-                pending = _deque()
             elif _FUNCTIONS.get(_Keys.get_pressed_key(ch)) == 'restart':
                 self.set_frame(0)
-                pending = _deque()
+                self._pending = _deque()
             elif _FUNCTIONS.get(_Keys.get_pressed_key(ch)) == 'pause':
-                self.wk_time = 1 if self.wk_time == 0 else 0
-
+                self._wk_time = 1 if self._wk_time == 0 else 0
+            elif _FUNCTIONS.get(_Keys.get_pressed_key(ch)) == 'framebyframe':
+                self._wk_time = 0
+            elif _FUNCTIONS.get(_Keys.get_pressed_key(ch)) == 'xform': #stop running transforms
+                self._xform = not self._xform
 
         _cv2.destroyAllWindows()
 
 
 
-#handle region selection
-def onmouse(event, x, y, flags, param, self):
-    self.wk_time = 0 #pause
-    if event == _cv2.EVENT_LBUTTONDOWN:  #click
-        drag_start = x, y
-        self._sel = 0, 0, 0, 0
-    elif event == _cv2.EVENT_LBUTTONUP:  #mb release
-        if self._region_selection[2] > self._region_selection[0] and self._region_selection[3] > self._region_selection[1]:
-            self._region_img = self.frame_out[self._region_selection[1]:self._region_selection[3], self._region_selection[0]:self._region_selection[2]]
-            #result = _cv2.matchTemplate(gray, patch, _cv2.TM_CCOEFF_NORMED)
-            #result = np.abs(result)**3
-            #val, result = _cv2.threshold(result, 0.01, 0, _cv2.THRESH_TOZERO)
-            #result8 = _cv2.normalize(
-             #   result, None, 0, 255, _cv2.NORM_MINMAX, _cv2.CV_8U)
-        self._drag_start = None
-    elif drag_start:                    #drag
-        # print flags
-        if flags & _cv2.EVENT_FLAG_LBUTTON:
-            minpos = min(drag_start[0], x), min(drag_start[1], y)
-            maxpos = max(drag_start[0], x), max(drag_start[1], y)
-            self._region_selection = minpos[0], minpos[1], maxpos[0], maxpos[1]
-            img = _cv2.cvtColor(gray, _cv2.COLOR_GRAY2BGR)
-            _cv2.rectangle(img, (self._region_selection[0], self._region_selection[1]),
-                          (self._region_selection[2], self._region_selection[3]), (0, 255, 255), 1)
-            _cv2.imshow("gray", img)
-        else:
-            print("selection is complete")
-            drag_start = None
+    #handle region selection
+    @staticmethod
+    def onmouse(event, x, y, flags, param, self):
+        '''mouse click handler'''
+        self.wk_time = 0 #pause
+        
+        if event == _cv2.EVENT_LBUTTONDOWN:  #click
+            drag_start = x, y
+            self._sel = 0, 0, 0, 0
+        elif event == _cv2.EVENT_LBUTTONUP:  #mb release
+            if self._region_selection[2] > self._region_selection[0] and self._region_selection[3] > self._region_selection[1]:
+                self._region_img = self.frame_out[self._region_selection[1]:self._region_selection[3], self._region_selection[0]:self._region_selection[2]]
+                #result = _cv2.matchTemplate(gray, patch, _cv2.TM_CCOEFF_NORMED)
+                #result = np.abs(result)**3
+                #val, result = _cv2.threshold(result, 0.01, 0, _cv2.THRESH_TOZERO)
+                #result8 = _cv2.normalize(
+                #   result, None, 0, 255, _cv2.NORM_MINMAX, _cv2.CV_8U)
+                _cv2.imshow('region', self._region_img)
+            self._drag_start = None
+        elif drag_start:                    #drag
+            # print flags
+            if flags & _cv2.EVENT_FLAG_LBUTTON:
+                minpos = min(drag_start[0], x), min(drag_start[1], y)
+                maxpos = max(drag_start[0], x), max(drag_start[1], y)
+                self._region_selection = minpos[0], minpos[1], maxpos[0], maxpos[1]
+                _cv2.rectangle(self._frame_out, (self._region_selection[0], self._region_selection[1]),
+                              (self._region_selection[2], self._region_selection[3]), (0, 255, 255), 1)
+                _cv2.imshow(self._source, self._frame_out)
+            else:
+                print("selection is complete")
+                drag_start = None
 
     
     @staticmethod
     def tbProgressCallback(frame_nr, self):
-        '''(int|float|str)
-        Set the net frame to play.
-        
-        Supports the following
-
-        frame_nr
-            str
-                'start', 'end'
-            int
-                set to that frame
-            float 0-1
-                set as that proportion
+        '''(int)
         '''
-        if frame_nr == 1 or frame_nr == 0:
-            frame_nr = int(frame_nr)
+        frame_nr = int(frame_nr)
 
-        if isinstance(frame_nr, str):
-            if frame_nr in ('end', 'finish'):
-                assert isinstance(self._Status, _StatusInfo)
-                f_nr = self._Status.total_frames - 1
-                self._at_end = not self._reverse
-            elif frame_nr in ('start', 'begin', 'begining'):
-                f_nr = 0
-                self._at_end = self._reverse
-        elif isinstance(frame_nr, int):
-            f_nr = frame_nr
-            self._at_end = (frame_nr == self._Status.total_frames - 1) 
-        elif isinstance(frame_nr, float):
-            self._at_end = (frame_nr == 1) and not self._reverse
-            if 0 <= frame_nr <= 1:
-                f_nr = (self._Status.total_frames - 1) * frame_nr
+        if abs(self._frame_current - frame_nr) > self._threadn: #size of buffer
+            self._pending = _deque() #flush current
+            self.VideoCapture.set(_cv2.CAP_PROP_POS_FRAMES, frame_nr)
+            self._wk_time = 0
 
-        self.VideoCapture.set(_cv2.CAP_PROP_POS_FRAMES, f_nr)
+        self._at_end = (frame_nr == self._Status.total_frames - 1) 
 
-
+       
 
     def set_frame(self, frame_nr):
         '''(int|float|str)
@@ -279,27 +261,31 @@ def onmouse(event, x, y, flags, param, self):
             float 0-1
                 set as that proportion
         '''
+
+        if abs(self._frame_current - frame_nr) > 1:
+            self._pending = _deque() #flush current
+
         if frame_nr == 1 or frame_nr == 0:
             frame_nr = int(frame_nr)
 
         if isinstance(frame_nr, str):
             if frame_nr in ('end', 'finish'):
-                assert isinstance(self._Status, _StatusInfo)
                 f_nr = self._Status.total_frames - 1
-                self._at_end = not self._reverse
+                self._at_end = True
             elif frame_nr in ('start', 'begin', 'begining'):
                 f_nr = 0
-                self._at_end = self._reverse
+                self._at_end = False
         elif isinstance(frame_nr, int):
             f_nr = frame_nr
             self._at_end = (frame_nr == self._Status.total_frames - 1) 
         elif isinstance(frame_nr, float):
-            self._at_end = (frame_nr == 1) and not self._reverse
+            self._at_end = (frame_nr == 1)
             if 0 <= frame_nr <= 1:
                 f_nr = (self._Status.total_frames - 1) * frame_nr
-
+        
+        self._frame_current = f_nr
         self.VideoCapture.set(_cv2.CAP_PROP_POS_FRAMES, f_nr)
-
+        
 
     @staticmethod
     def snap(img, silent=False):
@@ -341,8 +327,14 @@ class _StatusInfo():
 
     @property
     def frame_current(self):
-        '''current frame nr'''
-        return self.VideoCapture.get(_cv2.CAP_PROP_POS_FRAMES) - 1
+        '''current frame nr,
+        or the last frame nr read'''
+        return int(self.VideoCapture.get(_cv2.CAP_PROP_POS_FRAMES) - 1)
+
+    @property
+    def frame_next(self):
+        '''next frame nr to be read'''
+        return int(self.VideoCapture.get(_cv2.CAP_PROP_POS_FRAMES))
 
     @property
     def position_as_ratio(self):
