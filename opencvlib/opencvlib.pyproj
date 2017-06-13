@@ -183,9 +183,11 @@
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="bin\haar\" />
     <Folder Include="calibration\" />
     <Folder Include="calibration\nextbase512g\" />
     <Folder Include="imgpipes\" />
+    <Folder Include="bin\" />
     <Folder Include="scripts_streams\" />
     <Folder Include="test\" />
     <Folder Include="script_objdetect\" />
@@ -201,6 +203,7 @@
     <Folder Include="test\bin\output\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="bin\haar\haarcascade_frontalface_alt.xml" />
     <Content Include="calibration\nextbase512g\2016_1011_132058_001.JPG" />
     <Content Include="calibration\nextbase512g\2016_1011_132114_002.JPG" />
     <Content Include="calibration\nextbase512g\2016_1011_132300_003.JPG" />

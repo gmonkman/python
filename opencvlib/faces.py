@@ -26,7 +26,7 @@ def blur_face(imagepath, save_face=False, overwrite_original=False):
     result_image = image.copy()
 
     # Specify the trained cascade classifier
-    face_cascade_name = "./haarcascade_frontalface_alt.xml"
+    face_cascade_name = "./bin/haar/haarcascade_frontalface_alt.xml"
 
     # Create a cascade classifier
     face_cascade = _cv2.CascadeClassifier()
