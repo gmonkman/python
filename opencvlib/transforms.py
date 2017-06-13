@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access, unused-import
 '''transforms on an image which return an image'''
 import cv2 as _cv2
 import numpy as _np
@@ -11,6 +11,7 @@ from opencvlib import getimg as _getimg
 from opencvlib import color as _color
 from opencvlib import Log as _Log
 
+from opencvlib.color import BGR2HSV, BGR2RGB, HSVtoGrey, togreyscale
 
 
 #from scikit-image
@@ -287,11 +288,14 @@ def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
 
 
 @_decs.decgetimg
-def histeq_color(img):
+def histeq_color(img, cvtToHSV=True):
     '''(ndarray)->ndarray
         Equalize histogram of color image
         '''
-    img_yuv = _cv2.cvtColor(img, _cv2.COLOR_BGR2YUV)
+    if cvtToHSV:
+        img_yuv = _cv2.cvtColor(img, _cv2.COLOR_BGR2YUV)
+    else:
+        img_yuv = img
 
     # equalize the histogram of the Y channel
     img_yuv[:, :, 0] = _cv2.equalizeHist(img_yuv[:, :, 0])

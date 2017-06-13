@@ -116,7 +116,7 @@ class Sketcher:
     def show(self):
         cv2.imshow(self.windowname, self.dests[0])
 
-    def on_mouse(self, event, x, y, flags):
+    def on_mouse(self, event, x, y, flags, dummy):
         pt = (x, y)
         if event == cv2.EVENT_LBUTTONDOWN:
             self.prev_pt = pt

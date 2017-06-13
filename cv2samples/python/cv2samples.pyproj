@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{83cad8df-8c5e-4d72-9d29-726091b50ac3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>mouse_and_match.py</StartupFile>
+    <StartupFile>color_histogram.py</StartupFile>
     <SearchPath>..\..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -13,9 +13,11 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
-    <CommandLineArguments> </CommandLineArguments>
+    <CommandLineArguments>
+    </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <Environment>"F:/WP3 Populations/CRUSTACEAN/On board camera/Lobster pot/100_0071.MP4"</Environment>
+    <Environment>"F:/WP3 Populations/CRUSTACEAN/On board camera/Lobster pot/100_0071.MP4"
+"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster/vlcsnap-00093.jpg"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />

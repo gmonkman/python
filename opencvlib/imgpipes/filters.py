@@ -89,5 +89,5 @@ class Filters():
 #endregion
 
 is_higher_res = _info.ImageInfo.is_higher_res
-is_lower_res = _info.is_lower_res
-isbw = _info.isbw
+is_lower_res = _info.ImageInfo.is_lower_res
+isbw = _info.ImageInfo.isbw

@@ -56,6 +56,8 @@ class ColorInterval():
     
     Initialise with tuples where tuples are paired to represent a range
     e.g. start=(0,0,0), finish=(255,255,255) is then enture range
+
+    Note OpenCV HSV is 0-179,0-255,0-255
     '''
     #This could be done with a LookUpTable approach, this
     #may be more efficient when working around the red hue
@@ -307,6 +309,17 @@ def RGB2BGR(img):
         return img
 
     return _cv2.cvtColor(img, _cv2.COLOR_RGB2BGR)
+
+
+@_decs.decgetimg
+def BGR2HSV(img):
+    '''(ndarray)->ndarray
+    BGR to HSV
+    179,255,255
+    '''
+    if _info.ImageInfo.isbw(img):
+        return img
+    return _cv2.cvtColor(img, _cv2.COLOR_BGR2HSV)
 
 
 @_decs.decgettruegrey

@@ -171,7 +171,7 @@ if __name__ == '__main__':
                 bgdmodel = np.zeros((1, 65), np.float64)
                 fgdmodel = np.zeros((1, 65), np.float64)
                 cv2.grabCut(img2, mask, rect, bgdmodel,
-                            fgdmodel, 1, cv2.GC_INIT_WITH_RECT)
+                fgdmodel, 1, cv2.GC_INIT_WITH_RECT)
                 rect_or_mask = 1
             elif rect_or_mask == 1:         # grabcut with mask
                 bgdmodel = np.zeros((1, 65), np.float64)

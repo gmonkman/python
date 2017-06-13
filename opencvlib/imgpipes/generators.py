@@ -138,6 +138,8 @@ class _Generator(_BaseGenerator):
             return img
 
         return None
+
+
 #endregion
 
 

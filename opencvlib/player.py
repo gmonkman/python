@@ -58,7 +58,7 @@ class MultiProcessStream():
         self._threadn = _cv2.getNumberOfCPUs()
         self.VideoCapture = None
         self._source = source
-        self._loop = False
+        self._loop = True
 
         self._selected_function = ''
 
@@ -142,7 +142,7 @@ class MultiProcessStream():
                             lambda v: self.tbProgressCallback(v, self))
 
 
-        #_cv2.setMouseCallback(self._source, self.onmouse, self)
+        _cv2.setMouseCallback(self._source, self.onmouse, self)
         self.FrameSpeed.reset()
         while True:
             #something is queued in pending and if pending
@@ -201,16 +201,18 @@ class MultiProcessStream():
 
     #handle region selection
     @staticmethod
-    def onmouse(event, x, y, flags, param, self):
+    def onmouse(event, x, y, flags, self):
         '''mouse click handler'''
-        self.wk_time = 0 #pause
         
+        #print('x:%s, y:%s' % (x, y))
         if event == _cv2.EVENT_LBUTTONDOWN:  #click
-            drag_start = x, y
+            self._wk_time = 0 #pause
+            self._pending = _deque()
+            self._drag_start = x, y
             self._sel = 0, 0, 0, 0
         elif event == _cv2.EVENT_LBUTTONUP:  #mb release
             if self._region_selection[2] > self._region_selection[0] and self._region_selection[3] > self._region_selection[1]:
-                self._region_img = self.frame_out[self._region_selection[1]:self._region_selection[3], self._region_selection[0]:self._region_selection[2]]
+                self._region_img = self._frame_out[self._region_selection[1]:self._region_selection[3], self._region_selection[0]:self._region_selection[2]]
                 #result = _cv2.matchTemplate(gray, patch, _cv2.TM_CCOEFF_NORMED)
                 #result = np.abs(result)**3
                 #val, result = _cv2.threshold(result, 0.01, 0, _cv2.THRESH_TOZERO)
@@ -218,18 +220,19 @@ class MultiProcessStream():
                 #   result, None, 0, 255, _cv2.NORM_MINMAX, _cv2.CV_8U)
                 _cv2.imshow('region', self._region_img)
             self._drag_start = None
-        elif drag_start:                    #drag
+        elif self._drag_start:                    #drag
             # print flags
             if flags & _cv2.EVENT_FLAG_LBUTTON:
-                minpos = min(drag_start[0], x), min(drag_start[1], y)
-                maxpos = max(drag_start[0], x), max(drag_start[1], y)
+                minpos = min(self._drag_start[0], x), min(self._drag_start[1], y)
+                maxpos = max(self._drag_start[0], x), max(self._drag_start[1], y)
                 self._region_selection = minpos[0], minpos[1], maxpos[0], maxpos[1]
-                _cv2.rectangle(self._frame_out, (self._region_selection[0], self._region_selection[1]),
-                              (self._region_selection[2], self._region_selection[3]), (0, 255, 255), 1)
-                _cv2.imshow(self._source, self._frame_out)
+                img = self._frame_out.copy()
+                _cv2.rectangle(img, (self._region_selection[0], self._region_selection[1]),
+                              (self._region_selection[2], self._region_selection[3]), (0, 255, 255), 1, lineType=_cv2.LINE_AA)
+                _cv2.imshow(self._source, img)
             else:
                 print("selection is complete")
-                drag_start = None
+                self._drag_start = None
 
     
     @staticmethod
@@ -242,7 +245,10 @@ class MultiProcessStream():
             self._pending = _deque() #flush current
             self.VideoCapture.set(_cv2.CAP_PROP_POS_FRAMES, frame_nr)
             self._wk_time = 0
-
+            ret, read = self.VideoCapture.read()
+            if ret:
+                _common.draw_str(read, 20, 20, 'Press "p" to play')
+                _cv2.imshow(self._source, read)
         self._at_end = (frame_nr == self._Status.total_frames - 1) 
 
        

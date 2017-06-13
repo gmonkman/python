@@ -444,11 +444,6 @@ def file_list_generator(paths, wildcards):
 
     ie. Yields wildcards for consumption a _glob.glob.
     '''
-    assert not isinstance(
-        paths, str), 'paths argument is a _string, it should be a list or tuple'
-    assert not isinstance(
-        wildcards, str), 'wildcards argument is a _string, it should be a list or tuple'
-
     for vals in (_stringslib.add_right(x[0]) + x[1]
                  for x in _itertools.product(paths, wildcards)):
         yield _os.path.normpath(vals)
@@ -464,10 +459,11 @@ def file_list_generator1(paths, wildcards, recurse=False):
 
     Now supports recurssion
     '''
-    assert not isinstance(
-        paths, str), 'paths argument is a _string, it should be a list or tuple'
-    assert not isinstance(
-        wildcards, str), 'wildcards argument is a _string, it should be a list or tuple'
+    if isinstance(paths, str):
+        paths = [paths]
+
+    if isinstance(wildcards, str):
+        wildcards = [wildcards]
 
     for ind, v in enumerate(paths):
         paths[ind] = _os.path.normpath(v)
