@@ -1,15 +1,17 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''histogram helpers'''
-import sys
-
 import cv2 as _cv2
 import numpy as _np
 
 
+import funclib.iolib as _iolib
+
+
 from opencvlib.transforms import BGR2HSV as _BGR2HSV
+from opencvlib import getimg as _getimg
 
 
-def histo_hsv(img, histo, channels=(0, 1), mask=None, accumulate=False, img_is_hsv=False):
+def histo_hsv(img, histo=None, channels=(0, 1), mask=None, accumulate=False, img_is_hsv=False):
     '''(str|ndarray, &ndarray, str, bool, bool)
     Get image histogram over specified channels
     
@@ -50,8 +52,8 @@ def histo_hsv(img, histo, channels=(0, 1), mask=None, accumulate=False, img_is_h
             ranges.append(0)
             ranges.append(256)
     
-
-    _cv2.calcHist(img, channels, mask, histSize, ranges, histo, accumulate=True) #accumulate in sel
+    mask = mask.astype('uint8')
+    return _cv2.calcHist(img, channels, mask, histSize, ranges, histo, accumulate=accumulate) #accumulate in sel
 
 
 
@@ -65,68 +67,98 @@ def hsv_map(x=256, y=180):
     Make a hsv map as an ndarry.
     A visualisation of HSV space
     '''
-    hsv_map = _np.zeros((180, 256, 3), _np.uint8)
-    h, s = _np.indices(hsv_map.shape[:2])
-    hsv_map[:, :, 0] = h
-    hsv_map[:, :, 1] = s
-    hsv_map[:, :, 2] = 255
-    hsv_map = _cv2.cvtColor(hsv_map, _cv2.COLOR_HSV2BGR)
-    return hsv_map
+    hsvm = _np.zeros((180, 256, 3), _np.uint8)
+    h, s = _np.indices(hsvm.shape[:2])
+    hsvm[:, :, 0] = h
+    hsvm[:, :, 1] = s
+    hsvm[:, :, 2] = 255
+    hsvm = _cv2.cvtColor(hsvm, _cv2.COLOR_HSV2BGR)
+    return hsvm
+
+
+
+def hist_accum_in_folder(wildcardedpath, strmatch=None, normalise=True):
+    '''(str, str|None)
+    Accumulate saved histogram files in 
+    a folder.
+
+    wildcardedpath:
+        eg c:/*.tmp
+    strmatch:
+        additional string which
+        the filename must contain
+
+    Normalised hist extension = '.nrm'
+    Saved hist extension: '.hst'
+    '''
+    first = True
+    for f in _iolib.file_list_glob_generator(wildcardedpath):
+        if isinstance(strmatch, str):
+            dummy, fname, dummy = _iolib.get_file_parts(f)
+            if  strmatch.startswith(fname):
+                continue
+
+
+        #TODO if use, test this accumulation
+        if first:
+            arr = _np.load(f)
+            first = False
+        else:
+            arr += _np.load(f)
+
+    if isinstance(arr, _np.ndarray) and normalise:
+        arr = _cv2.normalize(arr, None, 0, 255, _cv2.NORM_MINMAX)
+
+    return arr
+        
+
 
 
 class VisualColorHisto():
-    '''visualise the hsv histogram of an image'''
+    '''visualise the hue and saturation histogram of an image
 
-    def __init__(self, img):
-        '''init'''
+    Example:
+        H = histo.VisualColorHisto(self.Grass)
+        cv2.waitKey(0)
+        H(cv2.cvtColor(self.Grass, cv2.COLOR_BGR2GRAY))
+    '''
+
+    def __init__(self, img, win_name='hist'):
+        '''(ndarray|str) -> void
+
+        img:
+            BGR image, or filepath
+        '''
         self._hist_scale = 10
         self._hsv_map = hsv_map()
-        self.win_name = 'hist'
+        self._win_name = win_name
         self._img = _getimg(img)
+        self._histimg = None
+        self._hidden = False
+        _cv2.imshow('hsv_map', self._hsv_map)
+        _cv2.namedWindow(self._win_name, 0)
+        _cv2.createTrackbar('scale', self._win_name, self._hist_scale, 32, self.set_scale)
+        self.refresh()
 
 
     def __call__(self, img):
         self._img = _getimg(img)
-
-
-    def show(self):
-        '''show histogram and hsv map'''
-        _cv2.imshow('hsv_map', self._hsv_map())
-        _cv2.namedWindow(self.win_name, 0)
-        _cv2.createTrackbar('scale', self.win_name, self._hist_scale, 32, set_scale)
-
-
-    def hide(self):
-        '''hide histogram and hsv map'''
-        try:
-            _cv2.destroyWindow('hist')
-            _cv2.destroyWindow('hsv_map')
-        except:
-            pass
-
-
-
-    def _process(self,):
-        small = _cv2.pyrDown(self._img)
-
-
+        self.refresh()
 
     def set_scale(self, val):
         '''set scale'''
         self._hist_scale = val
-    
+        self.refresh()
 
-    while True:
 
-        
-
+    def refresh(self):
+        '''process the img'''
+        small = _cv2.pyrDown(self._img)
         hsv = _cv2.cvtColor(small, _cv2.COLOR_BGR2HSV)
         dark = hsv[..., 2] < 32
         hsv[dark] = 0
         h = _cv2.calcHist([hsv], [0, 1], None, [180, 256], [0, 180, 0, 256])
-
-        h = _np.clip(h * 0.005 * hist_scale, 0, 1)
-        vis = hsv_map * h[:, :, _np.newaxis] / 255.0
+        h = _np.clip(h * 0.005 * self._hist_scale, 0, 1)
+        vis = self._hsv_map * h[:, :, _np.newaxis] / 255.0
+        self._histimg = vis
         _cv2.imshow('hist', vis)
-
-        ch = _cv2.waitKey(1)

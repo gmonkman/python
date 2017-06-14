@@ -314,6 +314,9 @@ class FromPaths(_Generator):
     '''Generate images from a list of folders
     Transforms can be added by instantiating Transform objects and
     adding them to Transforms
+
+    Example:
+        See test/imgpipes/test_generators.py
     '''
     def __init__(self, paths, wildcards=_IMAGE_EXTENSIONS_AS_WILDCARDS, *args, **kwargs):
         self._paths = paths

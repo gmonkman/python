@@ -262,7 +262,6 @@ def rescale_intensity(img, in_range='image', out_range='dtype'):
 
     
 
-@_decs.decgetimg
 def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
     '''(ndarray|str, int, int, constant)->ndarray
     1) initialize the dimensions of the image to be resized and grab the image size
@@ -272,7 +271,7 @@ def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
     '''
     dim = None
     (h, w) = image.shape[:2]
-
+    image = _getimg(image)
     if width is None and height is None:
         return image
     elif width is not None and height is not None:
@@ -287,11 +286,13 @@ def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
     return _cv2.resize(image, dim, interpolation=inter)
 
 
-@_decs.decgetimg
+
 def histeq_color(img, cvtToHSV=True):
     '''(ndarray)->ndarray
         Equalize histogram of color image
         '''
+    img = _getimg(img)
+
     if cvtToHSV:
         img_yuv = _cv2.cvtColor(img, _cv2.COLOR_BGR2YUV)
     else:

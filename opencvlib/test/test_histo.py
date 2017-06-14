@@ -1,4 +1,3 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import, no-self-use
 
 '''unit tests for features'''
 import unittest
@@ -8,8 +7,7 @@ import os.path as _path
 import cv2
 
 import funclib.iolib as iolib
-import opencvlib.fiducial as fid
-from opencvlib.view import show
+import opencvlib.histo as histo
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -21,17 +19,16 @@ class Test(unittest.TestCase):
         self.modpath = _path.normpath(self.pth)
         self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
         self.I = cv2.imread(self.imgpath)
-
-
+        self.grasspath = _path.normpath(_path.join(self.modpath, 'bin/images/grass.jpg'))
+        self.Grass = cv2.imread(self.grasspath)
 
     #@unittest.skip("Temporaily disabled while debugging")
-    def test_getmarker(self):
+    def test_VisualColorHisto(self):
         '''test'''
-        for n in range(50):
-            s = _path.join('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/fudicial', '%s.jpg' % n)
-            dummy = fid.getmarker(n, 200, 20, saveas=s)
-            print('Saved marker as %s' % s)
 
+        H = histo.VisualColorHisto(self.Grass)
+        cv2.waitKey(0)
+        H(cv2.cvtColor(self.Grass, cv2.COLOR_BGR2GRAY))
 
 
 if __name__ == '__main__':

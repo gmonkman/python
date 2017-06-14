@@ -5,20 +5,20 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_fiducial.py</StartupFile>
+    <StartupFile>scripts_segmentation\watershed.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
-    <Environment>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster"</Environment>
+    <Environment>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster"
+"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER'</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -64,6 +64,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_fiducial.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_histo.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_player.py">
@@ -181,7 +184,7 @@
     <Compile Include="transforms.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="watershed.py" />
+    <Compile Include="scripts_segmentation\watershed.py" />
     <Compile Include="winpyr.py">
       <SubType>Code</SubType>
     </Compile>
@@ -189,10 +192,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\haar\" />
+    <Folder Include="bin\watershedhisto\" />
     <Folder Include="calibration\" />
     <Folder Include="calibration\nextbase512g\" />
     <Folder Include="imgpipes\" />
     <Folder Include="bin\" />
+    <Folder Include="scripts_segmentation\" />
     <Folder Include="scripts_streams\" />
     <Folder Include="test\" />
     <Folder Include="script_objdetect\" />
@@ -258,6 +263,7 @@
     <Content Include="script_objdetect\detectors.cfg" />
     <Content Include="pylintrc" />
     <Content Include="script_objdetect\make_lobster_descriptors.ini" />
+    <Content Include="test\bin\images\grass.jpg" />
     <Content Include="test\bin\images\matt_pemb5.jpg" />
     <Content Include="test\bin\movie\test-mpeg_512kb.mp4" />
   </ItemGroup>
