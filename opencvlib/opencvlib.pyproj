@@ -5,14 +5,15 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>watershed.py</StartupFile>
+    <StartupFile>test\test_fiducial.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster"</CommandLineArguments>
+    <CommandLineArguments>
+    </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
@@ -39,6 +40,7 @@
     <Compile Include="display_utils.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="fiducial.py" />
     <Compile Include="histo.py">
       <SubType>Code</SubType>
     </Compile>
@@ -59,6 +61,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_display_utils.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_fiducial.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_player.py">
