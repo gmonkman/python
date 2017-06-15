@@ -24,6 +24,8 @@ Keys
 
 # Python 2/3 compatibility
 import os.path as _path
+from enum import Enum as _Enum
+
 
 import argparse
 import numpy as _np
@@ -55,6 +57,13 @@ _DUMP_DIR = normpath(join(script_folder(), '../../bin/watershedhisto'))
 _EXT_NORMALISED = '.nrm'
 _EXT = '.hst'
 
+
+class eSource(_Enum):
+    '''where did we get the histo'''
+    FromFile = 0
+    Memory = 1
+
+
 class App:
     '''main app'''
     def __init__(self, fld, Trans):
@@ -64,7 +73,7 @@ class App:
         self._files = [s[1] for s in self._Gen.generate(pathonly=True)]
         self._files_idx = 0
         self.setimg()
-        self.subject_hist = None #main histogram of subject
+        self.subject_hist = [] #main histogram of subject
         self.cur_marker = None
         self._auto_update = False
         self._subj_mask = None
@@ -73,16 +82,17 @@ class App:
         self.load_saved_histos()
 
     
-
-
     def load_saved_histos(self):
         '''load saved normalised histos
         from the file system'''
         if not isinstance(LOAD_FROM, str):
             print('Failed to load histos from %s' % LOAD_FROM)
         fld = _path.normpath(_path.join(LOAD_FROM, '*' + _EXT_NORMALISED))
-        self.subject_hist = _histo.hist_accum_in_folder(fld, FILE_PREFIX)
-        print('Loaded suject histogram from %s' % LOAD_FROM)
+
+        hists = _histo.hist_load_from_folder(fld, FILE_PREFIX)
+        for h in hists:
+            self.subject_hist.append([h, eSource.FromFile])
+        print('Loaded subject histogram(s) from %s' % LOAD_FROM)
 
 
     def reset(self):
@@ -91,8 +101,9 @@ class App:
         self.markers[:] = 0
         self.markers_vis[:] = self._img
         self.sketch.show()
-        self.subject_hist = None #main histogram of subject
+        self.subject_hist = [] #list of lists [[hist,was_loaded]] main histogram of subject 
         self._subj_mask = None
+        print('All histograms and markers reset')
 
         
     def setimg(self, nd_img=None, executeTransforms=True):
@@ -102,6 +113,8 @@ class App:
         nd_img:
             override load and use this image
         '''
+        
+        self._curr_imgpath = self._files[self._files_idx]
 
         if not isinstance(nd_img, _np.ndarray):
             self._img = _getimg(self._files[self._files_idx])
@@ -122,23 +135,34 @@ class App:
         self.markers_vis = self._img.copy()
         self.cur_marker = 1
         self.colors = _np.int32(list(_np.ndindex(2, 2, 2))) * 255
-
+        print('Loaded %s' % self._curr_imgpath)
         self.sketch = Sketcher(
             'img', [self.markers_vis, self.markers], self.get_colors)  
 
 
     def back_proj(self):
-        '''apply back proj using
-        accumulated histogram'''
-        if _baselib.isempty(self.subject_hist):
+        '''Apply back proj using cached histogram(s)
+        
+        Each histogram is used in bkproj
+        and the bkproj with the highest match
+        is used
+        '''
+
+        if not self.subject_hist:
             print('No accumulated histogram, cannot BackProject')
             return
         ihsv = _cv2.cvtColor(self._img, _cv2.COLOR_BGR2HSV)
-        bkproj = _cv2.calcBackProject([ihsv], (0, 1), self.subject_hist, (0, 180, 0, 256),1)
+        
+        bkprojs = [_cv2.calcBackProject([ihsv], (0, 1), b[0], (0, 180, 0, 256), 1)  for b in self.subject_hist]
+
+        sumbp = [bk.sum() for bk in bkprojs]
+        i = sumbp.index(max(sumbp))
+        bkproj = bkprojs[i]
 
         disc = _cv2.getStructuringElement(_cv2.MORPH_ELLIPSE, (5, 5))
         _cv2.filter2D(bkproj, -1, disc, bkproj)
-        _cv2.imshow('BackProject', bkproj)
+        bkproj = _transform.resize(bkproj, width=400)
+        _cv2.imshow('Best BackProject Match', bkproj)
 
 
     def get_colors(self):
@@ -150,7 +174,7 @@ class App:
 
     def watershed(self):
         ''' -> void
-        watershed'''
+        Show the watershed segmentation results'''
         m = self.markers.copy() #our lines, with rgb values
         _cv2.watershed(self._img, m) #m is our mask, =1 where subject, 2 where not subject, -1 where questionable
         overlay = self.colors[_np.maximum(m, 0)] #the regions, containing relevant number, eg 1 for subject
@@ -162,32 +186,36 @@ class App:
 
 
 
-    def grab_subj_hist(self, accumulate=True):
+    def grab_subj_hist(self):
         '''get histogram of image
         and set to self.subject_hist
         '''
         if _baselib.isempty(self._subj_mask):
             print('Watershed has not been successfully run')
             return
-        self.subject_hist = _histo.histo_hsv(self._img, self.subject_hist, (0, 1), self._subj_mask, accumulate=accumulate)
+
+        #_histo.histo_hsv - normalizes by default
+        self.subject_hist.append([_histo.histo_hsv(self._img, self.subject_hist, (0, 1), self._subj_mask, accumulate=False), eSource.Memory])  #False, ie not preloaded
+        print('Historgram saved to Memory')
 
 
-
-    def _save_to_file(self, normalise=True):
+    def _save_to_file(self):
         '''(bool) -> void
-        Save accumulated historgram to a file
+        Save all added historgrams to a file.
+        Histograms are prenormalized in grab_subj_hist
         '''
-        if _baselib.isempty(self.subject_hist):
+        if not self.subject_hist:
             print('No histogram to save')
             return
 
-        h = None
-        h = _cv2.normalize(self.subject_hist, None, 0, 255, _cv2.NORM_MINMAX)
-        assert isinstance(h, _np.ndarray)
-        ext = _EXT_NORMALISED if normalise else _EXT
-        fname = _iolib.get_file_name(_DUMP_DIR, ext=ext)
-        h.dump(fname)
-        print('Saved histogram to %s.' % fname)
+        for ind, h in enumerate(self.subject_hist):
+            if h[1] == eSource.Memory:
+                assert isinstance(h[0], _np.ndarray)
+                fname = _iolib.get_file_parts(self._curr_imgpath)[1]
+                fname = _path.normpath(_path.join(_DUMP_DIR, FILE_PREFIX + '_' + fname + _EXT_NORMALISED))
+                h[0].dump(fname)
+                print('Saved histogram to %s.' % fname)
+                self.subject_hist[ind][1] = eSource.FromFile
 
 
 
@@ -227,7 +255,6 @@ class App:
 
             if ch in [ord('h'), ord('H')]:
                 self.grab_subj_hist()
-                print('Histogram accumulated')
 
             if ch in [ord('s'), ord('S')]:
                 self._save_to_file()

@@ -200,6 +200,22 @@ def list_symmetric_diff(lst1, lst2):
     return set(lst1) ^ set(lst2)
 
 
+def list_max_ind(lst):
+    '''(list) -> index
+    Get list items with max
+    value from a list
+    '''
+    return lst.index(max(lst))
+
+
+def list_min_ind(lst):
+    '''(list) -> index
+    Get list items with max
+    value from a list
+    '''
+    return lst.index(min(lst))
+
+
 def list_append_unique(list_in, val):
     '''(list, type)->void
     Appends val to list_in if it isnt already in the list

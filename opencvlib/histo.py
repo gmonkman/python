@@ -11,7 +11,7 @@ from opencvlib.transforms import BGR2HSV as _BGR2HSV
 from opencvlib import getimg as _getimg
 
 
-def histo_hsv(img, histo=None, channels=(0, 1), mask=None, accumulate=False, img_is_hsv=False):
+def histo_hsv(img, histo=None, channels=(0, 1), mask=None, accumulate=False, img_is_hsv=False, normalise=True):
     '''(str|ndarray, &ndarray, str, bool, bool)
     Get image histogram over specified channels
     
@@ -53,7 +53,11 @@ def histo_hsv(img, histo=None, channels=(0, 1), mask=None, accumulate=False, img
             ranges.append(256)
     
     mask = mask.astype('uint8')
-    return _cv2.calcHist(img, channels, mask, histSize, ranges, histo, accumulate=accumulate) #accumulate in sel
+
+    h = _cv2.calcHist(img, channels, mask, histSize, ranges, histo, accumulate=accumulate) #accumulate in sel
+    if normalise:
+        h = _cv2.normalize(h, None, 0, 255, _cv2.NORM_MINMAX)
+    return h
 
 
 
@@ -77,10 +81,11 @@ def hsv_map(x=256, y=180):
 
 
 
-def hist_accum_in_folder(wildcardedpath, strmatch=None, normalise=True):
-    '''(str, str|None)
+def hist_load_from_folder(wildcardedpath, strmatch=None, normalise=True, accumulate=False):
+    '''(str, str|None) -> list:ndarray
     Accumulate saved histogram files in 
-    a folder.
+    a folder, or return a list of histograms
+    as ndarray
 
     wildcardedpath:
         eg c:/*.tmp
@@ -90,7 +95,11 @@ def hist_accum_in_folder(wildcardedpath, strmatch=None, normalise=True):
 
     Normalised hist extension = '.nrm'
     Saved hist extension: '.hst'
+
+    Returns:
+        list of histogram(s) as ndarrays
     '''
+    list_arr = []
     first = True
     for f in _iolib.file_list_glob_generator(wildcardedpath):
         if isinstance(strmatch, str):
@@ -98,19 +107,23 @@ def hist_accum_in_folder(wildcardedpath, strmatch=None, normalise=True):
             if  strmatch.startswith(fname):
                 continue
 
-
-        #TODO if use, test this accumulation
-        if first:
-            arr = _np.load(f)
-            first = False
+        if accumulate:
+            if first:
+                arr = _np.load(f)
+                first = False
+            else:
+                arr += _np.load(f)
         else:
-            arr += _np.load(f)
-
-    if isinstance(arr, _np.ndarray) and normalise:
-        arr = _cv2.normalize(arr, None, 0, 255, _cv2.NORM_MINMAX)
-
-    return arr
-        
+            arr = _np.load(f)
+            if isinstance(arr, _np.ndarray) and normalise:
+                arr = _cv2.normalize(arr, None, 0, 255, _cv2.NORM_MINMAX)
+            list_arr.append(arr)
+    
+    if accumulate:
+        if isinstance(arr, _np.ndarray) and normalise:
+            list_arr = [_cv2.normalize(arr, None, 0, 255, _cv2.NORM_MINMAX)]
+    return list_arr
+  
 
 
 
