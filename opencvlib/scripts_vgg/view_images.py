@@ -13,10 +13,9 @@ import funclib.iolib as iolib
 
 def main():
     '''
-    Copies files matching the tags kwargs to
-    the subfolder where the image has no set.
-
-    The -r flag will only copy images without any ROIs defined in the VGG JSON file.
+    View image regions in a vgg.json file
+    Space advances to the next region, pressing n will be recorded
+    in an output text file.
 
     Example:
     view_images.py part:head "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/bass-angler.json"

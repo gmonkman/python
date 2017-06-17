@@ -5,20 +5,21 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_segmentation\watershed.py</StartupFile>
+    <StartupFile>scripts_vgg\write_attr.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER</CommandLineArguments>
+    <CommandLineArguments>-regionid 0 -subjectid 1 -part head -spp bass "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/processors/undistorted/vgg.json"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
-    <Environment>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster"
-"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER'</Environment>
+    <Environment>watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER'
+viewsift.py -part head -spp bass "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json"
+write_attr.py -regionid 0 -subjectid 1 -part cephalothorax -spp lobster "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster/vgg.json"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -40,8 +41,14 @@
     <Compile Include="display_utils.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="euclidgeom.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="fiducial.py" />
     <Compile Include="histo.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="matcher.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="player.py">

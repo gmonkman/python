@@ -58,7 +58,7 @@ def main():
     '''main entry if run from commandline.
 
     Example:
-    write_attr.py -s bass -b "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/bass-angler.json"
+    write_attr.py -regionid 0 -subjectid 1 -part cephalothorax -spp lobster "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster/vgg.json"
     '''
     cmdline = argparse.ArgumentParser(description='Write region_attributes in a VGG file for a defined species where'
                                       'a shape already exist.\n'

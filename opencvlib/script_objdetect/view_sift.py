@@ -11,12 +11,11 @@ from opencvlib.view import show
 from opencvlib import features
 import funclib.iolib as iolib
 
-#view_images.py -part whole "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler"
-#view_images.py part:head "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/"
-
+#Bass
+#view_sift.py -part head -spp bass "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json"
 
 #Lobsters
-#view_images.py -part cephalothorax -spp lobster "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster"
+#view_sift.py -part cephalothorax -spp lobster "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster"
 
 def main():
     '''
@@ -26,14 +25,14 @@ def main():
     The -r flag will only copy images without any ROIs defined in the VGG JSON file.
 
     Example:
-    view_images.py part:head "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/bass-angler.json"
+    view_sift.py -part head "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json"
     '''
 
-    cmdline = argparse.ArgumentParser(description='View image regions in a vgg.json file'
+    cmdline = argparse.ArgumentParser(description='View keypoints in a vgg.json file'
                                       'Space advances to the next region, pressing n will be recorded '
                                       'in an output text file.\n\n'
                                       'Example:\n'
-                                      'view_images.py -part cephalothorax -spp lobster "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster"'
+                                      'view_sift -part head -spp bass "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json"'
                                       )
     cmdline.add_argument('-part', '--part', help='The region part eg. head.', required=True)
     cmdline.add_argument('-spp', '--spp', help='The species.', required=True)
@@ -55,8 +54,10 @@ def main():
     
     for img, imgpath, dummy in reg.generate():
         features.SILENT = True
-        #D = features.OpenCV_SIFT()
-        D = features.OpenCV_ORB()
+        #D = features.skHOGDetector()
+        
+        D = features.OpenCV_SIFT()
+        #D = features.OpenCV_ORB()
         D(img, imgpath, extract_now=True)
         D.view(show=True)
     

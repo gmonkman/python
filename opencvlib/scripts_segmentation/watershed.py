@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import
 
 '''
 Use watershed to segment the subject from images.

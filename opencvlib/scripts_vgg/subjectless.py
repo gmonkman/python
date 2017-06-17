@@ -17,7 +17,7 @@ from funclib.baselib import DictList
 def main():
     '''
     Copies files matching the tags kwargs to
-    the subfolder where the image has no set.
+    the subfolder where the image has no regions set.
 
     The -r flag will only copy images without any ROIs defined in the VGG JSON file.
 

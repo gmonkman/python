@@ -13,7 +13,7 @@ from numpy import ma as _ma
 
 import opencvlib.decs as _decs
 import opencvlib as _opencvlib
-from opencvlib.info import ImageInfo as _ImageInfo
+import opencvlib.info as _info
 
 
 __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
@@ -34,7 +34,7 @@ def sample_rect(img, w, h):
     # if isinstance(img, str):
     #   img = _cv2.imread(path.normpath(img) , -1)
 
-    img_w, img_h = _opencvlib.ImageInfo.getsize(img)
+    img_w, img_h = _info.ImageInfo.getsize(img)
     if img_w < w or img_h < h:
         return None
 
@@ -98,7 +98,7 @@ def roi_polygons_get(img, points):
     roi_corners = _cv2.convexHull(_np.array([points], dtype=_np.int32))
     roi_corners = _np.squeeze(roi_corners)
 
-    if _opencvlib.ImageInfo.typeinfo(img) & _opencvlib.eImgType.CHANNEL_1.value:
+    if _opencvlib.info.ImageInfo.typeinfo(img) & _opencvlib.info.eImgType.CHANNEL_1.value:
         channel_count = 1
     else:
         channel_count = img.shape[2]  # i.e.  3 or 4 depending on your image
@@ -130,11 +130,11 @@ def get_image_from_mask(img, mask):
         return None
 
     if len(img.shape) != len(mask.shape):
-        if _ImageInfo.typeinfo(img) & _opencvlib.eImgType.CHANNEL_1.value: #1 channel image, need 1 channel mask
+        if _info.ImageInfo.typeinfo(img) & _info.eImgType.CHANNEL_1.value: #1 channel image, need 1 channel mask
             mask = _cv2.cvtColor(mask, _cv2.COLOR_BGR2GRAY)
-        elif _ImageInfo.typeinfo(img) & _opencvlib.eImgType.CHANNEL_3.value: #3 channel image, need 3 ch mask
+        elif _info.ImageInfo.typeinfo(img) & _info.eImgType.CHANNEL_3.value: #3 channel image, need 3 ch mask
             mask = _cv2.cvtColor(mask, _cv2.COLOR_GRAY2BGR)
-        elif _ImageInfo.typeinfo(img) & _opencvlib.eImgType.CHANNEL_4.value:
+        elif _info.ImageInfo.typeinfo(img) & _info.eImgType.CHANNEL_4.value:
             mask = _cv2.cvtColor(mask, _cv2.COLOR_GRAY2BGR)
             img = img[:, :, 0:3]
         else:

@@ -340,12 +340,24 @@ def hasfile(path, fname):
 
 def drive_get_uuid(drive='C:', strip=['-'], return_when_unidentified='??'):
     '''get uuid of drive'''
-    drive = _os.popen('vol %s' % drive).readlines()[1].split()[-1]
-    if not drive:
-        drive = return_when_unidentified
+    proc = _os.popen('vol %s' % drive)
 
-    for char in strip:
-        drive = drive.replace(char, '')
+    try:
+        drive = proc.readlines()[1].split()[-1]
+        if not drive:
+            drive = return_when_unidentified
+
+        for char in strip:
+            drive = drive.replace(char, '')
+    except Exception as dummy:
+        pass
+    finally:
+        try:
+            proc.close()
+        except Exception as dummy:
+            pass
+        #work
+    
     return drive
 
 

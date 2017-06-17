@@ -366,6 +366,8 @@ class FromPaths(_Generator):
 
 class VGGRegions(_Generator):
     '''Generate regions configured in VGG
+    Example:
+        VGGRegions(self.dkPos, self.vggPos, filters=None, transforms=None)
     '''
     def __init__(self, digikam_params, vgg_params, *args, **kwargs):
         '''(DigikamSearchParams, VGGSearchParams, bool)->yields ndarray
@@ -429,8 +431,11 @@ class VGGRegions(_Generator):
 
                 try:
                     if _dir_has_vgg(fld):
+                        if fld.endswith(VGG_FILE):
+                            p = _iolib.fixp(fld)
+                        else:
+                            p = _iolib.fixp(_path.join(fld, VGG_FILE))
 
-                        p = _iolib.fixp(_path.join(fld, VGG_FILE))
                         _vgg.load_json(p)
                         if not self.silent:
                             print('Opened regions file %s' % p)
@@ -470,7 +475,10 @@ class VGGRegions(_Generator):
 
                 try:
                     if _dir_has_vgg(fld):
-                        p = _iolib.fixp(_path.join(fld, VGG_FILE))
+                        if fld.endswith(VGG_FILE):
+                            p = _iolib.fixp(fld)
+                        else:
+                            p = _iolib.fixp(_path.join(fld, VGG_FILE))
                         _vgg.load_json(p)
                         if not self.silent:
                             print('Opened regions file %s' % p)
@@ -799,6 +807,9 @@ class RegionPosRandomNeg():
 
 #region Helper funcs
 def _dir_has_vgg(fld):
-    fld = _path.join(_path.normpath(fld), VGG_FILE)
+    if not fld.endswith(VGG_FILE):
+        fld = _path.join(_path.normpath(fld), VGG_FILE)
+    else:
+        fld = _path.normpath(fld)
     return _path.isfile(fld)
 #endregion

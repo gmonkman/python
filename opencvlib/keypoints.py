@@ -1,6 +1,14 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''keypoint helpers
-keypoint detection is handled in features.py'''
+keypoint detection is handled in features.py
+
+Meaning of keypoint properties:
+    class_id: key for the same feature from different octaves
+    angle: angle of dominant gradient
+    pt: location (x,y)
+    size: region overwhich the descriptor was calculated
+    response: relative metric indicating point strength
+'''
 import numpy as _np
 import cv2 as _cv2
 

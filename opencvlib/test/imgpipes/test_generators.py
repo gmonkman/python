@@ -22,8 +22,8 @@ class Test(unittest.TestCase):
         pass
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
     #DEBUG Double check test_image_pipeline
+    @unittest.skip("Temporaily disabled while debugging")
     def test_RegionPosRandomNeg(self):
         '''test_RegionPosRandomNeg'''
         #Get training region
@@ -42,6 +42,27 @@ class Test(unittest.TestCase):
         Gen = gnr.RegionPosRandomNeg(vgg_sp, dk_sp, dk_sample, F=F, T=T)
         for train, test, dummy in Gen.generate():
             show([train, test])
+
+
+    def test_VGGRegions(self):
+        '''test_RegionPosRandomNeg'''
+        #Get training region
+        vgg_sp = gnr.VGGSearchParams('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler', 'whole', 'bass')
+        #TODO Double check boolean handling
+        dk_sp = gnr.DigikamSearchParams(key_value_bool_type='AND', fins=['dorsal_spiny'])
+
+        t1 = transforms.Transform(transforms.togreyscale)
+        t2 = transforms.Transform(transforms.equalize_adapthist)
+        T = transforms.Transforms(None, t1, t2)
+
+        f1 = filters.Filter(filters.is_higher_res, w=100, h=100)
+        f2 = filters.Filter(filters.is_lower_res, w=10000, h=10000)
+        F = filters.Filters(None, f1, f2)
+
+        Gen = gnr.VGGRegions(dk_sp, vgg_sp, transforms=T, filters=F)
+        for img, dummy, dummy1 in Gen.generate():
+            show(img)
+
 
 
 

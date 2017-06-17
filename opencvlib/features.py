@@ -19,6 +19,7 @@ import opencvlib as _opencvlib
 import opencvlib.decs as _decs
 import opencvlib.keypoints as _keypoints
 import opencvlib.transforms as _transforms
+import opencvlib.info as _info
 
 from opencvlib import Log as _Log
 from opencvlib.view import show as _show
@@ -34,6 +35,7 @@ SILENT = False
 class eFeatureDetectorType(_Enum):
     '''feature detectors
     '''
+    cvAkaze = -1
     cvBRIEF = 0
     cvBRISK = 1
     cvFAST = 2
@@ -176,6 +178,23 @@ class _BaseDetector(_ABC):
         self._load_image()
 
 
+    def get_matcher_dist_enum(self):
+        '''dictates the distance measure for 
+        use in matching'''
+        if self._fdType == eFeatureDetectorType.cvSIFT:
+            norm = _cv2.NORM_L2
+        elif self._fdType == eFeatureDetectorType.cvSURF:
+            norm = _cv2.NORM_L2
+        elif self._fdType == eFeatureDetectorType.cvORB:
+            norm = _cv2.NORM_HAMMING
+        elif self._fdType == eFeatureDetectorType.cvAkaze:
+            norm = _cv2.NORM_HAMMING
+        elif self._fdType == eFeatureDetectorType.cvBRISK:
+            norm = _cv2.NORM_HAMMING
+        else:
+            norm = None
+        return norm
+
 
     @_abstractmethod
     def extract_descriptors(self):
@@ -290,7 +309,7 @@ class _BaseDetector(_ABC):
             _prints(s)
 
         if not force and isinstance(self._img, _np.ndarray): #make grey if should be grey is multichannel
-            if not _opencvlib.ImageInfo.typeinfo(self._img) & _opencvlib.eImgType.CHANNEL_1.value:
+            if not _info.ImageInfo.typeinfo(self._img) & _opencvlib.info.eImgType.CHANNEL_1.value:
                 if self._is_grey:
                     self._img = _transforms.togreyscale(self._img)
         return
@@ -771,7 +790,7 @@ class skHOGDetector(_BaseDetector):
             self._img_descriptors = _opencvlib.transforms.rescale_intensity(hog_image, in_range=(0, 0.02))
         else:
             self._img_descriptors = None
-            fd, hog_image = _skfeature.hog(self._img, visualise=False, *skHOGDetector.args, **skHOGDetector.kwargs)
+            fd = _skfeature.hog(self._img, visualise=False, *skHOGDetector.args, **skHOGDetector.kwargs)
             
         self.descriptors = fd
         self.keypoints = None
@@ -813,7 +832,6 @@ def _openCV(img):
 @_decs.decgetimg
 def _opengrey(img):
     return _opencvlib.transforms.togreyscale(img)
-
 
 
 def _prints(s, log=True):
