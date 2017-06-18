@@ -307,11 +307,16 @@ class _BaseDetector(_ABC):
             s = 'Requested force load of image %s, but the file doesnt exist' % self._imgpath
             self._img = None
             _prints(s)
+        
+
+        if not isinstance(self._img, _np.ndarray):
+            self._img = _opencvlib.getimg(self._imgpath)
 
         if not force and isinstance(self._img, _np.ndarray): #make grey if should be grey is multichannel
             if not _info.ImageInfo.typeinfo(self._img) & _opencvlib.info.eImgType.CHANNEL_1.value:
                 if self._is_grey:
                     self._img = _transforms.togreyscale(self._img)
+
         return
 
 

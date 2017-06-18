@@ -74,7 +74,7 @@ logging.basicConfig(format='%(asctime)s %(message)s',
 _prints('Logging to %s' % _LOG_FILE_NAME)
 
 
-def valid_parts_in_list(parts, silent=False):
+def _valid_parts_in_list(parts, silent=False):
     '''(iterable)->list
     Return valid parts in parts against the master list
     '''
@@ -84,7 +84,7 @@ def valid_parts_in_list(parts, silent=False):
     return _list_and(parts, VALID_PARTS)
 
 
-def valid_species_in_list(species, silent=False):
+def _valid_species_in_list(species, silent=False):
     '''(iterable)->list
     check if a part is in the valid parts list
     '''

@@ -44,22 +44,23 @@ class Test(unittest.TestCase):
             show([train, test])
 
 
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_VGGRegions(self):
-        '''test_RegionPosRandomNeg'''
+        '''test vggregions'''
         #Get training region
         vgg_sp = gnr.VGGSearchParams('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler', 'whole', 'bass')
         #TODO Double check boolean handling
-        dk_sp = gnr.DigikamSearchParams(key_value_bool_type='AND', fins=['dorsal_spiny'])
+        dk_sp = gnr.DigikamSearchParams(key_value_bool_type='AND', pitch='0', yaw='180', roll='0')
 
-        t1 = transforms.Transform(transforms.togreyscale)
-        t2 = transforms.Transform(transforms.equalize_adapthist)
-        T = transforms.Transforms(None, t1, t2)
+        #t1 = transforms.Transform(transforms.togreyscale)
+        #t2 = transforms.Transform(transforms.equalize_adapthist)
+        #T = transforms.Transforms(None, t1, t2)
 
-        f1 = filters.Filter(filters.is_higher_res, w=100, h=100)
-        f2 = filters.Filter(filters.is_lower_res, w=10000, h=10000)
-        F = filters.Filters(None, f1, f2)
+        #f1 = filters.Filter(filters.is_higher_res, w=100, h=100)
+        #f2 = filters.Filter(filters.is_lower_res, w=10000, h=10000)
+        #F = filters.Filters(None, f1, f2)
 
-        Gen = gnr.VGGRegions(dk_sp, vgg_sp, transforms=T, filters=F)
+        Gen = gnr.VGGRegions(dk_sp, vgg_sp, transforms=None, filters=None)
         for img, dummy, dummy1 in Gen.generate():
             show(img)
 

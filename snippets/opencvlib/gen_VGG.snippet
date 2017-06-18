@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>genVGG</Title>
+      <Shortcut>genVGG</Shortcut>
+      <Description>VGG image generator with filters and transforms</Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>SurroundsWithStatement</SnippetType>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[import opencvlib.imgpipes.generators as Gen
+    
+    vgg_param = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['head'], species=['bass'])
+    VGG = Gen.VGGRegions(None, vgg_param)
+    for img, imgpath, out_dict in VGG.generate():
+        #do you stuff
+
+]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

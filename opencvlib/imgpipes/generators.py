@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, dangerous-default-value, attribute-defined-outside-init, return-in-init, unnecessary-pass, arguments-differ
+# pylint: disable=C0103, locally-disabled, attribute-defined-outside-init, protected-access, unused-import, arguments-differ, unused-argument
 '''simple image file generators.
 
 All yielded generators have an error handler wrapping which logs errors
@@ -8,7 +8,7 @@ The RandomRegion generator returns None on err'''
 
 from os import path as _path
 import abc as _abc
-
+from enum import Enum as _Enum
 
 import cv2 as _cv2
 import numpy as _np
@@ -42,6 +42,13 @@ from opencvlib import IMAGE_EXTENSIONS_AS_WILDCARDS as _IMAGE_EXTENSIONS_AS_WILD
 
 # hard coded vgg file which needs to be in each directory
 VGG_FILE = 'vgg.json'
+
+
+class eDigiKamSearchType(_Enum):
+    '''digikam search tpye'''
+    and_ = 0
+    or_ = 1
+    innerOr_outerAnd = 2
 
 
 #region Generator related classes
@@ -164,8 +171,8 @@ class VGGSearchParams(object):
         if isinstance(folders, str):
             folders = [folders]
 
-        self._parts = _vgg.valid_parts_in_list(parts)
-        self._species = _vgg.valid_species_in_list(species)
+        self._parts = _vgg._valid_parts_in_list(parts)
+        self._species = _vgg._valid_species_in_list(species)
         self._folders = folders
         self.recurse = recurse
 
@@ -177,7 +184,7 @@ class VGGSearchParams(object):
     @parts.setter
     def parts(self, parts):
         '''regions setter'''
-        self._parts = _vgg.valid_parts_in_list(parts)
+        self._parts = _vgg._valid_parts_in_list(parts)
 
     @property
     def species(self):
@@ -187,7 +194,7 @@ class VGGSearchParams(object):
     @species.setter
     def species(self, species):
         '''species setter'''
-        self._species = _vgg.valid_species_in_list(species)
+        self._species = _vgg._valid_species_in_list(species)
 
     @property
     def folders(self):
@@ -203,11 +210,11 @@ class VGGSearchParams(object):
 class DigikamSearchParams():
     '''digikam search params'''
 
-    def __init__(self, filename='', album_label='', relative_path='', key_value_bool_type='AND', **keyvaluetags):
+    def __init__(self, filename='', album_label='', relative_path='', search_type=eDigiKamSearchType.innerOr_outerAnd, **keyvaluetags):
         self.filename = filename
         self.album_label = album_label
         self.relative_path = relative_path
-        self.key_value_bool_type = key_value_bool_type
+        self.search_type = search_type
         self.keyvaluetags = keyvaluetags
 
     def no_filters(self):
@@ -299,13 +306,30 @@ class DigiKam(_Generator):
         assert isinstance(self.digikam_params, DigikamSearchParams)
         assert DigiKam.dkImages is not None
         if force or self._dirty_filters:
-            imgs = DigiKam.dkImages.images_by_tags(
-                filename=self.digikam_params.filename,
-                album_label=self.digikam_params.album_label,
-                relative_path=self.digikam_params.relative_path,
-                bool_type=self.digikam_params.key_value_bool_type,
-                **self.digikam_params.keyvaluetags
-            )
+            if self.digikam_params.search_type == eDigiKamSearchType.and_:
+                imgs = DigiKam.dkImages.images_by_tags_and(
+                    filename=self.digikam_params.filename,
+                    album_label=self.digikam_params.album_label,
+                    relative_path=self.digikam_params.relative_path,
+                    **self.digikam_params.keyvaluetags
+                        )
+            elif self.digikam_params.search_type == eDigiKamSearchType.or_:
+                imgs = DigiKam.dkImages.images_by_tags_or(
+                    filename=self.digikam_params.filename,
+                    album_label=self.digikam_params.album_label,
+                    relative_path=self.digikam_params.relative_path,
+                    **self.digikam_params.keyvaluetags
+                        )
+            elif self.digikam_params.search_type == eDigiKamSearchType.innerOr_outerAnd:
+                imgs = DigiKam.dkImages.images_by_tags_outerAnd_innerOr(
+                    filename=self.digikam_params.filename,
+                    album_label=self.digikam_params.album_label,
+                    relative_path=self.digikam_params.relative_path,
+                    **self.digikam_params.keyvaluetags
+                        )
+            else:
+                raise UserWarning('Invalid DigikamSearchParams search type. Search type should be Enum:eDigiKamSearchType')
+            
             self._image_list = [_iolib.fixp(i) for i in imgs]
 
 

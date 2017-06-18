@@ -1,24 +1,26 @@
-# pylint: disable=C0302, line-too-long, too-few-public-methods,
-# too-many-branches, too-many-statements, no-member, ungrouped-imports,
-# too-many-arguments, wrong-import-order, relative-import,
-# too-many-instance-attributes, too-many-locals, unused-variable,
-# not-context-manager
+# pylint: disable=C0302, line-too-long, too-few-public-methods
+
+# Albumroots.specificpath is the root path of the album from the drive, excluding the drive
+# e.g. /development/python/opencvlib/calibration for the calibration album
+# Albums.relative path is the path after the album root
+# e.g.
+
 '''
 various routines to work with the digikam library, stored in sqlite
 '''
-import os
-import warnings
+import os as _os
+import warnings as _warnings
 
-import cv2
-import sqlite3
+import cv2 as _cv2
+import sqlite3 as _sqlite3
 
-from funclib.baselib import get_platform
-from funclib.iolib import get_available_drive_uuids
-from funclib.stringslib import rreplace
-from funclib.stringslib import add_left
-from funclib.iolib import print_progress
+from funclib.baselib import get_platform as _get_platform
+from funclib.iolib import get_available_drive_uuids as _get_available_drive_uuids
+from funclib.stringslib import rreplace as _rreplace
+from funclib.stringslib import add_left as _add_left
+from funclib.iolib import print_progress as _print_progress
 
-import dblib.sqlitelib as sqlitelib
+import dblib.sqlitelib as _sqlitelib
 
 SPECIFIC_PATH_OVERRIDE = ''
 SILENT = False
@@ -44,7 +46,7 @@ class _ImagesValidator(object):
     Pass a list of files during instance creation,
     or setting the image_files property to a list of files will also force a validation
 
-    If cv_load_test is true, then validation will try and load images with cv2.imread.
+    If cv_load_test is true, then validation will try and load images with _cv2.imread.
     '''
 
     def __init__(self, file_ptrs=None):
@@ -61,12 +63,12 @@ class _ImagesValidator(object):
         '''go through self._image_paths and assign valid and invalid paths to module variables'''
         self._invalid_image_files = []
         for images in self._image_files:
-            if not os.path.isfile(images):
+            if not _os.path.isfile(images):
                 self._invalid_image_files.append(images)
             else:
                 if self.cv_load_test:
                     try:
-                        nd = cv2.imread(images)
+                        nd = _cv2.imread(images)
                         if nd is None:
                             nd = None
                             self._invalid_image_files.append(images)
@@ -123,7 +125,7 @@ class _ImagesValidator(object):
         be loaded in opencv, this can take a long time!
 
         You can optionally use image_generator which as well
-        as generating nd arrays via cv2.imread()
+        as generating nd arrays via _cv2.imread()
         also set valid and invalid lists based on the
         success or imread()
         '''
@@ -136,14 +138,14 @@ class _ImagesValidator(object):
         _image_paths list, which is set in class initialisation
 
         This also clears the current valid and invalid image lists and
-        resets them based on if the image was successfully loaded by cv2.imread
+        resets them based on if the image was successfully loaded by _cv2.imread
         '''
         self._invalid_image_files = []
         self._valid_image_files = []
         for image in self._image_files:
-            if os.path.isfile(image):
+            if _os.path.isfile(image):
                 try:
-                    nd = cv2.imread(image)
+                    nd = _cv2.imread(image)
                     self._valid_image_files.append(image)
                     yield nd
                 except Exception:
@@ -191,8 +193,8 @@ class _ReadFiles(object):
         '''
         image_paths = []
 
-        with sqlitelib.Conn(self.dbfile) as cn:
-            assert isinstance(cn, sqlite3.Connection)
+        with _sqlitelib.Conn(self.dbfile) as cn:
+            assert isinstance(cn, _sqlite3.Connection)
 
             cur = cn.cursor()
             cur.execute(self.sql)
@@ -201,27 +203,27 @@ class _ReadFiles(object):
                 print('Reading image paths from digikam database')
             cnt = 0
             strip = ['-', 'VOLUMEID:?UUID=']
-            drives = get_available_drive_uuids(strip=strip)
+            drives = _get_available_drive_uuids(strip=strip)
             invalid_uuids = []
             for res in row:
                 if SPECIFIC_PATH_OVERRIDE == '':
-                    if get_platform() == 'windows':
+                    if _get_platform() == 'windows':
                         uuid = res['identifier'].upper()
 
                         for char in strip:
                             uuid = uuid.replace(char, '')
 
                         if uuid in drives:
-                            drive = drives[uuid] + os.sep
+                            drive = drives[uuid] + _os.sep
                         else:
                             if uuid not in invalid_uuids:
                                 invalid_uuids.append(uuid)
-                                warnings.warn('No drive found for UUID', uuid)
+                                _warnings.warn('No drive found for UUID', uuid)
                             drive = ''
-                    elif get_platform() == 'linux':
+                    elif _get_platform() == 'linux':
                         drive = ''
                     else:
-                        warnings.warn(
+                        _warnings.warn(
                             'Warning: Platform not recognised or unsupported. Treating as Linux.')
                         drive = ''
                 else:
@@ -229,12 +231,12 @@ class _ReadFiles(object):
 
                 spath = read_specific_path(res['specificPath'])
                 rpath = res['relativePath']
-                name = os.sep + res['name']
-                full_path = os.path.normpath(drive + spath + rpath + name)
+                name = _os.sep + res['name']
+                full_path = _os.path.normpath(drive + spath + rpath + name)
                 image_paths.append(full_path)
                 cnt += 1
                 if not SILENT:
-                    print_progress(cnt, len(row), bar_length=30)
+                    _print_progress(cnt, len(row), bar_length=30)
 
             self.images.image_files = image_paths
 
@@ -308,12 +310,152 @@ class ImagePaths(object):
         set the path to the digikam db digikam4.db'''
         self.digikam_path = digikam_path
 
-    def images_by_tags(
+
+    def images_by_tags_outerAnd_innerOr(
             self,
             filename='',
             album_label='',
             relative_path='',
-            bool_type='AND',
+            **kwargs):
+        '''(str, str, str,str, Key-value kwargs representing parent tag name and child tag name)->list
+        
+        Performs and between parent tags, and OR within parent tags.
+        eg. (species='bass' or 'pollack') and (occlusion=0 or occlusion=10)
+
+        Retrieve images by the tags, where kwargs is parent key=child key
+
+        Pass in __any__ = <tag> for a single non-heirarchy match, eg __any__ = 'bass' will pick up anything tagged with bass anywhere
+
+        Where a parent has multiple children, need to use a list for the values, e.g. species=['bass','mackerel']
+
+        Relative paths must use forward slash /
+        '''
+
+        aliases = 'abcdefghijklmnopqrstyvwxyz'
+        
+        start_sql = 'SELECT distinct zz.id, zz.identifier, zz.specificPath, zz.relativePath, zz.name FROM '
+
+
+        #now need to construct inners
+        inner_template = '( select distinct ' \
+            'Images.id, AlbumRoots.identifier, AlbumRoots.specificPath, Albums.relativePath, images.name ' \
+            'from Images ' \
+            'inner join Albums on albums.id=images.album ' \
+            'inner join AlbumRoots on AlbumRoots.id=Albums.albumRoot ' \
+            'where Images.id in ' \
+            '( ' \
+            'select images.id ' \
+            'from images ' \
+            'inner join imagetags on images.id=ImageTags.imageid ' \
+            'inner join tags on tags.id=imagetags.tagid ' \
+            'where ' \
+            'imagetags.tagid in ' \
+            '( ' \
+            'select children.id as tagid ' \
+            'from tags children ' \
+            'left join tags parent on children.pid=parent.id ' \
+            'where ___REPLACE___))) as _TABLE_ALIAS INNER JOIN '
+
+        i = 0
+        aliases_used = []
+        lst_tables = []
+        where = []
+        
+        if kwargs:
+            first = True
+            for key, value in kwargs.items():
+                where = []
+
+                if isinstance(value, list): #occlusion=['0', '10', '20']
+                    for val in value:
+                        where.append(
+                            " (parent.name='%s' AND children.name='%s') OR" % (key, val))
+                else: #occlusion='0'
+                    where.append(" (parent.name='%s' AND children.name='%s') AND" % (key, value))
+                
+                if where[-1][-3:] == 'AND' or where[-1][-4:] == 'AND ':
+                    where[-1] = _rreplace(where[-1], 'AND', '', 1)
+
+                if where[-1][-2:] == 'OR' or where[-1][-3:] == 'OR ':
+                    where[-1] = _rreplace(where[-1], 'OR', '', 1)
+
+                w = ''.join(where)   
+                tmp = inner_template.replace('___REPLACE___', w)
+                if first:
+                    tmp = tmp.replace('_TABLE_ALIAS', aliases[i] + '\n') #as x    - ie the first table
+                    first = False
+                else:
+                    s = aliases[i] + ' on ' + aliases[i-1] + '.id=' + aliases[i] + '.id\n' #as y on x.id=y.id
+                    tmp = tmp.replace('_TABLE_ALIAS', s)
+                
+                tmp.replace("parent.name='__any__' AND'", " ") #passing in _any_=['10','20] should ignore parent
+
+                lst_tables.append(tmp)
+                aliases_used.append(aliases[i])
+                i += 1
+            tables_sql = ''.join(lst_tables)
+        else:
+            tables_sql = ''
+
+        
+        
+
+
+        #make the final sql query (table alias zz)
+        #to filter for top level stuff, albumroot, image name etc
+        lst_final_sql = ['(select distinct '
+            'Images.id, AlbumRoots.identifier, AlbumRoots.specificPath, Albums.relativePath, images.name '
+            'from '
+            'Images '
+            'inner join Albums on albums.id=images.album '
+            ' inner join AlbumRoots on AlbumRoots.id=Albums.albumRoot '
+            'where 1=1 '    
+            ]
+
+
+        if filename != '':
+            lst_final_sql.append(
+                " AND Images.name='%s'" %
+                filename.lstrip('\\').lstrip('/'))
+
+        if relative_path != '':
+            lst_final_sql.append(
+                " AND Albums.relativePath='%s'" %
+                _add_left(
+                    relative_path.rstrip('/').rstrip('\\'),
+                    '/'))  # e.g. should be /scraped/0b
+
+        if album_label != '':
+            lst_final_sql.append(
+                " AND AlbumRoots.label='%s'" %
+                album_label)  # album name
+
+        if kwargs:
+            s = ') as zz on ' + aliases[i-1] + '.id=zz.id' #as zz on x.id = zz.id
+            lst_final_sql.append(s)
+        else:
+            lst_final_sql.append(') as zz')
+            
+        final_sql = ''.join(lst_final_sql)
+        
+        query = ''.join([start_sql, tables_sql, final_sql])
+
+
+        rf = _ReadFiles(query, self.digikam_path)
+        if not SILENT:
+            print(
+                'Total image paths: %s | Valid: %s | Invalid: %s' %
+                (rf.images.total_count,
+                 rf.images.valid_count,
+                 rf.images.invalid_count))
+        return rf.images.valid
+
+
+    def images_by_tags_or(
+            self,
+            filename='',
+            album_label='',
+            relative_path='',
             **kwargs):
         '''(str, str, str,str, Key-value kwargs representing parent tag name and child tag name)->list
 
@@ -328,8 +470,6 @@ class ImagePaths(object):
         Get a list of a images by the tags passed in args
 
         Relative paths must use forward slash /
-
-        valid bool type are AND and OR.
 
         *Note sets can be used to emulate AND/OR/NOT like operations on returned lists
         '''
@@ -363,37 +503,20 @@ class ImagePaths(object):
             'tags children '
             'left join tags parent on children.pid=parent.id '
             'where '
-            #    'parent.name="species"'
-            #  'AND children.name="bass"'
-            #   ')'
-            #  ')'
         ]
         where = []
         if kwargs:
-            if bool_type == 'OR':
-                for key, value in kwargs.items():
-                    if isinstance(value, list):
-                        for val in value:
-                            where.append(
-                                " (parent.name='%s' AND children.name='%s') OR" % (key, val))
-                    else:
+            for key, value in kwargs.items():
+                if isinstance(value, list):
+                    for val in value:
                         where.append(
-                            " (parent.name='%s' AND children.name='%s') OR" % (key, value))
+                            " (parent.name='%s' AND children.name='%s') OR" % (key, val))
+                else:
+                    where.append(
+                        " (parent.name='%s' AND children.name='%s') OR" % (key, value))
 
-                #where = [" parent.name='%s' OR children.name='%s' OR" % (key, value) for key, value in kwargs.items()]
-                where[-1] = rreplace(where[-1], 'OR', '', 1)
-            else:
-                for key, value in kwargs.items():
-                    if isinstance(value, list):
-                        for val in value:
-                            where.append(
-                                " (parent.name='%s' AND children.name='%s') AND" % (key, val))
-                    else:
-                        where.append(
-                            " (parent.name='%s' AND children.name='%s') AND" % (key, value))
-
-                #where = [" parent.name='%s' AND children.name='%s' AND" % (key, value) for key, value in kwargs.items()]
-                where[-1] = rreplace(where[-1], 'AND', '', 1)
+            #where = [" parent.name='%s' OR children.name='%s' OR" % (key, value) for key, value in kwargs.items()]
+            where[-1] = _rreplace(where[-1], 'OR', '', 1)
         else:
             where = [" 1=1 "]
 
@@ -410,7 +533,7 @@ class ImagePaths(object):
         if relative_path != '':
             sql.append(
                 " AND Albums.relativePath='%s'" %
-                add_left(
+                _add_left(
                     relative_path.rstrip('/').rstrip('\\'),
                     '/'))  # e.g. should be /scraped/0b
 
@@ -426,6 +549,115 @@ class ImagePaths(object):
         # where parent.name='__any__' AND children.name='bass'
         query.replace("parent.name='__any__' AND'", " ")
         rf = _ReadFiles(query, self.digikam_path)
+
+        if not SILENT:
+            print(
+                'Total image paths: %s | Valid: %s | Invalid: %s' %
+                (rf.images.total_count,
+                 rf.images.valid_count,
+                 rf.images.invalid_count))
+        return rf.images.valid
+
+
+    def images_by_tags_and(
+            self,
+            filename='',
+            album_label='',
+            relative_path='',
+            **kwargs):
+        '''(str, str, str,str, Key-value kwargs representing parent tag name and child tag name)->list
+
+        Retrieve images by the tags, where kwargs is parent key=child key
+        Hence for bass, we would call using:
+          ImagesByTags(species='bass')
+
+        Pass in __any__ = <tag> for a single non-heirarchy match, eg __any__ = 'bass' will pick up anything tagged with bass anywhere
+
+        Where a parent has multiple children, need to use a list for the values, e.g. species=['bass','mackerel']
+
+        Get a list of a images by the tags passed in args
+
+        Relative paths must use forward slash /
+
+        *Note sets can be used to emulate AND/OR/NOT like operations on returned lists
+        '''
+        # Albumroots.specificpath is the root path of the album from the drive, excluding the drive
+        # e.g. /development/python/opencvlib/calibration for the calibration album
+        # Albums.relative path is the path after the album root
+        # e.g.
+
+        sql = [
+            'select distinct '
+            'Images.id, AlbumRoots.identifier, AlbumRoots.specificPath, Albums.relativePath, images.name '
+            'from '
+            'Images '
+            'inner join Albums on albums.id=images.album '
+            ' inner join AlbumRoots on AlbumRoots.id=Albums.albumRoot '
+            'where '
+            'Images.id in '
+            '( '
+            'select '
+            'images.id '
+            ' from '
+            'images '
+            ' inner join imagetags on images.id=ImageTags.imageid '
+            ' inner join tags on tags.id=imagetags.tagid '
+            'where '
+            'imagetags.tagid in '
+            '( '
+            'select '
+            'children.id as tagid '
+            'from '
+            'tags children '
+            'left join tags parent on children.pid=parent.id '
+            'where '
+        ]
+        where = []
+        if kwargs:
+            for key, value in kwargs.items():
+                if isinstance(value, list):
+                    for val in value:
+                        where.append(
+                            " (parent.name='%s' AND children.name='%s') AND" % (key, val))
+                else:
+                    where.append(
+                        " (parent.name='%s' AND children.name='%s') AND" % (key, value))
+
+            #where = [" parent.name='%s' OR children.name='%s' OR" % (key, value) for key, value in kwargs.items()]
+            where[-1] = _rreplace(where[-1], 'AND', '', 1)
+        else:
+            where = [" 1=1 "]
+
+        sql.append(''.join(where))
+        sql.append('))')
+
+        sql.append(" AND 1=1 ")
+
+        if filename != '':
+            sql.append(
+                " AND Images.name='%s'" %
+                filename.lstrip('\\').lstrip('/'))
+
+        if relative_path != '':
+            sql.append(
+                " AND Albums.relativePath='%s'" %
+                _add_left(
+                    relative_path.rstrip('/').rstrip('\\'),
+                    '/'))  # e.g. should be /scraped/0b
+
+        if album_label != '':
+            sql.append(
+                " AND AlbumRoots.label='%s'" %
+                album_label)  # album name
+
+        query = "".join(sql)
+
+        # Fix string if we arnt bothered about a parent match for any kwarg args
+        # which would look like:
+        # where parent.name='__any__' AND children.name='bass'
+        query.replace("parent.name='__any__' AND'", " ")
+        rf = _ReadFiles(query, self.digikam_path)
+
         if not SILENT:
             print(
                 'Total image paths: %s | Valid: %s | Invalid: %s' %

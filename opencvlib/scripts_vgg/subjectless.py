@@ -37,7 +37,7 @@ def main():
     cmdline.add_argument(
         '-r', '--regionless', help='The default. Only image files without any regions are copied.', default='True')
     cmdline.add_argument(
-        '-t', '--bool_type', help='Use AND or OR for key-value WHERE. Default:AND', default='AND')
+        '-t', '--bool_type', help='Use AND or OR or ANDOR for key-value WHERE. Default:AND', default='ANDOR')
     cmdline.add_argument('vggfile', help='VGG JSON file to manipulate')
     cmdline.add_argument('digikamfile', help='Digikam file (sqlitedb) to use')
     cmdline.add_argument(
@@ -90,11 +90,20 @@ def main():
         kwords[a] = b
 
     # return list of all matching images, irrespective of path
-    if not args.bool_type in ['AND', 'OR']:
+    if not args.bool_type in ['AND', 'OR', 'ANDOR']:
         print('Unknown argument %s for -t (the boolean search type). Defaulting to AND' %
               args.bool_type)
 
-    images = digi.images_by_tags(bool_type=args.bool_type, **kwords)
+    
+
+    if args.bool_type == 'AND':
+        images = digi.images_by_tags_and(**kwords)
+    elif args.bool_type == 'OR':
+        images = digi.images_by_tags_or(**kwords)
+    elif args.bool_type == 'ANDOR':
+        images = digi.images_by_tags_outerAnd_innerOr(**kwords)
+
+
     print('%s images matched digikam tag criteria' % len(images))
     # create the new folder
     if args.subfolder == '':
