@@ -527,14 +527,18 @@ class _OpenCVDetector(_BaseDetector):
         if repr(self._Detector).startswith('<HOGDescriptor'): #Detect and compute not supported for HOGDescriptor, and HOG is implicitly dense
             self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
         else:
-            if _baselib.isempty(self.keypoints):
-                if 'dense' in repr(self).lower(): #are we dense and without keypoints
-                    self.extract_keypoints()
-                    self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
+            try:
+                if _baselib.isempty(self.keypoints):
+                    if 'dense' in repr(self).lower(): #are we dense and without keypoints
+                        self.extract_keypoints()
+                        self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
+                    else:
+                        self.keypoints, self.descriptors = self._Detector.detectAndCompute(image=self._img, mask=self._mask)
                 else:
-                    self.keypoints, self.descriptors = self._Detector.detectAndCompute(image=self._img, mask=self._mask)
-            else:
-                self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
+                    self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
+            except Exception as e:
+                s = 'Descriptor extraction failed for %s. The error was %s' % (self._imgpath, str(e))
+                _prints(s)
 
 
     def extract_keypoints(self):
@@ -627,7 +631,7 @@ class OpenCV_SIFT(_OpenCVDetector):
     Note that SIFT options should be set
     by accessing Detector
     '''
-    kwargs = {'nfeatures':500, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1.6}
+    kwargs = {'nfeatures':100, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1.6}
     Detector = _cv2.xfeatures2d.SIFT_create(**kwargs)
     
 

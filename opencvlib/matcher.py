@@ -29,7 +29,7 @@ class _BaseMatcher():
     new matchers should inherit
     '''
 
-    def __init__(self, Matcher, MatcherType, refFeature=None, targFeature=None, filter_match_ratio=0.75, run_match=True):
+    def __init__(self, Matcher, MatcherType, refFeature, targFeature, filter_match_ratio=0.75, run_match=True):
         '''(Class:cv2::DescriptorMatcher, features.eFeatureDetectorType,
             Class:Features._BaseDetector, Class:Features._BaseDetector)->void
 
@@ -213,9 +213,21 @@ class _BaseMatcher():
 
 
 class FLANNMatcher(_BaseMatcher):
-    '''FLANN Matcher'''
+    '''FLANN Matcher
 
-    def __init__(self, refFeature=None, targFeature=None, run_match=True, filter_match_ratio=0.75):
+    Initialise with feature classes from features.py.
+    
+    Feature instances neednt have valid descriptors for
+    initalisation.
+    
+    The matcher will assess best matches based on descriptors
+    calculated in feature instances.
+
+    Example initialisation:
+        firstSIFT, curSIFT = features.OpenCV_SIFT(), features.OpenCV_SIFT()
+        M = matcher.BruteForceMatcher(firstSIFT, curSIFT)
+    '''
+    def __init__(self, refFeature, targFeature, run_match=True, filter_match_ratio=0.75):
                
         if refFeature.get_matcher_dist_enum == _cv2.NORM_L2:
             flann_params = dict(algorithm=eFLANN_OPT.FLANN_INDEX_KDTREE, trees=5)
@@ -231,10 +243,19 @@ class FLANNMatcher(_BaseMatcher):
 
     
 class BruteForceMatcher(_BaseMatcher):
-    '''BF matcher
+    '''Bruteforce matcher, 
+
+    Initialise with feature classes from features.py
+    
+    The matcher will assess best matches based on descriptors
+    calculated in feature instances.
+
+    Example initialisation:
+        firstSIFT, curSIFT = features.OpenCV_SIFT(), features.OpenCV_SIFT()
+        M = matcher.BruteForceMatcher(firstSIFT, curSIFT)
     '''
 
-    def __init__(self, refFeature=None, targFeature=None, run_match=True, filter_match_ratio=0.75):
+    def __init__(self, refFeature, targFeature, run_match=True, filter_match_ratio=0.75):
         Matcher = _cv2.BFMatcher(refFeature.get_matcher_dist_enum())
         super().__init__(Matcher, eMatcherType.BruteForce, refFeature, targFeature, run_match=run_match, filter_match_ratio=filter_match_ratio)
 
