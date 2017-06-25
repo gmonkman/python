@@ -222,7 +222,7 @@ def bin_and_merge_excel_data():
 
 #region Core Functions
 
-#region used in iter rater kappa and joint probability historgrams
+#region used in inter rater kappa and joint probability historgrams
 def trim_zeros(a):
     '''(ndarray)->ndarray
     ugly fix to trim zero row and column from contingency ndarrays
@@ -683,7 +683,7 @@ def kappa_permute():
     def kappa_with_iqr(x, y, omit_paired_zeros=False, use_tertile=False):
         '''(ndarray, ndarray,bool,bool,bool) -> dic
         Bins the two matrices using IQR (quartiles) or optionally tertiles
-        Then calculates the contingency matrix (iter rater agreement frequencies for quartiles)
+        Then calculates the contingency matrix (inter rater agreement frequencies for quartiles)
         Finally returns the kappa statistic from the contingency matrix
    
         If use_tertile is false will default to quartile

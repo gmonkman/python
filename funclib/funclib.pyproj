@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ec8e1821-0c22-445e-af07-22bbe247f71e}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\fix_newlines.py</StartupFile>
+    <StartupFile>scripts\best_pdf_fit.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -50,6 +50,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="pyqtlib.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripts\best_pdf_fit.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts\create_futurize_script.py">

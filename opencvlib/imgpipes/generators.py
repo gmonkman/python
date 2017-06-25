@@ -274,7 +274,7 @@ class DigiKam(_Generator):
         '''
 
         if self._digikam_params.no_filters() or not self.image_list:
-            return None, None, {}
+            return
 
         for imgpath in self.image_list:
             try:
