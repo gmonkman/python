@@ -40,6 +40,9 @@ def main():
     args = cmdline.parse_args()
 
 
+    T = None
+    F = None
+
     fld = path.normpath(args.vggfolder)
     fld = path.normpath(fld)
     vggsp = G.VGGSearchParams(fld, parts=[args.part], species=[args.spp])
@@ -50,7 +53,7 @@ def main():
 
 
     out = []
-    reg = G.VGGRegions(None, vggsp, transforms=T, filters=None)
+    reg = G.VGGRegions(None, vggsp, transforms=T, filters=F)
     
     for img, imgpath, dummy in reg.generate():
         features.SILENT = True

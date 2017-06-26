@@ -32,7 +32,7 @@ def getmarker(markerid, sz_pixels=500, border_sz=0, border_color=_color.CVColors
     Returns:
         Image as an ndarray
     '''  
-    m = cv2.aruco.drawMarker(cv2.aruco.getPredefinedDictionary(16),markerid, border_sz, 1)
+    m = cv2.aruco.drawMarker(_cv2.aruco.getPredefinedDictionary(16),markerid, border_sz, 1)
     m = _cv2.cvtColor(m, _cv2.COLOR_GRAY2BGR)
     if border_sz > 0:
         m = _pad_images(m, border_color=border_color)

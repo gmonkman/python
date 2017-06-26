@@ -124,7 +124,7 @@ class App:
         else:
             self._img = nd_img
 
-        if executeTransforms:
+        if executeTransforms and not self._Transforms is None:
             self._img = self._Transforms.executeQueue(self._img)
 
         self.subj_mask = None
@@ -271,7 +271,7 @@ if __name__ == '__main__':
     cmdline = argparse.ArgumentParser(description='Run watershed segmentation and try back projection'
                                     'Example:\n'
                                     'watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER'
-                                    'watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER'
+                                    'watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler" -l "C:/development/python/opencvlib/bin/watershedhistobass" -p BASS'
                                     )
 
     cmdline.add_argument('imgfolder', help='Folder with the images', default='')
@@ -282,8 +282,16 @@ if __name__ == '__main__':
 
     fn = args.imgfolder
     FILE_PREFIX = args.prefix
-    LOAD_FROM = args.loadfrom
+    LOAD_FROM = normpath(args.loadfrom)
+
+    _DUMP_DIR = normpath(LOAD_FROM)
+
+
     print(__doc__)
-    Ts = _transform.Transforms()
-    Ts.add(_transform.Transform(_transform.equalize_adapthist)) #1 arg, the img, autoconverts to HSV
+
+    Ts = None
+
+    #Ts = _transform.Transforms()
+    #Ts.add(_transform.Transform(_cv2.fastNlMeansDenoisingColored,None,10,10,7,21))
+    #Ts.add(_transform.Transform(_transform.equalize_adapthist)) #1 arg, the img, autoconverts to HSV
     App(fn, Ts).run()

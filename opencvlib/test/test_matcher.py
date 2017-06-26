@@ -39,10 +39,10 @@ class Test(unittest.TestCase):
            
 
 
-    @unittest.skip("Temporaily disabled while debugging")
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_with_vggdigi_generator(self):
         '''test with vgg generator'''
-
+        print('Testing head against random heads')
         features.OpenCV_SIFT.kwargs = {'nfeatures':100, 'nOctaveLayers':3, 'contrastThreshold':0.05, 'edgeThreshold':10, 'sigma':1.0}
         first_feat = features.OpenCV_SIFT()
 
@@ -86,7 +86,7 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled while debugging")
     def test_head_body(self):
         '''test with vgg generator'''
-
+        print('Testing Idealised Head-Body Matching')
         features.OpenCV_SIFT.kwargs = {'nfeatures':500, 'nOctaveLayers':3, 'contrastThreshold':0.05, 'edgeThreshold':10, 'sigma':1.0}
         first_feat = features.OpenCV_SIFT()
         test_feat = features.OpenCV_SIFT()

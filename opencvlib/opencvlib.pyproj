@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\imgpipes\test_generators.py</StartupFile>
+    <StartupFile>script_aruco\aruco_in_vid.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -18,8 +18,10 @@
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
-    <Environment>watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER'
-viewsift.py -part head -spp bass "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json"
+    <Environment>watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER
+watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler" -l "C:/development/python/opencvlib/bin/watershedhistobass" -p BASS
+watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/crab-edible" -l "C:/development/python/opencvlib/bin/watershedhistocrab" -p CRAB
+view_sift.py -part head -spp bass "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json"
 write_attr.py -regionid 0 -subjectid 1 -part cephalothorax -spp lobster "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster/vgg.json"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -56,6 +58,9 @@ write_attr.py -regionid 0 -subjectid 1 -part cephalothorax -spp lobster "C:/User
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_streams\play.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="script_aruco\aruco_in_vid.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="stopwatch.py" />
@@ -208,6 +213,7 @@ write_attr.py -regionid 0 -subjectid 1 -part cephalothorax -spp lobster "C:/User
     <Folder Include="calibration\nextbase512g\" />
     <Folder Include="imgpipes\" />
     <Folder Include="bin\" />
+    <Folder Include="script_aruco\" />
     <Folder Include="scripts_segmentation\" />
     <Folder Include="scripts_streams\" />
     <Folder Include="test\" />
