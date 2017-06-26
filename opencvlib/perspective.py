@@ -3,6 +3,11 @@
 '''edge detection and skeletonization
 '''
 
+#Link to integration
+#https://stackoverflow.com/questions/13320262/calculating-the-area-under-a-curve-given-a-set-of-coordinates-without-knowing-t
+#https://www.khanacademy.org/math/ap-calculus-ab/integration-applications-ab/average-value-of-a-function-ab/v/average-function-value-closed-interval
+#simpsons rule
+
 
 def get_perspective_correction(bg_dist, object_depth, length):
     '''(float, float)->float|None
@@ -61,3 +66,6 @@ def get_perspective_correction_iter_linear(coeff,
         return None
 
     return get_perspective_correction_iter_linear(coeff, const, bg_dist, length + l, l, stop_below_proportion)
+
+
+

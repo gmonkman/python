@@ -89,8 +89,10 @@ def pad_images(imgs, pad_color=_color.CVColors.black):
         if isinstance(img, _np.ndarray):
             add_h = maxh - img.shape[0]
             add_w = maxw - img.shape[1]
-
-            i = _cv2.cvtColor(img, _cv2.COLOR_GRAY2BGR)
+            if _info.ImageInfo.isbw(img):
+                i = _cv2.cvtColor(img, _cv2.COLOR_GRAY2BGR)
+            else:
+                i = img
             i = _cv2.copyMakeBorder(img, 0, add_h, 0, add_w, borderType=_cv2.BORDER_CONSTANT, value=pad_color)
             assert maxh == i.shape[0] and maxw == i.shape[1]
         else:

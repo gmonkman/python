@@ -559,6 +559,15 @@ class ImagePaths(object):
         return rf.images.valid
 
 
+    #TODO Doesnt currently work because of the
+    #kwarg handling
+    #    (parent.name = 'fins' AND 
+                   #           children.name = 'dorsal_spiny') 
+    #        AND
+        #    (parent.name = 'fins' AND 
+                   #           children.name = 'causal') 
+    #All of these cant be true
+    #need to convert it to be like the OR
     def images_by_tags_and(
             self,
             filename='',

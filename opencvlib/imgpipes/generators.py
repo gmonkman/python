@@ -805,6 +805,10 @@ class RegionPosRandomNeg():
     def generate(self, outflag=_cv2.IMREAD_UNCHANGED):
         '''
         Generate train and test image regions.
+
+        Returns:
+            positive image region, negative image region, dict
+            where dict = {'imgpath':img_path, 'region_img_path':region_img_path}
         '''
         #Get training region
         Pipe = VGGRegions(self.pos_dkSP, self.vggSP, filters=self.F, transforms=self.T)
@@ -819,14 +823,14 @@ class RegionPosRandomNeg():
             mask = argsout.get('mask', None)
 
             w, h = _ImageInfo.resolution(img)
-            test_region, dummy, dummy1 = RR.generate(img_path, w, h, 10, mask, outflag=outflag)
+            test_region, region_img_path, dummy1 = RR.generate(img_path, w, h, 10, mask, outflag=outflag)
 
             if test_region is None:
                 s = 'Failed to generate a test region for %s' % img_path
                 _log.warning(s)
                 continue
 
-            yield img, test_region, {}
+            yield img, test_region, {'imgpath':img_path, 'region_img_path':region_img_path}
 
 
 #region Helper funcs
