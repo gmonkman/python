@@ -44,7 +44,11 @@ VALID_SHAPES_2D = ['polygon', 'rect', 'circle', 'ellipse']
 
 VALID_PARTS = ['', 'antenna', 'abdomen', 'body', 'cephalothorax',
                'claw', 'exclude', 'head', 'perelopods-legs',
-               'telson-tail', 'thorax', 'whole']
+               'telson-tail', 'thorax', 'whole',
+               'anal fin', 'caudal fin',
+               'dorsal soft fin', 'dorsal spiny fin',
+               'pectoral fin', 'pelvic fin']
+
 
 
 VALID_SPECIES = ['bass',

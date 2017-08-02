@@ -66,6 +66,3 @@ def get_perspective_correction_iter_linear(coeff,
         return None
 
     return get_perspective_correction_iter_linear(coeff, const, bg_dist, length + l, l, stop_below_proportion)
-
-
-

@@ -1,6 +1,9 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access, unused-import
 '''
 Feature matching
+
+Set source and target features on init, or in an instance call
+
 '''
 from enum import Enum as _Enum
 import numpy as _np
@@ -198,16 +201,19 @@ class _BaseMatcher():
             parameter defining the nearness of
             points to retain, passed to
         '''
+        if self._refFeature is None or self._targFeature is None:
+            return
+
         self.matches = self._Matcher.knnMatch(self._refFeature.descriptors, trainDescriptors=self._targFeature.descriptors, k=2)  # 2
         self._filter_matches() #discard paired points above a certain distance threshold away from each other
         if len(self._p1) >= 4:
             self.homo, self.homo_status = _cv2.findHomography(self._p1, self._p2, _cv2.RANSAC, 5.0)
             if not _SILENT:
-                print('%d / %d  inliers/matched' % (self.inlier_nr, self.match_points_nr))
+                print('%d:%d  inliers/matched for target %s' % (self.inlier_nr, self.match_points_nr, self._targFeature._imgname))
         else:
             self.homo, self.homo_status = None, None
             if not _SILENT:
-                print('%d matches found, not enough for homography estimation' % len(self._p1))
+                print('%s/%s %d matches found, not enough for homography estimation' % (self._refFeature._imgname, self._targFeature._imgname, len(self._p1)))
 
     
 

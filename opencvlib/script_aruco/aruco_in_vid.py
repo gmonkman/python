@@ -4,18 +4,18 @@
 import numpy as np
 import cv2
 from enum import Enum
-from opencvlib.view import show
+#from opencvlib.view import show
 from opencvlib.distance import L2dist
 from opencvlib.common import draw_str
 
-def draw_polygon(img, pts):
+def draw_polygon(img, points):
     '''(ndarray, tuple|list)
     Join points
     '''
     #[10,5],[20,30],[70,20],[50,10]
-    pts = np.array(pts).astype('int32')
-    P = pts.reshape(-1, 1, 2)
-    cv2.polylines(img, P, isClosed=True, color = (0, 255, 255), thickness=5)
+    points = np.array(points).astype('int32')
+    p = points.reshape(-1, 1, 2)
+    cv2.polylines(img, p, isClosed=True, color=(0, 255, 255), thickness=5)
 
 
 class eUsedIDs(Enum):
@@ -59,26 +59,25 @@ while(True):
                 pts = P
             else:
                 pts = P[ind]
-            ab = L2dist(pts[0],pts[1])
-            bc = L2dist(pts[1],pts[2])
-            cd = L2dist(pts[2],pts[3])
-            da = L2dist(pts[3],pts[0])
+            ab = L2dist(pts[0], pts[1])
+            bc = L2dist(pts[1], pts[2])
+            cd = L2dist(pts[2], pts[3])
+            da = L2dist(pts[3], pts[0])
             mean = sum([ab, bc, cd, da])/4 #mean pixel difference
             px_len = v / mean
             s = 'Marker:{0} mm.  Px:{1:.2f} mm'.format(v, px_len)
             lbls.append(s)
-            draw_str(frame, pts[0][0], pts[0][1],s, color=(0, 255, 255))
+            draw_str(frame, pts[0][0], pts[0][1], s, color=(0, 255, 255))
             
         
-        cv2.aruco.drawDetectedMarkers(frame, res[0], res[1], borderColor=(0, 255, 255))
+        cv2.aruco.drawDetectedMarkers(frame, res[0], None, borderColor=(0, 255, 255))
         #draw_polygon(gray, res[0])
 
     # Display the resulting frame
-    cv2.imshow('frame',frame)
+    cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 # When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
-

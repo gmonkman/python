@@ -1,11 +1,21 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access
 '''
 Multithreaded video processing
+Keys:
+    f: framebyframe
+    l: loop
+    s: snapshot
+    escape: exit
+    r: restart
+    p: pause
+    x: xform
+    d: detect
 '''
 from multiprocessing.pool import ThreadPool as _ThreadPool
 from collections import deque as _deque
 from time import sleep as _sleep
 import os.path as _path
+from enum import Enum as _Enum
 
 
 import cv2 as _cv2
@@ -15,14 +25,22 @@ import cv2 as _cv2
 from opencvlib import transforms as _transforms
 from opencvlib import stopwatch as _stopwatch
 from opencvlib import common as _common
+
+
+import opencvlib.histo as _histo
 import opencvlib.display_utils as _display_utils
 import funclib.iolib as _iolib
 
 
 _Keys = _display_utils.KeyBoardInput()
 
-_FUNCTIONS = {'f':'framebyframe', 'l':'loop', 's':'snapshot', 'escape':'exit', 'r':'restart', 'p':'pause', 'x':'xform'}
+_FUNCTIONS = {'f':'framebyframe', 'l':'loop', 's':'snapshot', 'escape':'exit', 'r':'restart', 'p':'pause', 'x':'xform', 'd':'detect'}
 
+#TODO remove later, just getting it working
+class eSource(_Enum):
+    '''where did we get the histo'''
+    FromFile = 0
+    Memory = 1
 
 
 class MultiProcessStream():
@@ -38,13 +56,6 @@ class MultiProcessStream():
     _snap_path = _iolib.temp_folder()
     _snap_increment = 0
     _snap_pad = 6
-    
-
-#        def draw(self, img, x=20, y=20):
- #               
-
-#_draw_str(frame, (20, 60), "frame interval :  %.1f ms" %
-            #  (fps.frame_interval.value * 1000))
 
     def __init__(self, source=None, Transforms=None):
         '''(int|str|None, Class:Transforms)
@@ -55,17 +66,19 @@ class MultiProcessStream():
             Class of Transforms, representing queued transforms
             to be applied per frame.
         '''
+        self.signal_strength = _deque(maxlen=10)
+        
+        self.subject_hist = []
         self._threadn = _cv2.getNumberOfCPUs()
         self.VideoCapture = None
-        self._source = source
+        self._source = source #holds the full file name of the movie
         self._loop = True
-
         self._selected_function = ''
 
         self._frame_out = None #holds the current movie frame, without overlays
         
         self.Transforms = Transforms if isinstance(Transforms, _transforms.Transforms) else _transforms.Transforms()
-        self._xform = True
+        self._xform = False
 
         self._initialise()
         
@@ -82,6 +95,55 @@ class MultiProcessStream():
         self._frame_current = 0
         self._buffered_frame_nr = 0
         self._Status = _StatusInfo(self.VideoCapture)
+        self.detect = False
+
+
+#region backproject
+    def load_saved_histos(self):
+        '''load saved normalised histos'''
+
+        fld = 'C:/development/python/opencvlib/bin/watershedhisto/*.nrm'
+        hists = _histo.hist_load_from_folder(fld)
+        for h in hists:
+            self.subject_hist.append([h, eSource.FromFile])
+        print('Loaded subject histogram(s) from %s' % fld)
+
+    def back_proj(self):
+        '''Apply back proj using cached histogram(s)
+        
+        Each histogram is used in bkproj
+        and the bkproj with the highest match
+        is used
+        '''
+
+        if not self.subject_hist:
+            return
+        ihsv = _cv2.cvtColor(self._frame_out, _cv2.COLOR_BGR2HSV)
+        
+        bkprojs = [_cv2.calcBackProject([ihsv], (0, 1), b[0], (0, 180, 0, 256), 1)  for b in self.subject_hist]
+
+        sumbp = [bk.sum() for bk in bkprojs]
+        i = sumbp.index(max(sumbp))
+        bkproj = bkprojs[i]
+
+        disc = _cv2.getStructuringElement(_cv2.MORPH_ELLIPSE, (5, 5))
+        _cv2.filter2D(bkproj, -1, disc, bkproj)
+        bkproj = _transforms.resize(bkproj, width=400)
+
+        #calc after resize
+        ss = ((bkproj != 0).sum() / (bkproj.size*255)) * 100
+        self.signal_strength.append(ss)
+        if self.signal_strength:
+            avg = sum(self.signal_strength)/len(self.signal_strength)
+
+        s = 'Signal:{0:.3f}'.format(avg)
+
+        bkproj = _cv2.cvtColor(bkproj, _cv2.COLOR_GRAY2BGR)
+        _display_utils.draw_str(bkproj, 30, 30, s, (0, 255, 255))
+
+        _cv2.imshow('Detect', bkproj)
+
+#endregion
 
 
     def __call__(self, source=None, Transforms=None):
@@ -111,6 +173,7 @@ class MultiProcessStream():
         self._frame_out = None #holds the movie frame
         self._selected_function = ''
         self._buffered_frame_nr = 0
+        self.load_saved_histos()
 
 
     def _transform(self, img, fr_nr):
@@ -153,6 +216,8 @@ class MultiProcessStream():
                 _common.draw_str(frame, 20, 20, "run time (s):  %0.f" % (self.FrameSpeed.run_time))
                 _cv2.imshow(self._source, frame)        #show the image
                 _cv2.setTrackbarPos('frames', self._source, self._buffered_frame_nr)
+                if self.detect and self._buffered_frame_nr%5 == 0:
+                    self.back_proj()
                 self.FrameSpeed.lap(1)
 
 
@@ -194,6 +259,8 @@ class MultiProcessStream():
                 self._wk_time = 0
             elif _FUNCTIONS.get(_Keys.get_pressed_key(ch)) == 'xform': #stop running transforms
                 self._xform = not self._xform
+            elif _FUNCTIONS.get(_Keys.get_pressed_key(ch)) == 'detect':
+                self.detect = not self.detect
 
         _cv2.destroyAllWindows()
 

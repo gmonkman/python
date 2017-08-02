@@ -13,8 +13,6 @@ import skimage.feature as _skfeature
 import numpy as _np
 
 
-
-
 import opencvlib as _opencvlib
 import opencvlib.decs as _decs
 import opencvlib.keypoints as _keypoints
@@ -77,7 +75,12 @@ class _BaseDetector(_ABC):
         self._is_grey = load_as_grey
         self._is_rgb = load_as_RGB
         self._fdType = fdType
-        self._output_folder = output_folder #where we save files, set at call time, eg by reading from an inifile
+
+        if _baselib.isempty(output_folder):
+            self._output_folder = _tempfile.gettempdir()
+            print('Output folder not set, defaulting to %s' % self._output_folder)
+        else:
+            self._output_folder = output_folder #where we save files, set at call time, eg by reading from an inifile
 
         self.descriptors = None #descriptor vectors (usually ndarray)
         self.keypoints = None #keypoints vectors, ndarray, or list cv2.KeyPoints 
@@ -615,9 +618,11 @@ class OpenCV_ORB(_OpenCVDetector):
     '''
     kwargs = {'nfeatures':500, 'scaleFactor':1.2, 'nlevels':8, 'edgeThreshold':31, 'firstLevel':0, 'WTA_K':2, 'scoreType':_cv2.ORB_HARRIS_SCORE, 'patchSize':31, 'fastThreshold':20}
     #http://docs.opencv.org/3.1.0/db/d95/classcv_1_1ORB.html
-    Detector = _cv2.ORB_create(**kwargs)
+    Detector = None
 
     def __init__(self, output_folder=None, load_as_RGB=False):
+        OpenCV_ORB.Detector = _cv2.ORB_create(**OpenCV_ORB.kwargs)
+        print('Options', OpenCV_ORB.kwargs)
         super().__init__(output_folder, OpenCV_ORB.Detector, eFeatureDetectorType.cvORB, load_as_RGB=False, load_as_grey=True)
     
     def __call__(self, img, imgpath, mask=None, extract_now=False):
@@ -631,11 +636,13 @@ class OpenCV_SIFT(_OpenCVDetector):
     Note that SIFT options should be set
     by accessing Detector
     '''
-    kwargs = {'nfeatures':100, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1.6}
-    Detector = _cv2.xfeatures2d.SIFT_create(**kwargs)
+    kwargs = {'nfeatures':10000, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1.6}
+    Detector = None
     
 
     def __init__(self, output_folder=None, load_as_RGB=False):
+        OpenCV_SIFT.Detector = _cv2.xfeatures2d.SIFT_create(**OpenCV_SIFT.kwargs)
+        print('Options', OpenCV_SIFT.kwargs)
         super().__init__(output_folder, OpenCV_SIFT.Detector, eFeatureDetectorType.cvSIFT, load_as_RGB=False, load_as_grey=True)
 
     def __call__(self, img, imgpath, mask=None, extract_now=False):
@@ -644,10 +651,13 @@ class OpenCV_SIFT(_OpenCVDetector):
 
 
 class OpenCV_DenseSIFT(_OpenCVDetector):
-    '''Dense SIFT Detector'''
+    '''Dense SIFT Detector
+    Defaults:
+        {'nfeatures':500, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1.6}
+    '''
     kwargs = {'nfeatures':500, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1.6}
-    Detector = _cv2.xfeatures2d.SIFT_create(**kwargs)
-    
+    Detector = None
+
 
     def __init__(self, output_folder=None, load_as_RGB=False,
                 initFeatureScale=1.,
@@ -667,6 +677,8 @@ class OpenCV_DenseSIFT(_OpenCVDetector):
         self.varyXyStepWithScale = varyXyStepWithScale
         self.varyImgBoundWithScale = varyImgBoundWithScale
 
+        OpenCV_DenseSIFT.Detector = _cv2.xfeatures2d.SIFT_create(**OpenCV_DenseSIFT.kwargs)
+        print('Options', OpenCV_DenseSIFT.kwargs)
         super().__init__(output_folder, OpenCV_DenseSIFT.Detector, eFeatureDetectorType.cvSIFT, load_as_RGB=False, load_as_grey=True)
 
 
@@ -684,10 +696,12 @@ class OpenCV_FAST(_OpenCVDetector):
     This is a keypoint only detector, use BRISK
     '''
     kwargs = {'threshold':10, 'nonmaxSuppression':True, 'type':_cv2.FAST_FEATURE_DETECTOR_TYPE_9_16}
-    _Detector = _cv2.FastFeatureDetector_create(**kwargs)
+    Detector = None
 
 
     def __init__(self, output_folder=None, load_as_RGB=False):
+        OpenCV_FAST.Detector = _cv2.FastFeatureDetector_create(**OpenCV_FAST.kwargs)
+        print('Options', OpenCV_FAST.kwargs)
         super().__init__(output_folder, OpenCV_FAST.Detector, eFeatureDetectorType.cvFAST, load_as_RGB=False, load_as_grey=True)
 
 
@@ -701,10 +715,12 @@ class OpenCV_BRISK(_OpenCVDetector):
     https://www.robots.ox.ac.uk/~vgg/rg/papers/brisk.pdf
     '''
     kwargs = {'thresh':30, 'octaves':4, 'patternScale':1.0}
-    Detector = _cv2.BRISK_create(**kwargs)
-    
+    Detector = None
+
 
     def __init__(self, output_folder=None, load_as_RGB=False):
+        OpenCV_BRISK.Detector = _cv2.BRISK_create(**OpenCV_BRISK.kwargs)
+        print('Options', OpenCV_BRISK.kwargs)
         super().__init__(output_folder, OpenCV_BRISK.Detector, eFeatureDetectorType.BRISK, load_as_RGB=False, load_as_grey=True)
 
 
@@ -717,9 +733,12 @@ class OpenCV_SURF(_OpenCVDetector):
     '''SURF keypoint and descriptors
     '''
     kwargs = {'nOctaves':4, 'nOctaveLayers':3, 'extended':False, 'upright':False}
-    Detector = _cv2.xfeatures2d.SURF_create(**kwargs)
+    Detector = None
+
 
     def __init__(self, output_folder=None):
+        OpenCV_SURF.Detector = _cv2.xfeatures2d.SURF_create(**OpenCV_SURF.kwargs)
+        print('Options', OpenCV_SURF.kwargs)
         super().__init__(output_folder, OpenCV_SURF.Detector, eFeatureDetectorType.cvSURF, load_as_RGB=False, load_as_grey=True)
 
 
@@ -739,10 +758,12 @@ class OpenCV_HOG(_OpenCVDetector):
         nlevels
     '''
     args = [(64, 64), (16, 16), (8, 8), (8, 8), 9, 1, 4., 0, 2.0000000000000001e-01, 0, 64]
-    Detector = _cv2.HOGDescriptor(*args)
+    Detector = None
 
 
     def __init__(self, output_folder=None):
+        OpenCV_HOG.Detector = _cv2.HOGDescriptor(*OpenCV_HOG.args)
+        print('Options', OpenCV_HOG.args)
         super().__init__(output_folder, OpenCV_HOG.Detector, eFeatureDetectorType.cvHOG, load_as_RGB=False, load_as_grey=True)
 
 

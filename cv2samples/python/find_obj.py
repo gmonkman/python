@@ -27,8 +27,10 @@ FLANN_INDEX_LSH = 6
 
 def init_feature(name):
     chunks = name.split('-')
+    
     if chunks[0] == 'sift':
-        detector = cv2.xfeatures2d.SIFT_create()
+        kwargs = {'nfeatures':500, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1.6}
+        detector = cv2.xfeatures2d.SIFT_create(**kwargs)
         norm = cv2.NORM_L2
     elif chunks[0] == 'surf':
         detector = cv2.xfeatures2d.SURF_create(800)
@@ -150,12 +152,12 @@ if __name__ == '__main__':
     import getopt
     opts, args = getopt.getopt(sys.argv[1:], '', ['feature='])
     opts = dict(opts)
-    feature_name = opts.get('--feature', 'brisk')
-    try:
-        fn1, fn2 = args
-    except:
-        fn1 = '../data/box.png'
-        fn2 = '../data/box_in_scene.png'
+    feature_name = opts.get('--feature', 'sift')
+    #try:
+     #   fn1, fn2 = args
+    #except:
+    fn1 = '../data/box.png'
+    fn2 = '../data/box_in_scene.png'
 
     img1 = cv2.imread(fn1, 0)
     img2 = cv2.imread(fn2, 0)

@@ -4,7 +4,7 @@ eg stream and image viewing'''
 from enum import Enum as _Enum
 
 from funclib.stringslib import Visible as _Vis
-
+import cv2 as _cv2
 
 
 
@@ -96,3 +96,16 @@ class KeyBoardInput():
     #    _cv2.imshow(win_name, x)
     #    _cv2.waitKey(1)
     #    x = _np.zeros([[0]])
+
+def draw_str(dst, x, y, s, color=(255, 255, 255), bottom_left_origin=False):
+    '''(ndarray, 2:tuple, str) -> void
+    Draw text on dst - ByRef
+
+    dst:
+        Image to draw text on, byref
+    target:
+        draw text on dst at these coordinates.
+        tuple is (x, y)
+    '''
+    _cv2.putText(dst, s, (x, y), _cv2.FONT_HERSHEY_PLAIN,
+                1.0, color, lineType=_cv2.LINE_AA, bottomLeftOrigin=bottom_left_origin)

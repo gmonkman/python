@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import, unused-variable
 '''unit tests for imgpipes.generators'''
 import unittest
 from inspect import getsourcefile as _getsourcefile

@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-variable, unused-import, undefined-loop-variable
 
 '''unit tests for features'''
 import unittest
@@ -39,7 +39,7 @@ class Test(unittest.TestCase):
            
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_with_vggdigi_generator(self):
         '''test with vgg generator'''
         print('Testing head against random heads')
@@ -83,31 +83,85 @@ class Test(unittest.TestCase):
         view.show(resI)            
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_head_body(self):
         '''test with vgg generator'''
         print('Testing Idealised Head-Body Matching')
-        features.OpenCV_SIFT.kwargs = {'nfeatures':500, 'nOctaveLayers':3, 'contrastThreshold':0.05, 'edgeThreshold':10, 'sigma':1.0}
+        #features.OpenCV_SIFT.kwargs = {'nfeatures':500, 'nOctaveLayers':3, 'contrastThreshold':0.05, 'edgeThreshold':10, 'sigma':1.0}
         first_feat = features.OpenCV_SIFT()
         test_feat = features.OpenCV_SIFT()
-        matcher.BruteForceMatcher.filter_match_ratio = 0.9
+        matcher.BruteForceMatcher.filter_match_ratio = 0.75
         M = matcher.BruteForceMatcher(first_feat, test_feat)
 
-        vgg_param_head = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['head'], species=['bass'])
-        dk_param = Gen.DigikamSearchParams(search_type=Gen.eDigiKamSearchType.innerOr_outerAnd, is_train=['head', 'whole'])
-        VGG_head = Gen.VGGRegions(dk_param, vgg_param_head)
+        vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['head'], species=['bass'])
+        VGG_part = Gen.VGGRegions(None, vgg_param_part)
 
-        for img_head, imgpath, dummy in VGG_head.generate():
+        for img_part, imgpath, dummy in VGG_part.generate():
             img_whole = getimg(imgpath)
-            if not isinstance(img_head, np.ndarray) or not isinstance(img_whole, np.ndarray):
+            if not isinstance(img_part, np.ndarray) or not isinstance(img_whole, np.ndarray):
                 continue
 
-            first_feat(img_head, imgpath, extract_now=True)
+            first_feat(img_part, imgpath, extract_now=True)
+            test_feat(img_whole, imgpath, extract_now=True)
+            try:
+                M(first_feat, test_feat)
+                resI = M.get_match_viz()
+                view.show(resI)
+            except Exception as dummy:
+                print('Match failed for %s, probably because source or target descriptors were empty.' % test_feat._imgname)
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_caudal_body(self):
+        '''test with vgg generator'''
+        print('Testing Idealised Tail-Body Matching')
+        features.OpenCV_SIFT.kwargs = {'nfeatures':100, 'nOctaveLayers':3, 'contrastThreshold':0.05, 'edgeThreshold':10, 'sigma':1.0}
+        first_feat = features.OpenCV_SIFT()
+        test_feat = features.OpenCV_SIFT()
+        matcher.BruteForceMatcher.filter_match_ratio = 0.75
+        M = matcher.BruteForceMatcher(first_feat, test_feat)
+
+        vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['caudal fin'], species=['bass'])
+        VGG_part = Gen.VGGRegions(None, vgg_param_part)
+
+        for img_part, imgpath, dummy in VGG_part.generate():
+            img_whole = getimg(imgpath)
+            if not isinstance(img_part, np.ndarray) or not isinstance(img_whole, np.ndarray):
+                continue
+
+            first_feat(img_part, imgpath, extract_now=True)
             test_feat(img_whole, imgpath, extract_now=True)
             
             M(first_feat, test_feat)
             resI = M.get_match_viz()
             view.show(resI) 
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_opencv_example(self):
+        '''matching using idealised opencv images'''
+        print('Testing opencv box detection example')
+        pth1 = 'C:/Users/Graham Monkman/Downloads/opencv-3.2.0-vc14/opencv/sources/samples/data/box.png'
+        pth2 = 'C:/Users/Graham Monkman/Downloads/opencv-3.2.0-vc14/opencv/sources/samples/data/box_in_scene.png'
+        img1 = cv2.imread(pth1)
+        img2 = cv2.imread(pth2)
+        print('Testing opencv object detector using box.png and box_in_scene.png')
+        features.OpenCV_SIFT.kwargs = {'nfeatures':500, 'nOctaveLayers':3, 'contrastThreshold':0.05, 'edgeThreshold':10, 'sigma':1.0}
+        first_feat = features.OpenCV_SIFT()
+        test_feat = features.OpenCV_SIFT()
+        matcher.BruteForceMatcher.filter_match_ratio = 0.75
+        M = matcher.BruteForceMatcher(first_feat, test_feat)
+
+        first_feat(img1, pth1, extract_now=True)
+        test_feat(img2, pth2, extract_now=True)
+        print('img1 - %d features, img2 - %d features' % (len(first_feat.keypoints), len(test_feat.keypoints)))
+         
+        M(first_feat, test_feat)
+        resI = M.get_match_viz()
+        view.show(resI) 
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_fin_generic(self):
+        print('Testing general fins')
 
 
 
