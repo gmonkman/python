@@ -530,18 +530,15 @@ class _OpenCVDetector(_BaseDetector):
         if repr(self._Detector).startswith('<HOGDescriptor'): #Detect and compute not supported for HOGDescriptor, and HOG is implicitly dense
             self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
         else:
-            try:
-                if _baselib.isempty(self.keypoints):
-                    if 'dense' in repr(self).lower(): #are we dense and without keypoints
-                        self.extract_keypoints()
-                        self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
-                    else:
-                        self.keypoints, self.descriptors = self._Detector.detectAndCompute(image=self._img, mask=self._mask)
-                else:
+            if _baselib.isempty(self.keypoints):
+                if 'dense' in repr(self).lower(): #are we dense and without keypoints
+                    self.extract_keypoints()
                     self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
-            except Exception as e:
-                s = 'Descriptor extraction failed for %s. The error was %s' % (self._imgpath, str(e))
-                _prints(s)
+                else:
+                    self.keypoints, self.descriptors = self._Detector.detectAndCompute(image=self._img, mask=self._mask)
+            else:
+                self.keypoints, self.descriptors = self._Detector.compute(image=self._img, keypoints=self.keypoints)
+        print('%s got %d descriptors' % (self._imgname, len(self.descriptors) if not _baselib.isempty(self.descriptors) else 0))
 
 
     def extract_keypoints(self):
@@ -559,6 +556,7 @@ class _OpenCVDetector(_BaseDetector):
         else:
             super().extract_keypoints() #parent handles loading the image
             self.keypoints = self._Detector.detect(image=self._img, mask=self._mask)
+        print('%s detected %d keypoints' % (self._imgname, len(self.keypoints) if not _baselib.isempty(self.keypoints) else 0))
 
 
 
@@ -821,7 +819,7 @@ class skHOGDetector(_BaseDetector):
         else:
             self._img_descriptors = None
             fd = _skfeature.hog(self._img, visualise=False, *skHOGDetector.args, **skHOGDetector.kwargs)
-            
+        print('%s detected %d keypoints' % (self._imgname, len(fd) if fd else 0))    
         self.descriptors = fd
         self.keypoints = None
 

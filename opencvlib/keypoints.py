@@ -16,9 +16,9 @@ from opencvlib import getimg as _getimg
 
 
 def applymask(keypoints, mask):
-    '''(list:cv2.keypoint, ndarray) -> void
+    '''(list:cv2.keypoint&&, ndarray) -> void
     
-    Removes keypoints the keypoints argument *byref*
+    Removes keypoints outside of the mask.
 
     keypoints:
         list:cv2.KeyPoints
@@ -63,22 +63,6 @@ def printkp(kp, spacer='\n'):
     'size {5!s}'.format(kp.angle, kp.class_id, kp.octave, kp.pt, kp.response, kp.size, spacer)
     print(s)
 
-
-
-class HistogramOfKeyPoints():
-    '''histogram of keypoints by a keypoint member'''
-    def __init__(self, keypoints):
-        self._keypoints = keypoints
-
-
-    def _orientation_histo(self):
-        '''build orientation histo'''
-        #vals = [x. for x in self._keypoints]
-        pass
-
-    def show(self):
-        '''show histo'''
-        pass
 
 
 class DenseKeypoints():

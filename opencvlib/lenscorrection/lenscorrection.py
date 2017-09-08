@@ -8,6 +8,19 @@ default values:
     --debug:    ./output/
     --square_size: 1.0
     <image mask> defaults to ../data/left*.jpg
+
+Examples:
+    Undistort images in digikam database to c:/temp/pics
+    lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p DIGIKAM
+
+    Undistort images in a path and output to c:/temp/pics
+    lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p c:/path/to/images/to/undistort
+
+    Calibrate lens using images in CALIBRATION_PATH
+    lenscorrection.py -m calibrate -c NEXTBASE512G
+
+    Calibrate lens using images in CALIBRATION_PATH. Saves vertex detection images to the debug folder
+    lenscorrection.py -m calibrate -c NEXTBASE512G -d
 '''
 
 
@@ -425,7 +438,7 @@ def undistort(
     Multiple paths can be provided
 
     imgpaths_or_imagelist can be an iterable of paths or a list. If appears to be paths,
-    then glob will be cobined with known image extensions to list all files in paths
+    then glob will be combined with known image extensions to list all files in paths
     which appear to be images. If a single directory string is passed in, this
     will also be valid and globbed.
 

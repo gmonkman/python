@@ -1,15 +1,15 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access, unused-import
 '''
-Feature matching
+Keypoint feature matching 
 
 Set source and target features on init, or in an instance call
-
 '''
 from enum import Enum as _Enum
 import numpy as _np
 import cv2 as _cv2
 
 #import common as _common
+from  funclib import baselib as _baselib
 from opencvlib.keypoints import printkp as _printkp
 
 _SILENT = False
@@ -45,6 +45,9 @@ class _BaseMatcher():
         refFeature, targFeature:
             Instances of feature detectors with calculated
             features
+        filter_match_ratio:
+            Removes matches where as the best match gets closer to the next base match
+            As ratio approaches 1 we will reject fewer and fewer matches
         run_match:
             If false, the match is not executed
             
@@ -145,7 +148,6 @@ class _BaseMatcher():
             Recalculate even if a preexisting visualization
             exists in _img_match_viz
         '''
-
         if isinstance(self._img_match_viz, _np.ndarray) and not force_calculate:
             return self._img_match_viz
 
@@ -194,17 +196,20 @@ class _BaseMatcher():
 
     
     def _match(self):
-        '''(float) -> void
+        '''()-> void
         do the match
-
-        filter_ratio:
-            parameter defining the nearness of
-            points to retain, passed to
         '''
         if self._refFeature is None or self._targFeature is None:
+            if not _SILENT:
+                print('Matching skipped because feature descriptors were empty')
             return
 
-        self.matches = self._Matcher.knnMatch(self._refFeature.descriptors, trainDescriptors=self._targFeature.descriptors, k=2)  # 2
+        if  _baselib.isempty(self._refFeature.descriptors) or _baselib.isempty(self._targFeature.descriptors):
+            if not _SILENT:
+                print('Matching skipped because feature descriptors were empty')
+            return
+
+        self.matches = self._Matcher.knnMatch(self._refFeature.descriptors, trainDescriptors=self._targFeature.descriptors, k=2)  #return 2 best matches
         self._filter_matches() #discard paired points above a certain distance threshold away from each other
         if len(self._p1) >= 4:
             self.homo, self.homo_status = _cv2.findHomography(self._p1, self._p2, _cv2.RANSAC, 5.0)
@@ -265,7 +270,7 @@ class BruteForceMatcher(_BaseMatcher):
         Matcher = _cv2.BFMatcher(refFeature.get_matcher_dist_enum())
         super().__init__(Matcher, eMatcherType.BruteForce, refFeature, targFeature, run_match=run_match, filter_match_ratio=filter_match_ratio)
 
-
+        
 
 def printm(match):
     '''cv2::DMatch-> void

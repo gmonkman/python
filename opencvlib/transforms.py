@@ -314,10 +314,12 @@ def histeq_adapt(img, clip_limit=2, tile_size=(8, 8)):
     tile_size of 8x8 will divide the image into 8 by 8 tiles
 
     clip_limit set the threshold for contrast limiting.
-    '''
 
+    img is converted to black and white, as required by cv2.createCLAHE
+    '''
+    img_bw = _color.togreyscale(img)
     clahe = _cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_size)
-    return clahe.apply(img)
+    return clahe.apply(img_bw)
 
 
 

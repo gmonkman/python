@@ -22,12 +22,20 @@ class Fish(ABC):
         '''(double)->double
         given the total length, get the depth
        '''
+
     @abstractmethod
     def lalg_length_equals_depth(self, reverse):
         '''get the parameters of the linear equation for the length-depth relationship
         length = depth + c
         Return x,c
         '''
+
+    @abstractmethod
+    def function_over_interval(self):
+        '''estimate the total length based on the integral mid point depth
+        of the fish
+        '''
+
 
     @staticmethod
     def length_from_depth(measure, coeff, const):
@@ -63,7 +71,7 @@ class FishActions(object):
         '''
         return self.species.get_max_depth(reverse)
 
-    def function_over_interval():
+    def function_over_interval(self):
         '''Given a function which represents the dorsal fish shape
         return the function mean between the bounds x[0,1]
         Each fish will have a different function is dictated by their different dorsal profile

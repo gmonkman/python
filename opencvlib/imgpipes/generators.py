@@ -208,7 +208,18 @@ class VGGSearchParams(object):
 
 
 class DigikamSearchParams():
-    '''digikam search params'''
+    '''digikam search params
+    filename:
+        e.g. 12345.jpg
+    album_label:
+        The album name
+        SQLLite:AlbumRoots.label
+        e.g. images, calibration
+    relative_path:
+        The albums relative folder path on the file system
+        SQLLite:Albums.relativePath
+        e.g. /bass/angler
+    '''
 
     def __init__(self, filename='', album_label='', relative_path='', search_type=eDigiKamSearchType.innerOr_outerAnd, **keyvaluetags):
         self.filename = filename
@@ -512,6 +523,9 @@ class VGGRegions(_Generator):
                             if dk_image_list:
                                 if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
                                     continue
+                                else:
+                                    z=1
+                                    pass
 
                             for spp in self.vggParams.species:
                                 for subject in Img.subjects_generator(spp):

@@ -22,7 +22,7 @@ Keys
 '''
 
 
-# Python 2/3 compatibility
+
 import os.path as _path
 from enum import Enum as _Enum
 

@@ -160,15 +160,15 @@ def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.C
         new_h = int(h)
 
 
-    waitsecs = int(_read_number(waitsecs)*1000)
-    if waitsecs < 0:
-        waitsecs = 0
+    millisecs = int(waitsecs*1000)
+    if millisecs < 0:
+        millisecs = 0
 
 
     _cv2.namedWindow(title, _cv2.WINDOW_NORMAL)
     _cv2.resizeWindow(title, new_w, new_h)
     _cv2.imshow(title, im)
-    key = _cv2.waitKey(waitsecs) #255 is no key press
+    key = _cv2.waitKey(millisecs) #255 is no key press
 
     _cv2.destroyAllWindows()
     return key, title

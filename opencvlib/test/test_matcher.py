@@ -111,11 +111,11 @@ class Test(unittest.TestCase):
                 print('Match failed for %s, probably because source or target descriptors were empty.' % test_feat._imgname)
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_caudal_body(self):
         '''test with vgg generator'''
         print('Testing Idealised Tail-Body Matching')
-        features.OpenCV_SIFT.kwargs = {'nfeatures':100, 'nOctaveLayers':3, 'contrastThreshold':0.05, 'edgeThreshold':10, 'sigma':1.0}
+        features.OpenCV_SIFT.kwargs = {'nfeatures':10000, 'nOctaveLayers':3, 'contrastThreshold':0.05, 'edgeThreshold':10, 'sigma':1.0}
         first_feat = features.OpenCV_SIFT()
         test_feat = features.OpenCV_SIFT()
         matcher.BruteForceMatcher.filter_match_ratio = 0.75
@@ -161,7 +161,91 @@ class Test(unittest.TestCase):
 
     @unittest.skip("Temporaily disabled while debugging")
     def test_fin_generic(self):
+        '''this takes a fin and attempts to match against other images'''
         print('Testing general fins')
+
+        features.OpenCV_SIFT.kwargs = {'nfeatures':20000, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1.0}
+        train_feat = features.OpenCV_SIFT()
+        test_feat = features.OpenCV_SIFT()
+        matcher.BruteForceMatcher.filter_match_ratio = 0.9
+        M = matcher.BruteForceMatcher(train_feat, test_feat)
+
+
+        #Load a single fin as the train img
+        train_img_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/14292366_1279024908815039_4406607645719848778_n.jpg'
+
+        dk_param_part = Gen.DigikamSearchParams('14292366_1279024908815039_4406607645719848778_n.jpg', 'images', '/bass/angler')
+        vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['caudal fin'], species=['bass'])
+        VGG_part = Gen.VGGRegions(dk_param_part, vgg_param_part)
+
+        for img_train, imgpath, dummy in VGG_part.generate():
+            pass
+
+        train_feat(img_train, imgpath, extract_now=True)
+
+
+
+        #loop over all whole fish
+        vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['whole'], species=['bass'])
+        #VGG_part = Gen.VGGRegions(None, vgg_param_part)
+        VGG_part = Gen.VGGRegions(dk_param_part, vgg_param_part)
+
+        for img_part, imgpath, dummy in VGG_part.generate():
+            img_whole = getimg(imgpath)
+            if not isinstance(img_part, np.ndarray) or not isinstance(img_whole, np.ndarray):
+                continue
+          
+            test_feat(img_whole, imgpath, extract_now=True)
+            
+            M(train_feat, test_feat)
+            resI = M.get_match_viz()
+            view.show(resI) 
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_whole_generic(self):
+        '''this takes a whole fish and attempts to match against other images'''
+        print('Testing general whole')
+
+        features.OpenCV_SIFT.kwargs = {'nfeatures':10000, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1}
+        train_feat = features.OpenCV_SIFT()
+        test_feat = features.OpenCV_SIFT()
+        matcher.BruteForceMatcher.filter_match_ratio = 0.8
+        M = matcher.BruteForceMatcher(train_feat, test_feat)
+
+        #Load a single fin as the train img
+        dk_param_part = Gen.DigikamSearchParams('DSCF8225.JPG', 'images', '/bass/angler')
+        vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['whole'], species=['bass'])
+
+        t1 = _transforms.Transform(_transforms.histeq_adapt)
+        T = _transforms.Transforms(None, t1)
+        VGG_part = Gen.VGGRegions(dk_param_part, vgg_param_part, transforms=T)
+
+        for img_train, imgpath, dummy in VGG_part.generate():
+            if not img_train is None: #we're only getting a single image
+                continue
+
+        train_feat(img_train, imgpath, extract_now=True)
+
+        #loop over all whole fish
+        vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['whole'], species=['bass'])
+        VGG_part = Gen.VGGRegions(None, vgg_param_part, transforms=T)
+
+        for img_part, imgpath, dummy in VGG_part.generate():
+            img_whole = getimg(imgpath)
+            if not isinstance(img_part, np.ndarray) or not isinstance(img_whole, np.ndarray):
+                continue
+
+
+            try:
+                test_feat(img_whole, imgpath, extract_now=True)
+                M(train_feat, test_feat)
+                resI = M.get_match_viz()
+                view.show(resI, waitsecs=0)
+            except cv2.error as e:
+                print('\nMatching failed, most likely error is caused by memory overflow with large images. Error was ' + str(e))
+            finally:
+                pass
+    
 
 
 

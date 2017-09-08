@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{83cad8df-8c5e-4d72-9d29-726091b50ac3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>find_obj.py</StartupFile>
+    <StartupFile>grabcut.py</StartupFile>
     <SearchPath>..\..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
