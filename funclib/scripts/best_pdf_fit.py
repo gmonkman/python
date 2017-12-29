@@ -1,9 +1,12 @@
-import warnings
-import numpy as np
-import pandas as pd
-import scipy.stats as st
-import statsmodels as sm
-import matplotlib
+#pylint: skip-file
+'''this is the doc string'''
+
+import warnings as _warnings
+import numpy as _np
+import pandas as _pd
+import scipy.stats as _st
+import statsmodels as _sm
+import matplotlib as _mpl
 import matplotlib.pyplot as plt
 
 matplotlib.rcParams['figure.figsize'] = (16.0, 12.0)
@@ -13,27 +16,27 @@ matplotlib.style.use('ggplot')
 def best_fit_distribution(data, bins=200, ax=None):
     """Model data by finding best fit distribution to data"""
     # Get histogram of original data
-    y, x = np.histogram(data, bins=bins, normed=True)
-    x = (x + np.roll(x, -1))[:-1] / 2.0
+    y, x = _np.histogram(data, bins=bins, normed=True)
+    x = (x + _np.roll(x, -1))[:-1] / 2.0
 
     # Distributions to check
     DISTRIBUTIONS = [        
-        st.alpha,st.anglit,st.arcsine,st.beta,st.betaprime,st.bradford,st.burr,st.cauchy,st.chi,st.chi2,st.cosine,
-        st.dgamma,st.dweibull,st.erlang,st.expon,st.exponnorm,st.exponweib,st.exponpow,st.f,st.fatiguelife,st.fisk,
-        st.foldcauchy,st.foldnorm,st.frechet_r,st.frechet_l,st.genlogistic,st.genpareto,st.gennorm,st.genexpon,
-        st.genextreme,st.gausshyper,st.gamma,st.gengamma,st.genhalflogistic,st.gilbrat,st.gompertz,st.gumbel_r,
-        st.gumbel_l,st.halfcauchy,st.halflogistic,st.halfnorm,st.halfgennorm,st.hypsecant,st.invgamma,st.invgauss,
-        st.invweibull,st.johnsonsb,st.johnsonsu,st.ksone,st.kstwobign,st.laplace,st.levy,st.levy_l,st.levy_stable,
-        st.logistic,st.loggamma,st.loglaplace,st.lognorm,st.lomax,st.maxwell,st.mielke,st.nakagami,st.ncx2,st.ncf,
-        st.nct,st.norm,st.pareto,st.pearson3,st.powerlaw,st.powerlognorm,st.powernorm,st.rdist,st.reciprocal,
-        st.rayleigh,st.rice,st.recipinvgauss,st.semicircular,st.t,st.triang,st.truncexpon,st.truncnorm,st.tukeylambda,
-        st.uniform,st.vonmises,st.vonmises_line,st.wald,st.weibull_min,st.weibull_max,st.wrapcauchy
+        _st.alpha, _st.anglit, _st.arcsine, _st.beta, _st.betaprime, _st.bradford, _st.burr, _st.cauchy, _st.chi, _st.chi2, _st.cosine,
+        _st.dgamma, _st.dweibull, _st.erlang, _st.expon, _st.exponnorm, _st.exponweib, _st.exponpow, _st.f, _st.fatiguelife, _st.fisk,
+        _st.foldcauchy, _st.foldnorm, _st.frechet_r, _st.frechet_l, _st.genlogistic, _st.genpareto, _st.gennorm, _st.genexpon,
+        _st.genextreme, _st.gausshyper, _st.gamma, _st.gengamma, _st.genhalflogistic, _st.gilbrat, _st.gompertz, _st.gumbel_r,
+        _st.gumbel_l, _st.halfcauchy, _st.halflogistic, _st.halfnorm, _st.halfgennorm, _st.hypsecant, _st.invgamma, _st.invgauss,
+        _st.invweibull, _st.johnsonsb, _st.johnsonsu, _st.ksone, _st.kstwobign, _st.laplace, _st.levy, _st.levy_l, _st.levy_stable,
+        _st.logistic, _st.loggamma, _st.loglaplace, _st.lognorm, _st.lomax, _st.maxwell, _st.mielke, _st.nakagami, _st.ncx2, _st.ncf,
+        _st.nct, _st.norm, _st.pareto, _st.pearson3, _st.powerlaw, _st.powerlognorm, _st.powernorm, _st.rdist, _st.reciprocal,
+        _st.rayleigh, _st.rice, _st.recipinvgauss, _st.semicircular, _st.t, _st.triang, _st.truncexpon, _st.truncnorm, _st.tukeylambda,
+        _st.uniform, _st.vonmises, _st.vonmises_line, _st.wald, _st.weibull_min, _st.weibull_max, _st.wrapcauchy
     ]
 
     # Best holders
-    best_distribution = st.norm
+    best_distribution = _st.norm
     best_params = (0.0, 1.0)
-    best_sse = np.inf
+    best_sse = _np.inf
 
     # Estimate distribution parameters from data
     for distribution in DISTRIBUTIONS:
@@ -41,8 +44,8 @@ def best_fit_distribution(data, bins=200, ax=None):
         # Try to fit the distribution
         try:
             # Ignore warnings from data that can't be fit
-            with warnings.catch_warnings():
-                warnings.filterwarnings('ignore')
+            with _warnings.catch_warnings():
+                _warnings.filterwarnings('ignore')
 
                 # fit dist to data
                 params = distribution.fit(data)
@@ -54,12 +57,12 @@ def best_fit_distribution(data, bins=200, ax=None):
 
                 # Calculate fitted PDF and error with fit in distribution
                 pdf = distribution.pdf(x, loc=loc, scale=scale, *arg)
-                sse = np.sum(np.power(y - pdf, 2.0))
+                sse = _np.sum(_np.power(y - pdf, 2.0))
 
                 # if axis pass in add to plot
                 try:
                     if ax:
-                        pd.Series(pdf, x).plot(ax=ax)
+                        _pd.Series(pdf, x).plot(ax=ax)
                 except Exception:
                     pass
 
@@ -87,24 +90,24 @@ def make_pdf(dist, params, size=10000):
     end = dist.ppf(0.99, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.99, loc=loc, scale=scale)
 
     # Build PDF and turn into pandas Series
-    x = np.linspace(start, end, size)
+    x = _np.linspace(start, end, size)
     y = dist.pdf(x, loc=loc, scale=scale, *arg)
-    pdf = pd.Series(y, x)
+    pdf = _pd.Series(y, x)
 
     return pdf
 
 
-data = pd.Series((3, 2, 4, 0, 0, 2, 2, 2, 1, 3, 9, 7, 12, 0, 1, 1, 1, 4, 3, 3, 3, 4, 2, 8, 3, 1, 5, 5, 2, 2, 1, 3, 3, 5, 1, 1, 2, 1, 4, 1, 4, 4, 0, 2, 0, 6, 7, 4, 1, 3, 1, 3, 4, 0, 1, 1, 1, 1, 3, 1, 0, 1, 2, 1, 1, 1, 3, 1, 1, 0, 4, 2, 1, 1, 0, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 2, 1, 2, 2, 0, 0, 9, 4, 0, 2, 1, 2, 0, 5, 4, 3, 1, 9, 7, 3, 0, 2, 4, 2, 5, 2, 1, 2, 2, 1, 3, 0, 2, 1, 0, 2, 2, 0, 1, 3, 0, 5, 1, 1, 1, 3, 1, 2, 5, 0, 0, 2, 1, 1, 4, 1, 2, 5, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 2, 2, 2, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 3, 6, 1, 3, 1, 3, 2, 2, 3, 14, 0, 1, 1, 4, 1, 0, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 3, 0, 0, 2, 3, 3, 3, 1, 1, 2, 3, 3, 1, 1, 4, 2, 4, 1, 3, 1, 2, 1, 1, 0, 1, 2, 1, 1, 3, 1, 3, 1, 1, 1, 1, 6, 3, 1, 3, 2, 2, 1, 2, 1, 9, 5, 1, 1, 0, 2, 1, 1, 2, 0, 1, 2, 3, 2, 0, 1, 1, 2, 1, 1, 1, 0, 2, 3, 0, 1, 1, 6, 1, 0, 4, 3, 1, 6, 1, 1, 1, 0, 1, 1, 4, 4, 1, 3, 2, 1, 2, 4, 3, 1, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 2, 1, 2, 0, 3, 2, 4, 1, 2, 2, 0, 1, 1, 1, 1, 1, 3, 2, 1, 2, 1, 1, 1, 4, 0, 1, 3, 0, 1, 1, 2, 1, 1, 1, 2, 1, 2, 1, 3, 1, 1, 2, 1, 1, 2, 1, 2, 4, 2, 1, 5, 4, 1, 1, 1, 1, 1, 0, 4, 0, 3, 3, 7, 3, 2, 0, 1, 3, 4, 2, 1, 1, 1, 3, 1, 1, 2, 0, 3, 2, 1, 1, 1, 0, 1, 2, 1, 3, 2, 3, 2, 2, 1, 1, 1, 0, 3, 1, 1, 0, 2, 4, 3, 3, 2, 0, 1, 1, 5, 2, 1, 1, 2, 4, 2, 2, 1, 6, 1, 4, 1, 2, 1, 1, 5, 4, 0, 3, 2, 1, 4, 6, 1, 1, 2, 1, 2, 2, 1, 3, 2, 2, 1, 3, 1, 3, 4, 5, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 4, 3, 2, 4, 1, 0, 5, 0, 3, 1, 3, 6, 0, 2, 2, 1, 3, 2, 0, 0, 1, 6, 1, 2, 4, 1, 1, 2, 1, 3, 1, 0, 5, 3, 3, 0, 2, 2, 2, 2, 0, 2, 2, 1, 3, 0, 4, 4, 0, 1, 3, 1, 3, 3, 0, 1, 3, 0, 1, 5, 0, 4, 3, 1, 1, 1, 1, 0, 4, 0, 0, 0, 5, 1, 0, 5, 2, 1, 0, 4, 0, 0, 0, 0, 4, 0, 2, 0, 0, 2, 2, 1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 1, 0, 0, 6, 3, 2, 5, 0, 0, 0, 1, 3, 1, 0, 0, 4, 1, 1, 1, 2, 2, 1, 4, 0, 0, 4, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 2, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0, 0, 3, 1, 1, 1, 2, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 0, 3, 1, 1, 2, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 2, 1, 0, 3, 2, 3, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 4, 1, 1, 2, 3, 2, 1, 1, 1, 1, 1, 1, 2, 1, 4, 1, 1, 1, 1, 3, 1, 1, 0, 2, 1, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+data = _pd.Series((3, 2, 4, 0, 0, 2, 2, 2, 1, 3, 9, 7, 12, 0, 1, 1, 1, 4, 3, 3, 3, 4, 2, 8, 3, 1, 5, 5, 2, 2, 1, 3, 3, 5, 1, 1, 2, 1, 4, 1, 4, 4, 0, 2, 0, 6, 7, 4, 1, 3, 1, 3, 4, 0, 1, 1, 1, 1, 3, 1, 0, 1, 2, 1, 1, 1, 3, 1, 1, 0, 4, 2, 1, 1, 0, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 2, 1, 2, 2, 0, 0, 9, 4, 0, 2, 1, 2, 0, 5, 4, 3, 1, 9, 7, 3, 0, 2, 4, 2, 5, 2, 1, 2, 2, 1, 3, 0, 2, 1, 0, 2, 2, 0, 1, 3, 0, 5, 1, 1, 1, 3, 1, 2, 5, 0, 0, 2, 1, 1, 4, 1, 2, 5, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 2, 2, 2, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 3, 6, 1, 3, 1, 3, 2, 2, 3, 14, 0, 1, 1, 4, 1, 0, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 3, 0, 0, 2, 3, 3, 3, 1, 1, 2, 3, 3, 1, 1, 4, 2, 4, 1, 3, 1, 2, 1, 1, 0, 1, 2, 1, 1, 3, 1, 3, 1, 1, 1, 1, 6, 3, 1, 3, 2, 2, 1, 2, 1, 9, 5, 1, 1, 0, 2, 1, 1, 2, 0, 1, 2, 3, 2, 0, 1, 1, 2, 1, 1, 1, 0, 2, 3, 0, 1, 1, 6, 1, 0, 4, 3, 1, 6, 1, 1, 1, 0, 1, 1, 4, 4, 1, 3, 2, 1, 2, 4, 3, 1, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 2, 1, 2, 0, 3, 2, 4, 1, 2, 2, 0, 1, 1, 1, 1, 1, 3, 2, 1, 2, 1, 1, 1, 4, 0, 1, 3, 0, 1, 1, 2, 1, 1, 1, 2, 1, 2, 1, 3, 1, 1, 2, 1, 1, 2, 1, 2, 4, 2, 1, 5, 4, 1, 1, 1, 1, 1, 0, 4, 0, 3, 3, 7, 3, 2, 0, 1, 3, 4, 2, 1, 1, 1, 3, 1, 1, 2, 0, 3, 2, 1, 1, 1, 0, 1, 2, 1, 3, 2, 3, 2, 2, 1, 1, 1, 0, 3, 1, 1, 0, 2, 4, 3, 3, 2, 0, 1, 1, 5, 2, 1, 1, 2, 4, 2, 2, 1, 6, 1, 4, 1, 2, 1, 1, 5, 4, 0, 3, 2, 1, 4, 6, 1, 1, 2, 1, 2, 2, 1, 3, 2, 2, 1, 3, 1, 3, 4, 5, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 4, 3, 2, 4, 1, 0, 5, 0, 3, 1, 3, 6, 0, 2, 2, 1, 3, 2, 0, 0, 1, 6, 1, 2, 4, 1, 1, 2, 1, 3, 1, 0, 5, 3, 3, 0, 2, 2, 2, 2, 0, 2, 2, 1, 3, 0, 4, 4, 0, 1, 3, 1, 3, 3, 0, 1, 3, 0, 1, 5, 0, 4, 3, 1, 1, 1, 1, 0, 4, 0, 0, 0, 5, 1, 0, 5, 2, 1, 0, 4, 0, 0, 0, 0, 4, 0, 2, 0, 0, 2, 2, 1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 1, 0, 0, 6, 3, 2, 5, 0, 0, 0, 1, 3, 1, 0, 0, 4, 1, 1, 1, 2, 2, 1, 4, 0, 0, 4, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 2, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0, 0, 3, 1, 1, 1, 2, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 0, 3, 1, 1, 2, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 2, 1, 0, 3, 2, 3, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 4, 1, 1, 2, 3, 2, 1, 1, 1, 1, 1, 1, 2, 1, 4, 1, 1, 1, 1, 3, 1, 1, 0, 2, 1, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
 # Plot for comparison
-plt.figure(figsize=(12,8))
+plt.figure(figsize=(12, 8))
 ax = data.plot(kind='hist', bins=50, alpha=0.5, color=plt.rcParams['axes.color_cycle'][1])
 # Save plot limits
 dataYLim = ax.get_ylim()
 
 # Find best fit distribution
 best_fit_name, best_fir_paramms = best_fit_distribution(data, 200, ax)
-best_dist = getattr(st, best_fit_name)
+best_dist = getattr(_st, best_fit_name)
 
 # Update plots
 ax.set_ylim(dataYLim)

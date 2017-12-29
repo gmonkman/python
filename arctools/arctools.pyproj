@@ -3,18 +3,18 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>ec5cf372-8145-4757-ba13-3684ace201fe</ProjectGuid>
+    <ProjectGuid>43713c39-8787-499b-a9df-9373eafdb28d</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>mediandistance.py</StartupFile>
-    <SearchPath>..\</SearchPath>
+    <StartupFile>arctools.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>focalpermute</Name>
-    <RootNamespace>focalpermute</RootNamespace>
-    <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>DATA</CommandLineArguments>
-    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <Environment>mediandistance.py DATA</Environment>
+    <Name>arctools</Name>
+    <RootNamespace>arctools</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
+    <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
+    <InterpreterVersion>2.6</InterpreterVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,30 +25,14 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="focalpermute.py" />
-    <Compile Include="heatmap.py">
+    <Compile Include="arctools.py" />
+    <Compile Include="raster_to_polygon.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="heatmap_conditionals.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="mediandistance.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="plots.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="quantile_regression_demo.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="test.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="__init__.py" />
+    <Compile Include="tmp.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="mediandistance.ini" />
-    <Content Include="pylintrc" />
+    <InterpreterReference Include="{2af0f10d-7135-4994-9156-5d01c9c11b7e}\2.6" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

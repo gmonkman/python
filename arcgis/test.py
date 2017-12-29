@@ -48,12 +48,13 @@ def dump_msp_paper_arrays():
     np_pam_venue_focal.dump(_OUTPUT_PATH_DEV + '\\' + 'np_pam_venue_focal.np')
     print('Dumped VenueCnt3x3PAMSansPAMClip')
 
-    pam_venue = arcpy.Raster(_GDBPATH + '\\VenueCnt3x3PAMSansPAMClip1')
-    np_pam_venue_focal = arcpy.RasterToNumPyArray(pam_venue_focal, nodata_to_value=numpy.nan)
-    assert isinstance(np_pam_venue_focal, numpy.ndarray)
-    np_pam_venue_focal.dump(_OUTPUT_PATH + '\\' + 'np_pam_venue_focal.np')
-    np_pam_venue_focal.dump(_OUTPUT_PATH_DEV + '\\' + 'np_pam_venue_focal.np')
-    print('Dumped VenueCnt3x3PAMSansPAMClip')
+    
+    #pam_venue = arcpy.Raster(_GDBPATH + '\\VenueCnt3x3PAMSansPAMClip1')
+    #np_pam_venue_focal = arcpy.RasterToNumPyArray(pam_venue_focal, nodata_to_value=numpy.nan)
+    #assert isinstance(np_pam_venue_focal, numpy.ndarray)
+    #np_pam_venue_focal.dump(_OUTPUT_PATH + '\\' + 'np_pam_venue_focal.np')
+    #np_pam_venue_focal.dump(_OUTPUT_PATH_DEV + '\\' + 'np_pam_venue_focal.np')
+    #print('Dumped VenueCnt3x3PAMSansPAMClip')
     #endregion
     
     

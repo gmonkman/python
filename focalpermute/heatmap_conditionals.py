@@ -1,4 +1,4 @@
-# pylint: disable=too-few-public-methods,too-many-statements, unused-import, unused-variable, no-member, dangerous-default-value, redefined-variable-type
+# pylint: disable=too-few-public-methods,too-many-statements, unused-import, unused-variable, no-member, dangerous-default-value, invalid-name
 '''produce heatmap from the conditionals'''
 from __future__ import absolute_import
 #region imports
@@ -16,10 +16,10 @@ from matplotlib import ticker
 import matplotlib.gridspec as gridspec
 
 #region Mine
-from . import mediandistance as md
+import mediandistance as md
 import funclib.statslib as statslib
 import funclib.arraylib as arraylib
-import funclib.plotlib.seabornlib as seabornlib
+import plotlib.seabornlib as seabornlib
 from funclib.stringslib import add_right
 from enum import Enum
 #endregion

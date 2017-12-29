@@ -1,12 +1,17 @@
 #pylint: disable=unused-import, multiple-statements, dangerous-default-value
-'''Calculate the all median distances'''
+'''Calculate the all median distances
+
+Note that calling make_matrices() will create all the data used in analysis
+which can be used in other packages
+'''
 
 #region Imports
 #region base
 import os
-import ConfigParser as cp
+import configparser as cp
 import math
 from collections import defaultdict as collection
+import argparse
 #endregion
 
 
@@ -67,13 +72,13 @@ def load_arrays():
     We will permute the study data then calculate 3x3 sliding windowed means
     then run a correlation against the already permuted data
     '''
-
+    #Arrays dumped from old numpy, hence using encoding='latin1'
     #FMM
     global _NP_FMM_VALUE
-    _NP_FMM_VALUE = np.load(_PATH + '/NP_FMM_VALUE.np').astype(float)
+    _NP_FMM_VALUE = np.load(_PATH + '/NP_FMM_VALUE.np', encoding='latin1').astype(float)
 
     global _NP_FMM_VENUE
-    _NP_FMM_VENUE = np.load(_PATH + '/NP_FMM_VENUE.np').astype(float)
+    _NP_FMM_VENUE = np.load(_PATH + '/NP_FMM_VENUE.np', encoding='latin1').astype(float)
 
     # slight mismatch in size owing to messing around with a pad in original data. Fix using slicing
     _NP_FMM_VENUE = _NP_FMM_VENUE[0:56, 0:69]
@@ -83,10 +88,10 @@ def load_arrays():
 
     #PAM
     global _NP_PAM_DAYSPAKM
-    _NP_PAM_DAYSPAKM = np.load(_PATH + '/' + 'NP_PAM_DAYSPAKM.np').astype(float)
+    _NP_PAM_DAYSPAKM = np.load(_PATH + '/' + 'NP_PAM_DAYSPAKM.np', encoding='latin1').astype(float)
 
     global _NP_PAM_VENUE
-    _NP_PAM_VENUE = np.load(_PATH + '/' + 'PAMSansPAMVCntRaster.np').astype(float)
+    _NP_PAM_VENUE = np.load(_PATH + '/' + 'PAMSansPAMVCntRaster.np', encoding='latin1').astype(float)
     if not _NP_PAM_DAYSPAKM.shape == _NP_PAM_VENUE.shape:
         raise ValueError('PAM arrays not of the same shape')
 
@@ -159,29 +164,29 @@ def get_pickled_data(survey=EnumSurvey.fmm, spatial=EnumSpatial.crisp, data=Enum
     if survey == EnumSurvey.fmm:
         if spatial == EnumSpatial.crisp:
             if data == EnumData.directed:
-                a = np.load(_PATH + '/NP_FMM_VALUE.np').astype(float) #FMM CRISP DIRECTED
+                a = np.load(_PATH + '/NP_FMM_VALUE.np', encoding='latin1').astype(float) #FMM CRISP DIRECTED
             else:
-                a = np.load(_PATH + '/NP_FMM_VENUE.np').astype(float) #FMM CRISP MINE
+                a = np.load(_PATH + '/NP_FMM_VENUE.np', encoding='latin1').astype(float) #FMM CRISP MINE
                 a = a[0:56, 0:69]
         else:
             if data == EnumData.directed:
-                a = np.load(_PATH + '/np_fmm_value_focal.np').astype(float) #FMM FOCAL DIRECTED
+                a = np.load(_PATH + '/np_fmm_value_focal.np', encoding='latin1').astype(float) #FMM FOCAL DIRECTED
                 a = a[1:57, 1:70] #fix array size to match other fmm arrays
             else:
-                a = np.load(_PATH + '/NP_FMM_VENUE_FOCAL.np').astype(float) #FMM FOCAL MINE
+                a = np.load(_PATH + '/NP_FMM_VENUE_FOCAL.np', encoding='latin1').astype(float) #FMM FOCAL MINE
                 a = np.delete(a, 69, 1)
     else:
         if spatial == EnumSpatial.crisp:
             if data == EnumData.directed:
-                a = np.load(_PATH + '/' + 'NP_PAM_DAYSPAKM.np').astype(float) #PAM CRISP DIRECTED
+                a = np.load(_PATH + '/' + 'NP_PAM_DAYSPAKM.np', encoding='latin1').astype(float) #PAM CRISP DIRECTED
             else:
-                a = np.load(_PATH + '/' + 'PAMSansPAMVCntRaster.np').astype(float) #PAM CRISP MINE
+                a = np.load(_PATH + '/' + 'PAMSansPAMVCntRaster.np', encoding='latin1').astype(float) #PAM CRISP MINE
         else:
             if data == EnumData.directed:
-                a = np.load(_PATH + '/' + 'np_pam_dayspa_focal.np').astype(float) #PAM FOCAL DIRECTED
+                a = np.load(_PATH + '/' + 'np_pam_dayspa_focal.np', encoding='latin1').astype(float) #PAM FOCAL DIRECTED
                 a = a[1:78, 1:119] #fix array size to match other fmm arrays
             else:
-                a = np.load(_PATH + '/' + 'NP_PAM_VENUE_FOCAL.np').astype(float) #PAM FOCAL MINE
+                a = np.load(_PATH + '/' + 'NP_PAM_VENUE_FOCAL.np', encoding='latin1').astype(float) #PAM FOCAL MINE
 
     return a
 
@@ -304,7 +309,7 @@ def class_frequency(a, b, fmt=EnumDataFormat.narrow, drop_nans=True, **kwargs):
         ['0.0,4.0', '2']]
         '''
         v = []
-        for coords, freq in freq_counts:
+        for coords, _ in freq_counts:
             x, y = coords.split(',')
             v.append(x)
             v.append(y)
@@ -693,7 +698,6 @@ def kappa_permute():
         assert isinstance(y, np.ndarray)
         arraylib.check_array(x, y)
 
-        out = []
         tertile = [float(100)/3, float(200)/3]
 
         a = x.copy()
@@ -755,25 +759,25 @@ def kappa_permute():
     config = cp.ConfigParser()
     config.read(inifile)
 
-    if config.getboolean('RUN','fmm_crisp_with_zeros'):
+    if config.getboolean('RUN', 'fmm_crisp_with_zeros'):
         out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=False)
         s = 'FMM Crisp with Zeros'
         results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
         iolib.write_to_eof(filename, results)
 
-    if config.getboolean('RUN','fmm_focal_with_zeros'):
+    if config.getboolean('RUN', 'fmm_focal_with_zeros'):
         out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=True)
         s = 'FMM Focal with Zeros'
-        results =  '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
+        results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
         iolib.write_to_eof(filename, results)
 
-    if config.getboolean('RUN','fmm_crisp_without_zeros'):
+    if config.getboolean('RUN', 'fmm_crisp_without_zeros'):
         out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=False, omit_paired_zeros=True)
         s = 'FMM Crisp without Zeros'
         results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
         iolib.write_to_eof(filename, results)
 
-    if config.getboolean('RUN','fmm_focal_without_zeros'):
+    if config.getboolean('RUN', 'fmm_focal_without_zeros'):
         out = kappa_iter_work(_NP_FMM_VALUE, _NP_FMM_VENUE, is_focal=True, omit_paired_zeros=True)
         s = 'FMM Focal without Zeros'
         results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
@@ -781,25 +785,25 @@ def kappa_permute():
     #endregion
 
     #region PAM
-    if config.getboolean('RUN','pam_crisp_with_zeros'):
+    if config.getboolean('RUN', 'pam_crisp_with_zeros'):
         out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=False, use_tertile=True)
         s = 'PAM Crisp with Zeros'
         results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
         iolib.write_to_eof(filename, results)
 
-    if config.getboolean('RUN','pam_focal_with_zeros'):
+    if config.getboolean('RUN', 'pam_focal_with_zeros'):
         out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=True)
         s = 'PAM Focal with Zeros'
         results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
         iolib.write_to_eof(filename, results)
 
-    if config.getboolean('RUN','pam_crisp_without_zeros'):
+    if config.getboolean('RUN', 'pam_crisp_without_zeros'):
         out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=False, omit_paired_zeros=True, use_tertile=True)
         s = 'PAM Crisp without Zeros'
         results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
         iolib.write_to_eof(filename, results)
     
-    if config.getboolean('RUN','pam_focal_without_zeros'):
+    if config.getboolean('RUN', 'pam_focal_without_zeros'):
         out = kappa_iter_work(_NP_PAM_DAYSPAKM, _NP_PAM_VENUE, is_focal=True, omit_paired_zeros=True)
         s = 'PAM Focal without Zeros'
         results = '%s : p = %f, n = %d, more_extreme = %d, unpermuted_kappa = %f\n' % (s, out['p'], out['n'], out['more_extreme_n'], out['teststat'])
@@ -824,7 +828,22 @@ def do_kappa_permutation():
     kappa_permute()
 
 
-#Tier-0
-#_MATRICES = make_matrices()
-#endregion
-do_kappa_permutation()
+
+if __name__ == '__main__':
+    #need to import argparse
+    _CMDLINE = argparse.ArgumentParser(description='''Perform the main permutation or run code to generate the pre-test data.
+                                        Examples:
+                                        mediandistance.py PERMUTE
+                                        mediandistance.py DATA''')
+    _CMDLINE.add_argument('action', help='What action to take, can be PERMUTE or DATA')
+    _CMDLINEARGS = _CMDLINE.parse_args()
+
+    if _CMDLINEARGS.action == 'PERMUTE':
+        do_kappa_permutation()
+    else:
+        _MATRICES = make_matrices()
+        _MATRICES['fmm_freq']['crispDirected_crispMine'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/fmm_crispDirected_crispMine.csv')
+        _MATRICES['fmm_freq']['focalDirected_focalMine'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/fmm_focalDirected_focalMine.csv')
+        _MATRICES['pam_freq']['focalDirected_crispDirected'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/pam_focalDirected_crispDirected.csv')
+        _MATRICES['fmm_freq']['focalDirected_crispDirected'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/pam_focalDirected_crispDirected.csv')
+        print('Done')

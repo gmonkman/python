@@ -1,6 +1,4 @@
-# pylint: disable=C0302, too-many-branches, dangerous-default-value,
-# line-too-long, no-member, expression-not-assigned, locally-disabled,
-# not-context-manager, unused-import, undefined-variable
+# pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled,not-context-manager, unused-import, undefined-variable, no-member
 '''routines to manipulate array like objects like lists, tuples etc'''
 import pandas as _pd
 import numpy as _np

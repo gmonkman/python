@@ -1,17 +1,17 @@
 # pylint: disable=too-few-public-methods, too-many-statements, unused-import, unused-variable, no-member, dangerous-default-value, unbalanced-tuple-unpacking
-
 '''My library of statistics based functions'''
 
 # base imports
 import copy
 import numbers
+import warnings
 
 # packages
-import pandas
+import pandas as _pd
 import pandas.rpy.common as _com
 import numpy as _np
-import scipy
-import scipy.stats
+import scipy as _scipy
+import scipy.stats as _stats
 import rpy2.robjects as _ro
 
 
@@ -70,13 +70,13 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMet
 
         for case in switch(method):
             if case(EnumMethod.kendall):
-                teststat, pval = scipy.stats.kendalltau(list_a, permuted)
+                teststat, pval = _stats.kendalltau(list_a, permuted)
                 break
             if case(EnumMethod.pearson):
-                teststat, pval = scipy.stats.pearsonr(list_a, permuted)
+                teststat, pval = _stats.pearsonr(list_a, permuted)
                 break
             if case(EnumMethod.spearman):
-                teststat, pval = scipy.stats.spearmanr(list_a, permuted)
+                teststat, pval = _stats.spearmanr(list_a, permuted)
                 break
             if case():
                 raise ValueError('Enumeration member not in e_method')
@@ -93,7 +93,7 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMet
 
 
 def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, test_type=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
-    ''' (string|pandas.dataframe,string,string,EnumMethod,EnumStatsEngine) -> dictionary
+    ''' (string|_pd.dataframe,string,string,EnumMethod,EnumStatsEngine) -> dictionary
     Assumes that the first row is headers, will fail if this is not the case.
     
     NOTE:This opens file_name each time so dont recommend it for repeating tests.
@@ -103,10 +103,10 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
 
     '''
     if isinstance(file_name_or_dataframe, str):
-        df = pandas.read_csv(file_name_or_dataframe)
+        df = _pd.read_csv(file_name_or_dataframe)
     else:
         df = file_name_or_dataframe
-    assert isinstance(df, pandas.DataFrame)
+    assert isinstance(df, _pd.DataFrame)
 
     list_a = df[col_a_name].tolist()
     list_b = df[col_b_name].tolist()
@@ -122,7 +122,7 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
-                teststat, pval = scipy.stats.kendalltau(list_a, list_b)
+                teststat, pval = _stats.kendalltau(list_a, list_b)
             break
         if case(EnumMethod.pearson):
             if engine == EnumStatsEngine.r:
@@ -134,7 +134,7 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
-                teststat, pval = scipy.stats.pearsonr(list_a, list_b)
+                teststat, pval = _stats.pearsonr(list_a, list_b)
             break
         if case(EnumMethod.spearman):
             if engine == EnumStatsEngine.r:
@@ -146,7 +146,7 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
-                teststat, pval = scipy.stats.spearmanr(list_a, list_b)
+                teststat, pval = _stats.spearmanr(list_a, list_b)
             break
         if case():
             raise ValueError('Enumeration member not in e_method')
@@ -204,7 +204,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
     for case in _baselib.switch(method):
         if case(EnumMethod.kendall):
             if engine == EnumStatsEngine.r:
-                df = pandas.DataFrame({'a': lst_a, 'b': lst_b})
+                df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
                 df_r = _com.convert_to_r_dataframe(df)
                 _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="kendall")'
@@ -212,11 +212,11 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
-                teststat, pval = scipy.stats.kendalltau(lst_a, lst_b)
+                teststat, pval = _stats.kendalltau(lst_a, lst_b)
             break
         if case(EnumMethod.pearson):
             if engine == EnumStatsEngine.r:
-                df = pandas.DataFrame({'a': lst_a, 'b': lst_b})
+                df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
                 df_r = _com.convert_to_r_dataframe(df)
                 _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="pearson")'
@@ -224,11 +224,11 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
-                teststat, pval = scipy.stats.pearsonr(lst_a, lst_b)
+                teststat, pval = _stats.pearsonr(lst_a, lst_b)
             break
         if case(EnumMethod.spearman):
             if engine == EnumStatsEngine.r:
-                df = pandas.DataFrame({'a': lst_a, 'b': lst_b})
+                df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
                 df_r = _com.convert_to_r_dataframe(df)
                 _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="spearman")'
@@ -236,7 +236,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
                 teststat = result[3][0]
                 pval = result[2][0]
             else:
-                teststat, pval = scipy.stats.spearmanr(lst_a, lst_b)
+                teststat, pval = _stats.spearmanr(lst_a, lst_b)
             break
         if case():
             raise ValueError('Enumeration member not in e_method')
@@ -257,8 +257,8 @@ def permuted_teststat_check(csvfile, test_col, stat_value_to_check):
     'more_extreme_n': number of values more extreme than stat_value_to_check
     '''
     col = [test_col]
-    df = pandas.read_csv(csvfile, usecols=col)
-    assert isinstance(df, pandas.DataFrame)
+    df = _pd.read_csv(csvfile, usecols=col)
+    assert isinstance(df, _pd.DataFrame)
 
     if stat_value_to_check >= 0:
         res = (df.iloc[0:] > stat_value_to_check).sum()
@@ -366,7 +366,7 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
         labels = range(1, len(percentiles) + 2)  # [25,50,75] -> [1,2,3,4]
 
         percentiles.sort()
-        ranges = [scipy.stats.scoreatpercentile(
+        ranges = [_stats.scoreatpercentile(
             a, x) for x in percentiles] if use_scipy else _np.percentile(a, percentiles)
 
         for ind, item in enumerate(ranges):
@@ -432,7 +432,7 @@ def contingency_conditional(a, bycol=True):
     assert isinstance(a, _np.ndarray)
     b = contigency_joint(a)
     assert isinstance(b, _np.ndarray)
-    marg_rows, marg_cols = scipy.stats.contingency.margins(b)
+    marg_rows, marg_cols = _stats.contingency.margins(b)
 
     if bycol:
         b = _np.vstack([b, marg_cols])  # add marginal col
@@ -461,27 +461,27 @@ def contigency_joint(a):
 def best_fit_distribution(data, bins=200, ax=None):
     """Model data by finding best fit distribution to data"""
     # Get histogram of original data
-    y, x = np.histogram(data, bins=bins, density=True)
-    x = (x + np.roll(x, -1))[:-1] / 2.0
+    y, x = _np.histogram(data, bins=bins, density=True)
+    x = (x + _np.roll(x, -1))[:-1] / 2.0
 
     # Distributions to check
     DISTRIBUTIONS = [        
-        st.alpha,st.anglit,st.arcsine,st.beta,st.betaprime,st.bradford,st.burr,st.cauchy,st.chi,st.chi2,st.cosine,
-        st.dgamma,st.dweibull,st.erlang,st.expon,st.exponnorm,st.exponweib,st.exponpow,st.f,st.fatiguelife,st.fisk,
-        st.foldcauchy,st.foldnorm,st.frechet_r,st.frechet_l,st.genlogistic,st.genpareto,st.gennorm,st.genexpon,
-        st.genextreme,st.gausshyper,st.gamma,st.gengamma,st.genhalflogistic,st.gilbrat,st.gompertz,st.gumbel_r,
-        st.gumbel_l,st.halfcauchy,st.halflogistic,st.halfnorm,st.halfgennorm,st.hypsecant,st.invgamma,st.invgauss,
-        st.invweibull,st.johnsonsb,st.johnsonsu,st.ksone,st.kstwobign,st.laplace,st.levy,st.levy_l,st.levy_stable,
-        st.logistic,st.loggamma,st.loglaplace,st.lognorm,st.lomax,st.maxwell,st.mielke,st.nakagami,st.ncx2,st.ncf,
-        st.nct,st.norm,st.pareto,st.pearson3,st.powerlaw,st.powerlognorm,st.powernorm,st.rdist,st.reciprocal,
-        st.rayleigh,st.rice,st.recipinvgauss,st.semicircular,st.t,st.triang,st.truncexpon,st.truncnorm,st.tukeylambda,
-        st.uniform,st.vonmises,st.vonmises_line,st.wald,st.weibull_min,st.weibull_max,st.wrapcauchy
+        _stats.alpha, _stats.anglit, _stats.arcsine, _stats.beta, _stats.betaprime, _stats.bradford, _stats.burr, _stats.cauchy, _stats.chi, _stats.chi2, _stats.cosine,
+        _stats.dgamma, _stats.dweibull, _stats.erlang, _stats.expon, _stats.exponnorm, _stats.exponweib, _stats.exponpow, _stats.f, _stats.fatiguelife, _stats.fisk,
+        _stats.foldcauchy, _stats.foldnorm, _stats.frechet_r, _stats.frechet_l, _stats.genlogistic, _stats.genpareto, _stats.gennorm, _stats.genexpon,
+        _stats.genextreme, _stats.gausshyper, _stats.gamma, _stats.gengamma, _stats.genhalflogistic, _stats.gilbrat, _stats.gompertz, _stats.gumbel_r,
+        _stats.gumbel_l, _stats.halfcauchy, _stats.halflogistic, _stats.halfnorm, _stats.halfgennorm, _stats.hypsecant, _stats.invgamma, _stats.invgauss,
+        _stats.invweibull, _stats.johnsonsb, _stats.johnsonsu, _stats.ksone, _stats.kstwobign, _stats.laplace, _stats.levy, _stats.levy_l, _stats.levy_stable,
+        _stats.logistic, _stats.loggamma, _stats.loglaplace, _stats.lognorm, _stats.lomax, _stats.maxwell, _stats.mielke, _stats.nakagami, _stats.ncx2, _stats.ncf,
+        _stats.nct, _stats.norm, _stats.pareto, _stats.pearson3, _stats.powerlaw, _stats.powerlognorm, _stats.powernorm, _stats.rdist, _stats.reciprocal,
+        _stats.rayleigh, _stats.rice, _stats.recipinvgauss, _stats.semicircular, _stats.t, _stats.triang, _stats.truncexpon, _stats.truncnorm, _stats.tukeylambda,
+        _stats.uniform, _stats.vonmises, _stats.vonmises_line, _stats.wald, _stats.weibull_min, _stats.weibull_max, _stats.wrapcauchy
     ]
 
     # Best holders
-    best_distribution = st.norm
+    best_distribution = _stats.norm
     best_params = (0.0, 1.0)
-    best_sse = np.inf
+    best_sse = _np.inf
 
     # Estimate distribution parameters from data
     for distribution in DISTRIBUTIONS:
@@ -502,13 +502,12 @@ def best_fit_distribution(data, bins=200, ax=None):
 
                 # Calculate fitted PDF and error with fit in distribution
                 pdf = distribution.pdf(x, loc=loc, scale=scale, *arg)
-                sse = np.sum(np.power(y - pdf, 2.0))
+                sse = _np.sum(_np.power(y - pdf, 2.0))
 
                 # if axis pass in add to plot
                 try:
                     if ax:
-                        pd.Series(pdf, x).plot(ax=ax)
-                    end
+                        _pd.Series(pdf, x).plot(ax=ax)
                 except Exception:
                     pass
                 
@@ -535,9 +534,9 @@ def make_pdf(dist, params, size=10000):
     start = dist.ppf(0.01, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.01, loc=loc, scale=scale)
     end = dist.ppf(0.99, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.99, loc=loc, scale=scale)
 
-    # Build PDF and turn into pandas Series
-    x = np.linspace(start, end, size)
+    # Build PDF and turn into _pd Series
+    x = _np.linspace(start, end, size)
     y = dist.pdf(x, loc=loc, scale=scale, *arg)
-    pdf = pd.Series(y, x)
+    pdf = _pd.Series(y, x)
 
     return pdf

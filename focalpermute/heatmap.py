@@ -1,4 +1,4 @@
-# pylint: disable=too-few-public-methods,too-many-statements, unused-import, unused-variable, no-member, dangerous-default-value, redefined-variable-type
+# pylint: disable=too-few-public-methods,too-many-statements, unused-import, unused-variable, no-member, dangerous-default-value
 '''produce facetgrid heatmap'''
 from __future__ import absolute_import
 #region imports
@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 from matplotlib import ticker
 
 #region Mine
-from . import mediandistance
 from funclib.stringslib import add_right
 from enum import Enum
 #endregion

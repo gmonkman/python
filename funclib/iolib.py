@@ -677,7 +677,7 @@ def unpickle(path):
 def input_int(prompt='Input number', default=0):
     '''get console input from user and force to int'''
     try:
-        inp = raw_input
+        inp = input
     except NameError:
         pass
     return int(_stringslib.read_number(inp(prompt), default))

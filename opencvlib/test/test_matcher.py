@@ -223,7 +223,7 @@ class Test(unittest.TestCase):
         for img_train, imgpath, dummy in VGG_part.generate():
             if not img_train is None: #we're only getting a single image
                 continue
-
+        img_train = _transforms.resize(img_train, width=200)
         train_feat(img_train, imgpath, extract_now=True)
 
         #loop over all whole fish
@@ -232,6 +232,7 @@ class Test(unittest.TestCase):
 
         for img_part, imgpath, dummy in VGG_part.generate():
             img_whole = getimg(imgpath)
+            img_whole = _transforms.resize(img_whole, width=200)
             if not isinstance(img_part, np.ndarray) or not isinstance(img_whole, np.ndarray):
                 continue
 
