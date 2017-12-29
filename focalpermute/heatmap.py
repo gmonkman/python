@@ -14,12 +14,12 @@ import matplotlib.pyplot as plt
 from matplotlib import ticker
 
 #region Mine
+import focalpermute.mediandistance as mediandistance
 from funclib.stringslib import add_right
 from enum import Enum
+
 #endregion
 #endregion
-
-
 
 
 #region Enums

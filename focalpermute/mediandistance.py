@@ -7,11 +7,11 @@ which can be used in other packages
 
 #region Imports
 #region base
-import os
-import configparser as cp
-import math
-from collections import defaultdict as collection
-import argparse
+import os as _os
+import configparser as _cp
+
+from collections import defaultdict as _collection
+import argparse as _argparse
 #endregion
 
 
@@ -47,7 +47,7 @@ _OUTPATH = r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\My Papers\WalesRSA-M
 _KAPPA_RESULT_PATH = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/kappa_permute' 
 
 
-_MATRICES = collection(dict)
+_MATRICES = _collection(dict)
 _ITERATIONS = 10
 
 _NP_FMM_VALUE = np.array([])
@@ -481,7 +481,7 @@ def make_matrices():
     #endregion
 
 
-    results = collection(dict)
+    results = _collection(dict)
     fmm_distance = {}
     pam_distance = {}
 
@@ -680,10 +680,10 @@ def kappas():
 def kappa_permute():
     '''do the kappa permutation test
     '''
-    config_path = os.path.dirname(os.path.realpath(__file__))
+    config_path = _os.path.dirname(_os.path.realpath(__file__))
     inifile = config_path + '\\mediandistance.ini'
 
-    filename = os.getcwd() + '\\kappa_' + stringslib.datetime_stamp() + '.txt'
+    filename = _os.getcwd() + '\\kappa_' + stringslib.datetime_stamp() + '.txt'
     
     def kappa_with_iqr(x, y, omit_paired_zeros=False, use_tertile=False):
         '''(ndarray, ndarray,bool,bool,bool) -> dic
@@ -756,7 +756,7 @@ def kappa_permute():
         return out
         
     #region FMM
-    config = cp.ConfigParser()
+    config = _cp.ConfigParser()
     config.read(inifile)
 
     if config.getboolean('RUN', 'fmm_crisp_with_zeros'):
@@ -830,8 +830,8 @@ def do_kappa_permutation():
 
 
 if __name__ == '__main__':
-    #need to import argparse
-    _CMDLINE = argparse.ArgumentParser(description='''Perform the main permutation or run code to generate the pre-test data.
+    #need to import _argparse
+    _CMDLINE = _argparse.ArgumentParser(description='''Perform the main permutation or run code to generate the pre-test data.
                                         Examples:
                                         mediandistance.py PERMUTE
                                         mediandistance.py DATA''')
@@ -845,5 +845,5 @@ if __name__ == '__main__':
         _MATRICES['fmm_freq']['crispDirected_crispMine'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/fmm_crispDirected_crispMine.csv')
         _MATRICES['fmm_freq']['focalDirected_focalMine'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/fmm_focalDirected_focalMine.csv')
         _MATRICES['pam_freq']['focalDirected_crispDirected'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/pam_focalDirected_crispDirected.csv')
-        _MATRICES['fmm_freq']['focalDirected_crispDirected'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/pam_focalDirected_crispDirected.csv')
+        _MATRICES['pam_freq']['focalDirected_focalMine'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/pam_focalDirected_focalMine.csv')
         print('Done')

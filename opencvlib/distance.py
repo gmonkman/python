@@ -73,3 +73,23 @@ def furthestN_euclidean(point, points, nr=1):
     l_dist = dist[l_ind].tolist()
     out = [x for x in zip(l_ind, l_dist)]
     return out
+
+
+def linear_distance_matrix(r, c):
+    '''(int, int) -> ndarray
+    Returns a distance matrix based on linear distance.
+    
+    args
+        r: row count
+        c: column count
+
+    Example:
+    linear_distance_matrix(3,3)
+    
+      0 1 2
+    -------
+    0|0 1 2
+    1|1 0 1
+    2|2 1 0
+    '''
+    return _np.fromfunction(lambda i, j: abs(i - j), (r, c), dtype=int)

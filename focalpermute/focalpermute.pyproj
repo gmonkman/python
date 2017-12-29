@@ -5,14 +5,15 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>ec5cf372-8145-4757-ba13-3684ace201fe</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>mediandistance.py</StartupFile>
+    <StartupFile>iqr_graph_distance.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>focalpermute</Name>
     <RootNamespace>focalpermute</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>DATA</CommandLineArguments>
+    <CommandLineArguments>
+    </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <Environment>mediandistance.py DATA</Environment>
   </PropertyGroup>
@@ -32,6 +33,9 @@
     <Compile Include="heatmap_conditionals.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="iqr_graph_distance.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="mediandistance.py">
       <SubType>Code</SubType>
     </Compile>
@@ -49,6 +53,11 @@
   <ItemGroup>
     <Content Include="mediandistance.ini" />
     <Content Include="pylintrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="test\" />
+    <Folder Include="test\bin\" />
+    <Folder Include="test\output\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
