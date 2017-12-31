@@ -511,6 +511,10 @@ def make_matrices():
     fmm_freq['focalDirected_focalMine'] = class_frequency(a, b,
                     cola='directed', colb='this', col_value='frequency', label='focalDirected_focalMine'
                     )
+    #fix to add a record for 4-0 which doesnt occur in the dataset
+    line = pd.DataFrame({'group':'focalDirected_focalMine', 'directed':float(4.0), 'this':float(0.0), 'frequency':float(0)}, index=[20])
+    dftmp = pd.concat([fmm_freq['focalDirected_focalMine'].ix[:19], line, fmm_freq['focalDirected_focalMine'].ix[20:]]).reset_index(drop=True)
+    fmm_freq['focalDirected_focalMine'] = dftmp
     fmm_contingency['focalDirected_focalMine'] = get_contingency(fmm_freq['focalDirected_focalMine'], True)
 
 

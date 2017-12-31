@@ -65,39 +65,68 @@ def calc_distances():
     def save():
         '''save to excel'''
         wb = _xw.Book()
+
+        ws = wb.sheets.add('pam_focal')
+        #ws.range('A1').value = pamfuzzy
+        #ws.range('N1').value = pamfuzzy_all
+        ws.range('A1').value = pamfuzzy_sigma
+
+        ws = wb.sheets.add('pam_crisp')
+        #ws.range('A1').value = pamcrisp
+        #ws.range('N1').value = pamcrisp_all
+        ws.range('A1').value = pamcrisp_sigma
+
+        ws = wb.sheets.add('fmm_focal')
+        #ws.range('A1').value = fmmfuzzy
+        #ws.range('N1').value = fmmfuzzy_all
+        ws.range('A1').value = fmmfuzzy_sigma
+
+        ws = wb.sheets.add('fmm_crisp')
+        #ws.range('A1').value = fmmcrisp
+        #ws.range('N1').value = fmmcrisp_all
+        ws.range('A1').value = fmmcrisp_sigma
+        
         ws = wb.sheets.add('info')
         ws.range('A1').value = 'data is IQR frequences in variable _MATRICES, generated from the focalpermute.mediandistance.py\n' \
                                 'The processed data as it appears in this spreadsheet was created by focalpermute.iqr_graph_distance.py'
-
-        ws = wb.sheets.add('fmm_crisp')
-        ws.range('A1').value = fmmcrisp
-        ws.range('N1').value = fmmcrisp_all
-
-        ws = wb.sheets.add('fmm_focal')
-        ws.range('A1').value = fmmfuzzy
-        ws.range('N1').value = fmmfuzzy_all
-
-        ws = wb.sheets.add('pam_crisp')
-        ws.range('A1').value = pamcrisp
-        ws.range('N1').value = pamcrisp_all
-
-        ws = wb.sheets.add('pam_focal')
-        ws.range('A1').value = pamfuzzy
-        ws.range('N1').value = pamfuzzy_all
-
         wb.save(_OUTFILE)
+    
+    def get_for_plot(df, df_all, step):
+        '''pandas.dataframe, pandas.dataframe -> pandas.dataframe
+        Get and format the data for plotting
+        in sigmaplot
+        '''
+        assert isinstance(df, _pd.DataFrame)
+        df_out = _pd.DataFrame({'x':list(range(0, step))})
+        df_out['expected'] = _np.arange(1/step, 1 + 1/step, 1/step)
+
+        step2 = step*step
+        z = zip(list(range(0, step2, step)), list(range(0 + step, step2 + step, step)))
+        for x in z:
+            assert isinstance(x, tuple)
+            col1 = 'propfreq' + str(int(x[0]/step))
+            s = slice(int(x[0]), int(x[1]))
+            df_out[col1] = _np.array(df['propfreq'][s]).astype(float)
+
+        df_out['propfreqall'] = _np.array(df_all['propfreq']).astype(float)
+        return df_out
+
 
     fmmcrisp = _MATRICES['fmm_freq']['crispDirected_crispMine']
     fmmcrisp, fmmcrisp_all = calc_dist(fmmcrisp)
+    fmmcrisp_sigma = get_for_plot(fmmcrisp, fmmcrisp_all, 5)
 
     fmmfuzzy = _MATRICES['fmm_freq']['focalDirected_focalMine']
     fmmfuzzy, fmmfuzzy_all = calc_dist(fmmfuzzy)
-    
+    fmmfuzzy_sigma = get_for_plot(fmmfuzzy, fmmfuzzy_all, 5)
+
     pamcrisp = _MATRICES['pam_freq']['crispDirected_crispMine']
     pamcrisp, pamcrisp_all = calc_dist(pamcrisp)
+    pamcrisp_sigma = get_for_plot(pamcrisp, pamcrisp_all, 4)
 
     pamfuzzy = _MATRICES['pam_freq']['focalDirected_focalMine']
     pamfuzzy, pamfuzzy_all = calc_dist(pamfuzzy)
+    pamfuzzy_sigma = get_for_plot(pamfuzzy, pamfuzzy_all, 5)
 
     save()
     
