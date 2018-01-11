@@ -456,8 +456,13 @@ def file_list_generator(paths, wildcards):
 
     ie. Yields wildcards for consumption a _glob.glob.
     '''
+    if isinstance(wildcards, str):
+        wildcards = [wildcards]
+
+    ww = [ '*' + x if x[0]=='.' else x  for x in wildcards]
+       
     for vals in (_stringslib.add_right(x[0]) + x[1]
-                 for x in _itertools.product(paths, wildcards)):
+                 for x in _itertools.product(paths, ww)):
         yield _os.path.normpath(vals)
 
 
@@ -476,9 +481,11 @@ def file_list_generator1(paths, wildcards, recurse=False):
 
     if isinstance(wildcards, str):
         wildcards = [wildcards]
+    
+    wildcards = [ '*' + x if x[0]=='.' else x  for x in wildcards]
 
-    for ind, v in enumerate(paths):
-        paths[ind] = _os.path.normpath(v)
+    #for ind, v in enumerate(paths):
+       # paths[ind] = _os.path.normpath(v) 
 
     for vals in (_stringslib.add_right(x[0]) + x[1]
                  for x in _itertools.product(paths, wildcards)):

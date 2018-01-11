@@ -33,6 +33,9 @@
     <Compile Include="heatmap_conditionals.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="heatmap_conditionals2.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="iqr_graph_distance.py">
       <SubType>Code</SubType>
     </Compile>

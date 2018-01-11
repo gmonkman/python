@@ -832,6 +832,7 @@ def do_kappa_permutation():
     kappa_permute()
 
 
+_MATRICES = make_matrices()
 
 if __name__ == '__main__':
     #need to import _argparse
@@ -845,7 +846,6 @@ if __name__ == '__main__':
     if _CMDLINEARGS.action == 'PERMUTE':
         do_kappa_permutation()
     else:
-        _MATRICES = make_matrices()
         _MATRICES['fmm_freq']['crispDirected_crispMine'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/fmm_crispDirected_crispMine.csv')
         _MATRICES['fmm_freq']['focalDirected_focalMine'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/fmm_focalDirected_focalMine.csv')
         _MATRICES['pam_freq']['focalDirected_crispDirected'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/pam_focalDirected_crispDirected.csv')

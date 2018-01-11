@@ -1,4 +1,4 @@
-'''unit tests for streas.py'''
+'''unit tests for streams.py'''
 import unittest
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path

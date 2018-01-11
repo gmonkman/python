@@ -269,6 +269,7 @@ def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
     3) Both not none then resize to specied width and height
     4) Otherwise resize keeping the aspect ratio according to the provided width or height
     '''
+    image = _getimg(image)
     dim = None
     (h, w) = image.shape[:2]
     image = _getimg(image)

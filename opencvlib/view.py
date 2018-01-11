@@ -11,7 +11,7 @@ import numpy as _np
 import cv2 as _cv2
 
 
-from funclib.stringslib import read_number as _read_number
+
 from funclib.baselib import isPython2 as _isPython2
 import funclib.baselib as _baselib
 
@@ -19,6 +19,7 @@ import opencvlib.decs as _decs
 import opencvlib.color as _color
 import opencvlib.info as _info
 from opencvlib import transforms as _transforms
+from opencvlib.common import draw_str as _draw_str
 
 
 __all__ = ['mosaic', 'pad_images', 'show', 'showarray']
@@ -89,7 +90,7 @@ def pad_images(imgs, pad_color=_color.CVColors.black):
         if isinstance(img, _np.ndarray):
             add_h = maxh - img.shape[0]
             add_w = maxw - img.shape[1]
-            if _info.ImageInfo.isbw(img):
+            if len(img.shape) == 2:
                 i = _cv2.cvtColor(img, _cv2.COLOR_GRAY2BGR)
             else:
                 i = img
@@ -105,8 +106,8 @@ def pad_images(imgs, pad_color=_color.CVColors.black):
 
 
 @_decs.decgetimg
-def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.CVColors.black, absolute=True, pixel_size=1., color_space=_color.eColorSpace.BGR):
-    '''(str|ndarray|iterable)->int, str
+def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.CVColors.black, absolute=True, pixel_size=1., color_space=_color.eColorSpace.BGR, draw_str=''):
+    '''(str|ndarray|iterable, int, int)->int, str
     Show an image, passing in a path or ndarray
 
     A list of images can be passed, which will be mosaiced
@@ -126,6 +127,8 @@ def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.C
         pixel based images. This occurs after mosaicing, but before max_width resize
         A pixel_size=2 implies that each pixel in the original image will be
         represented by 2x2 pixels in the new image
+    title
+        string to show on image as title
 
     Returns
         the key value pressed and the title
@@ -164,6 +167,8 @@ def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.C
     if millisecs < 0:
         millisecs = 0
 
+    if draw_str != '':
+        _draw_str(im, 10, 10, draw_str, (0, 255, 255))
 
     _cv2.namedWindow(title, _cv2.WINDOW_NORMAL)
     _cv2.resizeWindow(title, new_w, new_h)
@@ -201,7 +206,7 @@ def mosaic(imgs, cols=None, pad=True, pad_color=_color.CVColors.black):
             break
 
     if hasbw:
-        imgs = [i[:, :, ...] for i in imgs]
+        imgs = [_cv2.cvtColor(i, _cv2.COLOR_GRAY2BGR) if len(i.shape) == 2 else i for i in imgs]
 
     imgs = pad_images(imgs, pad_color=pad_color) #make images the same size by adding padding
 

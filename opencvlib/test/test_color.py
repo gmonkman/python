@@ -11,6 +11,7 @@ import cv2
 import funclib.iolib as _iolib
 import opencvlib.color as color
 from opencvlib.color import eColorSpace
+from opencvlib.view import show
 
 _TEST_COLORS = set(('white', 'black', 'blue', 'green', 'red', 'yellow'))
 
@@ -51,7 +52,7 @@ class Test(unittest.TestCase):
         self.MOSAIC_RGB = cv2.cvtColor(self.MOSAIC_BGR, cv2.COLOR_BGR2RGB)
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_cvt(self):
         '''test_cvt
         test convert function'''
@@ -88,7 +89,7 @@ class Test(unittest.TestCase):
         self.assertTrue(np.array_equal(T, self.MOSAIC_BGR))
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_ColorInterval(self):
         '''test_ColorInterval
         Instances of this class can be consumed for
@@ -124,7 +125,7 @@ class Test(unittest.TestCase):
         self.assertTrue(np.array_equal(CI.upper_interval(), np.array([179, 255, 255]).astype('uint8')))
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_ColorDetectionBGR(self):
         '''test_ColorDetectionBGR
         which takes an image and
@@ -192,6 +193,7 @@ class Test(unittest.TestCase):
         #GY
         #BW
         mosaic = self.MOSAIC_HSV.copy()
+        show(mosaic)
         ciAll = []
 
         #BLUE picker
@@ -229,8 +231,10 @@ class Test(unittest.TestCase):
         ciAll.append(ciYELLOW)
         CD = color.ColorDetection(mosaic, ciAll, color.eColorSpace.HSV, no_conversion=True)
         CD.detect()
+        show(CD.detected_as_bgr())
         sCols, sNoCols = _chkMBGR(CD.detected_as_bgr())
         self.assertTrue('red' in sCols and 'blue' in sCols and 'green' in sCols and 'yellow' in sCols)
+        
 
 
 

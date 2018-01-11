@@ -1,6 +1,7 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
-'''keypoint helpers
-keypoint detection is handled in features.py'''
+'''deal with colors
+See test_color.py for examples of using the filter
+'''
 from enum import Enum as _Enum
 
 import numpy as _np
@@ -55,7 +56,7 @@ class ColorInterval():
     convert between them.
     
     Initialise with tuples where tuples are paired to represent a range
-    e.g. start=(0,0,0), finish=(255,255,255) is then enture range
+    e.g. start=(0,0,0), finish=(255,255,255) is then entire range
 
     Note OpenCV HSV is 0-179,0-255,0-255
     '''
@@ -72,7 +73,7 @@ class ColorInterval():
         if color_space == eColorSpace.Grey:    
             self._check_intervals()
             if len(start) != 1 and len(finish) != 1:
-                raise UserWarning('Color space set to grey, but tuple start and /or finish length greater not equal 1')
+                raise UserWarning('Color space set to grey, but tuple start and/or finish length greater not equal 1')
         else:
             start = hsvtrans(start, color_space)
             finish = hsvtrans(finish, color_space)
@@ -174,8 +175,18 @@ class ColorInterval():
 
 
 class ColorDetection():
-    '''color detection stuff'''
-    
+    '''color detection stuff
+    Simple example:
+        #define a colorinterval in the imagej HSV color space
+        ciH = color.ColorInterval(color.eColorSpace.HSV255255255, (33, 0, 0), (255, 255, 102))
+        #Create class instance with image and the color interval. img_in is in BGR, we tell opencv to convert to HSV
+        CD = color.ColorDetection(img_in, ciH, color.eColorSpace.HSV, no_conversion=False)
+        #perform the detection
+        CD.detect()
+        #This contains the bgr version of the image. Pixels of colors not in colorinterval in the image are set to 0, 0, 0
+        return CD.detected_as_bgr()
+    '''
+
     def __init__(self, img, ColInt, color_space=eColorSpace.HSV, no_conversion=False):
         '''(ndarray|str, class:ColorInterval|list:class:ColorInterval, Enum:eColorSpace) -> void
 

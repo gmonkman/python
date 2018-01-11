@@ -1,5 +1,7 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access
 '''
+THIS IS THE MAIN PLAYER
+
 Multithreaded video processing
 Keys:
     f: framebyframe

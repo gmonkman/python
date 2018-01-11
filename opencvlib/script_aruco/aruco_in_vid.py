@@ -15,7 +15,7 @@ def draw_polygon(img, points):
     #[10,5],[20,30],[70,20],[50,10]
     points = np.array(points).astype('int32')
     p = points.reshape(-1, 1, 2)
-    cv2.polylines(img, p, isClosed=True, color=(0, 255, 255), thickness=5)
+    cv2.polylines(img, p, isClosed=True, color=(0, 0, 255), thickness=20)
 
 
 class eUsedIDs(Enum):
@@ -67,10 +67,10 @@ while(True):
             px_len = v / mean
             s = 'Marker:{0} mm.  Px:{1:.2f} mm'.format(v, px_len)
             lbls.append(s)
-            draw_str(frame, pts[0][0], pts[0][1], s, color=(0, 255, 255))
+            draw_str(frame, pts[0][0], pts[0][1], s, color=(0, 0, 0), scale=1.0)
             
         
-        cv2.aruco.drawDetectedMarkers(frame, res[0], None, borderColor=(0, 255, 255))
+        cv2.aruco.drawDetectedMarkers(frame, res[0], None, borderColor=(0, 0, 255))
         #draw_polygon(gray, res[0])
 
     # Display the resulting frame

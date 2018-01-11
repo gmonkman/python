@@ -107,7 +107,7 @@ class Test(unittest.TestCase):
                 M(first_feat, test_feat)
                 resI = M.get_match_viz()
                 view.show(resI)
-            except Exception as dummy:
+            except Exception as _:
                 print('Match failed for %s, probably because source or target descriptors were empty.' % test_feat._imgname)
 
 

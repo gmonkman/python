@@ -524,7 +524,7 @@ class VGGRegions(_Generator):
                                 if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
                                     continue
                                 else:
-                                    z=1
+                                    #z = 1
                                     pass
 
                             for spp in self.vggParams.species:
