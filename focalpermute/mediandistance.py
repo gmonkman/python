@@ -25,7 +25,10 @@ import pandas as pd
 import statsmodels.stats.inter_rater as ir
 import scipy.stats as stats
 import xlwings #dont delete this - call it from immediate sometimes
+from funclib.iolib import folder_open
+import fuckit
 #endregion
+
 
 
 #region mine
@@ -844,10 +847,19 @@ if __name__ == '__main__':
     _CMDLINEARGS = _CMDLINE.parse_args()
 
     if _CMDLINEARGS.action == 'PERMUTE':
+        print('Option PERMUTE ... Performing permutation tests')
         do_kappa_permutation()
     else:
-        _MATRICES['fmm_freq']['crispDirected_crispMine'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/fmm_crispDirected_crispMine.csv')
-        _MATRICES['fmm_freq']['focalDirected_focalMine'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/fmm_focalDirected_focalMine.csv')
-        _MATRICES['pam_freq']['focalDirected_crispDirected'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/pam_focalDirected_crispDirected.csv')
-        _MATRICES['pam_freq']['focalDirected_focalMine'].to_csv('C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq/pam_focalDirected_focalMine.csv')
+        outdir = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/data/iqr_freq'
+        print('Option DATA ... Dumping data to %s' % outdir)
+        _MATRICES['fmm_freq']['crispDirected_crispMine'].to_csv(outdir + '/fmm_crispDirected_crispMine.csv')
+        _MATRICES['fmm_freq']['focalDirected_focalMine'].to_csv(outdir + '/fmm_focalDirected_focalMine.csv')
+        _MATRICES['pam_freq']['crispDirected_crispMine'].to_csv(outdir + '/pam_crispDirected_crispMine.csv')
+        _MATRICES['pam_freq']['focalDirected_focalMine'].to_csv(outdir + '/pam_focalDirected_focalMine.csv')
+        all = pd.concat([_MATRICES['fmm_freq']['crispDirected_crispMine'], _MATRICES['fmm_freq']['focalDirected_focalMine'], _MATRICES['pam_freq']['crispDirected_crispMine'], _MATRICES['pam_freq']['focalDirected_focalMine']]) #concat them all together
+        all.to_csv(outdir + '/fmmcc_fmmff_pamcc_pamff_all.csv')
+
+        with fuckit:
+            folder_open(outdir)
+
         print('Done')
