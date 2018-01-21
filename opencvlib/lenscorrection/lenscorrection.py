@@ -58,7 +58,14 @@ import opencvlib.transforms as _transforms
 # endregion
 
 
-_INIFILE = './lenscorrection.py.ini'
+
+from inspect import getsourcefile as _getsourcefile
+import os.path as _path
+import funclib.iolib as _iolib
+
+_PTH = _iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
+_INIFILE = _PTH + '/lenscorrection.py.ini'
+
 _DIGIKAM_CONNECTION_STRING = ''
 _CALIBRATION_CONNECTION_STRING = ''
 _PrintProgress = None
@@ -136,8 +143,7 @@ class CameraIni(object):
 
         self._calibration_path_debug = os.path.normpath(
             os.path.join(self.calibration_path, 'debug'))
-        self._calibration_path_images = os.path.normpath(
-            os.path.join(self.calibration_path, 'images'))
+        self._calibration_path_images = os.path.normpath(self.calibration_path)
         _iolib.create_folder(self.calibration_path_debug)
 
     # region properties
@@ -298,17 +304,25 @@ class Calibration(object):
 
         with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
             db = _lenscorrectiondb.CalibrationCRUD(conn)
-            modelid = db.crud_camera_upsert(self.camera_model)
-            db.crud_calibration_upsert(
-                modelid, self.width, self.height, cm, dc, rms, rv, tv)
+            modelid = int(db.crud_camera_upsert(self.camera_model))
+            calibrationid = int(db.crud_calibration_upsert(
+                modelid, self.width, self.height, cm, dc, rms, rv, tv))
             conn.commit()
 
     @property
     def result_str(self):
         '''result_str getter'''
-        return 'Resolution %ix%i: %i of %i were useable' % (
+        return 'Camera %s Resolution %ix%i: %i of %i were useable' % (self.camera_model,
             self.width, self.height, self.img_used_count, self.img_total_count)
 # endregion
+
+
+def list_profiles():
+    '''lists all valid camera profiles saved in the database'''
+    with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
+        db = _lenscorrectiondb.CalibrationCRUD(conn)
+        res = db.list_existing()
+    print('\n'.join(map(str, res)))
 
 
 def get_camera(model):
@@ -367,6 +381,9 @@ def calibrate(cam):
     by calling get_camera
     '''
     assert isinstance(cam, CameraIni)
+
+    if not os.path.exists(cam.calibration_path):
+        raise(ValueError('Ini defined calibration path  "%s" not found.' % cam.calibration_path()))
 
     dims = _info.ImageInfo.get_image_resolutions(cam.get_full_calibration_image_path())
 
@@ -507,6 +524,7 @@ def undistort(
                                  h))
                             orig_img = _transforms.resize(orig_img, w, h)
                             resize_suffix = '_RZ%ix%i' % (w, h)
+
                 if blobs is None:
                     _iolib.write_to_eof(
                         logfilename, 'No calibration data for image %s, resolution [%sx%s]' %
@@ -560,7 +578,6 @@ def main():
     which can be loaded into global variables as required (need to define)
     '''
     # read generic database setting from inifile and set as globals
-    _ini_set_database_strings()
 
     cmdline = argparse.ArgumentParser(
         description='Examples:\n'
@@ -571,7 +588,10 @@ def main():
         'Calibrate lens using images in CALIBRATION_PATH\n'
         'lenscorrection.py -m calibrate -c NEXTBASE512G\n\n'
         'Calibrate lens using images in CALIBRATION_PATH. Saves vertex detection images to the debug folder\n'
-        'lenscorrection.py -m calibrate -c NEXTBASE512G -d\n')
+        'lenscorrection.py -m calibrate -c NEXTBASE512G -d\n'
+        'List existing camera calibration profiles\n'
+        'lenscorrection.py -m list\n')
+
 
     cmdline.add_argument(
         '-m',
@@ -596,7 +616,7 @@ def main():
         '--camera',
         action='store',
         help='Camera model key in the ini file which defines the camera calibration parameters for the camera model specified',
-        required=True)
+        required=False)
     cmdline.add_argument(
         '-d',
         '--debug',
@@ -612,7 +632,6 @@ def main():
         print('\nMode was undistort but no path argument was specified.')
         _iolib.exit()
 
-    cam = get_camera(cmdargs.camera)
     if cmdargs.mode == 'undistort':
         if cmdargs.path.lower() != 'digikam' and not os.path.exists(
                 os.path.normpath(cmdargs.path)):
@@ -640,6 +659,7 @@ def main():
             else:
                 _iolib.create_folder(cmdargs.outpath)
 
+            cam = get_camera(cmdargs.camera)
             if cmdargs.path.lower() == 'digikam':
                 digikam = _digikamlib.MeasuredImages(
                     _DIGIKAM_CONNECTION_STRING,
@@ -651,12 +671,18 @@ def main():
                 undistort(cam, os.path.normpath(cmdargs.path), cmdargs.outpath)
             print('Undistort completed')
     elif cmdargs.mode == 'calibrate':
+        cam = get_camera(cmdargs.camera)
         calibrate(cam)
         print('Calibration(s) saved to database.')
+    elif cmdargs.mode == 'list':
+        #list existing profiles
+        list_profiles()
     else:
         print('\nInvalid or missing mode argument. Valid values are undistort or calibrate')
         _iolib.exit()
 
+
+_ini_set_database_strings()
 
 if __name__ == '__main__':
     main()

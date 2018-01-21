@@ -15,7 +15,7 @@ from opencvlib.view import show, mosaic, showarray
 from opencvlib import color
 
 
-def filter_image(img_in):
+def filter_img(img_in):
     '''(ndarray)->ndarray
     Take an image, filter it to pick up the lobster
     '''
@@ -37,7 +37,7 @@ def main(img, show_debug_images=False):
 
     filtered = filter_img(img)
     blurred = cv2.GaussianBlur(filtered, (5, 5), 0)
-    blurred_grey = transforms.togreyscale(img)   
+    blurred_grey = transforms.togreyscale(blurred)   
     thresh = cv2.threshold(blurred_grey, 1, 255, cv2.THRESH_BINARY)
     dilated = cv2.dilate(thresh.copy(), None, iterations=3)
 

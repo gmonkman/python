@@ -127,7 +127,7 @@ class MsSQLs(object):
         '''
         sql = []
 
-        where = ["%s='%s' AND " % (j, k) for j, k in dic.iteritems()]
+        where = ["%s='%s' AND " % (j, k) for j, k in dic.items()]
         where[-1] = where[-1].replace('AND', '')
 
         sql.append('if exists(SELECT 1 as one FROM ' + table + ' ')
@@ -152,9 +152,9 @@ class MsSQLs(object):
         sql_update = []
 
         if MsSQLs.exists_by_compositekey(table, keylist):
-            where = [" %s='%s' " % (j, k) for j, k in keylist.iteritems()]
+            where = [" %s='%s' " % (j, k) for j, k in keylist.items()]
 
-            update = ["%s='%s'" % (j, k) for j, k in allargs.iteritems()]
+            update = ["%s='%s'" % (j, k) for j, k in allargs.items()]
 
             sql_update.append("UPDATE %s SET " % (table))
             sql_update.append(", ".join(update))

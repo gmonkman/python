@@ -47,7 +47,7 @@ class CSVIo(object):
         with open(self.filepath, 'rU') as f:
             raw_csv = _csv.DictReader(f)
             for row in raw_csv:
-                row = {key: val_funct(val) for key, val in row.iteritems()}
+                row = {key: val_funct(val) for key, val in row.items()}
                 self.rows.append(row)
                 self.values += row.values()
             return

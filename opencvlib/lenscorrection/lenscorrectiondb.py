@@ -6,14 +6,15 @@
 '''deals with database operations related to lenscorrecton.py'''
 
 # region imports
-import sqlite3
-import fuckit
-import pickle
+import sqlite3 as _sqlite3
+import fuckit as _fuckit
+import pickle as _pickle
 
-import funclib.baselib as baselib
+import funclib.baselib as _baselib
 # endregion
 
 
+#Coped from dblib.sqlitelib
 class Conn(object):
     '''connection to database'''
 
@@ -22,8 +23,8 @@ class Conn(object):
         self.conn = None
 
     def __enter__(self):
-        self.conn = sqlite3.connect(self.cnstr)
-        self.conn.row_factory = sqlite3.Row
+        self.conn = _sqlite3.connect(self.cnstr)
+        self.conn.row_factory = _sqlite3.Row
         return self.conn
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -35,12 +36,12 @@ class Conn(object):
         open a connection, closing existing one
         '''
         self.close()
-        self.conn = sqlite3.connect(cnstr)
-        self._conn.row_factory = sqlite3.Row
+        self.conn = _sqlite3.connect(cnstr)
+        self._conn.row_factory = _sqlite3.Row
 
     def close(self, commit=False):
         '''close the db'''
-        with fuckit:
+        with _fuckit:
             if commit:
                 self.conn.commit()
             else:
@@ -61,7 +62,7 @@ class CalibrationCRUD(object):
         pass in an open dbconn
         '''
         self.conn = dbconn
-        assert isinstance(self.conn, sqlite3.Connection)
+        assert isinstance(self.conn, _sqlite3.Connection)
 
     # region exists stuff
     def exists_by_primarykey(self, table, keyid):
@@ -83,7 +84,7 @@ class CalibrationCRUD(object):
         foreignkey1.id=1, foreignkey2.id=3, id=5
         '''
         sql = []
-        where = ["%s='%s' AND " % (j, k) for j, k in dic.iteritems()]
+        where = ["%s='%s' AND " % (j, k) for j, k in dic.items()]
         where[-1] = where[-1].replace('AND', '')
         sql.append('select  exists(select 1 from %s where ' % (table))
         sql.append("".join(where))
@@ -95,15 +96,62 @@ class CalibrationCRUD(object):
         return bool(row[0][0])
     # endregion
 
+
+    def get_value(self, table, col_to_read, key_cols):
+        '''(str, str, dic:str) -> str|None
+        Read the value in col_to_read which matches
+        the values assigned to the col-value pairs in key_cols.
+        Returns None if no match
+
+        table:
+            the name of the table
+        col_to_read:
+            the name of the column which contains the value to return
+        key_cols:
+            a dictionary of key value pairs, e.g. {'id':1, 'country':'UK'}
+
+        returns:
+            The first matched value, or None
+
+        Exmaple:
+            tot = get_value('orders', 'total', {'company':'Amazon', 'region':'UK'})
+        '''
+        sql = []
+        where = ["%s='%s' AND " % (j, k) for j, k in key_cols.items()]
+        where[-1] = where[-1].replace('AND', '')
+        sql.append('select %s from %s where ' % (col_to_read, table))
+        sql.append("".join(where))
+        sql.append('LIMIT 1;')
+        query = "".join(sql)
+        cur = self.conn.cursor()
+        cur.execute(query)
+        row = cur.fetchall()
+
+        try:
+            s = str(row[0][0])
+        except Exception:
+            s = None
+
+        return s
+
     # region correction.db specific
     def crud_camera_upsert(self, camera_model):
         '''(str)-> int
-        add a camera
+        Add a camera
+
+        camera_model:
+            Camera model name (e.g. 'GoPro5')
+
+        Returns:
+            camera_modelid (int) of added record
         '''
         keys = {'camera_model': camera_model}
         sql = self._sql_upsert('camera_model', keys)
         self.executeSQL(sql)
-        return self._get_last_id('camera_model')
+
+        id = self.get_value('camera_model', 'camera_modelid', {'camera_model':camera_model})
+
+        return id
 
     def crud_calibration_upsert(
             self,
@@ -115,8 +163,11 @@ class CalibrationCRUD(object):
             rms,
             rvect,
             tvect):
-        '''update/insert calibration record'''
-        assert isinstance(camera_modelid, int)
+        '''update/insert calibration record
+        
+        Returns:
+            calibrationid of updated/inserted row
+        '''
         keys = {
             'camera_modelid': camera_modelid,
             'width': width,
@@ -128,8 +179,10 @@ class CalibrationCRUD(object):
             height=height,
             rms=rms)
         self.executeSQL(sql)
-        calibrationid = self._get_last_id('calibration')
+
+        calibrationid = self.get_value('calibration', 'calibrationid', keys)
         self._blobs(calibrationid, camera_matrix, dcoef, rvect, tvect)
+        return calibrationid
 
     def crud_calibration_delete_by_composite(
             self, camera_modelid, height, width):
@@ -169,15 +222,15 @@ class CalibrationCRUD(object):
             width=width)
         cur = self.conn.cursor()
         res = cur.execute(sql)
-        assert isinstance(res, sqlite3.Cursor)
+        assert isinstance(res, _sqlite3.Cursor)
         for row in res:
             if not row:
                 return None
 
-            cmat = pickle.loads(str(row['camera_matrix']))
-            dcoef = pickle.loads(str(row['distortion_coefficients']))
-            rvect = pickle.loads(str(row['rotational_vectors']))
-            tvect = pickle.loads(str(row['translational_vectors']))
+            cmat = _pickle.loads(row['camera_matrix'])
+            dcoef = _pickle.loads(row['distortion_coefficients'])
+            rvect = _pickle.loads(row['rotational_vectors'])
+            tvect = _pickle.loads(row['translational_vectors'])
             return {
                 'cmat': cmat,
                 'dcoef': dcoef,
@@ -193,15 +246,35 @@ class CalibrationCRUD(object):
         '''add the blobs seperately, easier because we let upsert generator deal with the insert/update
         but then just pass the composite key to edit the record
         '''
-        assert isinstance(calibrationid, int)
         cur = self.conn.cursor()
-        cm_b = sqlite3.Binary(camera_matrix)
-        dcoef_b = sqlite3.Binary(dcoef)
-        rvect_b = sqlite3.Binary(rvect)
-        tvect_b = sqlite3.Binary(tvect)
+        cm_b = _sqlite3.Binary(camera_matrix)
+        dcoef_b = _sqlite3.Binary(dcoef)
+        rvect_b = _sqlite3.Binary(rvect)
+        tvect_b = _sqlite3.Binary(tvect)
         sql = 'UPDATE calibration SET camera_matrix=?, distortion_coefficients=?, rotational_vectors=?, translational_vectors=?' \
             ' WHERE calibrationid=?'
         cur.execute(sql, (cm_b, dcoef_b, rvect_b, tvect_b, calibrationid))
+
+    def list_existing(self):
+        '''void->list
+        '''
+        sql = 'select' \
+            ' camera_model || ":  " || cast(width as text) || "x" || cast(height as text) as res' \
+            ' from' \
+            ' camera_model inner join calibration on camera_model.camera_modelid=calibration.camera_modelid' \
+            ' order by' \
+            ' camera_model,' \
+            ' cast(width as text) || "x" || cast(height as text)'
+        cur = self.conn.cursor()
+        res = cur.execute(sql)
+        assert isinstance(res, _sqlite3.Cursor)
+        ret = []
+        for row in res:
+            if not row:
+                return None
+            ret.append(row['res'])
+        return ret
+
 
     def blobs_get_nearest_aspect_match(self, camera_model, height, width):
         '''(str, int, int)->dict
@@ -219,15 +292,15 @@ class CalibrationCRUD(object):
             ' ORDER BY ABS(? - (width/cast(height as float))) LIMIT 1'
         cur = self.conn.cursor()
         res = cur.execute(sql, [camera_model, aspect])
-        assert isinstance(res, sqlite3.Cursor)
+        assert isinstance(res, _sqlite3.Cursor)
         for row in res:
             if not row:
                 return None
 
-            cmat = pickle.loads(str(row['camera_matrix']))
-            dcoef = pickle.loads(str(row['distortion_coefficients']))
-            rvect = pickle.loads(str(row['rotational_vectors']))
-            tvect = pickle.loads(str(row['translational_vectors']))
+            cmat = _pickle.loads(row['camera_matrix'])
+            dcoef = _pickle.loads(row['distortion_coefficients'])
+            rvect = _pickle.loads(row['rotational_vectors'])
+            tvect = _pickle.loads(row['translational_vectors'])
             w = row['width']
             h = row['height']
             aspect = w / float(h)
@@ -291,7 +364,7 @@ class CalibrationCRUD(object):
         sql.append("SELECT * FROM %s " % table)
         if kwargs:
             sql.append("WHERE " + " AND ".join("%s = '%s'" % (k, v)
-                                               for k, v in kwargs.iteritems()))
+                                               for k, v in kwargs.items()))
         sql.append(";")
         return "".join(sql)
 
@@ -301,13 +374,13 @@ class CalibrationCRUD(object):
         to build the where.
         Pass the rest of the values in kwargs
         '''
-        allargs = baselib.dic_merge_two(keylist, kwargs)
+        allargs = _baselib.dic_merge_two(keylist, kwargs)
         sql_insert = []
         sql_update = []
         if self.exists_by_compositekey(table, keylist):
-            where = [" %s='%s' " % (j, k) for j, k in keylist.iteritems()]
+            where = [" %s='%s' " % (j, k) for j, k in keylist.items()]
 
-            update = ["%s='%s'" % (j, k) for j, k in allargs.iteritems()]
+            update = ["%s='%s'" % (j, k) for j, k in allargs.items()]
 
             sql_update.append("UPDATE %s SET " % (table))
             sql_update.append(", ".join(update))
@@ -331,7 +404,7 @@ class CalibrationCRUD(object):
         sql = list()
         sql.append("DELETE FROM %s " % table)
         sql.append("WHERE " + " AND ".join("%s = '%s'" % (k, v)
-                                           for k, v in kwargs.iteritems()))
+                                           for k, v in kwargs.items()))
         sql.append(";")
         return "".join(sql)
 

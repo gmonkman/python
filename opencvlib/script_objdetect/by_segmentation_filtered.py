@@ -1,4 +1,4 @@
-# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, unused-import, no-member
+# pylint: disable=C0302, line-too-long, too-few-public-methods, too-many-branches, too-many-statements, unused-import, no-member, unused-variable
 '''detect an object by threshholding and iterating through contours'''
 #by_segmentation.by "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore" -s
 import sys
@@ -50,10 +50,9 @@ def main(img, show_debug_images=False):
     cnts = cnts[0] if imutils.is_cv2() else cnts[1]
     hullImage = np.zeros(img.shape[:2], dtype='uint8')
 
-    #if show_debug_images: 
-        #outimg = mosaic([img, thresh, dilated])
-        #show(filtered)
-        #show(outimg, title='original/thresh/dilated')
+    if show_debug_images: 
+        outimg = mosaic([img, thresh, dilated])
+        show(outimg, title='original/thresh/dilated')
 
     for i, c in enumerate(cnts):
         area = cv2.contourArea(c)

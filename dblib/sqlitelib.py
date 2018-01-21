@@ -22,7 +22,12 @@ class Conn(object):
     A path can be passed in and it will call sqlite_connection_string
     to correctly format the connection string.
 
-    Pass the cnstr in when the class is initialised or call open
+    Pass the cnstr in when the class is initialised or call open.
+
+    e.g.
+    import sqlitedb
+    with sqlitedb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
+        #do database work
     '''
 
     def __init__(self, cnstr=':memory:', force_absolute_path=True):
@@ -90,7 +95,8 @@ class CRUD(object):
     # region exists stuff
     def exists_by_primarykey(self, table, keyid):
         '''(str,id)->bool
-        return bool indicating if  id exists in table
+        return bool indicating if id exists in table.
+        i.e. relies on there being an id column as the primary key
         '''
         cur = self.conn.cursor()
         sql = 'SELECT EXISTS(SELECT 1 as one FROM ' + table + ' WHERE ' + \
@@ -107,7 +113,7 @@ class CRUD(object):
         foreignkey1.id=1, foreignkey2.id=3, id=5
         '''
         sql = []
-        where = ["%s='%s' AND " % (j, k) for j, k in dic.iteritems()]
+        where = ["%s='%s' AND " % (j, k) for j, k in dic.items()]
         where[-1] = where[-1].replace('AND', '')
         sql.append('select  exists(select 1 from %s where ' % (table))
         sql.append("".join(where))
@@ -117,6 +123,35 @@ class CRUD(object):
         cur.execute(query)
         row = cur.fetchall()
         return bool(row[0][0])
+
+    def get_value(self, table, col_to_read, key_cols):
+        '''(str, str, dic:str) -> str|None
+        Read the value in col_to_read which matches
+        the values assigned to the col-value pairs in key_cols.
+        Returns None if no match
+
+        table:
+            the name of the table
+        col_to_read:
+            the name of the column which contains the value to return
+        key_cols:
+            a dictionary of key value pairs, e.g. {'id':1, 'country':'UK'}
+
+        returns:
+            The first matched value, or None
+        '''
+        sql = []
+        where = ["%s='%s' AND " % (j, k) for j, k in dic.items()]
+        where[-1] = where[-1].replace('AND', '')
+        sql.append('select  exists(select 1 from %s where ' % (table))
+        sql.append("".join(where))
+        sql.append('LIMIT 1);')
+        query = "".join(sql)
+        cur = self.conn.cursor()
+        cur.execute(query)
+        row = cur.fetchall()
+        return str(row[0][0])
+
     # endregion
 
     @staticmethod
@@ -176,7 +211,7 @@ class CRUD(object):
         sql.append("SELECT * FROM %s " % table)
         if kwargs:
             sql.append("WHERE " + " AND ".join("%s = '%s'" % (k, v)
-                                               for k, v in kwargs.iteritems()))
+                                               for k, v in kwargs.items()))
         sql.append(";")
         return "".join(sql)
 
@@ -190,9 +225,9 @@ class CRUD(object):
         sql_insert = []
         sql_update = []
         if self.exists_by_compositekey(table, keylist):
-            where = [" %s='%s' " % (j, k) for j, k in keylist.iteritems()]
+            where = [" %s='%s' " % (j, k) for j, k in keylist.items()]
 
-            update = ["%s='%s'" % (j, k) for j, k in allargs.iteritems()]
+            update = ["%s='%s'" % (j, k) for j, k in allargs.items()]
 
             sql_update.append("UPDATE %s SET " % (table))
             sql_update.append(", ".join(update))
@@ -215,7 +250,7 @@ class CRUD(object):
         sql = list()
         sql.append("DELETE FROM %s " % table)
         sql.append("WHERE " + " AND ".join("%s = '%s'" % (k, v)
-                                           for k, v in kwargs.iteritems()))
+                                           for k, v in kwargs.items()))
         sql.append(";")
         return "".join(sql)
 
