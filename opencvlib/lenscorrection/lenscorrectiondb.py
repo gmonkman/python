@@ -162,7 +162,9 @@ class CalibrationCRUD(object):
             dcoef,
             rms,
             rvect,
-            tvect):
+            tvect,
+            K,
+            D):
         '''update/insert calibration record
         
         Returns:
@@ -177,11 +179,12 @@ class CalibrationCRUD(object):
             keys,
             width=width,
             height=height,
-            rms=rms)
+            rms=rms,
+            )
         self.executeSQL(sql)
 
         calibrationid = self.get_value('calibration', 'calibrationid', keys)
-        self._blobs(calibrationid, camera_matrix, dcoef, rvect, tvect)
+        self._blobs(calibrationid, camera_matrix, dcoef, rvect, tvect, K, D)
         return calibrationid
 
     def crud_calibration_delete_by_composite(
@@ -201,8 +204,8 @@ class CalibrationCRUD(object):
     def crud_read_calibration_blobs(self, camera_model, height, width):
         '''(str, int, int)-> dic
         1) Using the key for table calibrtion
-        2) Returns the calibration blobs from the db as a dictionary
-        3) {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
+        2) Returns the calibration blobs from the db as a dictionary, K and D are for fisheye calibrations
+        3) {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect, 'K':K, 'D':D}
         4) Returns None if no match.
         '''
         cameramodelid = self._lookup(
@@ -231,18 +234,23 @@ class CalibrationCRUD(object):
             dcoef = _pickle.loads(row['distortion_coefficients'])
             rvect = _pickle.loads(row['rotational_vectors'])
             tvect = _pickle.loads(row['translational_vectors'])
+            K = _pickle.loads(row['K'])
+            D = _pickle.loads(row['D'])
             return {
                 'cmat': cmat,
                 'dcoef': dcoef,
                 'rvect': rvect,
-                'tvect': tvect}
+                'tvect': tvect,
+                'K': K,
+                'D': D
+                }
 
     def executeSQL(self, sql):
         '''execute sql against the db'''
         cur = self.conn.cursor()
         cur.execute(sql)
 
-    def _blobs(self, calibrationid, camera_matrix, dcoef, rvect, tvect):
+    def _blobs(self, calibrationid, camera_matrix, dcoef, rvect, tvect, K, D):
         '''add the blobs seperately, easier because we let upsert generator deal with the insert/update
         but then just pass the composite key to edit the record
         '''
@@ -251,12 +259,15 @@ class CalibrationCRUD(object):
         dcoef_b = _sqlite3.Binary(dcoef)
         rvect_b = _sqlite3.Binary(rvect)
         tvect_b = _sqlite3.Binary(tvect)
-        sql = 'UPDATE calibration SET camera_matrix=?, distortion_coefficients=?, rotational_vectors=?, translational_vectors=?' \
+        K_b = _sqlite3.Binary(K)
+        D_b = _sqlite3.Binary(D)
+        sql = 'UPDATE calibration SET camera_matrix=?, distortion_coefficients=?, rotational_vectors=?, translational_vectors=?, K=?, D=?' \
             ' WHERE calibrationid=?'
-        cur.execute(sql, (cm_b, dcoef_b, rvect_b, tvect_b, calibrationid))
+        cur.execute(sql, (cm_b, dcoef_b, rvect_b, tvect_b, K_b, D_b, calibrationid))
 
     def list_existing(self):
         '''void->list
+        Lists all available profiles
         '''
         sql = 'select' \
             ' camera_model || ":  " || cast(width as text) || "x" || cast(height as text) as res' \
@@ -280,12 +291,13 @@ class CalibrationCRUD(object):
         '''(str, int, int)->dict
         Returns the calibration matrices for the nearest matching
          aspect for which we have correction matrices
-        {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect, 'matched_resolution_w_by_h':(w,h), 'new_aspect':w/h)}
+        {'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect, 'K':K, 'D':D, 'matched_resolution_w_by_h':(w,h), 'new_aspect':w/h)}
         '''
 
         aspect = width / float(height)
         sql = 'SELECT calibration.height, calibration.width, calibration.camera_matrix, calibration.distortion_coefficients,' \
-            ' calibration.rotational_vectors, calibration.translational_vectors, width/cast(height as float) as aspect' \
+            ' calibration.rotational_vectors, calibration.translational_vectors, calibration.K, calibration.D,' \
+            ' width/cast(height as float) as aspect' \
             ' FROM calibration' \
             ' INNER JOIN camera_model ON calibration.camera_modelid=camera_model.camera_modelid' \
             ' WHERE camera_model.camera_model=?' \
@@ -301,6 +313,8 @@ class CalibrationCRUD(object):
             dcoef = _pickle.loads(row['distortion_coefficients'])
             rvect = _pickle.loads(row['rotational_vectors'])
             tvect = _pickle.loads(row['translational_vectors'])
+            K = _pickle.loads(row['K'])
+            D = _pickle.loads(row['D'])
             w = row['width']
             h = row['height']
             aspect = w / float(h)
@@ -309,6 +323,8 @@ class CalibrationCRUD(object):
                 'dcoef': dcoef,
                 'rvect': rvect,
                 'tvect': tvect,
+                'K': K,
+                'D': D,
                 'matched_resolution_w_by_h': (
                     w,
                     h),

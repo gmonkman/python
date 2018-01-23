@@ -26,16 +26,18 @@ Examples:
 
 # region imports
 # region base imports
-from __future__ import absolute_import, division, print_function, unicode_literals
-from glob import glob
-import argparse
-import pickle
-import os
+from glob import glob as _glob
+import argparse as _argparse
+from inspect import getsourcefile as _getsourcefile
+import pickle as _pickle
+import os as _os
+import os.path as _path
+import warnings as _warn
 # end region
 
 # region 3rd party imports
-import cv2
-import fuckit
+import cv2 as _cv2
+import fuckit as _fuckit
 import numpy as _np
 # endregion
 
@@ -57,11 +59,6 @@ import opencvlib.transforms as _transforms
 # endregion
 # endregion
 
-
-
-from inspect import getsourcefile as _getsourcefile
-import os.path as _path
-import funclib.iolib as _iolib
 
 _PTH = _iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
 _INIFILE = _PTH + '/lenscorrection.py.ini'
@@ -133,7 +130,7 @@ class CameraIni(object):
         and image path (checking if it the image path exists)
         '''
         self._model = model
-        self._calibration_path = os.path.normpath(calibration_path)  # root
+        self._calibration_path = _os.path.normpath(calibration_path)  # root
         self._grid = grid
         self._image_file_mask = image_file_mask
         self._square_size = square_size
@@ -141,9 +138,9 @@ class CameraIni(object):
         self.digikam_camera_tag = ''  # currently set in def main
         self.digikam_measured_tag = ''
 
-        self._calibration_path_debug = os.path.normpath(
-            os.path.join(self.calibration_path, 'debug'))
-        self._calibration_path_images = os.path.normpath(self.calibration_path)
+        self._calibration_path_debug = _os.path.normpath(
+            _os.path.join(self.calibration_path, 'debug'))
+        self._calibration_path_images = _os.path.normpath(self.calibration_path)
         _iolib.create_folder(self.calibration_path_debug)
 
     # region properties
@@ -209,8 +206,8 @@ class CameraIni(object):
         returns the full path concatenated with the mask so we can
         glob all the images in the cameras calibration path
         '''
-        return os.path.normpath(
-            os.path.join(
+        return _os.path.normpath(
+            _os.path.join(
                 self._calibration_path_images,
                 self._image_file_mask))
 
@@ -219,7 +216,7 @@ class CameraIni(object):
         Returns the path for debug image output
         Creates it if it doesnt exist
         '''
-        s = os.path.normpath(os.path.join(self._calibration_path, 'debug'))
+        s = _os.path.normpath(_os.path.join(self._calibration_path, 'debug'))
         _iolib.create_folder(s)
         return s
 
@@ -265,24 +262,24 @@ class Calibration(object):
         img_points = []
         fcnt = 0
         cnt = 0
-      # for fn in
-      # iolib.file_list_glob_generator(self.path_to_calibration_images):
+        fisheye_calibration_flags = _cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + _cv2.fisheye.CALIB_CHECK_COND + _cv2.fisheye.CALIB_FIX_SKEW
+
         for fn in _iolib.file_list_glob_generator(self.wildcarded_images_path):
             if _info.ImageInfo.is_image(fn):
-                img = cv2.imread(os.path.normpath(fn), 0)
+                img = _cv2.imread(_os.path.normpath(fn), 0)
                 w, h = _info.ImageInfo.resolution(img)
                 if w == self.width and h == self.height:
                     cnt += 1
-                    found, corners = cv2.findChessboardCorners(
+                    found, corners = _cv2.findChessboardCorners(
                         img, self.pattern_size)
                     if found:
                         fcnt += 1
                         term = (
-                            cv2.TERM_CRITERIA_EPS +
-                            cv2.TERM_CRITERIA_COUNT,
+                            _cv2.TERM_CRITERIA_EPS +
+                            _cv2.TERM_CRITERIA_COUNT,
                             30,
                             0.1)
-                        cv2.cornerSubPix(img, corners, (5, 5), (-1, -1), term)
+                        _cv2.cornerSubPix(img, corners, (5, 5), (-1, -1), term)
                         img_points.append(corners.reshape(-1, 2))
                         obj_points.append(self._pattern_points)
                     else:
@@ -294,19 +291,34 @@ class Calibration(object):
         self.img_total_count = cnt
         self.img_used_count = fcnt
     # calculate camera distortion
-        rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(
+        rms, camera_matrix, dist_coefs, rvecs, tvecs = _cv2.calibrateCamera(
             obj_points, img_points, (self.width, self.height), None, None)
 
-        cm = pickle.dumps(camera_matrix, pickle.HIGHEST_PROTOCOL)
-        dc = pickle.dumps(dist_coefs, pickle.HIGHEST_PROTOCOL)
-        rv = pickle.dumps(rvecs, pickle.HIGHEST_PROTOCOL)
-        tv = pickle.dumps(tvecs, pickle.HIGHEST_PROTOCOL)
+        cm = _pickle.dumps(camera_matrix, _pickle.HIGHEST_PROTOCOL)
+        dc = _pickle.dumps(dist_coefs, _pickle.HIGHEST_PROTOCOL)
+        rv = _pickle.dumps(rvecs, _pickle.HIGHEST_PROTOCOL)
+        tv = _pickle.dumps(tvecs, _pickle.HIGHEST_PROTOCOL)
 
+        #K and D passed by ref in fisheye.calibrate. Initialise them first.
+        K = _np.zeros((3, 3))
+        D = _np.zeros((4, 1))
+
+        rms, _, _, _, _ = _cv2.fisheye.calibrate(
+            obj_points, img_points, (self.width, self.height),
+            K, D, rvecs, tvecs, fisheye_calibration_flags,
+            (_cv2.TERM_CRITERIA_EPS + _cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6)
+            )
+
+        kk = _pickle.dumps(K, _pickle.HIGHEST_PROTOCOL)
+        dd = _pickle.dumps(D, _pickle.HIGHEST_PROTOCOL)
+        
         with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
             db = _lenscorrectiondb.CalibrationCRUD(conn)
             modelid = int(db.crud_camera_upsert(self.camera_model))
-            calibrationid = int(db.crud_calibration_upsert(
-                modelid, self.width, self.height, cm, dc, rms, rv, tv))
+
+            #calibrationid returned by crud_calibration_upsert, but we dont need it
+            _ = int(db.crud_calibration_upsert(
+                modelid, self.width, self.height, cm, dc, rms, rv, tv, kk, dd))
             conn.commit()
 
     @property
@@ -336,7 +348,7 @@ def get_camera(model):
     ini = _inifilelib.ConfigFile(_INIFILE)
 
     calpath = ini.tryread(model, 'CALIBRATION_PATH', force_create=False)
-    if not os.path.exists(calpath):
+    if not _os.path.exists(calpath):
         raise IOError('Calibration path %s not found.' % (calpath))
 
     cam = CameraIni(model=model, calibration_path=calpath)
@@ -382,7 +394,7 @@ def calibrate(cam):
     '''
     assert isinstance(cam, CameraIni)
 
-    if not os.path.exists(cam.calibration_path):
+    if not _os.path.exists(cam.calibration_path):
         raise(ValueError('Ini defined calibration path  "%s" not found.' % cam.calibration_path()))
 
     dims = _info.ImageInfo.get_image_resolutions(cam.get_full_calibration_image_path())
@@ -403,7 +415,7 @@ def calibrate(cam):
         h in dims]
 
     global _PrintProgress
-    _PrintProgress = PrintProgress(len(glob(img_path)))
+    _PrintProgress = PrintProgress(len(_glob(img_path)))
     _PrintProgress.iteration = 1
 
     for Cal in calibrations:
@@ -425,17 +437,20 @@ def _undistort(cam, img, mats, crop=True):
     assert isinstance(img, _np.ndarray)
     try:
         h, w = img.shape[:2]
-        newcameramtx, roi = cv2.getOptimalNewCameraMatrix(
+        newcameramtx, roi = _cv2.getOptimalNewCameraMatrix(
             mats['cmat'], mats['dcoef'], (w, h), 1, (w, h))
-        dst = cv2.undistort(
+        dst = _cv2.undistort(
             img,
             mats['cmat'],
             mats['dcoef'],
             None,
             newcameramtx)
-        if crop:
-            x, y, w, h = roi
-            dst = dst[y:y + h, x:x + w]
+        if roi == (0, 0, 0, 0):
+            _warn.warn('_cv2.getOptimalNewCameraMatrix could not identify the ROI. Try recalibrating with more small calibration images at the camera edge or sets of larger calibration images.\n\nImages were undistorted but should be checked.')
+        else:
+            if crop:
+                x, y, w, h = roi
+                dst = dst[y:y + h, x:x + w]
     except Exception:
         print(Exception.message)
         dst = None
@@ -455,7 +470,7 @@ def undistort(
     Multiple paths can be provided
 
     imgpaths_or_imagelist can be an iterable of paths or a list. If appears to be paths,
-    then glob will be combined with known image extensions to list all files in paths
+    then _glob will be combined with known image extensions to list all files in paths
     which appear to be images. If a single directory string is passed in, this
     will also be valid and globbed.
 
@@ -474,7 +489,7 @@ def undistort(
         # directories
         validcnt = 0.0
         for myfiles in imgpaths_or_imagelist:
-            validcnt += os.path.isfile(os.path.normpath(myfiles))
+            validcnt += _os.path.isfile(_os.path.normpath(myfiles))
         if validcnt / len(imgpaths_or_imagelist) > 0.5:
             useglob = False
 
@@ -484,7 +499,7 @@ def undistort(
             _IMAGE_EXTENSIONS_AS_WILDCARDS)
         newlist = []
         for wildcards in globlist:
-            for fil in glob(wildcards):
+            for fil in _glob(wildcards):
                 newlist.append(fil)
     else:
         newlist = imgpaths_or_imagelist
@@ -504,7 +519,7 @@ def undistort(
                 path, name, ext = _iolib.get_file_parts(fil)
                 path = path + ''
                 ext = ext + ''  # silly thing to get rid of unused varible in pylint
-                orig_img = cv2.imread(fil)
+                orig_img = _cv2.imread(fil)
                 width, height = _info.ImageInfo.resolution(orig_img)
                 if (last_width != width and last_height !=
                         height) and height > 0 and width > 0:
@@ -539,11 +554,11 @@ def undistort(
                             'File %s failed in _undistort.\n' %
                             (fil))
                     else:
-                        outfile = os.path.join(
-                            outpath, name + label + resize_suffix + '.png')
-                        cv2.imwrite(outfile, img)
+                        outfile = _os.path.join(
+                            outpath, name + label + resize_suffix + '.jpg')
+                        _cv2.imwrite(outfile, img)
                         success += 1
-                        with fuckit:
+                        with _fuckit:
                             _iolib.write_to_eof(
                                 logfilename,
                                 'Success:%s\n' %
@@ -556,7 +571,7 @@ def undistort(
                     logfilename, 'Failed:%s, Exception:%s\n' %
                     (fil, Exception.message))
             finally:
-                with fuckit:
+                with _fuckit:
                     _iolib.print_progress(
                         cnt, len(newlist), '%i of %i [Successes: %i]' %
                         (cnt, len(newlist), success), bar_length=30)
@@ -579,7 +594,7 @@ def main():
     '''
     # read generic database setting from inifile and set as globals
 
-    cmdline = argparse.ArgumentParser(
+    cmdline = _argparse.ArgumentParser(
         description='Examples:\n'
         'Undistort images in digikam database to c:/temp/pics\n'
         'lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p DIGIKAM\n\n'
@@ -633,18 +648,18 @@ def main():
         _iolib.exit()
 
     if cmdargs.mode == 'undistort':
-        if cmdargs.path.lower() != 'digikam' and not os.path.exists(
-                os.path.normpath(cmdargs.path)):
+        if cmdargs.path.lower() != 'digikam' and not _os.path.exists(
+                _os.path.normpath(cmdargs.path)):
             print(
                 'Path ' +
-                os.path.normpath(
+                _os.path.normpath(
                     cmdargs.path) +
                 ' does not exists')
         elif cmdargs.outpath == '':
             print('Output path not specified')
         else:
-            cmdargs.outpath = os.path.normpath(cmdargs.outpath)
-            if os.path.isdir(cmdargs.outpath):
+            cmdargs.outpath = _os.path.normpath(cmdargs.outpath)
+            if _os.path.isdir(cmdargs.outpath):
                 title = 'Delete Files?'
                 msg = 'Folder %s already exists. Do you wish to delete existing files from it?' % cmdargs.outpath
                 default = _msgbox.QMessageBox.No
@@ -668,7 +683,7 @@ def main():
                 lst = digikam.valid_images
                 undistort(cam, lst, cmdargs.outpath)
             else:
-                undistort(cam, os.path.normpath(cmdargs.path), cmdargs.outpath)
+                undistort(cam, _os.path.normpath(cmdargs.path), cmdargs.outpath)
             print('Undistort completed')
     elif cmdargs.mode == 'calibrate':
         cam = get_camera(cmdargs.camera)

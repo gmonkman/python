@@ -12,7 +12,7 @@
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-m calibrate -c GoProHero4</CommandLineArguments>
+    <CommandLineArguments>-m undistort -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
@@ -255,8 +255,10 @@ lenscorrection.py -m undistort -c GoProHero5 -o C:/Users/GRAHAM~1/OneDrive/DOCUM
       <SubType>Code</SubType>
     </Content>
     <Content Include="lenscorrection\calibrate_all.bat" />
+    <Content Include="lenscorrection\calibrate_hero5fov.bat" />
     <Content Include="lenscorrection\lenscorrection.py.ini" />
     <Content Include="lenscorrection\undistort_all.bat" />
+    <Content Include="lenscorrection\undistort_hero5fov.bat" />
     <Content Include="make_model.bat" />
     <Content Include="script_objdetect\detectors.cfg" />
     <Content Include="pylintrc" />
