@@ -498,7 +498,7 @@ def file_list_generator1(paths, wildcards, recurse=False):
 
 
 def file_list_glob_generator(wilded_path, recurse=False):
-    '''(str,bool)->yields strings (file paths)
+    '''(str, bool)->yields strings (file paths)
     _glob.glob generator from wildcarded path
     Wilded path would be something like 'c:/*.tmp' or c:/*.*
 

@@ -16,12 +16,16 @@ Examples:
     Undistort images in a path and output to c:/temp/pics
     lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p c:/path/to/images/to/undistort
 
+    Undistort images using a fisheye profile, in a path and output to c:/temp/pics
+    lenscorrection.py -m undistort_fisheye -c NEXTBASE512G -o C:/temp/pics -p c:/path/to/images/to/undistort
+
     Calibrate lens using images in CALIBRATION_PATH
     lenscorrection.py -m calibrate -c NEXTBASE512G
 
     Calibrate lens using images in CALIBRATION_PATH. Saves vertex detection images to the debug folder
     lenscorrection.py -m calibrate -c NEXTBASE512G -d
 '''
+import opencvlib
 
 
 # region imports
@@ -54,8 +58,6 @@ import opencvlib.info as _info
 import opencvlib.lenscorrection.lenscorrectiondb as _lenscorrectiondb
 import opencvlib.transforms as _transforms
 
-
-#from opencvlib.common import is_image
 # endregion
 # endregion
 
@@ -256,13 +258,15 @@ class Calibration(object):
         pattern_points *= self.square_size
         return pattern_points
 
-    def calibrate(self):
+    def calibrate(self, fisheye_max_iter=30, skip_fisheye=False):
         '''main calibration entry point'''
         obj_points = []
         img_points = []
+        img_points_fisheye = []
         fcnt = 0
         cnt = 0
-        fisheye_calibration_flags = _cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + _cv2.fisheye.CALIB_CHECK_COND + _cv2.fisheye.CALIB_FIX_SKEW
+
+        term = (_cv2.TERM_CRITERIA_EPS + _cv2.TERM_CRITERIA_COUNT, fisheye_max_iter, 0.1)
 
         for fn in _iolib.file_list_glob_generator(self.wildcarded_images_path):
             if _info.ImageInfo.is_image(fn):
@@ -274,13 +278,9 @@ class Calibration(object):
                         img, self.pattern_size)
                     if found:
                         fcnt += 1
-                        term = (
-                            _cv2.TERM_CRITERIA_EPS +
-                            _cv2.TERM_CRITERIA_COUNT,
-                            30,
-                            0.1)
                         _cv2.cornerSubPix(img, corners, (5, 5), (-1, -1), term)
                         img_points.append(corners.reshape(-1, 2))
+                        img_points_fisheye.append(corners.reshape(1, -1, 2))
                         obj_points.append(self._pattern_points)
                     else:
                         self.messages.append(
@@ -290,7 +290,9 @@ class Calibration(object):
 
         self.img_total_count = cnt
         self.img_used_count = fcnt
-    # calculate camera distortion
+        n_ok = len(img_points_fisheye)
+
+        # calculate camera distortion
         rms, camera_matrix, dist_coefs, rvecs, tvecs = _cv2.calibrateCamera(
             obj_points, img_points, (self.width, self.height), None, None)
 
@@ -299,19 +301,31 @@ class Calibration(object):
         rv = _pickle.dumps(rvecs, _pickle.HIGHEST_PROTOCOL)
         tv = _pickle.dumps(tvecs, _pickle.HIGHEST_PROTOCOL)
 
-        #K and D passed by ref in fisheye.calibrate. Initialise them first.
-        K = _np.zeros((3, 3))
-        D = _np.zeros((4, 1))
+        if not skip_fisheye:
+            #K and D passed by ref in fisheye.calibrate. Initialise them first.
+            K = _np.zeros((3, 3))
+            D = _np.zeros((4, 1))
+            #reset rvecs and tvecs for fisheye model
+            rvecs = [_np.zeros((1, 1, 3), dtype=_np.float64) for i in range(n_ok)]
+            tvecs = [_np.zeros((1, 1, 3), dtype=_np.float64) for i in range(n_ok)]
+            #pattern_points is a tuple with the number of x and y vertices of the chess board
+            #ie (9,6) would be a chessboard with 9 x 6 vertices
+            chessboard_model = _np.zeros((1, self.pattern_size[0] * self.pattern_size[1], 3), dtype=_np.float32)
+            chessboard_model[0, :, :2] = _np.mgrid[0:self.pattern_size[0], 0:self.pattern_size[1]].T.reshape(-1, 2)
+            
+            fisheye_calibration_flags = _cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + _cv2.fisheye.CALIB_CHECK_COND + _cv2.fisheye.CALIB_FIX_SKEW
+            term = (_cv2.TERM_CRITERIA_EPS + _cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6)
 
-        rms, _, _, _, _ = _cv2.fisheye.calibrate(
-            obj_points, img_points, (self.width, self.height),
-            K, D, rvecs, tvecs, fisheye_calibration_flags,
-            (_cv2.TERM_CRITERIA_EPS + _cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6)
-            )
+            rms, _, _, _, _ = _cv2.fisheye.calibrate(
+                [chessboard_model]*n_ok, img_points_fisheye, (self.width, self.height),
+                K, D, rvecs, tvecs, fisheye_calibration_flags, term)
 
-        kk = _pickle.dumps(K, _pickle.HIGHEST_PROTOCOL)
-        dd = _pickle.dumps(D, _pickle.HIGHEST_PROTOCOL)
-        
+            kk = _pickle.dumps(K, _pickle.HIGHEST_PROTOCOL)
+            dd = _pickle.dumps(D, _pickle.HIGHEST_PROTOCOL)
+        else:
+            kk = None
+            dd = None
+
         with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
             db = _lenscorrectiondb.CalibrationCRUD(conn)
             modelid = int(db.crud_camera_upsert(self.camera_model))
@@ -425,7 +439,7 @@ def calibrate(cam):
         print(Cal.result_str)
 
 
-def _undistort(cam, img, mats, crop=True):
+def _undistort(cam, img, mats, crop=True, use_fisheye=True):
     '''[c]Camera, ndarray (image), dic, bool -> ndarray (image) | None
     Undistorts an image based on the lens profile loaded into the Camera class cam.
     dic is a dictionary containing the undistortion matrices
@@ -437,20 +451,26 @@ def _undistort(cam, img, mats, crop=True):
     assert isinstance(img, _np.ndarray)
     try:
         h, w = img.shape[:2]
-        newcameramtx, roi = _cv2.getOptimalNewCameraMatrix(
-            mats['cmat'], mats['dcoef'], (w, h), 1, (w, h))
-        dst = _cv2.undistort(
-            img,
-            mats['cmat'],
-            mats['dcoef'],
-            None,
-            newcameramtx)
-        if roi == (0, 0, 0, 0):
-            _warn.warn('_cv2.getOptimalNewCameraMatrix could not identify the ROI. Try recalibrating with more small calibration images at the camera edge or sets of larger calibration images.\n\nImages were undistorted but should be checked.')
+        if use_fisheye:
+            R = _np.eye(3)
+            map1, map2 = _cv2.fisheye.initUndistortRectifyMap(mats['K'], mats['D'], R, mats['K'], img.shape[:2], _cv2.CV_16SC2)
+            dst = _cv2.remap(img, map1, map2, interpolation=_cv2.INTER_LINEAR, borderMode=_cv2.BORDER_CONSTANT)
         else:
-            if crop:
-                x, y, w, h = roi
-                dst = dst[y:y + h, x:x + w]
+            newcameramtx, roi = _cv2.getOptimalNewCameraMatrix(
+                mats['cmat'], mats['dcoef'], (w, h), 1, (w, h))
+            dst = _cv2.undistort(
+                img,
+                mats['cmat'],
+                mats['dcoef'],
+                None,
+                newcameramtx)
+            if roi == (0, 0, 0, 0):
+                _warn.warn('_cv2.getOptimalNewCameraMatrix could not identify the ROI. Try recalibrating with more small calibration images at the camera edge or sets of larger calibration images.\n\nImages were undistorted but should be checked.')
+            else:
+                if crop:
+                    x, y, w, h = roi
+                    dst = dst[y:y + h, x:x + w]
+
     except Exception:
         print(Exception.message)
         dst = None
@@ -463,8 +483,9 @@ def undistort(
         imgpaths_or_imagelist,
         outpath,
         label='_UND',
+        label_fisheye='_FISHUND',
         crop=True,
-        use_nearest_aspect=True):
+        use_nearest_aspect=False, use_fisheye=False):
     '''(Camera, str|iterable, str, str, bool) -> void
     Bulk undistort, reading in the camera profile according to model name as matched in lenscorrection.py.ini
     Multiple paths can be provided
@@ -507,6 +528,8 @@ def undistort(
     cnt = 1
     success = 0
     logfilename = _iolib.get_file_name(outpath)
+    
+    print('Undistort mode: %s' % ('fisheye lens model' if use_fisheye else 'standard lens model'))
 
     with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
         db = _lenscorrectiondb.CalibrationCRUD(conn)
@@ -546,16 +569,20 @@ def undistort(
                         (fil, width, height))
                     list_append_unique(bad_res, '%ix%i' % (width, height))
                 else:
-                    #{'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect}
-                    img = _undistort(cam, orig_img, blobs, crop)
+                    #{'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect, 'K':K, 'D':D}
+                    img = _undistort(cam, orig_img, blobs, crop, use_fisheye=use_fisheye)
                     if img is None:
                         _iolib.write_to_eof(
                             logfilename,
                             'File %s failed in _undistort.\n' %
                             (fil))
                     else:
-                        outfile = _os.path.join(
-                            outpath, name + label + resize_suffix + '.jpg')
+
+                        if use_fisheye:
+                            outfile = _os.path.join(outpath, name + label_fisheye + resize_suffix + '.jpg')
+                        else:
+                            outfile = _os.path.join(outpath, name + label + resize_suffix + '.jpg')
+
                         _cv2.imwrite(outfile, img)
                         success += 1
                         with _fuckit:
@@ -600,6 +627,8 @@ def main():
         'lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p DIGIKAM\n\n'
         'Undistort images in a path and output to c:/temp/pics\n'
         'lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p c:/path/to/images/to/undistort \n\n'
+        'Undistort images using fisheye, in a path and output to c:/temp/pics\n'
+        'lenscorrection.py -m undistort_fisheye -c NEXTBASE512G -o C:/temp/pics -p c:/path/to/images/to/undistort \n\n'
         'Calibrate lens using images in CALIBRATION_PATH\n'
         'lenscorrection.py -m calibrate -c NEXTBASE512G\n\n'
         'Calibrate lens using images in CALIBRATION_PATH. Saves vertex detection images to the debug folder\n'
@@ -612,7 +641,7 @@ def main():
         '-m',
         '--mode',
         action='store',
-        help='The mode, values are:\nUNDISTORT - undistorts images in path\nCALIBRATE - create lens calibration values',
+        help='The mode, values are:\nundistort - undistorts images in path\nundistort_fisheye - undistorts images in path using fisheye lens profile\ncalibrate - create lens calibration values',
         required=True)
     cmdline.add_argument(
         '-p',
@@ -647,7 +676,7 @@ def main():
         print('\nMode was undistort but no path argument was specified.')
         _iolib.exit()
 
-    if cmdargs.mode == 'undistort':
+    if cmdargs.mode in ('undistort_fisheye', 'undistort'):
         if cmdargs.path.lower() != 'digikam' and not _os.path.exists(
                 _os.path.normpath(cmdargs.path)):
             print(
@@ -681,9 +710,10 @@ def main():
                     cam.digikam_measured_tag,
                     cam.digikam_camera_tag)
                 lst = digikam.valid_images
-                undistort(cam, lst, cmdargs.outpath)
             else:
-                undistort(cam, _os.path.normpath(cmdargs.path), cmdargs.outpath)
+                lst = _os.path.normpath(cmdargs.path)
+            undistort(cam, lst, cmdargs.outpath,use_fisheye=(cmdargs.mode == 'undistort_fisheye'))
+
             print('Undistort completed')
     elif cmdargs.mode == 'calibrate':
         cam = get_camera(cmdargs.camera)

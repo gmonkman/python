@@ -259,7 +259,6 @@ class _BaseDetector(_ABC):
             if not SILENT: print('Error was ' + str(e))
 
 
-
     def _load_image(self, force=False, imgpath=''):
         '''(bool, str, bool) -> ndarray|none
 

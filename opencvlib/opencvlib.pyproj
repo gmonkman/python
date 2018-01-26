@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>lenscorrection\lenscorrection.py</StartupFile>
+    <StartupFile>test\test_lenscorrection.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-m undistort -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2</CommandLineArguments>
+    <CommandLineArguments>-m undistort_fisheye -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted_fisheye -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
@@ -27,7 +27,8 @@ by_segmentation.by "C:/Development/python/opencvlib/script_objdetect/lobster" -s
 lenscorrection.py -m calibrate -c NEXTBASE512G -d
 lenscorrection.py -m list
 lenscorrection.py -m undistort -c GoProHero5 -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/shore/GOPROH~2/UNDIST~1 -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/shore/GOPROH~2
--m undistort -c NEXTBASE512G -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1</Environment>
+-m undistort -c NEXTBASE512G -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1
+-m undistort -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -56,6 +57,7 @@ lenscorrection.py -m undistort -c GoProHero5 -o C:/Users/GRAHAM~1/OneDrive/DOCUM
     <Compile Include="histo.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="lenscorrection\fisheye.py" />
     <Compile Include="matcher.py">
       <SubType>Code</SubType>
     </Compile>
@@ -92,6 +94,9 @@ lenscorrection.py -m undistort -c GoProHero5 -o C:/Users/GRAHAM~1/OneDrive/DOCUM
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_fiducial.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_fisheye.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_histo.py">

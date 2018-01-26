@@ -149,9 +149,9 @@ class CalibrationCRUD(object):
         sql = self._sql_upsert('camera_model', keys)
         self.executeSQL(sql)
 
-        id = self.get_value('camera_model', 'camera_modelid', {'camera_model':camera_model})
+        i = self.get_value('camera_model', 'camera_modelid', {'camera_model':camera_model})
 
-        return id
+        return i
 
     def crud_calibration_upsert(
             self,
@@ -259,11 +259,19 @@ class CalibrationCRUD(object):
         dcoef_b = _sqlite3.Binary(dcoef)
         rvect_b = _sqlite3.Binary(rvect)
         tvect_b = _sqlite3.Binary(tvect)
-        K_b = _sqlite3.Binary(K)
-        D_b = _sqlite3.Binary(D)
-        sql = 'UPDATE calibration SET camera_matrix=?, distortion_coefficients=?, rotational_vectors=?, translational_vectors=?, K=?, D=?' \
-            ' WHERE calibrationid=?'
-        cur.execute(sql, (cm_b, dcoef_b, rvect_b, tvect_b, K_b, D_b, calibrationid))
+
+        #K_b is null if we havent asked for a fisheye lens correction
+        if not K is None:
+            K_b = _sqlite3.Binary(K)
+            D_b = _sqlite3.Binary(D)
+            sql = 'UPDATE calibration SET camera_matrix=?, distortion_coefficients=?, rotational_vectors=?, translational_vectors=?, K=?, D=?' \
+                ' WHERE calibrationid=?'
+            cur.execute(sql, (cm_b, dcoef_b, rvect_b, tvect_b, K_b, D_b, calibrationid))
+        else:
+            sql = 'UPDATE calibration SET camera_matrix=?, distortion_coefficients=?, rotational_vectors=?, translational_vectors=?' \
+                ' WHERE calibrationid=?'
+            cur.execute(sql, (cm_b, dcoef_b, rvect_b, tvect_b, calibrationid))
+
 
     def list_existing(self):
         '''void->list

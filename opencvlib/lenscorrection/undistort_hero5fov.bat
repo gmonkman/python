@@ -9,6 +9,6 @@ SET hero4ch=C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter
 SET hero4sh=C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/shore/GOPROH~1
 
 REM Charter Wide
-C:\development\python\opencvlib\lenscorrection\lenscorrection.py -m undistort -c GoProHero5PhotoWide -o %hero5ch%/undistorted -p %hero5ch%
+C:\development\python\opencvlib\lenscorrection\lenscorrection.py -m undistort_fisheye -c GoProHero5PhotoWide -o %hero5ch%/undistorted_fisheye -p %hero5ch%
 REM Shore Wide
-C:\development\python\opencvlib\lenscorrection\lenscorrection.py -m undistort -c GoProHero5PhotoWide -o %hero5sh%/undistorted -p %hero5sh%
+C:\development\python\opencvlib\lenscorrection\lenscorrection.py -m undistort_fisheye -c GoProHero5PhotoWide -o %hero5sh%/undistorted -p %hero5sh%
