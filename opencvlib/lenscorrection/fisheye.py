@@ -99,9 +99,7 @@ class FishEye(object):
 
         assert not ((img_paths is None) and (imgs is None)), 'Either specify imgs or img_paths'
 
-        #
         # Arrays to store the chessboard image points from all the images.
-        #
         chess_2Dpts_list = []
 
         subpix_criteria = (_cv2.TERM_CRITERIA_EPS+_cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
@@ -197,7 +195,9 @@ class FishEye(object):
 
 
     def undistort(self, distorted_img, undistorted_size=None, R=_np.eye(3), K=None):
-        """Undistort an image using the fisheye model"""
+        '''(ndarray:image, (int, int), ndarray:3x3, ndarray) -> ndarray:image
+        Undistort an image using the fisheye model
+        '''
 
         if K is None:
             K = self._K
@@ -218,9 +218,7 @@ class FishEye(object):
         """
 
         if object_points is None:
-            #
             # The default is to project the checkerboard.
-            #
             object_points = self.chessboard_model
 
         if object_points.ndim == 2:

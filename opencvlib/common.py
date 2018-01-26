@@ -6,24 +6,19 @@ This module contains some common routines used by other opencv demos.
 '''
 
 # Python 2/3 compatibility
-from __future__ import print_function
-import sys
-PY3 = sys.version_info[0] == 3
+import sys as _sys
+from functools import reduce as _reduce
 
-if PY3:
-    from functools import reduce
-
-import numpy as np
-import cv2
+import numpy as _np
+import cv2 as _cv2
 
 # built-in modules
-import os
-import itertools as it
-from contextlib import contextmanager
+import os as _os
+import itertools as _it
+from contextlib import contextmanager as _contextmanager
 
-image_extensions = ['.bmp', '.jpg', '.jpeg',
+IMAGE_EXTENSIONS = ['.bmp', '.jpg', '.jpeg',
                     '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
-
 
 class Bunch(object):
     def __init__(self, **kw):
@@ -34,8 +29,8 @@ class Bunch(object):
 
 
 def splitfn(fn):
-    path, fn = os.path.split(fn)
-    name, ext = os.path.splitext(fn)
+    path, fn = _os.path.split(fn)
+    name, ext = _os.path.splitext(fn)
     return path, name, ext
 
 
@@ -44,7 +39,7 @@ def anorm2(a):
 
 
 def anorm(a):
-    return np.sqrt(anorm2(a))
+    return _np.sqrt(anorm2(a))
 
 
 def homotrans(H, x, y):
@@ -55,38 +50,38 @@ def homotrans(H, x, y):
 
 
 def to_rect(a):
-    a = np.ravel(a)
+    a = _np.ravel(a)
     if len(a) == 2:
         a = (0, 0, a[0], a[1])
-    return np.array(a, np.float64).reshape(2, 2)
+    return _np.array(a, _np.float64).reshape(2, 2)
 
 
 def rect2rect_mtx(src, dst):
     src, dst = to_rect(src), to_rect(dst)
     cx, cy = (dst[1] - dst[0]) / (src[1] - src[0])
     tx, ty = dst[0] - src[0] * (cx, cy)
-    M = np.float64([[cx,  0, tx], [0, cy, ty], [0,  0,  1]])
+    M = _np.float64([[cx,  0, tx], [0, cy, ty], [0,  0,  1]])
     return M
 
 
 def lookat(eye, target, up=(0, 0, 1)):
-    fwd = np.asarray(target, np.float64) - eye
+    fwd = _np.asarray(target, _np.float64) - eye
     fwd /= anorm(fwd)
-    right = np.cross(fwd, up)
+    right = _np.cross(fwd, up)
     right /= anorm(right)
-    down = np.cross(fwd, right)
-    R = np.float64([right, down, fwd])
-    tvec = -np.dot(R, eye)
+    down = _np.cross(fwd, right)
+    R = _np.float64([right, down, fwd])
+    tvec = -_np.dot(R, eye)
     return R, tvec
 
 
 def mtx2rvec(R):
-    w, u, vt = cv2.SVDecomp(R - np.eye(3))
-    p = vt[0] + u[:, 0] * w[0]    # same as np.dot(R, vt[0])
-    c = np.dot(vt[0], p)
-    s = np.dot(vt[1], p)
-    axis = np.cross(vt[0], vt[1])
-    return axis * np.arctan2(s, c)
+    w, u, vt = _cv2.SVDecomp(R - _np.eye(3))
+    p = vt[0] + u[:, 0] * w[0]    # same as _np.dot(R, vt[0])
+    c = _np.dot(vt[0], p)
+    s = _np.dot(vt[1], p)
+    axis = _np.cross(vt[0], vt[1])
+    return axis * _np.arctan2(s, c)
 
 
 def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, bottom_left_origin=False):
@@ -100,8 +95,8 @@ def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, bottom_left_origin=
         tuple is (x, y)
     '''
     #FONT_HERSHEY_PLAIN
-    cv2.putText(dst, s, (x, y), cv2.FONT_HERSHEY_TRIPLEX,
-                scale, color, lineType=cv2.LINE_AA, bottomLeftOrigin=bottom_left_origin)
+    _cv2.putText(dst, s, (x, y), _cv2.FONT_HERSHEY_TRIPLEX,
+                scale, color, lineType=_cv2.LINE_AA, bottomLeftOrigin=bottom_left_origin)
 
 
 class Sketcher:
@@ -112,21 +107,21 @@ class Sketcher:
         self.colors_func = colors_func
         self.dirty = False
         self.show()
-        cv2.setMouseCallback(self.windowname, self.on_mouse)
+        _cv2.setMouseCallback(self.windowname, self.on_mouse)
 
     def show(self):
-        cv2.imshow(self.windowname, self.dests[0])
+        _cv2.imshow(self.windowname, self.dests[0])
 
     def on_mouse(self, event, x, y, flags, dummy):
         pt = (x, y)
-        if event == cv2.EVENT_LBUTTONDOWN:
+        if event == _cv2.EVENT_LBUTTONDOWN:
             self.prev_pt = pt
-        elif event == cv2.EVENT_LBUTTONUP:
+        elif event == _cv2.EVENT_LBUTTONUP:
             self.prev_pt = None
 
-        if self.prev_pt and flags & cv2.EVENT_FLAG_LBUTTON:
+        if self.prev_pt and flags & _cv2.EVENT_FLAG_LBUTTON:
             for dst, color in zip(self.dests, self.colors_func()):
-                cv2.line(dst, self.prev_pt, pt, color, 5)
+                _cv2.line(dst, self.prev_pt, pt, color, 5)
             self.dirty = True
             self.prev_pt = pt
             self.show()
@@ -145,7 +140,7 @@ cmap_data = {'jet': _jet_data}
 
 def make_cmap(name, n=256):
     data = cmap_data[name]
-    xs = np.linspace(0.0, 1.0, n)
+    xs = _np.linspace(0.0, 1.0, n)
     channels = []
     eps = 1e-6
     for ch_name in ['blue', 'green', 'red']:
@@ -154,9 +149,9 @@ def make_cmap(name, n=256):
         for x, y1, y2 in ch_data:
             xp += [x, x + eps]
             yp += [y1, y2]
-        ch = np.interp(xs, xp, yp)
+        ch = _np.interp(xs, xp, yp)
         channels.append(ch)
-    return np.uint8(np.array(channels).T * 255)
+    return _np.uint8(_np.array(channels).T * 255)
 
 
 def nothing(*dummy1, **dummy2):
@@ -168,10 +163,10 @@ def clock():
     returns absolute time in seconds since
     ticker started (usually when OS started
     '''
-    return cv2.getTickCount() / cv2.getTickFrequency()
+    return _cv2.getTickCount() / _cv2.getTickFrequency()
 
 
-@contextmanager
+@_contextmanager
 def Timer(msg):
     print(msg, '...',)
     start = clock()
@@ -197,20 +192,20 @@ class RectSelector:
     def __init__(self, win, callback):
         self.win = win
         self.callback = callback
-        cv2.setMouseCallback(win, self.onmouse)
+        _cv2.setMouseCallback(win, self.onmouse)
         self.drag_start = None
         self.drag_rect = None
 
     def onmouse(self, event, x, y, flags):
-        x, y = np.int16([x, y])  # BUG
-        if event == cv2.EVENT_LBUTTONDOWN:
+        x, y = _np.int16([x, y])  # BUG
+        if event == _cv2.EVENT_LBUTTONDOWN:
             self.drag_start = (x, y)
             return
         if self.drag_start:
-            if flags & cv2.EVENT_FLAG_LBUTTON:
+            if flags & _cv2.EVENT_FLAG_LBUTTON:
                 xo, yo = self.drag_start
-                x0, y0 = np.minimum([xo, yo], [x, y])
-                x1, y1 = np.maximum([xo, yo], [x, y])
+                x0, y0 = _np.minimum([xo, yo], [x, y])
+                x1, y1 = _np.maximum([xo, yo], [x, y])
                 self.drag_rect = None
                 if x1 - x0 > 0 and y1 - y0 > 0:
                     self.drag_rect = (x0, y0, x1, y1)
@@ -225,7 +220,7 @@ class RectSelector:
         if not self.drag_rect:
             return False
         x0, y0, x1, y1 = self.drag_rect
-        cv2.rectangle(vis, (x0, y0), (x1, y1), (0, 255, 0), 2)
+        _cv2.rectangle(vis, (x0, y0), (x1, y1), (0, 255, 0), 2)
         return True
 
     @property
@@ -237,9 +232,9 @@ def grouper(n, iterable, fillvalue=None):
     '''grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx'''
     args = [iter(iterable)] * n
     if PY3:
-        output = it.zip_longest(fillvalue=fillvalue, *args)
+        output = _it.zip_longest(fillvalue=fillvalue, *args)
     else:
-        output = it.izip_longest(fillvalue=fillvalue, *args)
+        output = _it.izip_longest(fillvalue=fillvalue, *args)
     return output
 
 
@@ -254,10 +249,10 @@ def mosaic(w, imgs):
         img0 = next(imgs)
     else:
         img0 = next(imgs)
-    pad = np.zeros_like(img0)
-    imgs = it.chain([img0], imgs)
+    pad = _np.zeros_like(img0)
+    imgs = _it.chain([img0], imgs)
     rows = grouper(w, imgs, pad)
-    return np.vstack(map(np.hstack, rows))
+    return _np.vstack(map(_np.hstack, rows))
 
 
 def getsize(img):
@@ -266,10 +261,40 @@ def getsize(img):
 
 
 def mdot(*args):
-    return reduce(np.dot, args)
+    return _reduce(_np.dot, args)
 
 
 def draw_keypoints(vis, keypoints, color=(0, 255, 255)):
     for kp in keypoints:
         x, y = kp.pt
-        cv2.circle(vis, (int(x), int(y)), 2, color)
+        _cv2.circle(vis, (int(x), int(y)), 2, color)
+
+
+def chessboard(patch_sz=100, col_first_patch=(0, 0, 0), col_second_patch=(255, 255, 255), cols=9, rows=6):
+    '''(int, 3-tuple, 3-tuple, int, int, bool) -> ndarray
+    Returns a chessboard pattern.
+    The nr. of vertices = (cols-1) * (rows-1)
+
+    patch_sz:
+        Size of patches in pixels
+    col_first_patch:
+        colour of starting patch (top left)
+    col_second_light:
+        colour of next patch
+    cols:
+        number of patch columns
+    rows:
+        number of patch rows
+    '''
+    patch_sz = int(patch_sz)
+    cols = int(cols)
+    rows = int(rows)
+    color = col_first_patch
+    board = _np.zeros([patch_sz*cols, patch_sz*rows, 3]).astype('uint8')
+    for i in range(0, (rows+1)*patch_sz, patch_sz):
+        for j in range(0, (cols+1)*patch_sz, patch_sz):
+            board[j:j+patch_sz, i:i+patch_sz, :1] = color[0]
+            board[j:j+patch_sz, i:i+patch_sz, :2] = color[1]
+            board[j:j+patch_sz, i:i+patch_sz, :3] = color[2]
+            color = col_second_patch if color==col_first_patch else col_first_patch
+    return board

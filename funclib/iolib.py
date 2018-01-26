@@ -103,10 +103,10 @@ def write_to_eof(filename, thetext):
     Write thetext to the end of the file given in filename.
     '''
     try:
-        fid = open(filename, 'a')
+        fid = open(filename, 'a+') #a+ means append, creating the file if it doesnt exist
         fid.write(thetext)
     finally:
-        fid.close
+        if fid: fid.close
 
 
 def readcsv(filename, cols=1, startrow=0, numericdata=True):
@@ -516,18 +516,20 @@ def file_list_glob_generator(wilded_path, recurse=False):
 
 
 def files_delete(folder, delsubdirs=False):
-    '''(str)->void'''
+    '''(str)->void
+    Delete all files in folder
+    '''
     folder = _os.path.normpath(folder)
     for the_file in _os.listdir(folder):
-        file_path = _os.path.join(folder, the_file)
-    try:
-        if _os.path.isfile(file_path):
-            _os.unlink(file_path)
-        elif _os.path.isdir(file_path):
-            if delsubdirs:
-                _shutil.rmtree(file_path)
-    except Exception as e:
-        print(e)
+        file_path = _os.path.normpath(_os.path.join(folder, the_file))
+        try:
+            if _os.path.isfile(file_path):
+                _os.unlink(file_path)
+            elif _os.path.isdir(file_path):
+                if delsubdirs:
+                    _shutil.rmtree(file_path)
+        except Exception as e:
+            print(e)
 
 
 def get_file_name(path='', prefix='', ext='.txt'):

@@ -12,7 +12,8 @@
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-m undistort_fisheye -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted_fisheye -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2</CommandLineArguments>
+    <CommandLineArguments>
+    </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
@@ -20,15 +21,20 @@
     <Environment>watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER
 watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler" -l "C:/development/python/opencvlib/bin/watershedhistobass" -p BASS
 watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/crab-edible" -l "C:/development/python/opencvlib/bin/watershedhistocrab" -p CRAB
+
 view_sift.py -part head -spp bass "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json"
+
 write_attr.py -regionid 0 -subjectid 1 -part cephalothorax -spp lobster "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster/vgg.json"
+
 by_segmentation.by "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore" -s
 by_segmentation.by "C:/Development/python/opencvlib/script_objdetect/lobster" -s
+
 lenscorrection.py -m calibrate -c NEXTBASE512G -d
 lenscorrection.py -m list
 lenscorrection.py -m undistort -c GoProHero5 -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/shore/GOPROH~2/UNDIST~1 -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/shore/GOPROH~2
--m undistort -c NEXTBASE512G -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1
--m undistort -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2</Environment>
+lenscorrection.py -m undistort -c NEXTBASE512G -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1
+lenscorrection.py -m undistort -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2
+lenscorrection.py -m undistort_fisheye -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted_fisheye -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -88,6 +94,9 @@ lenscorrection.py -m undistort -c GoProHero5 -o C:/Users/GRAHAM~1/OneDrive/DOCUM
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_color.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_common.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_display_utils.py">

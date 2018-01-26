@@ -25,9 +25,6 @@ Examples:
     Calibrate lens using images in CALIBRATION_PATH. Saves vertex detection images to the debug folder
     lenscorrection.py -m calibrate -c NEXTBASE512G -d
 '''
-import opencvlib
-
-
 # region imports
 # region base imports
 from glob import glob as _glob
@@ -275,7 +272,7 @@ class Calibration(object):
                 if w == self.width and h == self.height:
                     cnt += 1
                     found, corners = _cv2.findChessboardCorners(
-                        img, self.pattern_size)
+                        img, self.pattern_size, flags=_cv2.CALIB_CB_ADAPTIVE_THRESH + _cv2.CALIB_CB_NORMALIZE_IMAGE)
                     if found:
                         fcnt += 1
                         _cv2.cornerSubPix(img, corners, (5, 5), (-1, -1), term)
@@ -287,6 +284,9 @@ class Calibration(object):
                             'Chessboard vertices not found in %s' % (fn))
 
                     _PrintProgress.increment()
+
+        if not img_points:
+            raise ValueError('Failed to find any corners. OpenCV findChessboardCorners is bugged, pattern size must be 9 x 6 vertices in photo and ini file.')
 
         self.img_total_count = cnt
         self.img_used_count = fcnt
@@ -453,7 +453,7 @@ def _undistort(cam, img, mats, crop=True, use_fisheye=True):
         h, w = img.shape[:2]
         if use_fisheye:
             R = _np.eye(3)
-            map1, map2 = _cv2.fisheye.initUndistortRectifyMap(mats['K'], mats['D'], R, mats['K'], img.shape[:2], _cv2.CV_16SC2)
+            map1, map2 = _cv2.fisheye.initUndistortRectifyMap(mats['K'], mats['D'], R, mats['K'], (w, h), _cv2.CV_16SC2)
             dst = _cv2.remap(img, map1, map2, interpolation=_cv2.INTER_LINEAR, borderMode=_cv2.BORDER_CONSTANT)
         else:
             newcameramtx, roi = _cv2.getOptimalNewCameraMatrix(
@@ -527,7 +527,10 @@ def undistort(
 
     cnt = 1
     success = 0
+    outpath = _path.normpath(outpath)
+    _iolib.create_folder(outpath)
     logfilename = _iolib.get_file_name(outpath)
+    
     
     print('Undistort mode: %s' % ('fisheye lens model' if use_fisheye else 'standard lens model'))
 
@@ -582,7 +585,9 @@ def undistort(
                             outfile = _os.path.join(outpath, name + label_fisheye + resize_suffix + '.jpg')
                         else:
                             outfile = _os.path.join(outpath, name + label + resize_suffix + '.jpg')
-
+                        
+                        outfile = _path.normpath(outfile)
+                        
                         _cv2.imwrite(outfile, img)
                         success += 1
                         with _fuckit:
@@ -712,7 +717,7 @@ def main():
                 lst = digikam.valid_images
             else:
                 lst = _os.path.normpath(cmdargs.path)
-            undistort(cam, lst, cmdargs.outpath,use_fisheye=(cmdargs.mode == 'undistort_fisheye'))
+            undistort(cam, lst, cmdargs.outpath, use_fisheye=(cmdargs.mode=='undistort_fisheye'))
 
             print('Undistort completed')
     elif cmdargs.mode == 'calibrate':
