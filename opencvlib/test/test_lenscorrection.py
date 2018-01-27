@@ -16,35 +16,40 @@ class Test(unittest.TestCase):
         '''
         self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
         self.modpath = _path.normpath(self.pth)
-        self.camera = 'GoProHero5PhotoWide'
 
         self.distorted_images_path = 'C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2'
         self.distorted_images_output_path = self.distorted_images_path + '/undistorted'
         self.distorted_images_output_path_fe = self.distorted_images_path + '/undistorted_fisheye'
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_calibrate(self):
         '''test the calibration
         Also does fisheye (default to do both)
 
         Gets calibration paths etc from lenscorrection.py.ini
+
+        GoProHero5PhotoWide
+        GoProHero5PhotoMedium
+        GoProHero5PhotoNarrow
         '''
-        cam = _lc.get_camera(self.camera)
+        cam = _lc.get_camera('GoProHero5PhotoMedium')
         _lc.calibrate(cam)
 
     @unittest.skip("Temporaily disabled while debugging")
     def test_undistort(self):
         '''standard undistort'''
-        cam = _lc.get_camera(self.camera)
+        cam = _lc.get_camera('GoProHero5PhotoWide')
         _lc.undistort(cam, self.distorted_images_path, self.distorted_images_output_path, use_fisheye=False)
 
-    @unittest.skip("Temporaily disabled while debugging")
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_undistort_fisheye(self):
         '''fisheye undistort'''
-        cam = _lc.get_camera(self.camera)
+        cam = _lc.get_camera('GoProHero5PhotoWide')
         iolib.files_delete(self.distorted_images_output_path_fe)
-        _lc.undistort(cam, self.distorted_images_path, self.distorted_images_output_path_fe, use_fisheye=True)
+        _lc.undistort(cam, 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/medium',
+                      'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/medium/undistorted',
+                      use_fisheye=True)
 
 
 

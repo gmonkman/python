@@ -401,7 +401,7 @@ def _ini_set_database_strings():
         'DATABASE', 'CALIBRATION_CONNECTION_STRING', force_create=False)
 
 
-def calibrate(cam):
+def calibrate(cam, skip_fisheye=False):
     '''(camera[class])
     Pass in a camera class object, initialised from the ini file
     by calling get_camera
@@ -433,7 +433,8 @@ def calibrate(cam):
     _PrintProgress.iteration = 1
 
     for Cal in calibrations:
-        Cal.calibrate()
+        assert isinstance(Cal, Calibration)
+        Cal.calibrate(skip_fisheye)
 
     for Cal in calibrations:
         print(Cal.result_str)

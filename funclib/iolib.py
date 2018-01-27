@@ -520,6 +520,9 @@ def files_delete(folder, delsubdirs=False):
     Delete all files in folder
     '''
     folder = _os.path.normpath(folder)
+    if not _os.path.exists(folder):
+        return
+
     for the_file in _os.listdir(folder):
         file_path = _os.path.normpath(_os.path.join(folder, the_file))
         try:

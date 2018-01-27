@@ -261,16 +261,16 @@ class CalibrationCRUD(object):
         tvect_b = _sqlite3.Binary(tvect)
 
         #K_b is null if we havent asked for a fisheye lens correction
-        if not K is None:
+        if K is None or D is None:
+            sql = 'UPDATE calibration SET camera_matrix=?, distortion_coefficients=?, rotational_vectors=?, translational_vectors=?' \
+                ' WHERE calibrationid=?'
+            cur.execute(sql, (cm_b, dcoef_b, rvect_b, tvect_b, calibrationid))
+        else:
             K_b = _sqlite3.Binary(K)
             D_b = _sqlite3.Binary(D)
             sql = 'UPDATE calibration SET camera_matrix=?, distortion_coefficients=?, rotational_vectors=?, translational_vectors=?, K=?, D=?' \
                 ' WHERE calibrationid=?'
             cur.execute(sql, (cm_b, dcoef_b, rvect_b, tvect_b, K_b, D_b, calibrationid))
-        else:
-            sql = 'UPDATE calibration SET camera_matrix=?, distortion_coefficients=?, rotational_vectors=?, translational_vectors=?' \
-                ' WHERE calibrationid=?'
-            cur.execute(sql, (cm_b, dcoef_b, rvect_b, tvect_b, calibrationid))
 
 
     def list_existing(self):
@@ -278,12 +278,19 @@ class CalibrationCRUD(object):
         Lists all available profiles
         '''
         sql = 'select' \
-            ' camera_model || ":  " || cast(width as text) || "x" || cast(height as text) as res' \
+            ' camera_model || ":  " || cast(width as text) || "x" || cast(height as text) ||' \
+            ' case' \
+            '    when K is null and camera_matrix is null then "  No Standard, No Fisheye"' \
+            '    when K is null and camera_matrix is not null then "  Standard, No Fisheye"' \
+            '    when K is not null and camera_matrix is null then "  No Standard, Fisheye"' \
+            '    else "  Standard, Fisheye"' \
+            ' end as res' \
             ' from' \
             ' camera_model inner join calibration on camera_model.camera_modelid=calibration.camera_modelid' \
             ' order by' \
             ' camera_model,' \
             ' cast(width as text) || "x" || cast(height as text)'
+        
         cur = self.conn.cursor()
         res = cur.execute(sql)
         assert isinstance(res, _sqlite3.Cursor)
