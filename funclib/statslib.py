@@ -8,7 +8,8 @@ import warnings
 
 # packages
 import pandas as _pd
-import pandas.rpy.common as _com
+import rpy2 as _rpy2
+
 import numpy as _np
 import scipy as _scipy
 import scipy.stats as _stats
@@ -114,7 +115,8 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
     for case in _baselib.switch(test_type):
         if case(EnumMethod.kendall):
             if engine == EnumStatsEngine.r:
-                df_r = _com.convert_to_r_dataframe(df)
+                _rpy2.convert
+                df_r = _rpy2.robjects.pandas2ri(df)
                 _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$' + col_a_name + \
                     ',cordf$' + col_b_name + ', method="kendall")'
@@ -126,7 +128,7 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
             break
         if case(EnumMethod.pearson):
             if engine == EnumStatsEngine.r:
-                df_r = _com.convert_to_r_dataframe(df)
+                df_r = _rpy2.robjects.pandas2ri(df)
                 _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$' + col_a_name + \
                     ',cordf$' + col_b_name + ', method="pearson")'
@@ -138,7 +140,7 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
             break
         if case(EnumMethod.spearman):
             if engine == EnumStatsEngine.r:
-                df_r = _com.convert_to_r_dataframe(df)
+                df_r = _rpy2.robjects.pandas2ri(df)
                 _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$' + col_a_name + \
                     ',cordf$' + col_b_name + ', method="spearman")'
@@ -205,7 +207,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
         if case(EnumMethod.kendall):
             if engine == EnumStatsEngine.r:
                 df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
-                df_r = _com.convert_to_r_dataframe(df)
+                df_r = _rpy2.robjects.pandas2ri(df)
                 _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="kendall")'
                 result = _ro.r(tmpstr)
@@ -217,7 +219,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
         if case(EnumMethod.pearson):
             if engine == EnumStatsEngine.r:
                 df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
-                df_r = _com.convert_to_r_dataframe(df)
+                df_r = _rpy2.robjects.pandas2ri(df)
                 _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="pearson")'
                 result = _ro.r(tmpstr)
@@ -229,7 +231,7 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
         if case(EnumMethod.spearman):
             if engine == EnumStatsEngine.r:
                 df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
-                df_r = _com.convert_to_r_dataframe(df)
+                df_r = _rpy2.robjects.pandas2ri(df)
                 _ro.globalenv['cordf'] = df_r
                 tmpstr = 'cor.test(cordf$a, cordf$b, method="spearman")'
                 result = _ro.r(tmpstr)

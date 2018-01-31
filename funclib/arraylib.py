@@ -7,7 +7,6 @@ import xlwings
 
 # list stuff
 
-
 def list_delete_value_pairs(list_a, list_b, match_value=0):
     '''(list,list,str|number) -> void
     Given two lists, removes matching values pairs occuring
@@ -32,6 +31,13 @@ def check_array(a, b):
     if a.shape != b.shape:
         raise ValueError('Array shapes did not match.')
 
+def shape(l):
+    '''(list|tuple) -> tuple
+    returns shape of a list or a tuple
+    by converting it to an np array
+    and returning nparray.shape
+    '''
+    return _np.array(l).shape
 
 def np_permute_2d(a):
     '''(ndarray) -> ndarray

@@ -16,13 +16,17 @@ class Test(unittest.TestCase):
         '''
         self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
         self.modpath = _path.normpath(self.pth)
-
-        self.distorted_images_path = 'C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2'
-        self.distorted_images_output_path = self.distorted_images_path + '/undistorted'
-        self.distorted_images_output_path_fe = self.distorted_images_path + '/undistorted_fisheye'
-
+        
 
     @unittest.skip("Temporaily disabled while debugging")
+    def test_list_profile_param(self):
+        '''test'''
+        res = _lc.list_profile_param('GoProHero5PhotoWide', 1440, 1080, 'D', printit=True)
+        print(res)
+
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_calibrate(self):
         '''test the calibration
         Also does fisheye (default to do both)
@@ -33,26 +37,37 @@ class Test(unittest.TestCase):
         GoProHero5PhotoMedium
         GoProHero5PhotoNarrow
         '''
+        #cam = _lc.get_camera('GoProHero5PhotoWide')
         cam = _lc.get_camera('GoProHero5PhotoMedium')
+        #cam = _lc.get_camera('GoProHero5PhotoNarrow')
         _lc.calibrate(cam)
+
 
     @unittest.skip("Temporaily disabled while debugging")
     def test_undistort(self):
         '''standard undistort'''
         cam = _lc.get_camera('GoProHero5PhotoWide')
-        _lc.undistort(cam, self.distorted_images_path, self.distorted_images_output_path, use_fisheye=False)
+        out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/wide/undistorted_standard'
+        in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/wide'
+        iolib.files_delete(out_path)
+        _lc.undistort(cam, in_path, out_path, use_fisheye=False)
 
-    #@unittest.skip("Temporaily disabled while debugging")
-    def test_undistort_fisheye(self):
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_undistort_fisheye_wide(self):
         '''fisheye undistort'''
         cam = _lc.get_camera('GoProHero5PhotoWide')
-        iolib.files_delete(self.distorted_images_output_path_fe)
-        _lc.undistort(cam, 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/medium',
-                      'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/medium/undistorted',
-                      use_fisheye=True)
+        #out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/wide/undistorted_fisheye'
+        #in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/wide'
+        #iolib.files_delete(out_path)
+        #_lc.undistort(cam, in_path, out_path, use_fisheye=True)
 
-
+        out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/goprohero5/wide/undistorted_fisheye'
+        in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/goprohero5/wide'
+        iolib.files_delete(out_path)
+        _lc.undistort(cam, in_path, out_path, use_fisheye=True)
 
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
+    input("Press Enter to continue...")

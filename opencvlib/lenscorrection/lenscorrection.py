@@ -31,13 +31,18 @@ from glob import glob as _glob
 import argparse as _argparse
 from inspect import getsourcefile as _getsourcefile
 import pickle as _pickle
+from pprint import pprint
 import os as _os
+import sys as _sys
 import os.path as _path
 import warnings as _warn
+from contextlib import contextmanager as _contextmanager
+
 # end region
 
 # region 3rd party imports
 import cv2 as _cv2
+
 import fuckit as _fuckit
 import numpy as _np
 # endregion
@@ -48,6 +53,8 @@ from funclib.baselib import list_append_unique
 import funclib.iolib as _iolib
 import funclib.inifilelib as _inifilelib
 import funclib.pyqtlib as _msgbox
+import funclib.stringslib as _stringslib
+from funclib.arraylib import shape as _shape
 
 from opencvlib import IMAGE_EXTENSIONS_AS_WILDCARDS as _IMAGE_EXTENSIONS_AS_WILDCARDS
 import opencvlib.imgpipes.digikamlib as _digikamlib
@@ -66,24 +73,27 @@ _DIGIKAM_CONNECTION_STRING = ''
 _CALIBRATION_CONNECTION_STRING = ''
 _PrintProgress = None
 
+@_contextmanager
+def suppress_stdout(stdout=True, stderr=True):
+    '''(bool, bool) -> void
+    Stop messages and errors being sent to the console
+    '''
+    with open(_os.devnull, "w") as devnull:
+        old_stdout = _sys.stdout
+        old_stderr = _sys.stderr
+        if stdout:
+            _sys.stdout = devnull
+
+        if stderr:
+            _sys.stderr = devnull
+        try:  
+            yield
+        finally:
+            _sys.stdout = old_stdout
+            _sys.stderr = old_stderr
+
+
 # region Class Declarations
-
-
-class PrintProgress(object):
-    '''DOS progressbar'''
-
-    def __init__(self, maximum, bar_length=30):
-        self.max = maximum
-        self.bar_length = bar_length
-        self.iteration = 0
-
-    def increment(self):
-        '''tick the progress bar'''
-        _iolib.print_progress(
-            self.iteration, self.max, prefix='%i of %i' %
-            (self.iteration, self.max), bar_length=self.bar_length)
-        self.iteration += 1
-
 
 class CalibrationGrid(object):
     '''representation of checker board x and y vertices'''
@@ -221,7 +231,15 @@ class CameraIni(object):
 
 
 class Calibration(object):
-    '''container for a camera calibration at a specific resolution'''
+    '''container for a camera calibration at a specific resolution.
+
+    Set FISHEYE_CALIBRATION_FLAGS, TERMINATION_CRITERIA
+    and TERINATION_CRITERIA_SUBPIX as required
+    '''
+
+    FISHEYE_CALIBRATION_FLAGS = _cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + _cv2.fisheye.CALIB_CHECK_COND + _cv2.fisheye.CALIB_FIX_SKEW
+    TERMINATION_CRITERIA_FISHEYE = (_cv2.TERM_CRITERIA_COUNT, 50, 1e-6)
+    TERINATION_CRITERIA_SUBPIX = (_cv2.TERM_CRITERIA_EPS + _cv2.TERM_CRITERIA_COUNT, 30, 0.1)
 
     def __init__(
             self,
@@ -246,6 +264,9 @@ class Calibration(object):
         self.img_used_count = 0
         self.img_total_count = 0
         self.messages = []
+    
+    def __str__(self):
+        return 'Calibration(Camera: %s, x: %s, y: %s)' % (self.camera_model, self.width, self.height)
 
     @property
     def _pattern_points(self):
@@ -255,17 +276,30 @@ class Calibration(object):
         pattern_points *= self.square_size
         return pattern_points
 
-    def calibrate(self, fisheye_max_iter=30, skip_fisheye=False):
-        '''main calibration entry point'''
+    def calibrate(self, skip_fisheye=False, fisheye_no_check=True):
+        '''(bool, bool) -> list, list
+        Calibrate camera from images
+
+        skip_fisheye:
+            self explanatory
+        fisheye_no_check:
+            stop CV doing a checks
+        
+        returns:
+            list of bad images, list of deleted images
+        '''
         obj_points = []
         img_points = []
         img_points_fisheye = []
         fcnt = 0
         cnt = 0
 
-        term = (_cv2.TERM_CRITERIA_EPS + _cv2.TERM_CRITERIA_COUNT, fisheye_max_iter, 0.1)
-
-        for fn in _iolib.file_list_glob_generator(self.wildcarded_images_path):
+        FE_CALIB_FLAGS = Calibration.FISHEYE_CALIBRATION_FLAGS
+        if fisheye_no_check:
+            FE_CALIB_FLAGS -= _cv2.fisheye.CALIB_CHECK_COND
+        image_paths = [x for x in _iolib.file_list_glob_generator(self.wildcarded_images_path)]
+        image_paths_ok = []
+        for fn in image_paths:
             if _info.ImageInfo.is_image(fn):
                 img = _cv2.imread(_os.path.normpath(fn), 0)
                 w, h = _info.ImageInfo.resolution(img)
@@ -275,18 +309,22 @@ class Calibration(object):
                         img, self.pattern_size, flags=_cv2.CALIB_CB_ADAPTIVE_THRESH + _cv2.CALIB_CB_NORMALIZE_IMAGE)
                     if found:
                         fcnt += 1
-                        _cv2.cornerSubPix(img, corners, (5, 5), (-1, -1), term)
+                        _cv2.cornerSubPix(img, corners, (10, 10), (-1, -1), Calibration.TERINATION_CRITERIA_SUBPIX)
                         img_points.append(corners.reshape(-1, 2))
                         img_points_fisheye.append(corners.reshape(1, -1, 2))
                         obj_points.append(self._pattern_points)
+                        image_paths_ok.append(fn)
                     else:
                         self.messages.append(
-                            'Chessboard vertices not found in %s' % (fn))
+                            'Chessboard vertices not found in %s. The file was deleted.' % (fn))
+                        with _fuckit:
+                            _os.remove(fn)
+                            print(self.messages([-1]))
 
                     _PrintProgress.increment()
 
         if not img_points:
-            raise ValueError('Failed to find any corners. OpenCV findChessboardCorners is bugged, pattern size must be 9 x 6 vertices in photo and ini file.')
+            raise ValueError('Failed to find any vertices in any images. OpenCV findChessboardCorners is bugged, pattern size must be 9 x 6 vertices in photo and ini file.')
 
         self.img_total_count = cnt
         self.img_used_count = fcnt
@@ -305,23 +343,47 @@ class Calibration(object):
             #K and D passed by ref in fisheye.calibrate. Initialise them first.
             K = _np.zeros((3, 3))
             D = _np.zeros((4, 1))
-            #reset rvecs and tvecs for fisheye model
-            rvecs = [_np.zeros((1, 1, 3), dtype=_np.float64) for i in range(n_ok)]
-            tvecs = [_np.zeros((1, 1, 3), dtype=_np.float64) for i in range(n_ok)]
+
             #pattern_points is a tuple with the number of x and y vertices of the chess board
             #ie (9,6) would be a chessboard with 9 x 6 vertices
             chessboard_model = _np.zeros((1, self.pattern_size[0] * self.pattern_size[1], 3), dtype=_np.float32)
             chessboard_model[0, :, :2] = _np.mgrid[0:self.pattern_size[0], 0:self.pattern_size[1]].T.reshape(-1, 2)
             
-            fisheye_calibration_flags = _cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + _cv2.fisheye.CALIB_CHECK_COND + _cv2.fisheye.CALIB_FIX_SKEW
-            term = (_cv2.TERM_CRITERIA_EPS + _cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6)
+            #this delete invalid images and deletes the detected points and chessboard model from
+            #the numpy array, 
+            bad_images = []
+            deleted_images = []
+            while _np.array_equal(K, _np.zeros((3, 3))):
+                try:
+                    rvecs = [_np.zeros((1, 1, 3), dtype=_np.float64) for i in range(n_ok)]
+                    tvecs = [_np.zeros((1, 1, 3), dtype=_np.float64) for i in range(n_ok)]
+                    #pattern_points is a tuple with the number of x and y vertices of the chess board
+                    #ie (9,6) would be a chessboard with 9 x 6 vertices
+                    rms, _, _, _, _ = _cv2.fisheye.calibrate(
+                        [chessboard_model]*n_ok, img_points_fisheye, (self.width, self.height),
+                        K, D, rvecs, tvecs, FE_CALIB_FLAGS, Calibration.TERMINATION_CRITERIA_FISHEYE)
+                except _cv2.error as e: #we need to parse the index out of the error message
+                    ind = int(_stringslib.get_between(str(e), 'input array ', ' in function'))
+                    assert isinstance(ind, int) and ind >= 0, 'Could not determine the index of the bad calibration image, perhaps the exception text has changed'
+                    bad_images.append(image_paths_ok[ind])
+                    n = [x for x in range(0, ind)]
+                    _ = ([n.append(y) for y in range(ind+1, n_ok)])
+                    n_ok -= 1
+                    lst = _np.array(img_points_fisheye)
+                    lst = _np.squeeze(lst[[n], ...], 0)
+                    img_points_fisheye = [x  for x in lst] #rebuild as list of numpy arrays
+            
+                    with _fuckit:
+                        _os.remove(image_paths_ok[ind])
+                        if not _iolib.file_exists(image_paths_ok[ind]):
+                            deleted_images.append(image_paths_ok[ind])
 
-            rms, _, _, _, _ = _cv2.fisheye.calibrate(
-                [chessboard_model]*n_ok, img_points_fisheye, (self.width, self.height),
-                K, D, rvecs, tvecs, fisheye_calibration_flags, term)
+                    del image_paths_ok[ind]
+                    assert len(image_paths_ok) == len(img_points_fisheye), 'Number of remaining valid calibration images in list image_paths_ok does not match the number of images which have points in img_points_fisheye'
 
             kk = _pickle.dumps(K, _pickle.HIGHEST_PROTOCOL)
             dd = _pickle.dumps(D, _pickle.HIGHEST_PROTOCOL)
+
         else:
             kk = None
             dd = None
@@ -334,6 +396,8 @@ class Calibration(object):
             _ = int(db.crud_calibration_upsert(
                 modelid, self.width, self.height, cm, dc, rms, rv, tv, kk, dd))
             conn.commit()
+        
+        return bad_images, deleted_images
 
     @property
     def result_str(self):
@@ -349,6 +413,31 @@ def list_profiles():
         db = _lenscorrectiondb.CalibrationCRUD(conn)
         res = db.list_existing()
     print('\n'.join(map(str, res)))
+
+def list_profile_param(camera, x, y, param, printit=True):
+    '''(str, int, int, str, bool) -> value
+    print a camera property
+    camera:
+        name of camera as it appears in table camera_model
+    x:
+        width of camera profile in pixels
+    y:
+        height in pixels
+    param:
+        the field name as it appears in the database table calibration
+    printit:
+        pretty print the value
+
+    returns:
+        the value read from that database table, which is intended to be
+        a numpy array
+    '''
+    with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
+        db = _lenscorrectiondb.CalibrationCRUD(conn)
+        res = db.list_param(camera, x, y, param)
+    if printit:
+        pprint(res)
+    return res
 
 
 def get_camera(model):
@@ -401,10 +490,20 @@ def _ini_set_database_strings():
         'DATABASE', 'CALIBRATION_CONNECTION_STRING', force_create=False)
 
 
-def calibrate(cam, skip_fisheye=False):
+def calibrate(cam, skip_fisheye=False, fisheye_nocheck=False):
     '''(camera[class])
     Pass in a camera class object, initialised from the ini file
     by calling get_camera
+
+    By default this performs a fisheye and standard calibration, saving
+    the results to the SQLite database
+
+    skip_fisheye:
+        Don't perform fisheye calibration
+    fisheye_nocheck:
+        Don't perform the check, this will stop errors being raised on ComputeIntrinsics
+        However, it is likely that intrinsic corrections (D) will not be calculated.
+
     '''
     assert isinstance(cam, CameraIni)
 
@@ -429,12 +528,16 @@ def calibrate(cam, skip_fisheye=False):
         h in dims]
 
     global _PrintProgress
-    _PrintProgress = PrintProgress(len(_glob(img_path)))
+    _PrintProgress = _iolib.PrintProgress(len(_glob(img_path)))
     _PrintProgress.iteration = 1
 
     for Cal in calibrations:
         assert isinstance(Cal, Calibration)
-        Cal.calibrate(skip_fisheye)
+        bad, deleted = Cal.calibrate(skip_fisheye, fisheye_no_check=fisheye_nocheck)
+        print('\nCreated profile for ' + Cal.__str__())
+        if bad and deleted:
+            print('\nBad images for fisheye calibration %s. %s of %s bad calibration images were deleted' % (Cal.__str__(), len(deleted), len(bad)))
+
 
     for Cal in calibrations:
         print(Cal.result_str)
@@ -454,6 +557,8 @@ def _undistort(cam, img, mats, crop=True, use_fisheye=True):
         h, w = img.shape[:2]
         if use_fisheye:
             R = _np.eye(3)
+            #K stores just the focal length camera parameters and the image centre
+            #See https://docs.opencv.org/2.4/doc/tutorials/calib3d/camera_calibration/camera_calibration.html
             map1, map2 = _cv2.fisheye.initUndistortRectifyMap(mats['K'], mats['D'], R, mats['K'], (w, h), _cv2.CV_16SC2)
             dst = _cv2.remap(img, map1, map2, interpolation=_cv2.INTER_LINEAR, borderMode=_cv2.BORDER_CONSTANT)
         else:
@@ -581,7 +686,6 @@ def undistort(
                             'File %s failed in _undistort.\n' %
                             (fil))
                     else:
-
                         if use_fisheye:
                             outfile = _os.path.join(outpath, name + label_fisheye + resize_suffix + '.jpg')
                         else:
@@ -718,7 +822,7 @@ def main():
                 lst = digikam.valid_images
             else:
                 lst = _os.path.normpath(cmdargs.path)
-            undistort(cam, lst, cmdargs.outpath, use_fisheye=(cmdargs.mode=='undistort_fisheye'))
+            undistort(cam, lst, cmdargs.outpath, use_fisheye=(cmdargs.mode == 'undistort_fisheye'))
 
             print('Undistort completed')
     elif cmdargs.mode == 'calibrate':

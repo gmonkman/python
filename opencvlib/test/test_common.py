@@ -23,6 +23,7 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_chessboard(self):
+        '''test making a chessboard'''
         img = _common.chessboard(100, (0, 0, 0), (255, 255, 255), cols=10, rows=14)
         _cv2.imwrite(r'c:\temp\chequer_50x67.jpg', img)
         show(img)

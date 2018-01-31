@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>quite-console</Title>
+      <Shortcut>quite-console</Shortcut>
+      <Description>Supress messages sent to the console</Description>
+      <Author>Graha Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[
+from contextlib import contextmanager as _contextmanager
+
+@_contextmanager
+def suppress_stdout(stdout=True, stderr=True):
+    '''(bool, bool) -> void
+    Stop messages and errors being sent to the console
+    '''
+    with open(_os.devnull, "w") as devnull:
+        old_stdout = _sys.stdout
+        old_stderr = _sys.stderr
+        if stdout:
+            _sys.stdout = devnull
+
+        if stderr:
+            _sys.stderr = devnull
+        try:  
+            yield
+        finally:
+            _sys.stdout = old_stdout
+            _sys.stderr = old_stderr
+
+print("Now you see it")
+with suppress_stdout():
+    print("Now you don't")
+]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

@@ -302,6 +302,28 @@ class CalibrationCRUD(object):
         return ret
 
 
+    def list_param(self, camera, x, y, param):
+        '''str, int, int, str->list
+        Lists all available profiles
+        '''
+        s = []
+        sql = ''
+        s.append('select %s as res' % param)
+        s.append(' from camera_model inner join calibration on camera_model.camera_modelid=calibration.camera_modelid')
+        s.append(' where camera_model=? and width=? and height=?') 
+        sql = ''.join(s)
+
+        cur = self.conn.cursor()
+        res = cur.execute(sql, [camera, x, y])
+        assert isinstance(res, _sqlite3.Cursor)
+        for row in res:
+            if not row:
+                return None
+            ret = _pickle.loads(row['res'])
+            break
+        return ret
+
+
     def blobs_get_nearest_aspect_match(self, camera_model, height, width):
         '''(str, int, int)->dict
         Returns the calibration matrices for the nearest matching

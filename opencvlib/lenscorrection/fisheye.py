@@ -9,6 +9,8 @@ import numpy as _np
 import os as _os
 import pickle as _pickle
 
+from funclib.stringslib import get_between as _get_between
+
 _EPS = _np.finfo(_np.float).eps
 
 def load_model(filename, calib_img_shape=None):
@@ -41,11 +43,9 @@ def extract_corners(img, img_index, nx, ny, subpix_criteria, verbose):
     #
     # Find the chess board corners
     #
-    ret, cb_2D_pts = _cv2.findChessboardCorners(
-        gray,
+    ret, cb_2D_pts = _cv2.findChessboardCorners(gray,
         (nx, ny),
-        _cv2.CALIB_CB_ADAPTIVE_THRESH+_cv2.CALIB_CB_FAST_CHECK+_cv2.CALIB_CB_NORMALIZE_IMAGE
-    )
+        _cv2.CALIB_CB_ADAPTIVE_THRESH + _cv2.CALIB_CB_FAST_CHECK + _cv2.CALIB_CB_NORMALIZE_IMAGE)
 
     if ret:
         #
@@ -66,8 +66,7 @@ class FishEye(object):
         verbose (bool): verbose flag.
     """
 
-    def __init__(self, nx, ny, img_shape=None, verbose=False
-        ):
+    def __init__(self, nx, ny, img_shape=None, verbose=False):
 
         self._nx = nx
         self._ny = ny
@@ -75,12 +74,11 @@ class FishEye(object):
         self._K = _np.zeros((3, 3))
         self._D = _np.zeros((4, 1))
         self._img_shape = img_shape
-        self.chessboard_model = _np.zeros((1, self._nx*self._ny, 3), _np.float32)
+        self.chessboard_model = _np.zeros((1, self._nx * self._ny, 3), _np.float32)
         self.chessboard_model[0, :, :2] = _np.mgrid[0:self._nx, 0:self._ny].T.reshape(-1, 2)
 
-    def calibrate(
-        self, img_paths=None, imgs=None, update_model=True, max_iter=30, eps=1e-6, show_imgs=False, return_mask=False,
-        calibration_flags=_cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC+_cv2.fisheye.CALIB_CHECK_COND+_cv2.fisheye.CALIB_FIX_SKEW,
+    def calibrate(self, img_paths=None, imgs=None, update_model=True, max_iter=30, eps=1e-6, show_imgs=False, return_mask=False,
+        calibration_flags=_cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + _cv2.fisheye.CALIB_CHECK_COND + _cv2.fisheye.CALIB_FIX_SKEW,
         n_jobs=-1, backend='threading'):
         """Calibration
 
@@ -102,7 +100,7 @@ class FishEye(object):
         # Arrays to store the chessboard image points from all the images.
         chess_2Dpts_list = []
 
-        subpix_criteria = (_cv2.TERM_CRITERIA_EPS+_cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
+        subpix_criteria = (_cv2.TERM_CRITERIA_EPS + _cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
 
         if show_imgs:
             _cv2.namedWindow('checkboard img', _cv2.WINDOW_AUTSIZE)
@@ -112,11 +110,7 @@ class FishEye(object):
             imgs = img_paths
 
         with _joblib.Parallel(n_jobs=n_jobs, backend=backend) as _joblib.Parallel:
-            rets = _joblib.Parallel(
-                _joblib.delayed(extract_corners)(
-                    img, img_index, self._nx, self._ny, subpix_criteria, self._verbose
-                    ) for img_index, img in enumerate(imgs)
-            )
+            rets = _joblib.Parallel(_joblib.delayed(extract_corners)(img, img_index, self._nx, self._ny, subpix_criteria, self._verbose) for img_index, img in enumerate(imgs))
 
         mask = []
         for img_index, (img, (ret, cb_2d_pts)) in enumerate(zip(imgs, rets)):
@@ -136,22 +130,22 @@ class FishEye(object):
                 assert self._img_shape == img.shape[:2], "All images must share the same size."
             if ret:
                 mask.append(True)
-                # Was able to find the chessboard in the image, append the 3D points
+                # Was able to find the chessboard in the image, append the 3D
+                # points
                 # and image points (after refining them).
                 if self._verbose:
                     _logging.info('OK')
 
-                # The 2D points are reshaped to (1, N, 2). This is a hack to handle the bug
+                # The 2D points are reshaped to (1, N, 2).  This is a hack to
+                # handle the bug
                 # in the opecv python wrapper.
                 chess_2Dpts_list.append(cb_2d_pts.reshape(1, -1, 2))
 
                 if show_imgs:
                     # Draw and display the corners
-                    img = _cv2.drawChessboardCorners(
-                        img.copy(), (self._nx, self._ny),
+                    img = _cv2.drawChessboardCorners(img.copy(), (self._nx, self._ny),
                         cb_2d_pts,
-                        ret
-                    )
+                        ret)
                     _cv2.imshow('checkboard img', img)
                     _cv2.waitKey(500)
             else:
@@ -179,19 +173,29 @@ class FishEye(object):
         else:
             K = self._K.copy()
             D = self._D.copy()
+        
+        try:
+            rms, _, _, _, _ = _cv2.fisheye.calibrate([self.chessboard_model] * N_OK,
+                    chess_2Dpts_list,
+                    (img.shape[1], img.shape[0]),
+                    K, D, rvecs, tvecs, calibration_flags,
+                    (_cv2.TERM_CRITERIA_EPS + _cv2.TERM_CRITERIA_MAX_ITER, max_iter, eps))
+            if return_mask:
+                return rms, K, D, rvecs, tvecs, mask
 
-        rms, _, _, _, _ = _cv2.fisheye.calibrate(
-                [self.chessboard_model]*N_OK,
-                chess_2Dpts_list,
-                (img.shape[1], img.shape[0]),
-                K, D, rvecs, tvecs, calibration_flags,
-                (_cv2.TERM_CRITERIA_EPS+_cv2.TERM_CRITERIA_MAX_ITER, max_iter, eps)
-            )
+            return rms, K, D, rvecs, tvecs
+        except _cv2.error as e:
+            try:
+                ind = int(_get_between(str(e), 'input array ', ' in function'))
+                if img_paths:
+                    print('\nBad calibration image %s' % img_paths[ind])
+                else:
+                    print('\nBad calibration image passed to img, the index was %s' % ind)
+            except Exception as _:
+                print(str(e))
 
-        if return_mask:
-            return rms, K, D, rvecs, tvecs, mask
 
-        return rms, K, D, rvecs, tvecs
+
 
 
     def undistort(self, distorted_img, undistorted_size=None, R=_np.eye(3), K=None):
@@ -205,8 +209,7 @@ class FishEye(object):
         if undistorted_size is None:
             undistorted_size = distorted_img.shape[:2]
 
-        map1, map2 = _cv2.fisheye.initUndistortRectifyMap(self._K, self._D, R, K, undistorted_size, _cv2.CV_16SC2
-        )
+        map1, map2 = _cv2.fisheye.initUndistortRectifyMap(self._K, self._D, R, K, undistorted_size, _cv2.CV_16SC2)
 
         undistorted_img = _cv2.remap(distorted_img, map1, map2, interpolation=_cv2.INTER_LINEAR, borderMode=_cv2.BORDER_CONSTANT)
 
@@ -248,8 +251,7 @@ class FishEye(object):
         if K is None:
             K = self._K
 
-        undistorted = _cv2.fisheye.undistortPoints(
-            distorted.astype(_np.float32), self._K, self._D, R=R, P=K)
+        undistorted = _cv2.fisheye.undistortPoints(distorted.astype(_np.float32), self._K, self._D, R=R, P=K)
 
         return _np.squeeze(undistorted)
 
@@ -275,25 +277,26 @@ class FishEye(object):
         pi = distorted.astype(_np.float)
 
         # World points (distorted)
-        pw = (pi-c)/f
+        pw = (pi - c) / f
 
         # Compensate iteratively for the distortion.
         theta_d = _np.linalg.norm(pw, ord=2, axis=1)
         theta = theta_d
         for _ in range(10):
-            theta2 = theta**2
-            theta4 = theta2**2
-            theta6 = theta4*theta2
-            theta8 = theta6*theta2
-            theta = theta_d / (1 + k[0]*theta2 + k[1]*theta4 + k[2]*theta6 + k[3]*theta8)
+            theta2 = theta ** 2
+            theta4 = theta2 ** 2
+            theta6 = theta4 * theta2
+            theta8 = theta6 * theta2
+            theta = theta_d / (1 + k[0] * theta2 + k[1] * theta4 + k[2] * theta6 + k[3] * theta8)
 
-        theta_d_ = theta * (1 + k[0]*theta**2 + k[1]*theta**4 + k[2]*theta**6 + k[3]*theta**8)
+        theta_d_ = theta * (1 + k[0] * theta ** 2 + k[1] * theta ** 4 + k[2] * theta ** 6 + k[3] * theta ** 8)
 
         # Mask stable theta values.
-        ratio = _np.abs(theta_d_- theta_d) / (theta_d + _EPS)
+        ratio = _np.abs(theta_d_ - theta_d) / (theta_d + _EPS)
         mask = (ratio < 1e-2)
 
-        # Scale is equal to \prod{\r}{\theta_d} (http://docs.opencv.org/trunk/db/d58/group__calib3d__fisheye.html)
+        # Scale is equal to \prod{\r}{\theta_d}
+        # (http://docs.opencv.org/trunk/db/d58/group__calib3d__fisheye.html)
         scale = _np.tan(theta) / (theta_d + _EPS)
 
         # Undistort points

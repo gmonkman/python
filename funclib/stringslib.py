@@ -138,4 +138,42 @@ def trim(s, trim=' '):
 def rreplace(s, match, replacewith, cnt=1):
     '''(str,str,str,int)->str'''
     return replacewith.join(s.rsplit(match, cnt))
+
+
+def get_between(s, first, last):
+    '''(str, str, str) -> str
+    Gets text between first and last, searching from the left
+
+    s:
+        String to search
+    first:
+        first substring
+    last:
+        last substring
+    '''
+    try:
+        start = s.index( first ) + len( first )
+        end = s.index( last, start )
+        return s[start:end]
+    except ValueError:
+        return ''
+
+
+def get_between_r(s, first, last ):
+    '''(str, str, str) -> str
+    Gets text between first and last, searching from the right
+
+    s:
+        String to search
+    first:
+        first substring
+    last:
+        last substring
+    '''
+    try:
+        start = s.rindex( first ) + len( first )
+        end = s.rindex( last, start )
+        return s[start:end]
+    except ValueError:
+        return ''
 # endregion

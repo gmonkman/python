@@ -459,7 +459,7 @@ def file_list_generator(paths, wildcards):
     if isinstance(wildcards, str):
         wildcards = [wildcards]
 
-    ww = [ '*' + x if x[0]=='.' else x  for x in wildcards]
+    ww = ['*' + x if x[0] == '.' else x for x in wildcards]
        
     for vals in (_stringslib.add_right(x[0]) + x[1]
                  for x in _itertools.product(paths, ww)):
@@ -482,7 +482,7 @@ def file_list_generator1(paths, wildcards, recurse=False):
     if isinstance(wildcards, str):
         wildcards = [wildcards]
     
-    wildcards = [ '*' + x if x[0]=='.' else x  for x in wildcards]
+    wildcards = ['*' + x if x[0] == '.' else x for x in wildcards]
 
     #for ind, v in enumerate(paths):
        # paths[ind] = _os.path.normpath(v) 
@@ -726,4 +726,28 @@ def print_progress(
         (prefix, progbar, percents, '%', suffix)), _sys.stdout.flush()
     if iteration == total:
         print("\n")
+
+
+class PrintProgress(object):
+    '''Class for dos progress bar. Implement as global for module level progress
+    
+    Example:
+        from funclib.iolib import PrintProgress as PP
+        pp = PP(len(_glob(img_path)))
+        pp.iteration = 1
+        pp.increment
+    '''
+
+    def __init__(self, maximum, bar_length=30):
+        print('\n')
+        self.max = maximum
+        self.bar_length = bar_length
+        self.iteration = 0
+
+    def increment(self):
+        '''tick the progress bar'''
+        print_progress(
+            self.iteration, self.max, prefix='%i of %i' %
+            (self.iteration, self.max), bar_length=self.bar_length)
+        self.iteration += 1
 # endregion
