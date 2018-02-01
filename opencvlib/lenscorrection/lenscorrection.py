@@ -292,6 +292,8 @@ class Calibration(object):
         img_points_fisheye = []
         fcnt = 0
         cnt = 0
+        bad_images = []
+        deleted_images = []
 
         FE_CALIB_FLAGS = Calibration.FISHEYE_CALIBRATION_FLAGS
         if fisheye_no_check:
@@ -404,6 +406,26 @@ class Calibration(object):
         return 'Camera %s Resolution %ix%i: %i of %i were useable' % (self.camera_model,
             self.width, self.height, self.img_used_count, self.img_total_count)
 # endregion
+
+def delete_profile(camera, x, y, quite=False):
+    '''(str, int, int, bool) -> void
+    Deletes a camera calibration from table calibration.
+    Does not delete the camera model name in camera_model
+
+    camera:
+        camera model name, camera_model
+    x:
+        calibration profile image width
+    y:
+        calibration profile image height
+    quite:
+
+    '''
+    with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
+        crud = _lenscorrectiondb.CalibrationCRUD(conn)
+        crud.crud_calibration_delete_by_composite(camera, y, x)        
+        if not quite:
+            print('Done')
 
 
 def list_profiles():
@@ -647,9 +669,7 @@ def undistort(
             try:
                 resize_suffix = ''
                 # used later to rebuild output file name
-                path, name, ext = _iolib.get_file_parts(fil)
-                path = path + ''
-                ext = ext + ''  # silly thing to get rid of unused varible in pylint
+                _, name, _ = _iolib.get_file_parts(fil)
                 orig_img = _cv2.imread(fil)
                 width, height = _info.ImageInfo.resolution(orig_img)
                 if (last_width != width and last_height !=
@@ -672,9 +692,9 @@ def undistort(
                             resize_suffix = '_RZ%ix%i' % (w, h)
 
                 if blobs is None:
-                    _iolib.write_to_eof(
-                        logfilename, 'No calibration data for image %s, resolution [%sx%s]' %
-                        (fil, width, height))
+                    s = 'No calibration data for image %s, resolution [%sx%s]' % (fil, width, height)
+                    print(s)
+                    _iolib.write_to_eof(logfilename, s)
                     list_append_unique(bad_res, '%ix%i' % (width, height))
                 else:
                     #{'cmat':cmat, 'dcoef':dcoef, 'rvect':rvect, 'tvect':tvect, 'K':K, 'D':D}

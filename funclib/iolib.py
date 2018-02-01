@@ -102,11 +102,9 @@ def write_to_eof(filename, thetext):
     '''(_string,_string) ->void
     Write thetext to the end of the file given in filename.
     '''
-    try:
-        fid = open(filename, 'a+') #a+ means append, creating the file if it doesnt exist
-        fid.write(thetext)
-    finally:
-        if fid: fid.close
+    with _fuckit:
+        with open(filename, 'a+') as fid:
+            fid.write(thetext)
 
 
 def readcsv(filename, cols=1, startrow=0, numericdata=True):

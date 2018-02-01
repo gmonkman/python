@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>wait-keypress</Title>
+      <Shortcut>wait-keypress</Shortcut>
+      <Description>Prompt and wait for a keypress</Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[
+from funclib.iolib import wait_key as _wait_key
+        print('Press any key to continue')
+        _wait_key()
+        ]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

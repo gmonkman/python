@@ -25,8 +25,7 @@ class Test(unittest.TestCase):
         print(res)
 
 
-
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_calibrate(self):
         '''test the calibration, also does fisheye (default to do both)
 
@@ -41,21 +40,20 @@ class Test(unittest.TestCase):
         #GoPro4
         cam = _lc.get_camera('GoProHero4PhotoMedium')
         _lc.calibrate(cam)
-        print('Press any key to continue....')
+
         cam = _lc.get_camera('GoProHero4PhotoWide')
         _lc.calibrate(cam)
-        print('Press any key to continue....')
 
         #GoPro5
-        cam = _lc.get_camera('GoProHero5PhotoWide')
-        _lc.calibrate(cam)
-        print('Press any key to continue....')
-        cam = _lc.get_camera('GoProHero5PhotoMedium')
-        _lc.calibrate(cam)
-        print('Press any key to continue....')
-        cam = _lc.get_camera('GoProHero5PhotoNarrow')
-        _lc.calibrate(cam)
-        print('Press any key to continue....')
+        #cam = _lc.get_camera('GoProHero5PhotoWide')
+        #_lc.calibrate(cam)
+        #print('Press any key to continue....')
+        #cam = _lc.get_camera('GoProHero5PhotoMedium')
+        #_lc.calibrate(cam)
+        #print('Press any key to continue....')
+        #cam = _lc.get_camera('GoProHero5PhotoNarrow')
+        #_lc.calibrate(cam)
+        #print('Press any key to continue....')
 
         #cam = _lc.get_camera('s5690')
         #_lc.calibrate(cam, skip_fisheye=True)
@@ -67,26 +65,119 @@ class Test(unittest.TestCase):
 
 
     @unittest.skip("Temporaily disabled while debugging")
-    def test_undistort(self):
-        '''standard undistort'''
-        cam = _lc.get_camera('GoProHero5PhotoWide')
-        out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/wide/undistorted_standard'
-        in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/wide'
+    def test_delete_profile(self):
+        '''test_delete_profile'''
+        _lc.delete_profile('GoProHero4', 1280, 738)
+
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_undistort_bass(self):
+        '''test_undistort_bass'''
+        #cam = _lc.get_camera('GoProHero4PhotoWide')
+        #in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/goprohero4/wide'
+        #out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/goprohero4/wide/undistorted_standard'
+        #iolib.files_delete(out_path)
+        #_lc.undistort(cam, in_path, out_path, use_fisheye=False)
+        #iolib.wait_key()
+        pass
+
+    
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_calibrate_undistort_512G(self):
+        '''test_calibrate_undistort_512G'''
+        #calibrate
+        cam = _lc.get_camera('NEXTBASE512G')
+        _lc.calibrate(cam, skip_fisheye=True)
+        print('press any key to continue')
+        iolib.wait_key()
+
+        #undistort the images used in the calibration
+        in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/nextbase512g'
+        out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/nextbase512g/undistorted_standard'
         iolib.files_delete(out_path)
         _lc.undistort(cam, in_path, out_path, use_fisheye=False)
 
+        print('press any key to continue')
+        iolib.wait_key()
+
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_calibrate_undistort_GoProHero4Wide(self):
+        '''test_calibrate_undistort_GoProHero4Wide'''
+        #calibrate
+        cam = _lc.get_camera('GoProHero4PhotoWide')
+        _lc.calibrate(cam, skip_fisheye=False)
+
+        print('press any key to continue')
+        iolib.wait_key()
+
+        #undistort the images used in the calibration
+        in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/gopro/hero4/wide'
+        out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/gopro/hero4/wide/undistorted_fisheye'
+        iolib.files_delete(out_path)
+        _lc.undistort(cam, in_path, out_path, use_fisheye=True)
+
+        print('press any key to continue')
+        iolib.wait_key()
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_calibrate_undistort_GoProHero5(self):
+        '''test_calibrate_undistort_GoProHero5Wide'''
+        #WIDE calibrate
+        cam = _lc.get_camera('GoProHero5PhotoWide')
+        _lc.calibrate(cam, skip_fisheye=False)
+
+        #WIDE undistort the images used in the calibration
+        in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/gopro/hero5/wide'
+        out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/gopro/hero5/wide/undistorted_fisheye'
+        iolib.files_delete(out_path)
+        _lc.undistort(cam, in_path, out_path, use_fisheye=True)
+
+        #-----
+
+        #Medium Standard calibrate
+        cam = _lc.get_camera('GoProHero5PhotoMedium')
+        _lc.calibrate(cam, skip_fisheye=False)
+
+        #Medium undistort the images used in the calibration
+        in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/gopro/hero5/medium'
+        out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/gopro/hero5/medium/undistorted_fisheye'
+        iolib.files_delete(out_path)
+        _lc.undistort(cam, in_path, out_path, use_fisheye=True)
+
+        #-----
+
+        #Narrow Standard calibrate
+        cam = _lc.get_camera('GoProHero5PhotoNarrow')
+        _lc.calibrate(cam, skip_fisheye=False)
+
+        #Narrow undistort the images used in the calibration
+        in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/gopro/hero5/narrow'
+        out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/gopro/hero5/narrow/undistorted_fisheye'
+        iolib.files_delete(out_path)
+        _lc.undistort(cam, in_path, out_path, use_fisheye=True)
+
+        print('Press any key to continue')
+        iolib.wait_key()
+        
 
     @unittest.skip("Temporaily disabled while debugging")
     def test_undistort_fisheye_wide(self):
         '''fisheye undistort'''
-        cam = _lc.get_camera('GoProHero5PhotoWide')
+
+        #GoProHero4PhotoMedium, GoProHero4PhotoWide
+        #GoProHero5PhotoWide, GoProHero5PhotoMedium, GoProHero5PhotoNarrow
+        
+        #cam = _lc.get_camera('GoProHero5PhotoWide')
         #out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/wide/undistorted_fisheye'
         #in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/goprohero5/wide'
         #iolib.files_delete(out_path)
         #_lc.undistort(cam, in_path, out_path, use_fisheye=True)
 
-        out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/goprohero5/wide/undistorted_fisheye'
-        in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/goprohero5/wide'
+        cam = _lc.get_camera('GoProHero4PhotoWide')
+        in_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/goprohero4/wide'
+        out_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/goprohero4/wide/undistorted_fisheye'
         iolib.files_delete(out_path)
         _lc.undistort(cam, in_path, out_path, use_fisheye=True)
 

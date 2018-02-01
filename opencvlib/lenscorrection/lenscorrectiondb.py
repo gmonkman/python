@@ -179,7 +179,8 @@ class CalibrationCRUD(object):
             keys,
             width=width,
             height=height,
-            rms=rms
+            rms=rms,
+            timestamp='CURRENT_TIMESTAMP'
             )
         self.executeSQL(sql)
 
@@ -187,19 +188,27 @@ class CalibrationCRUD(object):
         self._blobs(calibrationid, camera_matrix, dcoef, rvect, tvect, K, D)
         return calibrationid
 
-    def crud_calibration_delete_by_composite(
-            self, camera_modelid, height, width):
-        '''delete calibration by unique key
-        kargs should be:
-        width: height: camera_model:
+    def crud_calibration_delete_by_composite(self, id_or_name, height, width):
+        '''(int|str, int, int)
+        Delete calibration by unique key
         '''
-        assert isinstance(camera_modelid, int)
+        assert isinstance(id_or_name, (int,str)), 'id_or_name should be a string (the name) or the camera id from the db'
+        
+        if isinstance(id_or_name, str):
+            i = self.get_value('camera_model', 'camera_modelid', {'camera_model':id_or_name})
+            if i is None:
+                return
+        else:
+            i = int(id_or_name)
+
         sql = CalibrationCRUD._sql_delete(
             'calibration',
-            camera_modelid=camera_modelid,
+            camera_modelid=i,
             height=height,
             width=width)
+
         self.executeSQL(sql)
+
 
     def crud_read_calibration_blobs(self, camera_model, height, width):
         '''(str, int, int)-> dic
@@ -229,13 +238,13 @@ class CalibrationCRUD(object):
         for row in res:
             if not row:
                 return None
-
-            cmat = _pickle.loads(row['camera_matrix'])
-            dcoef = _pickle.loads(row['distortion_coefficients'])
-            rvect = _pickle.loads(row['rotational_vectors'])
-            tvect = _pickle.loads(row['translational_vectors'])
-            K = _pickle.loads(row['K'])
-            D = _pickle.loads(row['D'])
+            iif = lambda x: None if x is None else _pickle.loads(x) 
+            cmat = iif(row['camera_matrix'])
+            dcoef = iif(row['distortion_coefficients'])
+            rvect = iif(row['rotational_vectors'])
+            tvect = iif(row['translational_vectors'])
+            K = iif(row['K'])
+            D = iif(row['D'])
             return {
                 'cmat': cmat,
                 'dcoef': dcoef,
@@ -249,6 +258,7 @@ class CalibrationCRUD(object):
         '''execute sql against the db'''
         cur = self.conn.cursor()
         cur.execute(sql)
+        self.conn.commit()
 
     def _blobs(self, calibrationid, camera_matrix, dcoef, rvect, tvect, K, D):
         '''add the blobs seperately, easier because we let upsert generator deal with the insert/update
@@ -278,12 +288,12 @@ class CalibrationCRUD(object):
         Lists all available profiles
         '''
         sql = 'select' \
-            ' camera_model || ":  " || cast(width as text) || "x" || cast(height as text) ||' \
+            ' camera_model || ": " || cast(width as text) || "x" || cast(height as text) ||' \
             ' case' \
-            '    when K is null and camera_matrix is null then "  No Standard, No Fisheye"' \
-            '    when K is null and camera_matrix is not null then "  Standard, No Fisheye"' \
-            '    when K is not null and camera_matrix is null then "  No Standard, Fisheye"' \
-            '    else "  Standard, Fisheye"' \
+            '    when K is null and camera_matrix is null then " No Standard, No Fisheye  " || cast(timestamp as text)' \
+            '    when K is null and camera_matrix is not null then " Standard, No Fisheye  " || cast(timestamp as text)' \
+            '    when K is not null and camera_matrix is null then " No Standard, Fisheye  " || cast(timestamp as text)' \
+            '    else " Standard, Fisheye  " || cast(timestamp as text)' \
             ' end as res' \
             ' from' \
             ' camera_model inner join calibration on camera_model.camera_modelid=calibration.camera_modelid' \
@@ -431,6 +441,11 @@ class CalibrationCRUD(object):
         
         Field values are passed as kwargs.
 
+        The upsert will considers a value string of 'CURRENT_TIMESTAMP'
+        a special case, and will strip the quotes so the corresponding
+        field gets set to CURRENT_TIMESTAMP. e.g. timestamp='CURRENT_TIMESTAMP'
+        will be timestamp=CURRENT_TIMESTAMP in the final sql.
+
         table:
             Database table name
         keylist:
@@ -452,7 +467,10 @@ class CalibrationCRUD(object):
             sql_update.append("UPDATE %s SET " % (table))
             sql_update.append(", ".join(update))
             sql_update.append(" WHERE %s" % (" AND ".join(where)))
-            return "".join(sql_update)
+
+            ret = "".join(sql_update)
+            ret = ret.replace("'CURRENT_TIMESTAMP'","CURRENT_TIMESTAMP")
+            return ret
 
 
         keys = ["%s" % k for k in allargs]
@@ -463,11 +481,24 @@ class CalibrationCRUD(object):
         sql_insert.append(") VALUES (")
         sql_insert.append(", ".join(values))
         sql_insert.append(");")
-        return "".join(sql_insert)
+        ret = "".join(sql_insert)
+        ret = ret.replace("'CURRENT_TIMESTAMP'","CURRENT_TIMESTAMP")
+        return ret
 
     @staticmethod
     def _sql_delete(table, **kwargs):
-        ''' deletes rows from table where **kwargs match '''
+        '''(str, dict) -> str
+        Generates a delete sql from keyword/value pairs
+        where keyword is the column name and value is the value to match.
+
+        table:
+            table name
+        kwargs:
+            Key/value pairs, e.g. {'camera':'GoPro', 'x':1024, 'y':768}
+
+        returns:
+            The delete SQL
+        '''
         sql = list()
         sql.append("DELETE FROM %s " % table)
         sql.append("WHERE " + " AND ".join("%s = '%s'" % (k, v)
