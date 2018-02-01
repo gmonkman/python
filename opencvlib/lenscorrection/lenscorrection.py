@@ -83,7 +83,6 @@ def suppress_stdout(stdout=True, stderr=True):
         old_stderr = _sys.stderr
         if stdout:
             _sys.stdout = devnull
-
         if stderr:
             _sys.stderr = devnull
         try:  
@@ -319,7 +318,7 @@ class Calibration(object):
                             'Chessboard vertices not found in %s. The file was deleted.' % (fn))
                         with _fuckit:
                             _os.remove(fn)
-                            print(self.messages([-1]))
+                            print(self.messages[-1])
 
                     _PrintProgress.increment()
 
@@ -396,7 +395,7 @@ class Calibration(object):
             _ = int(db.crud_calibration_upsert(
                 modelid, self.width, self.height, cm, dc, rms, rv, tv, kk, dd))
             conn.commit()
-        
+        self.img_used_count = n_ok
         return bad_images, deleted_images
 
     @property

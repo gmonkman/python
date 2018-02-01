@@ -179,7 +179,7 @@ class CalibrationCRUD(object):
             keys,
             width=width,
             height=height,
-            rms=rms,
+            rms=rms
             )
         self.executeSQL(sql)
 
@@ -422,10 +422,24 @@ class CalibrationCRUD(object):
         return "".join(sql)
 
     def _sql_upsert(self, table, keylist, **kwargs):
-        '''(str, dict, **kwargs)->void
-        keylist is dictionary of key fields and their values used
-        to build the where.
-        Pass the rest of the values in kwargs
+        '''(str, dict, **kwargs)->str
+        Generate an SQL statement to either insert or update an sql table.
+        If the record exists, as determined by the keylist then an update is
+        generated, otherwise an insert
+        
+        Keylist is dictionary of key fields and their values used to build the where.
+        
+        Field values are passed as kwargs.
+
+        table:
+            Database table name
+        keylist:
+            Builds the where e.g. {'orderid':1, 'supplier':'Widget Company'}
+        kwargs:
+            Fields to insert/update
+
+        returns:
+            The insert or update SQL as a string
         '''
         allargs = _baselib.dic_merge_two(keylist, kwargs)
         sql_insert = []

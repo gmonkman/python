@@ -751,3 +751,29 @@ class PrintProgress(object):
             (self.iteration, self.max), bar_length=self.bar_length)
         self.iteration += 1
 # endregion
+
+
+def wait_key():
+    ''' (void) -> str
+    Wait for a key press on the console and returns it. '''
+    result = None
+    if _os.name == 'nt':
+        import msvcrt
+        result = msvcrt.getch()
+    else:
+        import termios as _termios
+        fd = _sys.stdin.fileno()
+
+        oldterm = _termios.tcgetattr(fd)
+        newattr = _termios.tcgetattr(fd)
+        newattr[3] = newattr[3] & ~_termios.ICANON & ~_termios.ECHO
+        _termios.tcsetattr(fd, _termios.TCSANOW, newattr)
+
+        try:
+            result = _sys.stdin.read(1)
+        except IOError:
+            pass
+        finally:
+            _termios.tcsetattr(fd, _termios.TCSAFLUSH, oldterm)
+
+    return result

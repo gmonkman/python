@@ -28,19 +28,42 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_calibrate(self):
-        '''test the calibration
-        Also does fisheye (default to do both)
+        '''test the calibration, also does fisheye (default to do both)
 
         Gets calibration paths etc from lenscorrection.py.ini
 
-        GoProHero5PhotoWide
-        GoProHero5PhotoMedium
-        GoProHero5PhotoNarrow
+        GoProHero4PhotoMedium, GoProHero4PhotoWide
+        GoProHero5PhotoWide, GoProHero5PhotoMedium, GoProHero5PhotoNarrow
+        s5690
+        finepixXP30
         '''
-        #cam = _lc.get_camera('GoProHero5PhotoWide')
-        cam = _lc.get_camera('GoProHero5PhotoMedium')
-        #cam = _lc.get_camera('GoProHero5PhotoNarrow')
+
+        #GoPro4
+        cam = _lc.get_camera('GoProHero4PhotoMedium')
         _lc.calibrate(cam)
+        print('Press any key to continue....')
+        cam = _lc.get_camera('GoProHero4PhotoWide')
+        _lc.calibrate(cam)
+        print('Press any key to continue....')
+
+        #GoPro5
+        cam = _lc.get_camera('GoProHero5PhotoWide')
+        _lc.calibrate(cam)
+        print('Press any key to continue....')
+        cam = _lc.get_camera('GoProHero5PhotoMedium')
+        _lc.calibrate(cam)
+        print('Press any key to continue....')
+        cam = _lc.get_camera('GoProHero5PhotoNarrow')
+        _lc.calibrate(cam)
+        print('Press any key to continue....')
+
+        #cam = _lc.get_camera('s5690')
+        #_lc.calibrate(cam, skip_fisheye=True)
+
+        #cam = _lc.get_camera('finepixXP30')
+        #_lc.calibrate(cam, skip_fisheye=True
+
+        iolib.wait_key()
 
 
     @unittest.skip("Temporaily disabled while debugging")
@@ -70,4 +93,3 @@ class Test(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
-    input("Press Enter to continue...")
