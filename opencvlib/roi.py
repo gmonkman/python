@@ -6,6 +6,7 @@ from an image.
 Includes some geometry related functions for shapes
 '''
 from random import randint as _randint
+from enum import Enum as _enum
 
 import cv2 as _cv2
 import numpy as _np
@@ -19,6 +20,60 @@ import opencvlib.info as _info
 __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
            'rect2rect_mtx', 'rect_as_points', 'rects_intersect', 'roi_polygons_get',
            'sample_rect', 'to_rect']
+
+
+class ePointConversion(_enum):
+    '''enumeration for point coversion between frames'''
+    XYtoRC = 0
+    XYtoCVXY = 1
+    RCtoXY = 2
+    RCtoCVXY = 3
+    CVXYtoXY = 4
+    CVXYtoRC = 5
+
+
+def points_convert(pts, img_x, img_y, e_pt_cvt):
+    '''(array, 2:tuple, Enum:ePointConversion) -> list
+    Converts points in one frame to another.
+    XY:Standard cartesian coordinates, RC:Matrix coordinates,
+    CVXY:OpenCV XY format which has the Y origin at the top of the image.
+
+    Note that all points are assumed to be in a 0 index.
+
+    pts:
+       An array like of points, e.g. [[1,2], [2,3]]
+    img_x:
+        image width, e.g. 1024 in a 1024x768 image
+    img_y:
+        image height, e.g. 768 in a 1024x768 image
+    e_pt_cvt:
+        the enumeration ePointConversion defining the required conversion
+
+    returns:
+        list of points, [[1,2],[2,3]]
+    '''
+    #we are using 0 indicies
+    img_x -= 1
+    img_y -= 1
+
+    out = []
+    for pt in pts:
+        if e_pt_cvt == ePointConversion.XYtoRC:
+            out.append([abs(pt[1] - img_y), pt[0]])
+        elif e_pt_cvt == ePointConversion.XYtoCVXY:
+            out.append([pt[0], abs(pt[1] - img_y)])
+        elif e_pt_cvt == ePointConversion.RCtoXY:
+            out.append([pt[1], abs(pt[0] - img_y)])
+        elif e_pt_cvt == ePointConversion.RCtoCVXY:
+            out.append([pt[1], pt[0]])
+        elif e_pt_cvt == ePointConversion.CVXYtoXY:
+            out.append([pt[0], abs(pt[1] - img_y)])
+        elif e_pt_cvt == ePointConversion.CVXYtoRC:
+            out.append([pt[1], pt[0]])
+        else:
+            raise ValueError('Unknown conversion enumeration, ensure the enum ePointConversion is used.')
+
+    return out
 
 
 @_decs.decgetimg
@@ -144,16 +199,62 @@ def get_image_from_mask(img, mask):
     bitwise = _cv2.bitwise_and(img, mask)
     return bitwise
 
+def roi_resize(roi_pts, current, target):
+    '''(ndarray|list|tuple, 2-tuple, 2-tuple, bool) -> ndarray
+
+    Given an array like of 2d points, transform from the original
+    image size to which they refer, to the new image size.
+
+    Care should be taken that roi_pts, current and target share the same
+    coordinate system (ie. all rc or x)
+
+    roi_pts_xy:
+        An array like (which is converted to a numpy array) of points
+        in x,y format.
+    current:
+        size of 'image' which points are from
+    target:
+        size of image to project points on
+    '''
+
+    t_mat =  _np.eye(2)
+    t_mat[0, 0] = target[0]/current[0]
+    t_mat[1, 1] = target[1]/current[1]
+    
+    return _np.matrix(roi_pts) * _np.matrix(t_mat)
+
+
+
+def pts_reverse(pts):
+    '''(ndarray|list|tuple) -> ndarray
+    Takes an array of points and reverses it, this
+    is effectively an xy to rc or vica versa conversion
+
+    pts:
+        listlike array of points
+
+    returns
+        ndarray of points, reversed.
+    '''
+    ndpts = _np.array(pts)
+    assert isinstance(ndpts, _np.ndarray)
+    assert len(ndpts[0]) == 2, 'Expected points to contain 2 numbers, not %s' % len(ndpts[0]) == 2
+    return _np.flip(ndpts, 1)
+    
 
 def to_rect(a):
-    '''(arraylike)->nparray of type float64
+    '''(arraylike)->ndarray of type float64
     Takes a point [1,2] and returns
     a rectangle sized according to the
     origin [0,0] and the point.
+    
+    a:
+        single point e.g. (1,2)
+    
+    return:
+        4-tuple, e.g. (0, 0, 1, 2)
 
-    eg a=[2,3] returns
-    [[0,0]
-     [2,3]]
+    Example: to_rect([2,3]) would return (0, 0, 2, 3)
     '''
     a = _np.ravel(a)
     if len(a) == 2:

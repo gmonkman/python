@@ -287,6 +287,42 @@ def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
     return _cv2.resize(image, dim, interpolation=inter)
 
 
+def rotate(image, angle, no_crop=False):
+    '''(str|ndarray, float, bool) -> ndarray
+    Rotate an image through 'angle' degrees.
+
+    image:
+        the image as a path or ndarray
+    angle:
+        angle, positive for anticlockwise, negative for clockwise
+    no_crop:
+        if true, the image will not be cropped
+
+    '''
+    img = _getimg(image)
+    (h, w) = img.shape[:2]
+    (cX, cY) = (w // 2, h // 2)
+
+    M = _cv2.getRotationMatrix2D((cX, cY), angle, 1.0)
+
+    if no_crop:
+        cos = _np.abs(M[0, 0])
+        sin = _np.abs(M[0, 1])
+ 
+        # compute the new bounding dimensions of the image
+        nW = int((h * sin) + (w * cos))
+        nH = int((h * cos) + (w * sin))
+ 
+        # adjust the rotation matrix to take into account translation
+        M[0, 2] += (nW / 2) - cX
+        M[1, 2] += (nH / 2) - cY
+ 
+        # perform the actual rotation and return the image
+        return _cv2.warpAffine(image, M, (nW, nH))
+    else:
+        return _cv2.warpAffine(image, M, (w, h))
+
+
 
 def histeq_color(img, cvtToHSV=True):
     '''(ndarray)->ndarray

@@ -3,9 +3,11 @@ import unittest
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 
-#import opencvlib.roi as roi
-import funclib.iolib as iolib
+import numpy as np
 
+import opencvlib.roi as roi
+import funclib.iolib as iolib
+from opencvlib.roi import ePointConversion as eCvt
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -20,11 +22,52 @@ class Test(unittest.TestCase):
         pass
 
 
-    @unittest.skip("Temporaily disabled while debugging")
-    def test_roi(self):
+    #unittest.skip("Temporaily disabled while debugging")
+    def test_roi_resize(self):
         '''test roi'''
-        pass
+        pts = np.array([[0, 0], [10, 10], [0, 10], [10, 0]])
+        sz1 = np.array([800, 600])
+        sz2 = sz1*2
 
+        res = roi.roi_resize(pts, sz1, sz2)
+        self.assertTrue(np.array_equal(res, pts*2))
+
+        sz2 = sz1*[1.5, 1]
+        res = roi.roi_resize(pts, sz1, sz2)
+        self.assertTrue(np.array_equal(res, pts*[1.5, 1]))
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_points_convert(self):
+        '''test points conversions'''
+        w = 1024
+        h = 768
+
+        #xy origin, top-right, originish
+        xy_pts = [[0, 0], [w-1, h-1], [50, 100]]
+        pts = roi.points_convert(xy_pts, w, h, eCvt.XYtoCVXY)
+        self.assertTrue(pts == [[0, 767], [1023, 0], [50, 667]])
+
+        pts = roi.points_convert(xy_pts, w, h, eCvt.XYtoRC)
+        self.assertTrue(pts == [[767, 0], [0, 1023], [667, 50]])
+
+
+        #rc top-left, bot-right, top-leftish
+        rc_pts = [[0, 0], [h-1, w-1], [50, 100]]
+        pts = roi.points_convert(rc_pts, w, h, eCvt.RCtoCVXY)
+        self.assertTrue(pts == [[0, 0], [1023, 767], [100, 50]])
+
+        pts = roi.points_convert(rc_pts, w, h, eCvt.RCtoXY)
+        self.assertTrue(pts == [[0, 767], [1023, 0], [100, 717]])
+
+
+        #CVXY top-left, bot-right, top leftish
+        cvxy_pts = [[0, 0], [w-1, h-1], [50, 100]]
+        pts = roi.points_convert(cvxy_pts, w, h, eCvt.CVXYtoRC)
+        self.assertTrue(pts == [[0, 0], [767, 1023], [100, 50]])
+
+        pts = roi.points_convert(cvxy_pts, w, h, eCvt.CVXYtoXY)
+        self.assertTrue(pts == [[0, 767], [1023, 0], [50, 667]])
 
 
 if __name__ == '__main__':
