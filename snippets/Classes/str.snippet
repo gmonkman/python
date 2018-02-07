@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>str</Title>
+      <Shortcut>str</Shortcut>
+      <Description>__str__ printing class properties</Description>
+      <Author>Microsoft Corporation</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>     
+      </Declarations>
+      <Code Language="Python"><![CDATA[
+
+    def __str__(self):
+        sb = []
+        for key in self.__dict__:
+            sb.append("{key}='{value}'".format(key=key, value=self.__dict__[key]))
+        return ', '.join(sb)
+
+]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

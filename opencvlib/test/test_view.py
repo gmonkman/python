@@ -7,8 +7,8 @@ import cv2
 import numpy as np
 
 import funclib.iolib as _iolib
+import opencvlib.view as view
 
-from opencvlib.view import showarray
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -48,10 +48,12 @@ class Test(unittest.TestCase):
         self.MOSAIC_RGB = cv2.cvtColor(self.MOSAIC_BGR, cv2.COLOR_BGR2RGB)
         self.MOSAIC_GREY = cv2.cvtColor(self.MOSAIC_BGR, cv2.COLOR_BGR2GRAY)
 
+
     @unittest.skip("Temporaily disabled test_showarray")
     def test_showarray(self):
         '''test'''
-        showarray([self.patch, self.patch])
+        view.showarray([self.patch, self.patch])
+
 
 
 if __name__ == '__main__':

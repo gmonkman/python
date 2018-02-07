@@ -238,38 +238,6 @@ def grouper(n, iterable, fillvalue=None):
     return output
 
 
-def mosaic(w, imgs):
-    '''Make a grid from images.
-
-    w    -- number of grid columns
-    imgs -- images (must have same size and format)
-    '''
-    imgs = iter(imgs)
-    if PY3:
-        img0 = next(imgs)
-    else:
-        img0 = next(imgs)
-    pad = _np.zeros_like(img0)
-    imgs = _it.chain([img0], imgs)
-    rows = grouper(w, imgs, pad)
-    return _np.vstack(map(_np.hstack, rows))
-
-
-def getsize(img):
-    h, w = img.shape[:2]
-    return w, h
-
-
-def mdot(*args):
-    return _reduce(_np.dot, args)
-
-
-def draw_keypoints(vis, keypoints, color=(0, 255, 255)):
-    for kp in keypoints:
-        x, y = kp.pt
-        _cv2.circle(vis, (int(x), int(y)), 2, color)
-
-
 def chessboard(patch_sz=100, col_first_patch=(0, 0, 0), col_second_patch=(255, 255, 255), cols=9, rows=6):
     '''(int, 3-tuple, 3-tuple, int, int, bool) -> ndarray
     Returns a chessboard pattern.

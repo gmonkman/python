@@ -7,6 +7,7 @@ Stick list/tuple/dic functions in here.
 '''
 import collections as _collections
 import sys as _sys
+import operator
 
 import numpy as _np
 
@@ -20,8 +21,6 @@ class classproperty(property):
         super(classproperty, self).__set__(type(obj), value)
     def __delete__(self, obj):
         super(classproperty, self).__delete__(type(obj))
-
-
 
 
 #########
@@ -145,6 +144,42 @@ def dic_merge_two(x, y):
     z.update(y)
     return z
 # endregion
+
+
+def dic_sort_by_val(d):
+    '''(dict) -> list
+    Sort a dictionary by the values, 
+    returning as a list
+
+    d:
+        dictionary
+
+    returns:
+        list of tuples
+
+    Example:
+        >>>dic_sort_by_val({1:1, 2:10, 3:22, 4:1.03})
+        [(1, 1), (4, 1.03), (2, 10), (3, 22)]
+    '''
+    return sorted(d.items(), key=operator.itemgetter(1))
+
+
+def dic_sort_by_key(d):
+    '''(dict) -> list
+    Sort a dictionary by the values, 
+    returning as a list of tuples
+
+    d:
+        dictionary
+
+    returns:
+        lit of tuples
+
+    Example:
+    >>>dic_sort_by_key({1:1, 4:10, 3:22, 2:1.03})
+    [(1,1), (2,1.03), (3,22), (4,10)]
+    '''
+    return sorted(d.items(), key=operator.itemgetter(0))
 
 
 # region lists

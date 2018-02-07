@@ -56,10 +56,8 @@ lenscorrection.py -m undistort_fisheye -c GoProHero5PhotoWide -o C:/Users/GRAHAM
     <Compile Include="display_utils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="euclidgeom.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="fiducial.py" />
+    <Compile Include="geometry.py" />
     <Compile Include="histo.py">
       <SubType>Code</SubType>
     </Compile>

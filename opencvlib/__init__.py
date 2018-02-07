@@ -26,12 +26,17 @@ IMAGE_EXTENSIONS_AS_WILDCARDS = ('*.bmp',
                                  '*.ppm')
 
 __all__ = ['classifiers', 'common',
-           'color', 'decs', 'distance',
+           'color', 'decs',
+           'display_utils', 'distance',
            'edges', 'errors',
            'faces', 'features',
-           'hogview', 'keypoints',
-           'perspective', 'roi', 'streams',
-           'transforms', 'winpyr']
+           'geometry', 'histo',
+           'hogview', 'info',
+           'keypoints', 'matcher',
+           'perspective', 'player',
+           'roi', 'streams', 'template_match',
+           'transforms', 'video',
+           'view', 'winpyr']
 
 
 

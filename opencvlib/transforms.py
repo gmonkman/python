@@ -319,8 +319,8 @@ def rotate(image, angle, no_crop=False):
  
         # perform the actual rotation and return the image
         return _cv2.warpAffine(image, M, (nW, nH))
-    else:
-        return _cv2.warpAffine(image, M, (w, h))
+
+    return _cv2.warpAffine(image, M, (w, h))
 
 
 

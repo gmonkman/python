@@ -15,6 +15,10 @@ from numpy import ma as _ma
 import opencvlib.decs as _decs
 import opencvlib as _opencvlib
 import opencvlib.info as _info
+import opencvlib.distance as _dist
+import opencvlib.geometry as _geom
+import funclib.baselib as _baselib
+from opencvlib import getimg as _getimg
 
 
 __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
@@ -30,6 +34,130 @@ class ePointConversion(_enum):
     RCtoCVXY = 3
     CVXYtoXY = 4
     CVXYtoRC = 5
+
+
+class Line():
+    '''Holds a line
+    Angles are from the y axis, which is 0 degrees
+
+    Point formats are CVXY
+    '''
+
+    def __init__(self, pt1, pt2):
+        '''(array, array)
+        pt1 and pt2 are both 2-arrays, they should be
+        in CVXY format (i.e. origin at top left, x-coord first)
+        '''
+        assert len(pt1) == len(pt2) == 2, 'pt1 and pt2 should be 2 elements array likes.'
+        self.pt1 = pt1
+        self.pt2 = pt2
+        self.length = None
+        self.angle_to_x = None
+        self.midpoint = None
+        self._refresh()
+
+
+    def __call__(self, pt1, pt2):
+        self.pt1 = pt1
+        self.pt2 = pt2
+        self._refresh()
+
+
+    def __str__(self):
+        sb = []
+        for key in self.__dict__:
+            sb.append("{key}='{value}'".format(key=key, value=self.__dict__[key]))
+        return ', '.join(sb)
+
+
+    def _refresh(self):
+        '''internal function to refresh
+        length and angles
+        '''
+        self.length = _dist.L2dist(self.pt1, self.pt2)
+        self.angle_to_x = _geom.rotation_angle(self.pt1, self.pt2)
+        self.midpoint = [(pt1[0] + pt2[0]) / 2, (pt1[1] + pt2[1]) / 2]
+
+
+class Quadrilateral():
+    '''represents a quadrilateral shape in opencv
+
+    Properties:
+        lines: list of Line instances
+    '''
+
+    def __init__(self, pts):
+        self.pts = pts
+        self.lines = []
+        self.angle_to_origin = None
+
+
+    def __call__(self, pts):
+        self.pts = pts
+
+
+    def __str__(self):
+        sb = []
+        for key in self.__dict__:
+            sb.append("{key}='{value}'".format(key=key, value=self.__dict__[key]))
+        return ', '.join(sb)
+
+
+    def _refresh(self):
+        assert len(pts) == 2, 'Expected 4 points, got %s.' % len(pts)
+        for l in range(0, len(pts) - 2):
+            self.lines.append(Line(pts[l], pts[l + 1]))
+        self.lines.append(Line(pts[-1], pts[0]))
+
+
+    def _angle(self):
+        '''() -> void
+        calculates the angle to rotate the quadrilateral to
+        make it parralel with the x axis, setting the class property
+        angle_to_origin
+
+        It doe this by finding the line joining the midpoint of the two shortest sides and
+        and calculating the angle of this line to the x-axis using arctan.
+        '''
+        #get two shortest sides
+        assert len(self.line) == 4, 'Expected 4 line objects in quadrilateral object, have you initialised it properly?'
+        dic = {i:ln.length for i, ln in enumerate(self.lines)}
+        s = _baselib.dic_sort_by_val(dic)
+
+        line1 = self.lines[s[0][0]]
+        line2 = self.lines[s[1][0]]
+        assert isinstance(line1, Line)
+        assert isinstance(line2, Line)
+
+        #get the angle from the two shortest sides as defined by their points
+        self.angle_to_origin = _geom.rotation_angle(line1.midpoint, line2.midpoint)
+
+
+    @property
+    def rotated_to_x(self):
+        '''() -> array
+        Returns the quadrilateral points, rotated so the
+        shape is parralel with the origin along its long
+        axis
+
+        Returns:
+            array of points in CVXY format
+        '''
+        return roi_rotate(self.pts, self.angle_to_origin)
+
+    @property
+    def bounding_rectangle(self):
+        '''() -> array
+
+        return the bounding rectangle of the
+        rotated_to_x quadrilateral
+
+        Returns:
+            array of points in CVXY format
+        '''
+        pts = self.rotated_to_x
+        return bounding_rect_of_poly(pts)
+
 
 
 def points_convert(pts, img_x, img_y, e_pt_cvt):
@@ -74,6 +202,7 @@ def points_convert(pts, img_x, img_y, e_pt_cvt):
             raise ValueError('Unknown conversion enumeration, ensure the enum ePointConversion is used.')
 
     return out
+
 
 
 @_decs.decgetimg
@@ -199,30 +328,63 @@ def get_image_from_mask(img, mask):
     bitwise = _cv2.bitwise_and(img, mask)
     return bitwise
 
+
 def roi_resize(roi_pts, current, target):
     '''(ndarray|list|tuple, 2-tuple, 2-tuple, bool) -> ndarray
 
     Given an array like of 2d points, transform from the original
     image size to which they refer, to the new image size.
 
-    Care should be taken that roi_pts, current and target share the same
-    coordinate system (ie. all rc or x)
+    roi_points in OpenCV XY frame, where y has origin at image row 0
 
-    roi_pts_xy:
+    roi_pts:
         An array like (which is converted to a numpy array) of points
-        in x,y format.
+        in opencv xy format.
     current:
         size of 'image' which points are from
     target:
         size of image to project points on
-    '''
 
-    t_mat =  _np.eye(2)
+    returns:
+        numpy array of resized points
+
+    comments:
+        Use roi.points_convert prior to passing if your points
+        are in an RC or cartesian frame.
+
+    '''
+    t_mat = _np.eye(2)
     t_mat[0, 0] = target[0]/current[0]
     t_mat[1, 1] = target[1]/current[1]
-    
-    return _np.matrix(roi_pts) * _np.matrix(t_mat)
 
+    return _np.array(_np.matrix(roi_pts) * _np.matrix(t_mat))
+
+
+def roi_rotate(roi_pts, angle):
+    '''(ndarray|list|tuple, float) -> ndarray
+
+    Rotate an array of 2d points by angle.
+
+    roi_points in OpenCV XY frame, where y has origin at image row 0
+
+    roi_pts:
+        An array like (which is converted to a numpy array) of points
+        in opencv xy format.
+    current:
+        size of 'image' which points are from
+    target:
+        size of image to project points on
+
+    returns:
+        numpy array of resized points
+
+    comments:
+        Use roi.points_convert prior to passing if your points
+        are in an RC or cartesian frame.
+
+    '''
+    pts = [_geom.rotate_point(pt, angle) for pt in roi_pts]
+    return _np.array(pts)
 
 
 def pts_reverse(pts):
@@ -240,17 +402,17 @@ def pts_reverse(pts):
     assert isinstance(ndpts, _np.ndarray)
     assert len(ndpts[0]) == 2, 'Expected points to contain 2 numbers, not %s' % len(ndpts[0]) == 2
     return _np.flip(ndpts, 1)
-    
+
 
 def to_rect(a):
     '''(arraylike)->ndarray of type float64
     Takes a point [1,2] and returns
     a rectangle sized according to the
     origin [0,0] and the point.
-    
+
     a:
         single point e.g. (1,2)
-    
+
     return:
         4-tuple, e.g. (0, 0, 1, 2)
 
@@ -410,3 +572,65 @@ def nms_rects(detections, threshold=.5):
             new_detections.append(detection)
             del detections[index]
     return new_detections
+
+
+def plot_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), show_labels=True, label_color=(0, 255, 255)):
+    '''(array, ndarray|str, int, int, bool, 3-tuple, bool) -> ndarray
+    Show roi points largely for debugging purposes
+
+    pts:
+        array of points in format [[1,2], [3,4], ...]
+    img:
+        ndarray, path or none. If none then the points
+        will be drawn on a white canvas of size determined
+        by the points
+    x:
+        image width if no img is provided
+    y:
+        image height if no img is provided
+    join:
+        join the points with lines
+    line_color:
+        color of lines used if join=True
+    show_labels:
+        label points with their coordinates
+
+    Returns:
+        The image (or blank canvas) with points plotted
+    '''
+    #get size of display frame
+    pad = 0
+    if img is None:
+        pad = 20
+        xs, ys = zip(*pts)
+        x = max(xs + pad) if x is None or max(xs) < x else x
+        y = max(ys + pad) if y is None or max(ys) < y else y
+        img = _np.ones((y, x, 3), dtype='uint8')*255
+    else:
+        img = _getimg(img)
+
+    #added padding, so have to adjust points slightly
+    if pad == 20:
+        pts = [[pt[0] + pad, pt[1] + pad] for pt in pts]
+        #draw original boundaries
+        _cv2.rectangle(img, (pad, pad), (img.shape[0] - pad, img.shape[1] - pad), (0, 255, 255))
+
+
+    for pt in pts:
+        centre = (int(pt[0]), int(pt[1]))
+        _cv2.circle(img, centre, 10, (255, 255, 255), -11)
+        _cv2.circle(img, center, 11, (0,0,255),1)
+        _cv2.ellipse(img, center, (10, 10), 0, 0, 90, (0, 0, 255), -1)
+        _cv2.ellipse(img, center, (10, 10), 0, 180, 270, (0, 0, 255), -1)
+        _cv2.circle(img, center, 1, (0, 255, 0), 1)
+
+        if show_labels:
+            lbl = '%s, %s' % (int(pt[0]), int(pt[1]))
+            _cv2.putText(img, lbl, (int(pt[0]) + 10,int(pt[1]) - 10), _cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, label_color)
+
+    if join:
+        poly_pts = _np.array(pts, dtype='int32')
+        poly_pts = poly_pts.reshape((-1, 1, 2))
+        _cv2.polylines(img, [poly_pts], True, line_color)
+
+    return img

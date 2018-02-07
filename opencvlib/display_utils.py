@@ -1,5 +1,5 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
-'''utils for visualisations, 
+'''helper utils for visualisations, 
 eg stream and image viewing'''
 from enum import Enum as _Enum
 
@@ -85,17 +85,6 @@ class KeyBoardInput():
 
         return KeyBoardInput.get_pressed_key(waitkeyval) == str(keyOrSpecial)
 
-
-
-    #def create_trackbar_window(win_name, trackbar_name, max):
-    #    x = 300
-    #    y = 200
-
-    #    x = _np.zeros(x*y).reshape(y, x)
-    #    _cv2.namedWindow(win_name, _cv2.
-    #    _cv2.imshow(win_name, x)
-    #    _cv2.waitKey(1)
-    #    x = _np.zeros([[0]])
 
 def draw_str(dst, x, y, s, color=(255, 255, 255), bottom_left_origin=False):
     '''(ndarray, 2:tuple, str) -> void

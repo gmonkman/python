@@ -20,9 +20,9 @@ import opencvlib.color as _color
 import opencvlib.info as _info
 from opencvlib import transforms as _transforms
 from opencvlib.common import draw_str as _draw_str
+from opencvlib import getimg as _getimg
 
-
-__all__ = ['mosaic', 'pad_images', 'show', 'showarray']
+__all__ = ['mosaic', 'pad_images', 'show', 'showarray', 'show_roi_points']
 
 _SHOW_WIDTH = 800.
 
@@ -137,7 +137,7 @@ def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.C
         <space>=32
         n=110
     '''
-    
+
     if isinstance(img, _np.ndarray):
         im = img
         if absolute:
@@ -149,7 +149,7 @@ def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.C
 
     w = w*pixel_size
     h = h*pixel_size
-    
+
     im = _transforms.resize(im, w, h, _cv2.INTER_NEAREST)
 
     w, h = _info.ImageInfo.getsize(im)
@@ -221,7 +221,6 @@ def mosaic(imgs, cols=None, pad=True, pad_color=_color.CVColors.black):
 
 
 
-# region Private
 def _grouper(n, iterable, fillvalue=None):
     '''grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx'''
     args = [iter(iterable)] * n
@@ -230,19 +229,3 @@ def _grouper(n, iterable, fillvalue=None):
     else:
         output = _it.izip_longest(fillvalue=fillvalue, *args)
     return output
-
-
-
-
-def main():
-    '''entry point'''
-    import scipy.signal as signal
-    PATCH = _np.array([[0, 0, 0, 0, 0], [0, 255, 255, 255, 0], [0, 255, 255, 255, 0], [0, 255, 255, 255, 0], [0, 0, 0, 0, 0]])
-    PATCH = PATCH.astype('uint8')
-
-    Gx = signal.convolve2d(PATCH, _np.identity(2))
-    show([Gx, PATCH], pad_color=_color.CVColors.green)
-
-if __name__ == "__main__":
-    main()
-    #sys.exit(int(main() or 0))
