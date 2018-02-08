@@ -14,6 +14,9 @@ def L2dist(p1, p2):
     B=np.array([[1,1]])
     L2dist(A, B) = 1.4142...
     '''
+    if isinstance(p1, (list, tuple)):
+        return _np.sqrt(_np.sum((_np.array(p1) - _np.array(p2))**2))
+    
     return _np.sqrt(_np.sum((p1 - p2)**2))
 
 

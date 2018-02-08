@@ -206,6 +206,15 @@ def np_nans_to_zero(a):
     return out
 
 
+def np_round_extreme(a):
+    '''(ndarray) -> ndarray
+    '''
+    tmp = _np.copy(a)
+    tmp[tmp < 0] = _np.floor(tmp[tmp<0])
+    tmp[tmp > 0] = _np.ceil(tmp[tmp > 0])
+    return tmp
+
+
 def np_unmatched_nans_to_zero(a, b):
     '''(ndarray, ndarray) -> dict
     Where there are unmatched nans by position in ndarrays

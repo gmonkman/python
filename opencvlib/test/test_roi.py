@@ -1,13 +1,19 @@
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+
 '''unit tests for roi'''
 import unittest
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 
 import numpy as np
+import cv2
 
 import opencvlib.roi as roi
 import funclib.iolib as iolib
 from opencvlib.roi import ePointConversion as eCvt
+from opencvlib.view import show
+from opencvlib.view import mosaic
+from opencvlib.transforms import rotate
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -25,7 +31,7 @@ class Test(unittest.TestCase):
         pass
 
 
-    #unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_roi_resize(self):
         '''test roi'''
         pts = np.array([[0, 0], [10, 10], [0, 10], [10, 0]])
@@ -40,7 +46,7 @@ class Test(unittest.TestCase):
         self.assertTrue(np.array_equal(res, pts*[1.5, 1]))
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_points_convert(self):
         '''test points conversions'''
         w = 1024
@@ -73,13 +79,37 @@ class Test(unittest.TestCase):
         self.assertTrue(pts == [[0, 767], [1023, 0], [50, 667]])
 
 
-    #@unittest.skip("Temporaily disabled test_showarray")
+    @unittest.skip("Temporaily disabled test_showarray")
     def test_show_roi_points(self):
-        pts= [[0,0], [10,10], [30, 10], [90,90], [300,300], [250, 450], [10, 300]]
+        '''test plotting rois'''
+        pts = [[300, 300], [400, 310], [410, 450], [310, 460]]
         img = roi.plot_points(pts)
-        from opencvlib.view import show
         show(img)
+
+
+    #@unittest.skip("Temporaily disabled test_showarray")
+    def test_quad(self):
+        '''test quadrilateral manip'''
+        padding = 100
+        quad = [[300, 300], [400, 310], [410, 450], [310, 460]]
+        img = np.ones([800,1200,3])*255
+        img = roi.plot_points(quad, img, join=True, padding=padding)
+        #show(img)
+
+        Q = roi.Quadrilateral(quad, img.shape[1], img.shape[0])
+        midpoints = [x.midpoint for x in Q.lines]
+        img = roi.plot_points(midpoints, img, padding=padding) #plot midpoints
+
+        angle = Q.angle_to_origin
+        img_rotated = rotate(img, angle, no_crop=True)
+        
+        img_rotated_points = np.ones([*img_rotated.shape])*255
+        img_rotated_points = roi.plot_points(Q.rotated_to_x, img_rotated_points, join=True, line_color=(0, 0, 0), padding=100)
+        img_rotated_points = roi.plot_points(Q.bounding_rectangle, img_rotated_points, join=True, line_color=(255, 0, 0), padding=100)
+
+
+        show(mosaic([img, img_rotated, img_rotated_points]))
+
 
 if __name__ == '__main__':
     unittest.main()
-

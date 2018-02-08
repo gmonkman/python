@@ -192,7 +192,7 @@ class CalibrationCRUD(object):
         '''(int|str, int, int)
         Delete calibration by unique key
         '''
-        assert isinstance(id_or_name, (int,str)), 'id_or_name should be a string (the name) or the camera id from the db'
+        assert isinstance(id_or_name, (int, str)), 'id_or_name should be a string (the name) or the camera id from the db'
         
         if isinstance(id_or_name, str):
             i = self.get_value('camera_model', 'camera_modelid', {'camera_model':id_or_name})
@@ -469,7 +469,7 @@ class CalibrationCRUD(object):
             sql_update.append(" WHERE %s" % (" AND ".join(where)))
 
             ret = "".join(sql_update)
-            ret = ret.replace("'CURRENT_TIMESTAMP'","CURRENT_TIMESTAMP")
+            ret = ret.replace("'CURRENT_TIMESTAMP'", "CURRENT_TIMESTAMP")
             return ret
 
 
@@ -482,7 +482,7 @@ class CalibrationCRUD(object):
         sql_insert.append(", ".join(values))
         sql_insert.append(");")
         ret = "".join(sql_insert)
-        ret = ret.replace("'CURRENT_TIMESTAMP'","CURRENT_TIMESTAMP")
+        ret = ret.replace("'CURRENT_TIMESTAMP'", "CURRENT_TIMESTAMP")
         return ret
 
     @staticmethod

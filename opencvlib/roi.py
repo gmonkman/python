@@ -18,6 +18,7 @@ import opencvlib.info as _info
 import opencvlib.distance as _dist
 import opencvlib.geometry as _geom
 import funclib.baselib as _baselib
+from funclib.arraylib import np_round_extreme as _rnd
 from opencvlib import getimg as _getimg
 
 
@@ -34,6 +35,23 @@ class ePointConversion(_enum):
     RCtoCVXY = 3
     CVXYtoXY = 4
     CVXYtoRC = 5
+    Unchanged = 99
+
+
+class ePointFormat(_enum):
+    '''
+    Output formats of points
+
+    XY:
+        [[x1, y1], [x2, y2]]
+    eForPolyLine:
+        numpy array of shape (pts nr, 1, 2), used for plotting polylines
+    wXXXX_YYYY:
+        [[x1, x2, x3, x4], [y1, y2, y3, y4]]
+    '''
+    XY = 0
+    ForPolyLine = 1
+    XXXX_YYYY = 2 #[[x1, x2, x3, x4], [y1, y2, y3, y4]]
 
 
 class Line():
@@ -76,24 +94,46 @@ class Line():
         '''
         self.length = _dist.L2dist(self.pt1, self.pt2)
         self.angle_to_x = _geom.rotation_angle(self.pt1, self.pt2)
-        self.midpoint = [(pt1[0] + pt2[0]) / 2, (pt1[1] + pt2[1]) / 2]
+        self.midpoint = [(self.pt1[0] + self.pt2[0]) / 2, (self.pt1[1] + self.pt2[1]) / 2]
 
 
 class Quadrilateral():
     '''represents a quadrilateral shape in opencv
 
+    The size of the image must be provided for
+    proper rotation.
+
     Properties:
         lines: list of Line instances
+        angle_to_origin:angle required to rotate shape to be parallel with origin
     '''
 
-    def __init__(self, pts):
-        self.pts = pts
+    def __init__(self, pts, frame_x, frame_y):
+        '''(array, int, int)
+
+        pts:
+            array like of 4 points e.g. [[0,0],[10,0],[0,10],[10,10]]
+        frame_x:
+            image width
+        frame_y:
+            image height
+        '''
+        self._pts = pts
         self.lines = []
         self.angle_to_origin = None
+        self._frame_x = frame_x
+        self._frame_y = frame_y
+        if pts:
+            self._refresh()
 
 
-    def __call__(self, pts):
-        self.pts = pts
+    def __call__(self, pts, frame_x=None, frame_y=None):
+        self._pts = pts
+        if frame_x:
+            self._frame_x = frame_x
+        if frame_y:
+            self._frame_y = frame_y
+        self._refresh()
 
 
     def __str__(self):
@@ -104,10 +144,11 @@ class Quadrilateral():
 
 
     def _refresh(self):
-        assert len(pts) == 2, 'Expected 4 points, got %s.' % len(pts)
-        for l in range(0, len(pts) - 2):
-            self.lines.append(Line(pts[l], pts[l + 1]))
-        self.lines.append(Line(pts[-1], pts[0]))
+        assert len(self._pts) == 4, 'Expected 4 points, got %s.' % len(self._pts)
+        for l in range(0, len(self._pts) - 1):
+            self.lines.append(Line(self._pts[l], self._pts[l + 1]))
+        self.lines.append(Line(self._pts[-1], self._pts[0])) #line joining first and last points
+        self._angle()
 
 
     def _angle(self):
@@ -120,7 +161,7 @@ class Quadrilateral():
         and calculating the angle of this line to the x-axis using arctan.
         '''
         #get two shortest sides
-        assert len(self.line) == 4, 'Expected 4 line objects in quadrilateral object, have you initialised it properly?'
+        assert len(self.lines) == 4, 'Expected 4 line objects in quadrilateral object, have you initialised it properly?'
         dic = {i:ln.length for i, ln in enumerate(self.lines)}
         s = _baselib.dic_sort_by_val(dic)
 
@@ -134,16 +175,24 @@ class Quadrilateral():
 
 
     @property
-    def rotated_to_x(self):
-        '''() -> array
+    def rotated_to_x(self, as_int=True):
+        '''(bool) -> array
         Returns the quadrilateral points, rotated so the
         shape is parralel with the origin along its long
         axis
 
+        as_int:
+            return points as integers,
+
         Returns:
             array of points in CVXY format
         '''
-        return roi_rotate(self.pts, self.angle_to_origin)
+        ret = roi_rotate(self._pts, self.angle_to_origin*-1, self._frame_x/2, self._frame_y/2)
+        if as_int:
+            ret = _rnd(ret)
+
+        return ret
+
 
     @property
     def bounding_rectangle(self):
@@ -160,8 +209,8 @@ class Quadrilateral():
 
 
 
-def points_convert(pts, img_x, img_y, e_pt_cvt):
-    '''(array, 2:tuple, Enum:ePointConversion) -> list
+def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointFormat.XY):
+    '''(array, 2:tuple, Enum:ePointConversion, Enum:ePointFormat) -> list
     Converts points in one frame to another.
     XY:Standard cartesian coordinates, RC:Matrix coordinates,
     CVXY:OpenCV XY format which has the Y origin at the top of the image.
@@ -176,6 +225,8 @@ def points_convert(pts, img_x, img_y, e_pt_cvt):
         image height, e.g. 768 in a 1024x768 image
     e_pt_cvt:
         the enumeration ePointConversion defining the required conversion
+    e_out_format:
+        the format of the output points, see ePointFormat
 
     returns:
         list of points, [[1,2],[2,3]]
@@ -198,10 +249,20 @@ def points_convert(pts, img_x, img_y, e_pt_cvt):
             out.append([pt[0], abs(pt[1] - img_y)])
         elif e_pt_cvt == ePointConversion.CVXYtoRC:
             out.append([pt[1], pt[0]])
+        elif e_pt_cvt == ePointConversion.Unchanged:
+            pass
         else:
             raise ValueError('Unknown conversion enumeration, ensure the enum ePointConversion is used.')
 
-    return out
+    if e_out_format == ePointFormat.ForPolyLine:
+        poly_pts = _np.array(out, dtype='int32')
+        return poly_pts.reshape((-1, 1, 2))
+    elif e_out_format == ePointFormat.XY:
+        return out
+    elif e_out_format == ePointFormat.XXXX_YYYY:
+        return zip(*out)
+    else:
+        raise ValueError('Unknown output format specified')
 
 
 
@@ -360,20 +421,24 @@ def roi_resize(roi_pts, current, target):
     return _np.array(_np.matrix(roi_pts) * _np.matrix(t_mat))
 
 
-def roi_rotate(roi_pts, angle):
-    '''(ndarray|list|tuple, float) -> ndarray
-
+def roi_rotate(roi_pts, angle, frame_x, frame_y):
+    '''(ndarray|list|tuple, float, int, int) -> ndarray
     Rotate an array of 2d points by angle.
 
     roi_points in OpenCV XY frame, where y has origin at image row 0
 
+    host image size is necessary as rotation occurs around the image center
+    and not the origin.
+
     roi_pts:
         An array like (which is converted to a numpy array) of points
         in opencv xy format.
-    current:
-        size of 'image' which points are from
-    target:
-        size of image to project points on
+    angle:
+        angle of rotation, negative is clockwise
+    frame_x:
+        width of image frame
+    frame_y:
+        height of image frame
 
     returns:
         numpy array of resized points
@@ -383,7 +448,7 @@ def roi_rotate(roi_pts, angle):
         are in an RC or cartesian frame.
 
     '''
-    pts = [_geom.rotate_point(pt, angle) for pt in roi_pts]
+    pts = [_geom.rotate_point(pt, angle, (frame_x, frame_y)) for pt in roi_pts]
     return _np.array(pts)
 
 
@@ -465,12 +530,12 @@ def bounding_rect_of_poly(points, as_points=True):
     Returns corner points ([[x,y],[x+w,y],[x,y+h],[x+w,y+h]]
     and *not* top left point with width and height (ie x,y,w,h).
     Note opencv points have origin in top left
-    and are (x,y) i.e. col,row (width,height). Not the matrix standard.
+    and are (x,y) i.e. col,row (width,height).
     '''
     if not isinstance(points, _np.ndarray):
         points = _np.array([points], dtype=_np.int32)
 
-    x, y, w, h = _cv2.boundingRect(points)
+    x, y, w, h = _cv2.boundingRect(_np.array(_rnd(points), 'int')) #round negatives more negative, positives more positive, and convert to int - boundingrect fails if not integers
     if as_points:
         return rect_as_points(x, y, w, h)
 
@@ -574,8 +639,8 @@ def nms_rects(detections, threshold=.5):
     return new_detections
 
 
-def plot_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), show_labels=True, label_color=(0, 255, 255)):
-    '''(array, ndarray|str, int, int, bool, 3-tuple, bool) -> ndarray
+def plot_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), show_labels=True, label_color=(0, 0, 0), padding=0):
+    '''(array, ndarray|str, int, int, bool, 3-tuple, bool, int) -> ndarray
     Show roi points largely for debugging purposes
 
     pts:
@@ -594,42 +659,50 @@ def plot_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0),
         color of lines used if join=True
     show_labels:
         label points with their coordinates
+    pad:
+        padding to add around the image if img was None,
+        or if image is not none, then this is the assumed
+        padding used when img was firt created.
 
     Returns:
         The image (or blank canvas) with points plotted
     '''
     #get size of display frame
-    pad = 0
+    pad = padding
+    new_image = img is None
     if img is None:
-        pad = 20
         xs, ys = zip(*pts)
-        x = max(xs + pad) if x is None or max(xs) < x else x
-        y = max(ys + pad) if y is None or max(ys) < y else y
+        x = max(xs) + pad*2 if x is None or max(xs) < x else x
+        y = max(ys) + pad*2 if y is None or max(ys) < y else y
+        x = int(x)
+        y = int(y)
         img = _np.ones((y, x, 3), dtype='uint8')*255
     else:
         img = _getimg(img)
 
     #added padding, so have to adjust points slightly
-    if pad == 20:
-        pts = [[pt[0] + pad, pt[1] + pad] for pt in pts]
-        #draw original boundaries
-        _cv2.rectangle(img, (pad, pad), (img.shape[0] - pad, img.shape[1] - pad), (0, 255, 255))
+    if pad > 0:
+        pts_padded = [[pt[0] + pad, pt[1] + pad] for pt in pts]
+        #draw original boundaries first time
+        if new_image:
+            _cv2.rectangle(img, (pad, pad), (img.shape[1] - pad, img.shape[0] - pad), (0, 0, 0))
+    else:
+        pts_padded = pts
 
-
-    for pt in pts:
+    for i, pt in enumerate(pts_padded):
         centre = (int(pt[0]), int(pt[1]))
         _cv2.circle(img, centre, 10, (255, 255, 255), -11)
-        _cv2.circle(img, center, 11, (0,0,255),1)
-        _cv2.ellipse(img, center, (10, 10), 0, 0, 90, (0, 0, 255), -1)
-        _cv2.ellipse(img, center, (10, 10), 0, 180, 270, (0, 0, 255), -1)
-        _cv2.circle(img, center, 1, (0, 255, 0), 1)
+        _cv2.circle(img, centre, 11, (0, 0, 255), 1)
+        _cv2.ellipse(img, centre, (10, 10), 0, 0, 90, (0, 0, 255), -1)
+        _cv2.ellipse(img, centre, (10, 10), 0, 180, 270, (0, 0, 255), -1)
+        _cv2.circle(img, centre, 1, (0, 255, 0), 1)
 
         if show_labels:
-            lbl = '%s, %s' % (int(pt[0]), int(pt[1]))
-            _cv2.putText(img, lbl, (int(pt[0]) + 10,int(pt[1]) - 10), _cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, label_color)
+            lbl = '%s, %s' % (int(pts[i][0]), int(pts[i][1])) #use original point as label if we padded
+            _cv2.putText(img, lbl, (int(pt[0]) + 10, int(pt[1]) - 10), _cv2.FONT_HERSHEY_PLAIN, 0.8, label_color)
 
     if join:
-        poly_pts = _np.array(pts, dtype='int32')
+        poly_pts = _np.array(pts_padded, dtype='int32')
         poly_pts = poly_pts.reshape((-1, 1, 2))
         _cv2.polylines(img, [poly_pts], True, line_color)
 

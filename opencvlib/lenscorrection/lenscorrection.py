@@ -85,7 +85,7 @@ def suppress_stdout(stdout=True, stderr=True):
             _sys.stdout = devnull
         if stderr:
             _sys.stderr = devnull
-        try:  
+        try:
             yield
         finally:
             _sys.stdout = old_stdout
@@ -263,7 +263,7 @@ class Calibration(object):
         self.img_used_count = 0
         self.img_total_count = 0
         self.messages = []
-    
+
     def __str__(self):
         return 'Calibration(Camera: %s, x: %s, y: %s)' % (self.camera_model, self.width, self.height)
 
@@ -283,7 +283,7 @@ class Calibration(object):
             self explanatory
         fisheye_no_check:
             stop CV doing a checks
-        
+
         returns:
             list of bad images, list of deleted images
         '''
@@ -349,9 +349,9 @@ class Calibration(object):
             #ie (9,6) would be a chessboard with 9 x 6 vertices
             chessboard_model = _np.zeros((1, self.pattern_size[0] * self.pattern_size[1], 3), dtype=_np.float32)
             chessboard_model[0, :, :2] = _np.mgrid[0:self.pattern_size[0], 0:self.pattern_size[1]].T.reshape(-1, 2)
-            
+
             #this delete invalid images and deletes the detected points and chessboard model from
-            #the numpy array, 
+            #the numpy array,
             bad_images = []
             deleted_images = []
             while _np.array_equal(K, _np.zeros((3, 3))):
@@ -373,7 +373,7 @@ class Calibration(object):
                     lst = _np.array(img_points_fisheye)
                     lst = _np.squeeze(lst[[n], ...], 0)
                     img_points_fisheye = [x  for x in lst] #rebuild as list of numpy arrays
-            
+
                     with _fuckit:
                         _os.remove(image_paths_ok[ind])
                         if not _iolib.file_exists(image_paths_ok[ind]):
@@ -423,7 +423,7 @@ def delete_profile(camera, x, y, quite=False):
     '''
     with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
         crud = _lenscorrectiondb.CalibrationCRUD(conn)
-        crud.crud_calibration_delete_by_composite(camera, y, x)        
+        crud.crud_calibration_delete_by_composite(camera, y, x)
         if not quite:
             print('Done')
 
@@ -657,8 +657,8 @@ def undistort(
     outpath = _path.normpath(outpath)
     _iolib.create_folder(outpath)
     logfilename = _iolib.get_file_name(outpath)
-    
-    
+
+
     print('Undistort mode: %s' % ('fisheye lens model' if use_fisheye else 'standard lens model'))
 
     with _lenscorrectiondb.Conn(cnstr=_CALIBRATION_CONNECTION_STRING) as conn:
@@ -709,9 +709,9 @@ def undistort(
                             outfile = _os.path.join(outpath, name + label_fisheye + resize_suffix + '.jpg')
                         else:
                             outfile = _os.path.join(outpath, name + label + resize_suffix + '.jpg')
-                        
+
                         outfile = _path.normpath(outfile)
-                        
+
                         _cv2.imwrite(outfile, img)
                         success += 1
                         with _fuckit:

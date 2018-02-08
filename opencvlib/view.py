@@ -20,9 +20,9 @@ import opencvlib.color as _color
 import opencvlib.info as _info
 from opencvlib import transforms as _transforms
 from opencvlib.common import draw_str as _draw_str
-from opencvlib import getimg as _getimg
+#from opencvlib import getimg as _getimg
 
-__all__ = ['mosaic', 'pad_images', 'show', 'showarray', 'show_roi_points']
+__all__ = ['mosaic', 'pad_images', 'show', 'showarray']
 
 _SHOW_WIDTH = 800.
 
