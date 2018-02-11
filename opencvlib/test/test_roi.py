@@ -14,6 +14,7 @@ from opencvlib.roi import ePointConversion as eCvt
 from opencvlib.view import show
 from opencvlib.view import mosaic
 from opencvlib.transforms import rotate
+import opencvlib.common as common
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -90,22 +91,21 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled test_showarray")
     def test_quad(self):
         '''test quadrilateral manip'''
-        padding = 100
         quad = [[300, 300], [400, 310], [410, 450], [310, 460]]
-        img = np.ones([800,1200,3])*255
-        img = roi.plot_points(quad, img, join=True, padding=padding)
-        #show(img)
+        img = np.ones([650, 800, 3])*255
+        img = common.draw_points(quad, img, join=True)
+        img_orig_pts = np.copy(img)
 
         Q = roi.Quadrilateral(quad, img.shape[1], img.shape[0])
         midpoints = [x.midpoint for x in Q.lines]
-        img = roi.plot_points(midpoints, img, padding=padding) #plot midpoints
+        img = common.draw_points(midpoints, img) #original plotted quadrilateral with midpoints
 
         angle = Q.angle_to_origin
         img_rotated = rotate(img, angle, no_crop=True)
-        
+
         img_rotated_points = np.ones([*img_rotated.shape])*255
-        img_rotated_points = roi.plot_points(Q.rotated_to_x, img_rotated_points, join=True, line_color=(0, 0, 0), padding=100)
-        img_rotated_points = roi.plot_points(Q.bounding_rectangle, img_rotated_points, join=True, line_color=(255, 0, 0), padding=100)
+        img_rotated_points = common.draw_points(Q.rotated_to_x, img_rotated_points, join=True, line_color=(0, 0, 0))
+        img_rotated_points = common.draw_points(Q.bounding_rectangle, img_rotated_points, join=True, line_color=(255, 0, 0))
 
 
         show(mosaic([img, img_rotated, img_rotated_points]))

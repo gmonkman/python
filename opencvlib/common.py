@@ -16,6 +16,7 @@ import cv2 as _cv2
 import os as _os
 import itertools as _it
 from contextlib import contextmanager as _contextmanager
+from opencvlib import getimg as _getimg
 
 IMAGE_EXTENSIONS = ['.bmp', '.jpg', '.jpeg',
                     '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
@@ -266,3 +267,139 @@ def chessboard(patch_sz=100, col_first_patch=(0, 0, 0), col_second_patch=(255, 2
             board[j:j+patch_sz, i:i+patch_sz, :3] = color[2]
             color = col_second_patch if color==col_first_patch else col_first_patch
     return board
+
+
+def draw_scale(img, x_break=50, y_break=50, tick_colour=(0, 0, 0), tick_length=10):
+    '''(ndarray, int, int, 3-tuple) -> ndarray
+    Draw scale on on image
+
+    x_break:
+        x main increment (cols)
+    y_break:
+        y main increment (rows)
+    tick_colour:
+        tuple representing tick colour, e.g. (255, 0, 0) is blue
+    Returns:
+        the image with ticks
+    '''
+    x = 0
+    y = 0
+    label_pad = 4
+    yy, xx = img.shape[:2]
+    while y < yy:
+        pts = [[0, y], [tick_length, y]]
+        img = draw_line(pts, img, tick_colour)
+        lbl = '%s' % y
+        lbl_pt = (tick_length + label_pad, y)
+        _cv2.putText(img, lbl, lbl_pt, _cv2.FONT_HERSHEY_PLAIN, 0.8, tick_colour)
+        y += y_break
+
+    while x < xx:
+        pts = [[x, yy], [x, yy - tick_length]]
+        img = draw_line(pts, img, tick_colour)
+        lbl = '%s' % x
+        lbl_pt = (x, yy - tick_length - label_pad)
+        _cv2.putText(img, lbl, lbl_pt, _cv2.FONT_HERSHEY_PLAIN, 0.8, tick_colour)
+        x += x_break
+
+    return img
+
+
+def draw_line(pts, img, line_color=(0, 0, 0), label=False, label_color=(0, 0, 0)):
+    '''(ndarray, 3-tuple, bool, 3-tuple) -> ndarray
+    Plots a line, defined by a two points.
+
+    pts:
+        array of points in format CVXY, e.g. [[1,2], [3,4], ...]
+    line_color:
+        Colour of line
+    label:
+        Label the points with their coordinates
+    label_color:
+        Colour of label text, if pt_labels is True
+
+    Returns:
+        image (ndarray)
+    '''
+    poly_pts = _np.array(pts, dtype='int32')
+    poly_pts = poly_pts.reshape((-1, 1, 2))
+    _cv2.polylines(img, [poly_pts], True, line_color)
+
+    if label:
+        for i, pt in enumerate(pts):
+            lbl = '%s, %s' % (int(pts[i][0]), int(pts[i][1]))
+            _cv2.putText(img, lbl, (int(pt[0]) + x_offset, int(pt[1]) + y_offset), _cv2.FONT_HERSHEY_PLAIN, 0.8, label_color)
+    return img
+
+
+def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), show_labels=True, label_color=(0, 0, 0), padding=0, add_scale=True):
+    '''(array, ndarray|str, int, int, bool, 3-tuple, bool, int) -> ndarray
+    Show roi points largely for debugging purposes
+
+    pts:
+        array of points in format [[1,2], [3,4], ...]
+    img:
+        ndarray, path or none. If none then the points
+        will be drawn on a white canvas of size determined
+        by the points
+    x:
+        image width if no img is provided
+    y:
+        image height if no img is provided
+    join:
+        join the points with lines
+    line_color:
+        color of lines used if join=True
+    show_labels:
+        label points with their coordinates
+    pad:
+        padding to add around the image if img was None,
+        or if image is not none, then this is the assumed
+        padding used when img was first created.
+
+    Returns:
+        The image (or blank canvas) with points plotted
+    '''
+    #get size of display frame
+    pad = padding
+    new_image = img is None
+    if img is None:
+        xs, ys = zip(*pts)
+        x = max(xs) + pad*2 if x is None or max(xs) < x else x
+        y = max(ys) + pad*2 if y is None or max(ys) < y else y
+        x = int(x)
+        y = int(y)
+        img = _np.ones((y, x, 3), dtype='uint8')*255
+    else:
+        img = _getimg(img)
+
+    #added padding, so have to adjust points slightly
+    if pad > 0:
+        pts_padded = [[pt[0] + pad, pt[1] + pad] for pt in pts]
+        #draw original boundaries first time
+        if new_image:
+            _cv2.rectangle(img, (pad, pad), (img.shape[1] - pad, img.shape[0] - pad), (0, 0, 0))
+    else:
+        pts_padded = pts
+
+    for i, pt in enumerate(pts_padded):
+        centre = (int(pt[0]), int(pt[1]))
+        _cv2.circle(img, centre, 10, (255, 255, 255), -11)
+        _cv2.circle(img, centre, 11, (0, 0, 255), 1)
+        _cv2.ellipse(img, centre, (10, 10), 0, 0, 90, (0, 0, 255), -1)
+        _cv2.ellipse(img, centre, (10, 10), 0, 180, 270, (0, 0, 255), -1)
+        _cv2.circle(img, centre, 1, (0, 255, 0), 1)
+
+        if show_labels:
+            lbl = '%s, %s' % (int(pts[i][0]), int(pts[i][1])) #use original point as label if we padded
+            _cv2.putText(img, lbl, (int(pt[0]) + 10, int(pt[1]) - 10), _cv2.FONT_HERSHEY_PLAIN, 0.8, label_color)
+
+    if join:
+        poly_pts = _np.array(pts_padded, dtype='int32')
+        poly_pts = poly_pts.reshape((-1, 1, 2))
+        _cv2.polylines(img, [poly_pts], True, line_color)
+
+    if add_scale:
+        img = draw_scale(img)
+
+    return img

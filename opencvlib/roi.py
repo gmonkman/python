@@ -187,7 +187,7 @@ class Quadrilateral():
         Returns:
             array of points in CVXY format
         '''
-        ret = roi_rotate(self._pts, self.angle_to_origin*-1, self._frame_x/2, self._frame_y/2)
+        ret = roi_rotate(self._pts, self.angle_to_origin, self._frame_x/2, self._frame_y/2)
         if as_int:
             ret = _rnd(ret)
 
@@ -446,7 +446,6 @@ def roi_rotate(roi_pts, angle, frame_x, frame_y):
     comments:
         Use roi.points_convert prior to passing if your points
         are in an RC or cartesian frame.
-
     '''
     pts = [_geom.rotate_point(pt, angle, (frame_x, frame_y)) for pt in roi_pts]
     return _np.array(pts)
@@ -494,9 +493,24 @@ def rect_as_points(rw, col, w, h):
     Given a rectangle specified by the top left point
     and width and height, convert to a list of points
 
-    Note opencv points have origin in top left and are (x,y) ie col,row (width,height). Not the matrix standard.
+    rw:
+        the y coordinate, origin at the top of the image
+    col:
+        the x coordinate
+    w:
+        width of rectangle in pixels
+    h:
+        height of rectangle in pixels
+
+    returns:
+        Points in CVXY format [[x,y], [x+w, y], [x+w, y+h]
+
+    Note:
+        The order is top left, top right, bottom right, bottom left.
+        This order allows lines to be drawn to connect the points
+        to draw as a rectangle.
     '''
-    return [(col, rw), (col, rw + h), (col + w, rw), (col + w, rw + h)]
+    return [(col, rw), (col + w, rw), (col + w, rw + h), (col, rw + h)]
 
 
 def rect_as_xywh(pts):
@@ -535,9 +549,12 @@ def bounding_rect_of_poly(points, as_points=True):
     if not isinstance(points, _np.ndarray):
         points = _np.array([points], dtype=_np.int32)
 
-    x, y, w, h = _cv2.boundingRect(_np.array(_rnd(points), 'int')) #round negatives more negative, positives more positive, and convert to int - boundingrect fails if not integers
+    #round negatives more negative, positives more positive, and convert to int - boundingrect fails if not integers
+    #Note: boundingRect returns Top Left coordinate, it accepts points
+    x, y, w, h = _cv2.boundingRect(_np.array(_rnd(points), 'int'))
+
     if as_points:
-        return rect_as_points(x, y, w, h)
+        return rect_as_points(y, x, w, h)
 
     return (x, y, w, h)
 
@@ -637,73 +654,3 @@ def nms_rects(detections, threshold=.5):
             new_detections.append(detection)
             del detections[index]
     return new_detections
-
-
-def plot_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), show_labels=True, label_color=(0, 0, 0), padding=0):
-    '''(array, ndarray|str, int, int, bool, 3-tuple, bool, int) -> ndarray
-    Show roi points largely for debugging purposes
-
-    pts:
-        array of points in format [[1,2], [3,4], ...]
-    img:
-        ndarray, path or none. If none then the points
-        will be drawn on a white canvas of size determined
-        by the points
-    x:
-        image width if no img is provided
-    y:
-        image height if no img is provided
-    join:
-        join the points with lines
-    line_color:
-        color of lines used if join=True
-    show_labels:
-        label points with their coordinates
-    pad:
-        padding to add around the image if img was None,
-        or if image is not none, then this is the assumed
-        padding used when img was firt created.
-
-    Returns:
-        The image (or blank canvas) with points plotted
-    '''
-    #get size of display frame
-    pad = padding
-    new_image = img is None
-    if img is None:
-        xs, ys = zip(*pts)
-        x = max(xs) + pad*2 if x is None or max(xs) < x else x
-        y = max(ys) + pad*2 if y is None or max(ys) < y else y
-        x = int(x)
-        y = int(y)
-        img = _np.ones((y, x, 3), dtype='uint8')*255
-    else:
-        img = _getimg(img)
-
-    #added padding, so have to adjust points slightly
-    if pad > 0:
-        pts_padded = [[pt[0] + pad, pt[1] + pad] for pt in pts]
-        #draw original boundaries first time
-        if new_image:
-            _cv2.rectangle(img, (pad, pad), (img.shape[1] - pad, img.shape[0] - pad), (0, 0, 0))
-    else:
-        pts_padded = pts
-
-    for i, pt in enumerate(pts_padded):
-        centre = (int(pt[0]), int(pt[1]))
-        _cv2.circle(img, centre, 10, (255, 255, 255), -11)
-        _cv2.circle(img, centre, 11, (0, 0, 255), 1)
-        _cv2.ellipse(img, centre, (10, 10), 0, 0, 90, (0, 0, 255), -1)
-        _cv2.ellipse(img, centre, (10, 10), 0, 180, 270, (0, 0, 255), -1)
-        _cv2.circle(img, centre, 1, (0, 255, 0), 1)
-
-        if show_labels:
-            lbl = '%s, %s' % (int(pts[i][0]), int(pts[i][1])) #use original point as label if we padded
-            _cv2.putText(img, lbl, (int(pt[0]) + 10, int(pt[1]) - 10), _cv2.FONT_HERSHEY_PLAIN, 0.8, label_color)
-
-    if join:
-        poly_pts = _np.array(pts_padded, dtype='int32')
-        poly_pts = poly_pts.reshape((-1, 1, 2))
-        _cv2.polylines(img, [poly_pts], True, line_color)
-
-    return img

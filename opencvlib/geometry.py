@@ -74,8 +74,8 @@ def length_petween_pts(pts, closed=False):
 
 def rotation_angle(pt1, pt2, as_radians=False):
     '''(2-array, 2-array, bool) -> float
-    Get the angle a line as defined by two points needs
-    to be rotated through to be parallel with x-axis
+    Get the angle a line (defined by two points) needs
+    to be rotated through to be parallel with the x-axis
 
     Intended to find the rotation required for a
     'standard' line has been found.
@@ -117,6 +117,7 @@ def rotate_point(pt, angle, center=(0, 0)):
     center:
         point around which to rotate, (x, y)
     '''
+    angle = -1*angle #the angle as passed will be negative for clockwise, but this routine uses positive for clockwise - make it behave the same
     angle_rad = _math.radians(angle % 360)
     # Shift the point so that center_point becomes the origin
     new_pt = (pt[0] - center[0], pt[1] - center[1])
