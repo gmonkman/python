@@ -47,7 +47,11 @@ VALID_PARTS = ['', 'antenna', 'abdomen', 'body', 'cephalothorax',
                'telson-tail', 'thorax', 'whole',
                'anal fin', 'caudal fin',
                'dorsal soft fin', 'dorsal spiny fin',
-               'pectoral fin', 'pelvic fin']
+               'pectoral fin', 'pelvic fin',
+               'caudal-peduncle', #the join between the body and the caudal fin
+               'body', #tight to body, excluding fins
+               'body-caudal' #tight to body, but includes caudal
+               ]
 
 
 
@@ -151,6 +155,7 @@ class Image(object):
         #self.key_ignores_filesize = key_ignores_filesize
         self.load_image(filepath)
 
+
     def _get_key(self):
         '''->[str | None]
         Generate unique key for image file
@@ -170,6 +175,7 @@ class Image(object):
             log = 'File not found %s' % self.filepath
             logging.warning(log)
             return None
+
 
     def load_image(self, filepath):
         '''(str,int)->void
@@ -211,6 +217,47 @@ class Image(object):
                 print(s)
             logging.warning(s)
 
+
+    @property
+    def image_points(self):
+        '''() -> list
+
+        Return all points in the image not associated with a subject,
+        i.e. points with no shape attributes defined.
+
+
+        Returns:
+            List of points in CVXY format, i.e. [[1,2], [50,30], ....]
+        '''
+        #Dev Note, this could also return a dictionary of the data
+        #associated with the point
+
+        d = _dictp(JSON_FILE)
+        regions = d[self.key]['regions']
+
+        if not regions:
+            return None
+
+        assert isinstance(regions, dict)
+        pts = []
+        for region in regions.values():
+            if region.get('shape_attributes').get('name', '').casefold() == 'point' and region.get('region_attributes') is None:
+                shape_attr = regions.get(region_key).get('shape_attributes')
+                if not shape_attr:
+                    return None
+
+                try:
+                    cx = int(shape_attr.get('cx', ''))
+                    cy = int(shape_attr.get('cy', ''))
+                    pts.append([cx, cy])
+                except Exception:
+                    pass
+
+        if pts:
+            return pts
+        return None
+
+
     @property
     def subject_count(self, species=''):
         '''str->int
@@ -225,6 +272,7 @@ class Image(object):
                 for dummy in self.subjects_generator(spp):
                     cnt += 1
         return cnt
+
 
     @property
     def shape_count(self):
@@ -369,7 +417,7 @@ class Region(object):
     def __init__(self, **kwargs):
         '''supported kwargs
         name= [circle | polygon | rect]
-        object_part = [head, whole]
+        object_part = [head, whole, ....]
 
         circle: x,y,r
         rect: x,y,w,h
@@ -451,12 +499,15 @@ class Region(object):
         JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['species'] = self.species
         JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['part'] = self.part
 
+
+
 # region Save and Load the file
-
-
 def load_json(vgg_file, fixkeys=True, backup=True):
     '''(str)->void
-    Load the VGG JSON file into the module variable _JSON_FILE
+    Load the VGG JSON file into the module level variable _JSON_FILE
+
+    vgg_file:
+        path to the vgg json file
     '''
     pth = _path.normpath(vgg_file)
     global JSON_FILE
