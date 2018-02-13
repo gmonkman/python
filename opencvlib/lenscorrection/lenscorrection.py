@@ -54,7 +54,6 @@ import funclib.iolib as _iolib
 import funclib.inifilelib as _inifilelib
 import funclib.pyqtlib as _msgbox
 import funclib.stringslib as _stringslib
-from funclib.arraylib import shape as _shape
 
 from opencvlib import IMAGE_EXTENSIONS_AS_WILDCARDS as _IMAGE_EXTENSIONS_AS_WILDCARDS
 import opencvlib.imgpipes.digikamlib as _digikamlib

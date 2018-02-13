@@ -1,6 +1,6 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, consider-using-enumerate
 # unused-variable
-'''Decorators, base classes and misc functions 
+'''Decorators, base classes and misc functions
 for manipulatin other base classes.
 
 Stick list/tuple/dic functions in here.
@@ -8,6 +8,7 @@ Stick list/tuple/dic functions in here.
 import collections as _collections
 import sys as _sys
 import operator
+from copy import deepcopy as _deepcopy
 
 import numpy as _np
 
@@ -148,7 +149,7 @@ def dic_merge_two(x, y):
 
 def dic_sort_by_val(d):
     '''(dict) -> list
-    Sort a dictionary by the values, 
+    Sort a dictionary by the values,
     returning as a list
 
     d:
@@ -166,7 +167,7 @@ def dic_sort_by_val(d):
 
 def dic_sort_by_key(d):
     '''(dict) -> list
-    Sort a dictionary by the values, 
+    Sort a dictionary by the values,
     returning as a list of tuples
 
     d:
@@ -213,7 +214,7 @@ def depth(l):
     else:
         s = 'Depth takes a list or a tuple but got a %s' % (type(l))
         raise(ValueError(s))
-    return d(l) 
+    return d(l)
 
 
 def list_not(lst, not_in_list):
@@ -275,11 +276,15 @@ def list_append_unique(list_in, val):
 
 
 def list_flatten(items, seqtypes=(list, tuple)):
-    '''flatten a list'''
-    for i, dummy in enumerate(items):
-        while i < len(items) and isinstance(items[i], seqtypes):
-            items[i:i + 1] = items[i]
-    return items
+    '''flatten a list
+
+    **beware, this is also by ref**
+    '''
+    citems = _deepcopy(items)
+    for i, dummy in enumerate(citems):
+        while i < len(citems) and isinstance(citems[i], seqtypes):
+            citems[i:i + 1] = citems[i]
+    return citems
 # endregion
 
 

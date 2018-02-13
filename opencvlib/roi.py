@@ -19,7 +19,7 @@ import opencvlib.distance as _dist
 import opencvlib.geometry as _geom
 import funclib.baselib as _baselib
 from funclib.arraylib import np_round_extreme as _rnd
-from opencvlib import getimg as _getimg
+#from opencvlib import getimg as _getimg
 
 
 __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
@@ -38,9 +38,9 @@ class ePointConversion(_enum):
     Unchanged = 99
 
 
-class ePointFormat(_enum):
+class ePointsFormat(_enum):
     '''
-    Output formats of points
+    Output formats of points in an array
 
     XY:
         [[x1, y1], [x2, y2]]
@@ -52,6 +52,13 @@ class ePointFormat(_enum):
     XY = 0
     ForPolyLine = 1
     XXXX_YYYY = 2 #[[x1, x2, x3, x4], [y1, y2, y3, y4]]
+
+
+class ePointFormat(_enum):
+    '''Format of an individual point'''
+    XY = 0
+    CVXY = 1
+    RC = 2
 
 
 class Line():
@@ -209,8 +216,8 @@ class Quadrilateral():
 
 
 
-def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointFormat.XY):
-    '''(array, 2:tuple, Enum:ePointConversion, Enum:ePointFormat) -> list
+def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointsFormat.XY):
+    '''(array, 2:tuple, Enum:ePointConversion, Enum:ePointsFormat) -> list
     Converts points in one frame to another.
     XY:Standard cartesian coordinates, RC:Matrix coordinates,
     CVXY:OpenCV XY format which has the Y origin at the top of the image.
@@ -226,7 +233,7 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointFormat.XY):
     e_pt_cvt:
         the enumeration ePointConversion defining the required conversion
     e_out_format:
-        the format of the output points, see ePointFormat
+        the format of the output points, see ePointsFormat
 
     returns:
         list of points, [[1,2],[2,3]]
@@ -252,17 +259,17 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointFormat.XY):
         elif e_pt_cvt == ePointConversion.Unchanged:
             pass
         else:
-            raise ValueError('Unknown conversion enumeration, ensure the enum ePointConversion is used.')
+            raise ValueError('Unknown conversion enumeration for function argument e_pt_cvt, ensure the enum ePointConversion is used.')
 
-    if e_out_format == ePointFormat.ForPolyLine:
+    if e_out_format == ePointsFormat.ForPolyLine:
         poly_pts = _np.array(out, dtype='int32')
         return poly_pts.reshape((-1, 1, 2))
-    elif e_out_format == ePointFormat.XY:
+    elif e_out_format == ePointsFormat.XY:
         return out
-    elif e_out_format == ePointFormat.XXXX_YYYY:
+    elif e_out_format == ePointsFormat.XXXX_YYYY:
         return zip(*out)
     else:
-        raise ValueError('Unknown output format specified')
+        raise ValueError('Unknown output format specified for function argument e_out_format')
 
 
 
@@ -290,23 +297,43 @@ def sample_rect(img, w, h):
     return I
 
 
-@_decs.decgetimg
 def cropimg_xywh(img, x, y, w, h):
     '''(str|ndarray, int, int, int, int)->ndarray
-    Return a rectangular region from an image.
+    Return a rectangular region from an image. Also see transforms.crop
+
+    x, y:
+        Define the point form which to crop, CVXY assumed
+    w, h:
+        Size of region
+
+    Returns:
+        cropped image area
+
+    Notes:
+        transforms.crop provides conversion and cropping
+        around a point
     '''
+    assert isinstance(img, _np.ndarray)
     return img[y:y+h, x:x+w]
 
 
-@_decs.decgetimg
 def cropimg_pts(img, corners):
-    '''(str|ndarray, list|tuple|ndarray)->ndarray
-    Return a rectangular region from an image.
+    '''(str|ndarray, 4-list|tuple|ndarray) -> ndarray
+    Return a rectangular region from an imag. Also see transforms.crop
 
-    Corners are x,y like points representing the rectangle's corners
+    corners:
+        List of 4 CVXY points of a rectangle.
+
+    Returns:
+        The image cropped to the rectangle
+
+    Notes:
+        transforms.crop provides conversion and cropping
+        around a point
     '''
-    x, y, w, h = rect_as_xywh(corners)
-    return cropimg_xywh(img, x, y, w, h)
+    assert isinstance(img, _np.ndarray)
+    r, c, h, w = rect_as_rchw(corners)
+    return cropimg_xywh(img, c, r, w, h)
 
 
 def poly_area(pts=None, x=None, y=None):
@@ -513,12 +540,20 @@ def rect_as_points(rw, col, w, h):
     return [(col, rw), (col + w, rw), (col + w, rw + h), (col, rw + h)]
 
 
-def rect_as_xywh(pts):
-    '''(ndarray|list|tuple)->tuple
-    take points and work out the bounding rectangle, returning
-    as a tuple of x (row), y (col), w, h
+def rect_as_rchw(pts):
+    '''(ndarray|list|tuple)-> int, int, int, int
+    Take points in CVXY format, and return rectangle defined
+    as  r, c, h, w
 
-    pts format by example: [(1,1),(10,10),(1,10),(10,1)]
+    pts:
+        array of points in CVXY format
+    Returns:
+        row, col, height, width
+
+    Example:
+    >>> pts = [[5,10], [5, 100], [110, 100], [100, 10]]
+    >>> rect_as_xywh(pts)
+    (5, 10, 106, 91)
     '''
     if len(pts) != 4:
         raise ValueError('Expected 4 points, got %s' % len(pts))
@@ -528,12 +563,15 @@ def rect_as_xywh(pts):
         raise ValueError('Some items in iterable argument pts do not have 2 dimensions.')
 
     pts = _np.array(pts)
-    return pts[:, 0].min(), pts[:, 1].min(), pts[:, 0].max() + 1 - pts[:, 0].min(), pts[:, 1].max() + 1 - pts[:, 1].min()
+
+    x = pts[:, 0].min()
+    y = pts[:, 1].min()
+    w = pts[:, 0].max() + 1 - pts[:, 0].min()
+    h = pts[:, 1].max() + 1 - pts[:, 1].min()
+    return y, x, h, w
 
 
 # DEBUG bounding_rect_of_poly
-
-
 def bounding_rect_of_poly(points, as_points=True):
     '''(list|ndarray)->list
     Return points of a bounding rectangle in opencv point format if

@@ -17,7 +17,7 @@ class Test(unittest.TestCase):
         self.modpath = _path.normpath(self.pth)
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_points(self):
         '''test points generated for images
         '''
@@ -27,9 +27,8 @@ class Test(unittest.TestCase):
         for img in vgg.imagesGenerator():
             pts = img.image_points
             allpts.append(pts)  #making a 3-deep list
-        self.assertListEqual(allpts[0], [[856, 410]])
+        self.assertListEqual(allpts[0], [[324, 223], [512, 384], [800, 640], [287, 176], [512, 512], [960, 502], [800, 600]])
 
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
-

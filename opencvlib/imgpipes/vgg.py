@@ -241,8 +241,8 @@ class Image(object):
         assert isinstance(regions, dict)
         pts = []
         for region in regions.values():
-            if region.get('shape_attributes').get('name', '').casefold() == 'point' and region.get('region_attributes') is None:
-                shape_attr = regions.get(region_key).get('shape_attributes')
+            if region.get('shape_attributes').get('name', '').casefold() == 'point' and region.get('region_attributes') == {}:
+                shape_attr = region.get('shape_attributes')
                 if not shape_attr:
                     return None
 

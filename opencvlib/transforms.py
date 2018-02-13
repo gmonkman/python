@@ -2,7 +2,7 @@
 '''transforms on an image which return an image'''
 import cv2 as _cv2
 import numpy as _np
-
+from enum import Enum as _Enum
 
 import funclib.baselib as _baselib
 
@@ -10,13 +10,31 @@ import opencvlib.decs as _decs
 from opencvlib import getimg as _getimg
 from opencvlib import color as _color
 from opencvlib import Log as _Log
-
 from opencvlib.color import BGR2HSV, BGR2RGB, HSVtoGrey, togreyscale
+import opencvlib.roi as _roi
+
 
 
 #from scikit-image
 #see http://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.is_low_contrast
 import skimage.exposure as _exposure
+
+
+class eRegionFormat(_Enum):
+    '''
+    RCHW: (r, c, h, w)
+    CVXYWH: (x, y, w, h)
+    CVXYXYXYXY: [[x,y], [x,y], [x,y], [x,y]], origin at top left
+    XYXYXYXY: [[x,y], [x,y], [x,y], [x,y]], cartesian origin
+    HW: (h, w), used for cropping an image at a point
+    WH: (w, h), used for cropping an image at a point
+    '''
+    RCHW = 0
+    CVXYWH = 1
+    CVXYXYXYXY = 2
+    XYXYXYXY = 3
+    HW = 4
+    WH = 5
 
 
 #region Handling Transforms in Generators
@@ -78,15 +96,15 @@ class Transforms():
         self.img_transformed = None
         self.tQueue = []
         self.tQueue.extend(args)
-    
-    
+
+
     def __call__(self, img=None, execute=True):
         '''(str|ndarray) -> void
         Set image if not done previously
         '''
         if not img is None:
             self.img = _getimg(img)
-        
+
         if execute:
             self.executeQueue()
 
@@ -260,14 +278,106 @@ def rescale_intensity(img, in_range='image', out_range='dtype'):
 #endregion
 
 
-    
+def crop(img, region, eRegfmt=eRegionFormat.RCHW, around_point=None, allow_crop_truncate=True):
+    '''(ndarray, list|tuple, Enum:roi.eRegionFormat, 2-tuple|None, bool) -> ndarray
+    Crops an image.
+
+    img:
+        The image
+    region:
+        Coordinate array, a 4-tuple/list in format defined by ePtType
+        Tuple can be a 1-deep list if in rchw like format,
+        or a 4-tuple of points, e.g. ((0, 0), (100, 100), (0, 100), (100,0))
+        If around_point is True, then the region must be just wh, or hw
+    eRegfmt:
+        The format of the points in variable region
+    around_point:
+        If none, standard crop assuming some xywh 4-tuple passed,
+        otherwise around_point is a CVXY 2-tuple point and array is
+        in WH or HW format (i.e. a 2-tuple).
+    allow_crop_truncate:
+        If true, will crop to the image edges if the region covers an
+        area outside the image, otherwise an error is raised
+
+    Returns:
+        The image
+
+    Examples:
+    >>>
+
+    '''
+    assert isinstance(img, _np.ndarray)
+    if around_point:
+        assert eRegfmt == eRegionFormat.WH or eRegfmt == eRegionFormat.HW, \
+            'Cropping was requested to be around a point, but the RegionFormat was not eRegionFormat.WH or eRegionFormat.HW'
+        assert len(region) == 2, 'Cropping around a point, expected region to be a 2-tuple but got a %s tuple' % len(region)
+    else:
+        assert len(region) == 4, 'Cropping with rchw like area, expected region to be a 4-tuple but got a %s tuple' % len(region)
+
+    r = 0; c = 0; w = 0; h = 0
+
+    if around_point: #around_point is a 2-tuple CVXY point
+        if eRegfmt == eRegionFormat.HW:
+            w = region[1]; h = region[0]
+        elif eRegfmt == eRegionFormat.WH:
+            w = region[0]; h = region[1]
+        else:
+            raise ValueError('around_points was provided but an invalid eRegfmt argument was passed. eRegfmt should be WH or HW')
+        c = around_point[0] - int(w/2)
+        r = around_point[1] - int(h/2)
+    else:
+        if eRegfmt == eRegionFormat.CVXYWH:
+            r = region[1]; h = region[3]; c = region[0]; w = region[2]
+        elif eRegfmt == eRegionFormat.CVXYXYXYXY:
+            r, c, h, w = _roi.rect_as_rchw(region)
+        elif eRegfmt == eRegionFormat.RCHW:
+            r = region[0]; h = region[2]; c = region[1]; w = region[3]
+        elif eRegfmt == eRegionFormat.XYXYXYXY:
+            pts = _roi.points_convert(region, img.shape[1], img.shape[0], _roi.ePointConversion.XYtoCVXY, _roi.ePointsFormat.XY)
+            r, c, h, w = _roi.rect_as_rchw(pts)
+        else:
+            raise ValueError('Unknown region format enumeration in argument eRegfmt')
+
+    fixy = lambda y: max([min([y, img.shape[0]]), 0])
+    fixx = lambda x: max([min([x, img.shape[1]]), 0])
+
+    if allow_crop_truncate:
+        pts = [[fixx(c), fixy(r)], [fixx(c + w), fixy(r)], [fixx(c), fixy(r + h)], [fixx(c + w), fixy(r + h)]]
+    else:
+        pts = [[c, r], [c + w, r], [c, r + h], [c + w, r + h]]
+        pts_xxxyyy = list(zip(*pts)) #[[1,2],[3,4] -> [[1, 3], [2, 4]]
+        fpts = _baselib.list_flatten(pts)
+        if min(fpts) < 0 \
+                or max(pts_xxxyyy[0]) + 1 > img.shape[1] \
+                or max(pts_xxxyyy[1]) + 1 > img.shape[0]:
+            raise ValueError('allow_crop_truncate was false, but the crop area was out of the bounds of the image shape')
+
+    r, c, h, w = _roi.rect_as_rchw(pts)
+    h -= 1; w -= 1
+    i = _roi.cropimg_xywh(img, c, r, w, h)
+    return i
+
 
 def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
     '''(ndarray|str, int, int, constant)->ndarray
-    1) initialize the dimensions of the image to be resized and grab the image size
-    2) If both the width and height are None, then return the original image
-    3) Both not none then resize to specied width and height
-    4) Otherwise resize keeping the aspect ratio according to the provided width or height
+    Resize an image, to width or height, maintaining the aspect.
+
+    image:
+        an image or path to an image
+    width:
+        width of image
+    height:
+        height of image
+    inter:
+        interpolation method
+
+    Returns:
+        An image
+
+    Notes:
+        Returns original image if width and height are None.
+        If width or height or provided then the image is resized
+        to width or height and the aspect ratio is kept.
     '''
     image = _getimg(image)
     dim = None
@@ -308,15 +418,15 @@ def rotate(image, angle, no_crop=False):
     if no_crop:
         cos = _np.abs(M[0, 0])
         sin = _np.abs(M[0, 1])
- 
+
         # compute the new bounding dimensions of the image
         nW = int((h * sin) + (w * cos))
         nH = int((h * cos) + (w * sin))
- 
+
         # adjust the rotation matrix to take into account translation
         M[0, 2] += (nW / 2) - cX
         M[1, 2] += (nH / 2) - cY
- 
+
         # perform the actual rotation and return the image
         return _cv2.warpAffine(image, M, (nW, nH))
 
