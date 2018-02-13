@@ -244,7 +244,7 @@ def temp_folder(subfolder=''):
     subfolder:
         if !== '': create the defined subfolder
         otherwise uses a datetime stamp
-    '''   
+    '''
     fld = datetime_stamp() if subfolder == '' else subfolder
     return _os.path.normpath(_os.path.join(_tempfile.gettempdir(), fld))
 
@@ -355,7 +355,7 @@ def drive_get_uuid(drive='C:', strip=['-'], return_when_unidentified='??'):
         except Exception as dummy:
             pass
         #work
-    
+
     return drive
 
 
@@ -458,14 +458,32 @@ def file_list_generator(paths, wildcards):
         wildcards = [wildcards]
 
     ww = ['*' + x if x[0] == '.' else x for x in wildcards]
-       
+
     for vals in (_stringslib.add_right(x[0]) + x[1]
                  for x in _itertools.product(paths, ww)):
         yield _os.path.normpath(vals)
 
 
+def file_count(paths, wildcards, recurse):
+    '''(iterable|str, iterable|str, bool) -> int
+
+    Counts files in paths matching wildcards
+
+    paths:
+        tuple of list of paths
+    wildcards:
+        tuple or list of wildcards
+    recurse:
+        recurse down folders if true
+    '''
+    cnt = 0
+    for _ in file_list_generator1(paths, wildcards, recurse):
+        cnt += 1
+    return cnt
+
+
 def file_list_generator1(paths, wildcards, recurse=False):
-    '''(iterable, iterable) -> tuple
+    '''(iterable, iterable) -> str
     Takes a list of paths and wildcards and creates a
     generator which iterates through all the FILES found
     in the paths matching the wildcards.
@@ -479,11 +497,11 @@ def file_list_generator1(paths, wildcards, recurse=False):
 
     if isinstance(wildcards, str):
         wildcards = [wildcards]
-    
+
     wildcards = ['*' + x if x[0] == '.' else x for x in wildcards]
 
     #for ind, v in enumerate(paths):
-       # paths[ind] = _os.path.normpath(v) 
+       # paths[ind] = _os.path.normpath(v)
 
     for vals in (_stringslib.add_right(x[0]) + x[1]
                  for x in _itertools.product(paths, wildcards)):
@@ -728,7 +746,7 @@ def print_progress(
 
 class PrintProgress(object):
     '''Class for dos progress bar. Implement as global for module level progress
-    
+
     Example:
         from funclib.iolib import PrintProgress as PP
         pp = PP(len(_glob(img_path)))
@@ -736,7 +754,7 @@ class PrintProgress(object):
         pp.increment
     '''
 
-    def __init__(self, maximum, bar_length=30):
+    def __init__(self, maximum=0, bar_length=30):
         print('\n')
         self.max = maximum
         self.bar_length = bar_length

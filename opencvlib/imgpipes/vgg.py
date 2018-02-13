@@ -140,6 +140,21 @@ def imagesGenerator():
 class Image(object):
     '''Load and iterate VGG configured image regions
     based on the actual image file name, size and path
+
+    filepath:
+        full path to file, e.g. c:/tmp/img.jpg
+    fileext:
+        file extension, e.g. .jpg
+    filename:
+        just the file name, e.g. img.jpg
+    filefolder:
+        the folder which contains the image file, e.g. c:/tmp
+    points:
+        all points not associated with a region
+    shape_count:
+        number of shapes associated with attributes
+    subject_count:
+        number of subject, i.e. a detection object like a face or fish
     '''
 
     def __init__(self, filepath=''):
@@ -147,13 +162,13 @@ class Image(object):
         optionally provide a filepath - ie a path including the file name
         '''
         self.filepath = filepath
-        self.size_in_bytes = 0
-        self.key = ''
+        self._size_in_bytes = 0
+        self._key = ''
         self.filename = ''
         self.fileext = ''
         self.filefolder = ''
         #self.key_ignores_filesize = key_ignores_filesize
-        self.load_image(filepath)
+        self._load_image(filepath)
 
 
     def _get_key(self):
@@ -164,7 +179,7 @@ class Image(object):
         '''
         if _path.isfile(self.filepath):
             try:
-                self.size_in_bytes = _path.getsize(self.filepath)
+                self._size_in_bytes = _path.getsize(self.filepath)
                 # return self.filename + str(self.size_in_bytes)
                 return self.filename  # Not using exact key as file sizes can change when image tags change
             except Exception:
@@ -177,16 +192,19 @@ class Image(object):
             return None
 
 
-    def load_image(self, filepath):
-        '''(str,int)->void
-       set key and instance variables relating to the file path
+    def _load_image(self, filepath):
+        '''(str)->void
+        set key and instance variables relating to the file path
+
+        filepath:
+            full path to the image
         '''
         self.filepath = filepath
         if filepath != '':
             self.filefolder, self.filename, self.fileext = _get_file_parts(
                 _path.abspath(_path.normpath(self.filepath)))
             self.filename = self.filename + self.fileext
-            self.key = self._get_key()
+            self._key = self._get_key()
 
 
     def subjects_generator(self, species):
@@ -198,7 +216,7 @@ class Image(object):
             raise ValueError('Invalid species ' + species)
 
         d = _dictp(JSON_FILE)
-        regions = d[self.key]['regions']
+        regions = d[self._key]['regions']
 
         if regions:
             assert isinstance(regions, dict)
@@ -208,7 +226,7 @@ class Image(object):
                         'region_attributes').get('subjectid')
                     if subjectid not in subjectids:
                         subjectids.append(subjectid)
-                        sbj = Subject(self.key, subjectid)
+                        sbj = Subject(self._key, subjectid)
                         yield sbj
         else:
             s = 'No VGG regions defined for image %s' % self.filepath
@@ -233,7 +251,7 @@ class Image(object):
         #associated with the point
 
         d = _dictp(JSON_FILE)
-        regions = d[self.key]['regions']
+        regions = d[self._key]['regions']
 
         if not regions:
             return None
@@ -280,7 +298,7 @@ class Image(object):
         Returns number of shapes
         '''
         d = _dictp(JSON_FILE)
-        regions = d[self.key]['regions']
+        regions = d[self._key]['regions']
         cnt = 0
         if regions:
             assert isinstance(regions, dict)

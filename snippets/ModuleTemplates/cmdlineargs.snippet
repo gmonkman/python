@@ -16,17 +16,40 @@
     </Header>
     <Snippet>
       <Code Language="Python" Delimiter="$"><![CDATA[
-#need to import argparse
-_CMDLINE = argparse.ArgumentParser(description='Description if script is excuted with -h option')
-_CMDLINE.add_argument('-f','--foo', help='Description for foo argument', required=True)
-_CMDLINE.add_argument('-b','--bar', help='Description for bar argument', required=False default='WAS_EMPTY')
-_CMDLINEARGS = _CMDLINE.parse_args()
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+'''new script wih argparse'''
+import argparse
 
-#if _CMDLINEARGS.foo == 'THE FOO ARG':
-    #do stuff
-	
-#if _CMDLINEARGS.bar == 'WAS_EMPTY':
-    #do stuff if no bar argument was passed]]></Code>
+
+def main():
+	'''main'''
+    cmdline = argparse.ArgumentParser(description='Description'
+                                      'this is a description '
+                                      'and another line with two new lines.\n\n'
+                                      'Example:\n'
+                                      'scipt.py -part whole "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler"'
+                                      )
+
+    #named: eg script.py -part head
+    cmdline.add_argument('-part', '--part', help='The region part eg. head.', required=True)
+
+    #argument present or not: e.g. scipt.py -f
+    #args.fix == True
+    cmdline.add_argument('-f', '--fix', help='Fix it', action='store_true')
+
+    #positional: e.g. scipt.py c:/temp
+    #args.folder == 'c:/temp'
+    cmdline.add_argument('folder', help='folder')
+
+    #multiple arguments: e.g. script.py -files_in 'c:/' 'd:/'
+    #for fname in args.files_in:
+    cmdline.add_argument('-i', '--files_in', help='VGG JSON files to merge', nargs='+')
+    
+    
+if __name__ == "__main__":
+    main()
+
+]]></Code>
     </Snippet>
   </CodeSnippet>
 </CodeSnippets>

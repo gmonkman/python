@@ -397,7 +397,7 @@ def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
     return _cv2.resize(image, dim, interpolation=inter)
 
 
-def rotate(image, angle, no_crop=False):
+def rotate(image, angle, no_crop=True):
     '''(str|ndarray, float, bool) -> ndarray
     Rotate an image through 'angle' degrees.
 
