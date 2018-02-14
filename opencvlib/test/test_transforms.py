@@ -9,6 +9,7 @@ import cv2
 import funclib.iolib as iolib
 import opencvlib.transforms as t
 from opencvlib.view import show
+from opencvlib.view import mosaic
 from opencvlib.common import draw_points
 
 _fShow = lambda pts: show(draw_points(pts))
@@ -26,7 +27,7 @@ class Test(unittest.TestCase):
 
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_crop(self):
         '''test'''
         img = t.crop(self.I, (200, 100), t.eRegionFormat.HW, (100, 100), allow_crop_truncate=False)
@@ -49,6 +50,15 @@ class Test(unittest.TestCase):
 
         img = t.crop(self.I, ((0, 0), (100, 0), (0, 100), (100, 100)), t.eRegionFormat.XYXYXYXY)
         self.assertTupleEqual(img.shape, (101, 101, 3))
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_sharpen(self):
+        '''sharpen'''
+        img = t.sharpen(self.I)
+        show(mosaic([img, self.I]))
+
+
 
 
 

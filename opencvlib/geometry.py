@@ -50,6 +50,42 @@ def angle_between_pts(pt1, pt2, as_degrees=True):
     return _np.rad2deg((ang1 - ang2) % (2 * _np.pi))
 
 
+def angle_min_rotation_to_x(angle, as_degrees=True):
+    '''(float) -> float
+    Get the minimum rotation to the x-axis from angle,
+    where angle is the rotation to x axis, with negative
+    being clockwise.
+
+    angle:
+        the angle, e.g -180 would be a line with coords ((0,0), (-1,0))
+        this line would be parralel to the x-axis, rotating -180 would
+        be incorrect in most circumstances, it should be rotated 0 degrees.
+
+    Example:
+    >>> angle_min_rotation_to_x(-45)
+    -45
+    >>> angle_min_rotation_to_x(-300)
+    60 #anticlockwise
+    >>> angle_min_rotation_to_x(-190)
+    -10 #clockwise
+    '''
+    if -270 <= angle <= -90:
+        a = 180 - abs(angle)
+    elif angle == -360:
+        a = 0
+    elif -360 < angle < -270:
+        a = 360 - abs(angle)
+    else:
+        a = angle
+
+    if not as_degrees:
+        a = _math.radians(a)
+
+    return a
+
+
+
+
 def length_petween_pts(pts, closed=False):
     '''(array, bool) -> float
     Length of lines defined by points

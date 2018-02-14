@@ -1,4 +1,8 @@
 # pylint: disable=C0103, too-few-public-methods, arguments-differ
+
+#TODO Code Local Binary Patterns for texture detection
+#e.g. https://www.pyimagesearch.com/2015/12/07/local-binary-patterns-with-python-opencv/
+
 '''extract features
 all images are opened as cv2 BGR
 '''
@@ -83,7 +87,7 @@ class _BaseDetector(_ABC):
             self._output_folder = output_folder #where we save files, set at call time, eg by reading from an inifile
 
         self.descriptors = None #descriptor vectors (usually ndarray)
-        self.keypoints = None #keypoints vectors, ndarray, or list cv2.KeyPoints 
+        self.keypoints = None #keypoints vectors, ndarray, or list cv2.KeyPoints
         self._img_descriptors = None #ndarray showing the results of detection
         self._img = None #holds the image as an ndarray or path
         self._imgpath = '' #holds the image path c:/xyz.jpg, needed for creating names to dump files
@@ -117,12 +121,12 @@ class _BaseDetector(_ABC):
 
         self._imgpath = imgpath #file path to image
         self._img_descriptors = None #an image of the detected features for review, debugging etc
-        
+
         self._mask = mask
         self.keypoints = None
         self.descriptors = None #detected feature vector
         self.other_outputs = {} #dict to hold other outputs
-        
+
         self._mask_size_check()
 
         #support deferring loading of the image if we dont
@@ -135,7 +139,7 @@ class _BaseDetector(_ABC):
             self._imgfolder, self._imgname, dummy = _iolib.get_file_parts2(self._imgpath)
         elif isinstance(img, _np.ndarray):
             self._img = img
-        
+
         self._set_img_text()
         self._set_file_names()
 
@@ -182,7 +186,7 @@ class _BaseDetector(_ABC):
 
 
     def get_matcher_dist_enum(self):
-        '''dictates the distance measure for 
+        '''dictates the distance measure for
         use in matching'''
         if self._fdType == eFeatureDetectorType.cvSIFT:
             norm = _cv2.NORM_L2
@@ -230,7 +234,7 @@ class _BaseDetector(_ABC):
             show the descriptors/keypoints
         show_original:
             show the original image
-        
+
         Notes:
         show and show_original will tile the two images
 
@@ -291,25 +295,25 @@ class _BaseDetector(_ABC):
 
         if force and _iolib.file_exists(self._imgpath):
             if self._is_grey:
-                self._img = _opengrey(self._imgpath)                
+                self._img = _opengrey(self._imgpath)
             elif self._is_rgb:
                 self._img = _openSK(self._imgpath)
             else:
                 self._img = _openCV(self._imgpath)
             self._imgfolder, self._imgname, dummy = _iolib.get_file_parts2(self._imgpath)
             s = 'Opened image %s' % self._imgpath
-            
+
             self._mask_size_check()
 
             _prints(s)
 
             return
-            
+
         if force and not _iolib.file_exists(self._imgpath):
             s = 'Requested force load of image %s, but the file doesnt exist' % self._imgpath
             self._img = None
             _prints(s)
-        
+
 
         if not isinstance(self._img, _np.ndarray):
             self._img = _opencvlib.getimg(self._imgpath)
@@ -326,7 +330,7 @@ class _BaseDetector(_ABC):
     @_abstractmethod
     def write_descriptors(self, nd_descriptors):
         '''(ndarray|None) -> void
-        
+
         Save descriptors to hdd.
 
         The inheriting class provides the logic to
@@ -334,15 +338,15 @@ class _BaseDetector(_ABC):
         is saved in this function by call to
         super().write(ndarray, ndarray) by the inheriting
         class
-        ''' 
+        '''
         if _baselib.isempty(self._output_folder):
             _prints('Cannot write descriptors, output_folder not set. The output folder is set on instantiation of the detector class.')
             return
-             
+
         _iolib.create_folder(self._output_folder)
-        
+
         if isinstance(nd_descriptors, _np.ndarray):
-            nd_descriptors.dump(self._descriptor_filename) 
+            nd_descriptors.dump(self._descriptor_filename)
             msg = 'Dumped descriptors for image (or region) %s to %s' % (self._imgpath, self._output_folder)
             _prints(msg)
 
@@ -351,7 +355,7 @@ class _BaseDetector(_ABC):
     @_abstractmethod
     def write_keypoints(self, nd_keypoints):
         '''(ndarray|None) -> void
-        
+
         Save points to hdd.
 
         The inheriting class provides the logic to
@@ -363,15 +367,15 @@ class _BaseDetector(_ABC):
         if _baselib.isempty(self._output_folder):
             _prints('Cannot write descriptors, output_folder not set. The output folder is set on instantiation of the detector class.')
             return
-      
+
         _iolib.create_folder(self._output_folder)
-        
+
         if isinstance(nd_keypoints, _np.ndarray):
             nd_keypoints.dump(self._keypoints_filename)
             msg = 'Dumped keypoints for image (or region) %s to %s' % (self._imgpath, self._output_folder)
             _prints(msg)
 
-    
+
 
     @_abstractmethod
     def read(self):
@@ -385,19 +389,19 @@ class _BaseDetector(_ABC):
         The derived class should first call kp, desc = super().read()
         and then provide code to translate to suitable form if required
         '''
-        if _iolib.file_exists(self._keypoints_filename): 
+        if _iolib.file_exists(self._keypoints_filename):
             kps = _np.load(self._keypoints_filename)
         else:
             kps = None
 
-        if _iolib.file_exists(self._descriptor_filename): 
+        if _iolib.file_exists(self._descriptor_filename):
             dsc = _np.load(self._descriptor_filename)
         else:
             dsc = None
 
         return kps, dsc
 
-    
+
     def _has_keypoints(self):
         '''() -> bool
 
@@ -427,7 +431,7 @@ class _BaseDetector(_ABC):
         Build filenames for feature points
         and feature descriptors in preparation
         for saving.
-        
+
         Returns:
             feature points file name, descriptors file name
 
@@ -445,16 +449,16 @@ class _BaseDetector(_ABC):
 
         s_ptr = '%s_%s%s' % (self._imgname, str(self._fdType.name), FEATURE_POINT_EXT) #123.jpg_ORB.fpt
         self._keypoints_filename = _path.normpath(_path.join(self._output_folder, s_ptr))
-        
+
         s_dsc = '%s_%s%s' % (self._imgname, str(self._fdType.name), DESCRIPTOR_EXT) #123.jpg_ORB.dsc
         self._descriptor_filename = _path.normpath(_path.join(self._output_folder, s_dsc))
-        
+
         s_fif = '%s_%s%s' % (self._imgname, str(self._fdType.name), '.jpg') #123.jpg_ORB.jpg
         self._feature_image_filename = _path.normpath(_path.join(self._output_folder, s_fif))
- 
 
-  
-          
+
+
+
 class _OpenCVDetector(_BaseDetector):
     '''base class for making
     opencv detectors
@@ -462,10 +466,10 @@ class _OpenCVDetector(_BaseDetector):
     '''
 
     _keypoint_color = (0, 255, 0)
-    
+
     def __init__(self, output_folder, Detector, dfType, load_as_RGB=False, load_as_grey=False):
         '''(str, obj:CV2Detector, ndarray|None, Enum:eFeatureDetectorType, bool)
-        
+
         output_folder:
             Location to save descriptors/points
         Detector:
@@ -498,7 +502,7 @@ class _OpenCVDetector(_BaseDetector):
     def view(self, dump=False, show=False, force=False, show_original=False):
         '''(bool, bool, bool) -> void
         View or dump the detected keypoints
-        
+
         dump:
             dump the image to the file system
         show:
@@ -575,7 +579,7 @@ class _OpenCVDetector(_BaseDetector):
 
         super().write_keypoints(k)
         return
-    
+
 
 
     def write_descriptors(self):
@@ -602,7 +606,7 @@ class _OpenCVDetector(_BaseDetector):
         for k in nd_kp:
             KP = _cv2.KeyPoint(x=k[0], y=k[1], _size=k[2], _angle=k[3], _response=k[4], _octave=k[5], _class_id=k[6])
             kp_list.append(KP)
-        
+
         self.keypoints = kp_list
 
 
@@ -621,7 +625,7 @@ class OpenCV_ORB(_OpenCVDetector):
         OpenCV_ORB.Detector = _cv2.ORB_create(**OpenCV_ORB.kwargs)
         print('Options', OpenCV_ORB.kwargs)
         super().__init__(output_folder, OpenCV_ORB.Detector, eFeatureDetectorType.cvORB, load_as_RGB=False, load_as_grey=True)
-    
+
     def __call__(self, img, imgpath, mask=None, extract_now=False):
         super().__call__(img, imgpath, mask, extract_now)
 
@@ -635,7 +639,7 @@ class OpenCV_SIFT(_OpenCVDetector):
     '''
     kwargs = {'nfeatures':10000, 'nOctaveLayers':3, 'contrastThreshold':0.04, 'edgeThreshold':10, 'sigma':1.6}
     Detector = None
-    
+
 
     def __init__(self, output_folder=None, load_as_RGB=False):
         OpenCV_SIFT.Detector = _cv2.xfeatures2d.SIFT_create(**OpenCV_SIFT.kwargs)
@@ -658,10 +662,10 @@ class OpenCV_DenseSIFT(_OpenCVDetector):
 
     def __init__(self, output_folder=None, load_as_RGB=False,
                 initFeatureScale=1.,
-                featureScaleLevels=1, 
+                featureScaleLevels=1,
                 featureScaleMul=0.1,
                 initXyStep=6,
-                initImgBound=0, 
+                initImgBound=0,
                 varyXyStepWithScale=True,
                 varyImgBoundWithScale=False
                 ):
@@ -681,7 +685,7 @@ class OpenCV_DenseSIFT(_OpenCVDetector):
 
     def __call__(self, img, imgpath, mask=None, extract_now=False):
         super().__call__(img, imgpath, mask, extract_now)
-    
+
 
 
 class OpenCV_FAST(_OpenCVDetector):
@@ -786,7 +790,7 @@ class skHOGDetector(_BaseDetector):
 
     def __init__(self, output_folder=None):
         '''(str, bool) -> void
-        
+
         output_folder:
             Where to save features/keypoints
         load_keypoint_visual:
@@ -797,7 +801,7 @@ class skHOGDetector(_BaseDetector):
         #load_as_RGB=True - this is an skimage func
         super().__init__(output_folder, eFeatureDetectorType.skHOG, load_as_RGB=False, load_as_grey=True)
 
-    
+
     def __call__(self, img, imgpath, mask=None, extract_now=False, load_keypoint_visual=False):
         self._load_keypoint_visual = load_keypoint_visual
         super().__call__(img, imgpath, mask)
@@ -811,14 +815,14 @@ class skHOGDetector(_BaseDetector):
 
     def extract_descriptors(self):
         super().extract_descriptors() #loads image
-        
+
         if self._load_keypoint_visual:
             fd, hog_image = _skfeature.hog(self._img, visualise=True, *skHOGDetector.args, **skHOGDetector.kwargs)
             self._img_descriptors = _opencvlib.transforms.rescale_intensity(hog_image, in_range=(0, 0.02))
         else:
             self._img_descriptors = None
             fd = _skfeature.hog(self._img, visualise=False, *skHOGDetector.args, **skHOGDetector.kwargs)
-        print('%s detected %d keypoints' % (self._imgname, len(fd) if fd else 0))    
+        print('%s detected %d keypoints' % (self._imgname, len(fd) if fd else 0))
         self.descriptors = fd
         self.keypoints = None
 
@@ -842,7 +846,7 @@ class skHOGDetector(_BaseDetector):
         '''write keypoints'''
         super().write(self.descriptors)
 
-        
+
 
 
 
@@ -879,9 +883,9 @@ def main():
     D = OpenCV_DenseSIFT('C:/temp/img')
     D('C:/temp/DSCF8249.JPG')
     D.extract_keypoints()
-    
-    
-    
+
+
+
 #This only executes if this script was the entry point
 if __name__ == '__main__':
     #execute my code

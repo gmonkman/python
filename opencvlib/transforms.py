@@ -5,6 +5,7 @@ import numpy as _np
 from enum import Enum as _Enum
 
 import funclib.baselib as _baselib
+import scipy.stats as _stats
 
 import opencvlib.decs as _decs
 from opencvlib import getimg as _getimg
@@ -259,13 +260,13 @@ def equalize_hist(img, nbins=256, mask=None):
 
 @_decs.decgetimgsk
 def rescale_intensity(img, in_range='image', out_range='dtype'):
-    '''(ndarray|str, str|2-tuple, str|2-tuple) -> ndarray [BGR]
+    '''(ndarray|str, str|2-tuple, str|2-tuple) -> ndarray
 
     in_range, out_range : str or 2-tuple
     Min and max intensity values of input and output image. The possible values for this parameter are enumerated below.
+
     ‘image’
         Use image min/max as the intensity range.
-
     ‘dtype’
         Use min/max of the image’s dtype as the intensity range.
     dtype-name
@@ -428,9 +429,9 @@ def rotate(image, angle, no_crop=True):
         M[1, 2] += (nH / 2) - cY
 
         # perform the actual rotation and return the image
-        return _cv2.warpAffine(image, M, (nW, nH))
+        return _cv2.warpAffine(img, M, (nW, nH))
 
-    return _cv2.warpAffine(image, M, (w, h))
+    return _cv2.warpAffine(img, M, (w, h))
 
 
 
@@ -530,6 +531,31 @@ def compute_average2(img, imlist, silent=True):
     return _np.array(averageim, 'uint8')
 
 
+@_decs.decgetimg
+def sharpen(img):
+    '''(ndarray|str, float) -> ndarray
+    Sharpen an image
+
+    img:
+        An image or file path
+    factor:
+        scale sharpening
+    Returns:
+        image
+    '''
+    image = _getimg(img)
+    kernel = _np.array([
+                    [-1, -1, -1, -1, -1],
+                    [-1, 2, 2, 2, -1],
+                    [-1, 2, 8, 2, -1],
+                    [-1, 2, 2, 2, -1],
+                    [-1, -1, -1, -1, -1]
+                    ])
+    kernel = kernel/_np.sum(kernel)
+    i = _cv2.filter2D(image, -1, kernel)
+    return i
+
+
 def homotrans(H, x, y):
     '''(3x3 ndarray,float,float)->float,float
     return homogenous coordinates
@@ -538,3 +564,35 @@ def homotrans(H, x, y):
     ys = H[1, 0] * x + H[1, 1] * y + H[1, 2]
     s = H[2, 0] * x + H[2, 1] * y + H[2, 2]
     return xs / s, ys / s
+
+
+def sharpen_unsharpmask(img, kernel_size=(9, 9), alpha=1, beta=1, scalar=0):
+    #see pg 185 digital image processing
+    '''(ndarray|str, 2-tuple) -> ndarray
+    Sharpen an image using unsharp mask
+
+    img:
+        image or filepath to an image
+    kernel_size:
+        Size of the guassian kernel, e.g. (9, 9)
+    alpha:
+        weight applied tooriginal image
+    beta:
+        weight applied to blurred image
+    scalar:
+        value added to each pixel
+
+    Notes:
+        beta < 1: Deemphasises contribution of the max
+        beta = 1: default sharpening
+        beta > 1: highboost filtering, increases sharpness
+    '''
+    img = _getimg(img)
+    gaussian = _cv2.GaussianBlur(img, kernel_size, sigmaX=10.0, sigmaY=10)
+    unsharp_image = _cv2.addWeighted(img, alpha, gaussian, beta, scalar)
+    return unsharp_image
+
+
+#Todo add bilatal filtering support
+#http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html
+#https://docs.opencv.org/3.0-beta/modules/imgproc/doc/filtering.html#sobel

@@ -1,22 +1,34 @@
 # pylint: disable=W0612, E0611,E1101
 '''pyqt wrapper'''
-from __future__ import print_function
-import sys
-from PyQt4.QtGui import QWidget, QApplication, QMessageBox
-from PyQt4 import QtCore
+import sys as _sys
+from PyQt4.QtGui import QWidget as _QWidget
+from PyQt4.QtGui import QApplication as _QApplication
+from PyQt4.QtGui import _QMessageBox
+from PyQt4 import QtCore as _QtCore
 
 
-def question(title, msg, default_button=QMessageBox.No, *flags):
+
+def question(title, msg, default_button=_QMessageBox.No, *flags):
     '''(str, str, ints)->QMessageBoxValueEnumeration
-    Show a message box
-    Ints will be binary ORed to get Yes,No,Ok for example
-    Return the result (Eg QMessageBox.Yes)
+    Show a yes/no message box. Flags (ints) are binary ORed to get Yes, No, Ok etc.
+
+    title:
+        title of the message box
+    msg:
+        The message to display
+
+    Returns:
+        the result (Eg QMessageBox.Yes)
+
+    Example:
+    >>>x = question('Quit this', 'Press yes to quit', _QMessageBox.No, _QMessageBox.Yes)
+    print('yes' if x == _QMessageBox.Yes else 'no')
     '''
     options = _or_flags(flags)
-    a = QApplication(sys.argv)
-    w = QWidget()
-    w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-    return QMessageBox.question(w, title, msg, options, default_button)
+    a = _QApplication(_sys.argv)
+    w = _QWidget()
+    w.setWindowFlags(_QtCore.Qt.WindowStaysOnTopHint)
+    return _QMessageBox.question(w, title, msg, options, default_button)
 
 
 def _or_flags(flags):
@@ -25,15 +37,3 @@ def _or_flags(flags):
     for x in flags:
         b = b | x
     return b
-
-
-def main():
-    '''entry pt'''
-    x = question('Quit this', 'Press yes to quit',
-                 QMessageBox.No, QMessageBox.Yes, QMessageBox.No)
-    print('yes' if x == QMessageBox.Yes else 'no')
-
-
-# This only executes if this script was the entry point
-if __name__ == '__main__':
-    main()

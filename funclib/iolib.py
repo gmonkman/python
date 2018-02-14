@@ -327,8 +327,20 @@ def hasdir(path, fld):
 
 def hasfile(path, fname):
     '''(str, str|list)->bool
-    Is the file name in full file path equal to fname.
-    fname can be a list of file names
+    Does path contain the filename fname.
+
+    path:
+        full path name to a file
+    fname:
+        the file name
+
+    Example:
+    >>>hasfile('c:/tmp/myfile.txt', 'myfile.txt')
+    True
+
+    Returns:
+        true if fname is the file in path.
+
     '''
     if isinstance(path, str):
         return get_file_parts2(path)[1] == fname
@@ -361,9 +373,19 @@ def drive_get_uuid(drive='C:', strip=['-'], return_when_unidentified='??'):
 
 def get_file_parts(filepath):
     '''(str)->list[path, filepart, extension]
-    Given path to a file, split it into path, file part and extension.
-    eg: c:/temp/myfile.txt
-    ['c:/temp', 'myfile', '.txt']
+    Given path to a file, split it into path,
+    file part and extension.
+
+    filepath:
+        full path to a file.
+
+    Returns:
+        The folder, the filename without the extension
+        and the extension
+
+    Example:
+    >>>get_file_parts('c:/temp/myfile.txt')
+    'c:/temp', 'myfile', '.txt'
     '''
     folder, fname = _os.path.split(filepath)
     fname, ext = _os.path.splitext(fname)
@@ -373,12 +395,38 @@ def get_file_parts(filepath):
 def get_file_parts2(filepath):
     '''(str)->list[path, filepart, extension]
     Given path to a file, split it into path, file part and extension.
-    eg: c:/temp/myfile.txt
-    ['c:/temp', 'myfile.txt', '.txt']
+
+    filepath:
+        full path to a file.
+
+    Returns:
+        The folder, the filename including the extension and the extension
+
+    Example:
+    >>>get_file_parts2('c:/temp/myfile.txt')
+    'c:/temp', 'myfile.txt', '.txt'
     '''
     folder, fname = _os.path.split(filepath)
     ext = _os.path.splitext(fname)[1]
     return [folder, fname, ext]
+
+
+def folder_has_files(fld):
+    '''(str) -> bool
+
+    Does the folder contain files?
+
+    fld:
+        folder path
+
+    Example:
+    >>>folder_has_files('C:/windows')
+    True
+    '''
+    for _, _, files in _os.walk(_os.path.normpath(fld)):
+        if files:
+            return True
+        return False
 
 
 def get_available_drives(strip=['-'], return_when_unidentified='??'):
@@ -509,7 +557,7 @@ def file_list_generator1(paths, wildcards, recurse=False):
             for f in file_list_glob_generator(vals, recurse=True):
                 yield f
         else:
-            for myfile in _glob.glob(vals):
+            for myfile in _glob.glob(_os.path.normpath(vals)):
                 yield _os.path.normpath(myfile)
 
 
@@ -758,7 +806,7 @@ class PrintProgress(object):
         print('\n')
         self.max = maximum
         self.bar_length = bar_length
-        self.iteration = 0
+        self.iteration = 1
 
     def increment(self):
         '''tick the progress bar'''

@@ -819,14 +819,14 @@ def main():
             if _os.path.isdir(cmdargs.outpath):
                 title = 'Delete Files?'
                 msg = 'Folder %s already exists. Do you wish to delete existing files from it?' % cmdargs.outpath
-                default = _msgbox.QMessageBox.No
+                default = _msgbox._QMessageBox.No
                 result = _msgbox.question(
                     title,
                     msg,
                     default,
-                    _msgbox.QMessageBox.Yes,
-                    _msgbox.QMessageBox.No)
-                if result == _msgbox.QMessageBox.Yes:
+                    _msgbox._QMessageBox.Yes,
+                    _msgbox._QMessageBox.No)
+                if result == _msgbox._QMessageBox.Yes:
                     _iolib.files_delete(cmdargs.outpath)
             else:
                 _iolib.create_folder(cmdargs.outpath)

@@ -340,7 +340,7 @@ class DigiKam(_Generator):
                         )
             else:
                 raise UserWarning('Invalid DigikamSearchParams search type. Search type should be Enum:eDigiKamSearchType')
-            
+
             self._image_list = [_iolib.fixp(i) for i in imgs]
 
 
@@ -382,6 +382,12 @@ class FromPaths(_Generator):
             >0 - 3 channel color iage (stripping alpha if present
         pathonly:
             only generate image paths, the ndarray will be None
+
+        Yields:
+            image, path, an empty dictionary
+
+        Notes:
+            The empty dictionary is yielded so it is the same format as other generators
          '''
 
         for imgpath in _iolib.file_list_generator1(self._paths, self._wildcards, recurse=recurse):
@@ -441,7 +447,7 @@ class VGGRegions(_Generator):
 
         Uses the filters set in the VGGFilter and DigikamSearchParams
         to yield image regions to the caller.
-        
+
         pathonly:
             Only yield the image path, None will be returned for the ndarray
         outflag:
@@ -696,7 +702,7 @@ class RegionDualPosNeg():
     and deriving a randomly placed sample region of
     the same shape of the positive region
     '''
-    def __init__(self, vggPos, dkPos, vggNeg, dkNeg, T, F): 
+    def __init__(self, vggPos, dkPos, vggNeg, dkNeg, T, F):
         '''(VGGSearchParams, DigiKamSearchParams, VGGSearchParams, DigiKamSearchParams, Transforms, Filters)
 
         Generate a positive and negtive training image from

@@ -5,6 +5,8 @@ from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 
 
+import numpy as np
+
 from opencvlib.view import show
 import opencvlib.imgpipes.generators as gnr
 import opencvlib.transforms as transforms
@@ -19,7 +21,7 @@ class Test(unittest.TestCase):
         '''
         self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
         self.modpath = _path.normpath(self.pth)
-        pass
+        self.test_images_path = 'C:/development/python/opencvlib/test/bin/images'
 
 
     #DEBUG Double check test_image_pipeline
@@ -70,8 +72,16 @@ class Test(unittest.TestCase):
             show(img)
 
 
+    def test_frompaths(self):
+        '''test frompaths image generator
+        '''
+        FP = gnr.FromPaths(self.test_images_path, ['*.jpg'])
+
+        for img, imgpath, dic  in FP.generate():
+            self.assertIsInstance(img, np.ndarray)
+            self.assertIsInstance(imgpath, str)
+            self.assertIsInstance(dic, dict)
 
 
 if __name__ == '__main__':
     unittest.main()
-    

@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_vgg\rotate.py</StartupFile>
+    <StartupFile>script_transforms\sharpen.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"C:/temp/image" "C:/temp/images/rotated" vgg_rotations.json</CommandLineArguments>
+    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/r-ahe-um"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
@@ -35,7 +35,8 @@ lenscorrection.py -m undistort -c NEXTBASE512G -o C:/Users/GRAHAM~1/OneDrive/DOC
 lenscorrection.py -m undistort -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2
 lenscorrection.py -m undistort_fisheye -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted_fisheye -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2
 
-rotate.py "C:/temp/image" "C:/temp/images/rotated" vgg_rotations.json</Environment>
+rotate.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter\fujifilm/undistorted" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated"  vgg_rotations.json
+sharpen.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/r-ahe-um"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -85,6 +86,7 @@ rotate.py "C:/temp/image" "C:/temp/images/rotated" vgg_rotations.json</Environme
     <Compile Include="script_objdetect\by_segmentation.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="script_transforms\sharpen.py" />
     <Compile Include="stopwatch.py" />
     <Compile Include="template_match.py">
       <SubType>Code</SubType>
@@ -253,6 +255,7 @@ rotate.py "C:/temp/image" "C:/temp/images/rotated" vgg_rotations.json</Environme
     <Folder Include="calibration\nextbase512g\" />
     <Folder Include="imgpipes\" />
     <Folder Include="bin\" />
+    <Folder Include="script_transforms\" />
     <Folder Include="script_aruco\" />
     <Folder Include="scripts_segmentation\" />
     <Folder Include="scripts_streams\" />

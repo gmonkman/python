@@ -78,6 +78,7 @@ class Line():
         self.pt2 = pt2
         self.length = None
         self.angle_to_x = None
+        self.angle_min_rotation_to_x = None #smallest rotation to make parallel to x axis
         self.midpoint = None
         self._refresh()
 
@@ -101,6 +102,7 @@ class Line():
         '''
         self.length = _dist.L2dist(self.pt1, self.pt2)
         self.angle_to_x = _geom.rotation_angle(self.pt1, self.pt2)
+        self.angle_min_rotation_to_x = _geom.angle_min_rotation_to_x(self.angle_to_x)
         self.midpoint = [(self.pt1[0] + self.pt2[0]) / 2, (self.pt1[1] + self.pt2[1]) / 2]
 
 

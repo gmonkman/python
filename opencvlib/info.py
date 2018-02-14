@@ -97,7 +97,7 @@ class ImageInfo():
 
         if not w is None and not h is None:
             return x > w and y > h
-        
+
         return False
 
 
@@ -128,6 +128,15 @@ class ImageInfo():
             return bool(eImgType.CHANNEL_1.value & ImageInfo.typeinfo(img))
 
         return bool(eImgType.COLOR_BW.value & ImageInfo.typeinfo(img))
+
+
+    @staticmethod
+    @_decs.decgetimg
+    def sharpval(img):
+        '''(ndarray|str)->float
+        Calculate metric for blurriness of an image
+        '''
+        return _cv2.Laplacian(img, _cv2.CV_64F).var()
 
 
     @staticmethod

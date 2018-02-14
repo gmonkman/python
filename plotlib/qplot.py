@@ -20,19 +20,18 @@ def histo(data, bins='auto', normed=True, show=True):
 
     if normed:
         mu = D.mean()
-        sigma = D.std()    
+        sigma = D.std()
         y = _mlab.normpdf(bins, mu, sigma)
         dummy = Plot.plot(bins, y, 'r--', linewidth=1)
-    
+
     if show:
         Plot.show()
 
 
 
-
 def scatter(x_data, y_data, group_labels=(), show=True):
     '''(listlike|ndarray, listlike|ndarray, bool) - void
-    
+
     Simple x-y scatter plot, supports groups by passing
     multiple iterables to x_data and y_data.
 
@@ -59,7 +58,7 @@ def scatter(x_data, y_data, group_labels=(), show=True):
     for ind, x in enumerate(x_data):
         if len(x) != len(y_data[ind]):
             raise ValueError('x_data and y_data lengths must match')
-    
+
     groups = []
 
     for ind, x in enumerate(x_data):
@@ -67,8 +66,8 @@ def scatter(x_data, y_data, group_labels=(), show=True):
             grp = '{0!s}'.format(group_labels[ind])
         else:
             grp = 'grp {0!s}'.format(ind)
-        
-        
+
+
         if isinstance(x, _np.ndarray):
             ndX = x.flatten()
         else:
@@ -83,7 +82,6 @@ def scatter(x_data, y_data, group_labels=(), show=True):
         Plot.scatter(ndX, ndY)
 
     Plot.legend(groups, loc='upper right')
-    
+
     if show:
         Plot.show()
-          
