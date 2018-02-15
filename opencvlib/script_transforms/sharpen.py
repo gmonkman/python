@@ -66,7 +66,7 @@ def main():
     normalise = lambda x: 1 + ((((x - minsharp) / (maxsharp - minsharp)) - 0.5)*-1)   #scale between 0.5 and 1.5,
     for img, imgpath, _ in FP.generate():
         scale = normalise(info.sharpval(img))
-        img = transforms.sharpen_unsharpmask(img, beta=scale)
+        img = transforms.sharpen_unsharpmask(img)
         s = path.normpath(out + '/usm' + iolib.get_file_parts2(imgpath)[1])
         cv2.imwrite(s, img)
         PP.increment()

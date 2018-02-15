@@ -112,7 +112,7 @@ def resize(img):
     r = 750.0 / img.shape[1]
     dim = (750, int(img.shape[0] * r))
     img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
-   
+
     if img.shape[0] > 600:
         img = cv2.resize(img, (500, 500))
         global controls

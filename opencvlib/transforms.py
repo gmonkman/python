@@ -6,7 +6,7 @@ from enum import Enum as _Enum
 
 import funclib.baselib as _baselib
 import scipy.stats as _stats
-
+import skimage as _skimage
 import opencvlib.decs as _decs
 from opencvlib import getimg as _getimg
 from opencvlib import color as _color
@@ -235,8 +235,7 @@ def to8bpp(img):
 
 def toFloat(img):
     '''(ndarray:float)->ndarray:uint8
-    Convert float image representation to
-    8 bit image.
+    Convert 8bpp image representation to float.
     '''
     assert isinstance(img, _np.ndarray)
     if 'uint' in str(img.dtype):
@@ -258,7 +257,6 @@ def equalize_hist(img, nbins=256, mask=None):
     return _color.RGB2BGR(i)
 
 
-@_decs.decgetimgsk
 def rescale_intensity(img, in_range='image', out_range='dtype'):
     '''(ndarray|str, str|2-tuple, str|2-tuple) -> ndarray
 
@@ -274,6 +272,7 @@ def rescale_intensity(img, in_range='image', out_range='dtype'):
     2-tuple
         Use range_values as explicit min/max intensities.
     '''
+    img = _getimg(img)
     i = _exposure.rescale_intensity(img, in_range=in_range, out_range=out_range)
     return _color.RGB2BGR(i)
 #endregion
@@ -566,7 +565,7 @@ def homotrans(H, x, y):
     return xs / s, ys / s
 
 
-def sharpen_unsharpmask(img, kernel_size=(9, 9), alpha=1, beta=1, scalar=0):
+def sharpen_unsharpmask(img, kernel_size=(5, 5), threshhold=0.0, weight=1, sigma=3, hsv=False):
     #see pg 185 digital image processing
     '''(ndarray|str, 2-tuple) -> ndarray
     Sharpen an image using unsharp mask
@@ -575,22 +574,34 @@ def sharpen_unsharpmask(img, kernel_size=(9, 9), alpha=1, beta=1, scalar=0):
         image or filepath to an image
     kernel_size:
         Size of the guassian kernel, e.g. (9, 9)
-    alpha:
-        weight applied tooriginal image
-    beta:
-        weight applied to blurred image
-    scalar:
-        value added to each pixel
+    threshhold:
+        The mask is only applied where it is above threshhold, after
+        the weighting is applied
+    weight:
+        weight applied to the mask
 
     Notes:
         beta < 1: Deemphasises contribution of the max
         beta = 1: default sharpening
         beta > 1: highboost filtering, increases sharpness
     '''
+
+    if hsv:
+        img_hsv = _cv2.cvtColor(img, _cv2.COLOR_BGR2HSV)
+
     img = _getimg(img)
-    gaussian = _cv2.GaussianBlur(img, kernel_size, sigmaX=10.0, sigmaY=10)
-    unsharp_image = _cv2.addWeighted(img, alpha, gaussian, beta, scalar)
-    return unsharp_image
+    img_float = _skimage.img_as_float(img)
+
+    gb = _cv2.GaussianBlur(img, kernel_size, sigmaX=sigma, sigmaY=sigma)
+    gb = _skimage.img_as_float(gb)
+
+    mask = (img_float - gb)*weight
+    mask[mask < threshhold] = 0
+    usm_img = img_float + mask
+    usm_img = _skimage.exposure.rescale_intensity(usm_img, (_np.min(img_float), _np.max(img_float)))
+    usm_img = _skimage.img_as_ubyte(usm_img)
+    return usm_img
+
 
 
 #Todo add bilatal filtering support

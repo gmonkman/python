@@ -7,6 +7,7 @@ import os.path as _path
 import cv2
 
 import funclib.iolib as iolib
+from opencvlib.common import _getimg
 import opencvlib.transforms as t
 from opencvlib.view import show
 from opencvlib.view import mosaic
@@ -23,7 +24,10 @@ class Test(unittest.TestCase):
         self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
         self.modpath = _path.normpath(self.pth)
         self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
-        self.I = cv2.imread(self.imgpath)
+        self.imggraf = r'C:\development\python\opencvlib\test\bin\images\graf1.png'
+
+        self.blurred = _getimg(self.imggraf)
+        self.blurred = cv2.GaussianBlur(self.blurred, (9, 9), 10)
 
 
 
@@ -52,14 +56,18 @@ class Test(unittest.TestCase):
         self.assertTupleEqual(img.shape, (101, 101, 3))
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_sharpen(self):
         '''sharpen'''
         img = t.sharpen(self.I)
         show(mosaic([img, self.I]))
 
 
-
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_unsharpmask(self):
+        '''sharpen'''
+        img = t.sharpen_unsharpmask(self.blurred, kernel_size=(21, 21), weight=1.1)
+        show(mosaic([self.blurred, img]))
 
 
 if __name__ == '__main__':

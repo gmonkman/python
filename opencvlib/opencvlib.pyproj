@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>script_transforms\sharpen.py</StartupFile>
+    <StartupFile>script_transforms\transform_viewer.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/r-ahe-um"</CommandLineArguments>
+    <CommandLineArguments>"C:\development\python\opencvlib\test\bin\images\lena.jpg"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
@@ -86,6 +86,7 @@ sharpen.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/
     <Compile Include="script_objdetect\by_segmentation.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="script_transforms\transform_viewer.py" />
     <Compile Include="script_transforms\sharpen.py" />
     <Compile Include="stopwatch.py" />
     <Compile Include="template_match.py">
