@@ -12,30 +12,11 @@
     </Header>
     <Snippet>
       <Code Language="Python"><![CDATA[
-from contextlib import contextmanager as _contextmanager
+import funclib.iolib as _iolib
 
-@_contextmanager
-def suppress_stdout(stdout=True, stderr=True):
-    '''(bool, bool) -> void
-    Stop messages and errors being sent to the console
-    '''
-    with open(_os.devnull, "w") as devnull:
-        old_stdout = _sys.stdout
-        old_stderr = _sys.stderr
-        if stdout:
-            _sys.stdout = devnull
+with _iolib.suppress_stdout(stdout=True, stderr=True):
+    #do noisy stuff
 
-        if stderr:
-            _sys.stderr = devnull
-        try:  
-            yield
-        finally:
-            _sys.stdout = old_stdout
-            _sys.stderr = old_stderr
-
-print("Now you see it")
-with suppress_stdout():
-    print("Now you don't")
 ]]></Code>
     </Snippet>  
   </CodeSnippet>

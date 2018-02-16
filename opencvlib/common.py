@@ -17,6 +17,8 @@ import os as _os
 import itertools as _it
 from contextlib import contextmanager as _contextmanager
 from opencvlib import getimg as _getimg
+from funclib.baselib import tuple_add_elementwise as _tupadd
+
 
 IMAGE_EXTENSIONS = ['.bmp', '.jpg', '.jpeg',
                     '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
@@ -85,19 +87,57 @@ def mtx2rvec(R):
     return axis * _np.arctan2(s, c)
 
 
-def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, bottom_left_origin=False):
-    '''(ndarray, 2:tuple, str) -> void
-    Draw text on dst - ByRef
+def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_cv2.FONT_HERSHEY_COMPLEX_SMALL, bottom_left_origin=False, box_background=None, box_pad=5):
+    '''(byref:ndarray, int, int, str, 3:tuple, float, int, bool, 3-tuple|int|None) -> void
+    Draw text on dst
 
     dst:
         Image to draw text on, byref
-    target:
-        draw text on dst at these coordinates.
-        tuple is (x, y)
+    x, y:
+        draw at this CVXY point
+    s:
+        the text to draw
+    color:
+        text color as 3-tuple, e.g. black=(0, 0, 0)
+    scale:
+        sizing scale
+    bottom_left_origin:
+        x,y is XY, not CVXY
+    box_background:
+        color of box background in which to draw text,
+        e.g. (255, 255, 2550), otherwise no
+        background is used around text.
     '''
-    #FONT_HERSHEY_PLAIN
-    _cv2.putText(dst, s, (x, y), _cv2.FONT_HERSHEY_TRIPLEX,
-                scale, color, lineType=_cv2.LINE_AA, bottomLeftOrigin=bottom_left_origin)
+    if isinstance(box_background, int):
+        box_background = (box_background, ) * 3
+
+    if dst is None:
+        return None
+
+    thickness = int(thickness)
+    pt, baseline = _cv2.getTextSize(s, fnt, scale, thickness)
+    w, h = pt
+    #pt is x, y
+    if box_background:
+        assert len(dst.shape) == 2 or len(dst.shape) == 3, 'Expected the image to be 2 or 3 dimensions, got %s.' % len(dst.shape)
+        if len(dst.shape) == 2:
+            box = _np.ones((pt[1] + box_pad*2, pt[0] + box_pad*2))*box_background[0]
+        else:
+            box = _np.ones((pt[1] + box_pad*2, pt[0] + box_pad*2, 3))*box_background[0]
+
+        textOrg = (int((box.shape[1] - w)/2), int((box.shape[0] + h)/2))
+
+        corner = tuple(int(z) for z in _tupadd((textOrg, (0, baseline))))
+        wh = tuple(int(z) for z in _tupadd((textOrg, (w, -h))))
+
+        _cv2.rectangle(box, corner, wh, box_background)
+        _cv2.putText(box, s, textOrg, fnt,
+                    scale, color, thickness=thickness, lineType=_cv2.LINE_AA)
+
+        dst[y: box.shape[0] + y, x: box.shape[1] + x] = box
+    else:
+        _cv2.putText(dst, s, (x, y), fnt,
+                    scale, color, thickness=thickness, lineType=_cv2.LINE_AA, bottomLeftOrigin=bottom_left_origin)
 
 
 class Sketcher:

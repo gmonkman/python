@@ -64,14 +64,16 @@ def main():
     skipped = 0; processed = 0
 
     normalise = lambda x: 1 + ((((x - minsharp) / (maxsharp - minsharp)) - 0.5)*-1)   #scale between 0.5 and 1.5,
+    vs = []
     for img, imgpath, _ in FP.generate():
         scale = normalise(info.sharpval(img))
-        img = transforms.sharpen_unsharpmask(img)
+        vs.append(scale)
+        img = transforms.sharpen_unsharpmask(img,  (5, 5), 5/255, scale)
         s = path.normpath(out + '/usm' + iolib.get_file_parts2(imgpath)[1])
         cv2.imwrite(s, img)
         PP.increment()
         processed += 1
-
+    print(vs)
     print('\n%s of %s images sharpened. %s images skipped.\n' % (processed, PP.max, skipped))
 
 

@@ -3,6 +3,7 @@
 '''My file input and output library, e.g. for _csv handling.'''
 from __future__ import print_function as _print_function
 
+
 import csv as _csv
 import glob as _glob
 import itertools as _itertools
@@ -11,6 +12,8 @@ import time as _time
 import shutil as _shutil
 import string as _string
 import tempfile as _tempfile
+from contextlib import contextmanager as _contextmanager
+
 
 try:
     import cPickle as _pickle
@@ -841,3 +844,23 @@ def wait_key():
             _termios.tcsetattr(fd, _termios.TCSAFLUSH, oldterm)
 
     return result
+
+
+@_contextmanager
+def suppress_stdout(stdout=True, stderr=True):
+    '''(bool, bool) -> void
+    Stop messages and errors being sent to the console
+    '''
+    with open(_os.devnull, "w") as devnull:
+        old_stdout = _sys.stdout
+        old_stderr = _sys.stderr
+        if stdout:
+            _sys.stdout = devnull
+
+        if stderr:
+            _sys.stderr = devnull
+        try:
+            yield
+        finally:
+            _sys.stdout = old_stdout
+            _sys.stderr = old_stderr

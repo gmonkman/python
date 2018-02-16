@@ -1,10 +1,11 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
-'''helper utils for visualisations, 
+'''helper utils for visualisations,
 eg stream and image viewing'''
 from enum import Enum as _Enum
 
-from funclib.stringslib import Visible as _Vis
 import cv2 as _cv2
+
+from funclib.stringslib import Visible as _Vis
 
 
 
@@ -30,7 +31,7 @@ class KeyBoardInput():
         'tab', 'space', 'unknowable', 'none'
     '''
     _key_dic = _Vis.ord_dict()
-    
+
     for _v in eSpecialKeys:
         _key_dic[_v.value] = _v.name
 
@@ -39,7 +40,7 @@ class KeyBoardInput():
     def get_pressed_key(waitkeyval, is_raw=True):
         '''(int, bool) -> str
         Pass in waitkey result, returning
-        the string representation of the key.          
+        the string representation of the key.
 
         i:
             return value of waitkey
@@ -85,16 +86,3 @@ class KeyBoardInput():
 
         return KeyBoardInput.get_pressed_key(waitkeyval) == str(keyOrSpecial)
 
-
-def draw_str(dst, x, y, s, color=(255, 255, 255), bottom_left_origin=False):
-    '''(ndarray, 2:tuple, str) -> void
-    Draw text on dst - ByRef
-
-    dst:
-        Image to draw text on, byref
-    target:
-        draw text on dst at these coordinates.
-        tuple is (x, y)
-    '''
-    _cv2.putText(dst, s, (x, y), _cv2.FONT_HERSHEY_PLAIN,
-                1.0, color, lineType=_cv2.LINE_AA, bottomLeftOrigin=bottom_left_origin)

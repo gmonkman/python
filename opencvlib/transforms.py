@@ -565,7 +565,7 @@ def homotrans(H, x, y):
     return xs / s, ys / s
 
 
-def sharpen_unsharpmask(img, kernel_size=(5, 5), threshhold=0.0, weight=1, sigma=3, hsv=False):
+def sharpen_unsharpmask(img, kernel_size=(5, 5), threshhold=0.0, weight=1, sigma=3):
     #see pg 185 digital image processing
     '''(ndarray|str, 2-tuple) -> ndarray
     Sharpen an image using unsharp mask
@@ -585,13 +585,11 @@ def sharpen_unsharpmask(img, kernel_size=(5, 5), threshhold=0.0, weight=1, sigma
         beta = 1: default sharpening
         beta > 1: highboost filtering, increases sharpness
     '''
-
-    if hsv:
-        img_hsv = _cv2.cvtColor(img, _cv2.COLOR_BGR2HSV)
+    if kernel_size[0]%2 == 0 or kernel_size[1]%2 == 0:
+        raise ValueError('Kernel size must be odd, size was (%s, %s)' % (kernel_size[0], kernel_size[1]))
 
     img = _getimg(img)
     img_float = _skimage.img_as_float(img)
-
     gb = _cv2.GaussianBlur(img, kernel_size, sigmaX=sigma, sigmaY=sigma)
     gb = _skimage.img_as_float(gb)
 

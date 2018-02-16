@@ -184,6 +184,23 @@ def dic_sort_by_key(d):
 
 
 # region lists
+def list_add_elementwise(lsts):
+    '''lists->list
+    Add lists elementwise.
+
+    lsts:
+        a list of lists with the same nr of elements
+
+    Returns:
+        list with summed elements
+
+    Example:
+    >>>list_add_elementwise([[1, 2], [1, 2]])
+    [2, 4]
+    '''
+    return list(map(sum, zip(*lsts)))
+
+
 def lists_remove_empty_pairs(list1, list2):
     '''(list|tuple, list|tuple) -> list, list, list
        Zip through datasets (pairwise),
@@ -286,6 +303,28 @@ def list_flatten(items, seqtypes=(list, tuple)):
             citems[i:i + 1] = citems[i]
     return citems
 # endregion
+
+
+
+# region tuples
+def tuple_add_elementwise(tups):
+    '''lists->list
+    Add tuples elementwise.
+
+    lsts:
+        a tuple of tuples with the same nr of elements
+
+    Returns:
+        tuple with summed elements
+
+    Example:
+    >>>tuple_add_elementwise(((1, 2), (1, 2)))
+    (2, 4)
+    '''
+    return tuple(map(sum, zip(*tups)))
+# endregion
+
+
 
 
 # region Python Info Stuff
