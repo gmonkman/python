@@ -3,8 +3,6 @@
 eg stream and image viewing'''
 from enum import Enum as _Enum
 
-import cv2 as _cv2
-
 from funclib.stringslib import Visible as _Vis
 
 
@@ -85,4 +83,3 @@ class KeyBoardInput():
             return keyOrSpecial == special[0].name or keyOrSpecial == special[0]
 
         return KeyBoardInput.get_pressed_key(waitkeyval) == str(keyOrSpecial)
-

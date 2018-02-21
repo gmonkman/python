@@ -439,7 +439,7 @@ def histeq_color(img, cvtToHSV=True):
         Equalize histogram of color image
         '''
     img = _getimg(img)
-
+    
     if cvtToHSV:
         img_yuv = _cv2.cvtColor(img, _cv2.COLOR_BGR2YUV)
     else:

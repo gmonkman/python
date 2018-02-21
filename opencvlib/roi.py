@@ -19,7 +19,7 @@ import opencvlib.distance as _dist
 import opencvlib.geometry as _geom
 import funclib.baselib as _baselib
 from funclib.arraylib import np_round_extreme as _rnd
-#from opencvlib import getimg as _getimg
+from opencvlib import getimg as _getimg
 
 
 __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
@@ -28,13 +28,14 @@ __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
 
 
 class ePointConversion(_enum):
-    '''enumeration for point coversion between frames'''
+    '''Enumeration for point coversion between frames'''
     XYtoRC = 0
     XYtoCVXY = 1
     RCtoXY = 2
     RCtoCVXY = 3
     CVXYtoXY = 4
     CVXYtoRC = 5
+    XYMinMaxtoCVXY = 6
     Unchanged = 99
 
 
@@ -48,10 +49,13 @@ class ePointsFormat(_enum):
         numpy array of shape (pts nr, 1, 2), used for plotting polylines
     wXXXX_YYYY:
         [[x1, x2, x3, x4], [y1, y2, y3, y4]]
+    minMax:
+        [xmin, xmax, ymin, ymax]
     '''
     XY = 0
     ForPolyLine = 1
     XXXX_YYYY = 2 #[[x1, x2, x3, x4], [y1, y2, y3, y4]]
+
 
 
 class ePointFormat(_enum):
@@ -108,6 +112,7 @@ class Line():
 
 class Quadrilateral():
     '''represents a quadrilateral shape in opencv
+    and provides support for rotations.
 
     The size of the image must be provided for
     proper rotation.
@@ -227,7 +232,8 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointsFormat.XY):
     Note that all points are assumed to be in a 0 index.
 
     pts:
-       An array like of points, e.g. [[1,2], [2,3]]
+       An array like of points, e.g. [[1,2], [2,3]],
+       or [xmin,xmax,ymin,ymax] for XYMinMaxtoCVXY
     img_x:
         image width, e.g. 1024 in a 1024x768 image
     img_y:
@@ -235,7 +241,9 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointsFormat.XY):
     e_pt_cvt:
         the enumeration ePointConversion defining the required conversion
     e_out_format:
-        the format of the output points, see ePointsFormat
+        the format of the output points, see ePointsFormat, Note that this just
+        the output form - the XY does not imply the order of the axis etc which
+        is defined by Enum:ePointConversion.
 
     returns:
         list of points, [[1,2],[2,3]]
@@ -245,23 +253,26 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointsFormat.XY):
     img_y -= 1
 
     out = []
-    for pt in pts:
-        if e_pt_cvt == ePointConversion.XYtoRC:
-            out.append([abs(pt[1] - img_y), pt[0]])
-        elif e_pt_cvt == ePointConversion.XYtoCVXY:
-            out.append([pt[0], abs(pt[1] - img_y)])
-        elif e_pt_cvt == ePointConversion.RCtoXY:
-            out.append([pt[1], abs(pt[0] - img_y)])
-        elif e_pt_cvt == ePointConversion.RCtoCVXY:
-            out.append([pt[1], pt[0]])
-        elif e_pt_cvt == ePointConversion.CVXYtoXY:
-            out.append([pt[0], abs(pt[1] - img_y)])
-        elif e_pt_cvt == ePointConversion.CVXYtoRC:
-            out.append([pt[1], pt[0]])
-        elif e_pt_cvt == ePointConversion.Unchanged:
-            pass
-        else:
-            raise ValueError('Unknown conversion enumeration for function argument e_pt_cvt, ensure the enum ePointConversion is used.')
+    if e_pt_cvt == ePointConversion.XYMinMaxtoCVXY: #e.g. of points in for this format (10, 50, 20, 30),  i.e. xmin,xmax,ymin,ymax
+        out = [[pts[0], pts[2]], [pts[1], pts[2]], [pts[1], pts[3]], [pts[0], pts[3]]]
+    else:
+        for pt in pts:
+            if e_pt_cvt == ePointConversion.XYtoRC:
+                out.append([abs(pt[1] - img_y), pt[0]])
+            elif e_pt_cvt == ePointConversion.XYtoCVXY:
+                out.append([pt[0], abs(pt[1] - img_y)])
+            elif e_pt_cvt == ePointConversion.RCtoXY:
+                out.append([pt[1], abs(pt[0] - img_y)])
+            elif e_pt_cvt == ePointConversion.RCtoCVXY:
+                out.append([pt[1], pt[0]])
+            elif e_pt_cvt == ePointConversion.CVXYtoXY:
+                out.append([pt[0], abs(pt[1] - img_y)])
+            elif e_pt_cvt == ePointConversion.CVXYtoRC:
+                out.append([pt[1], pt[0]])
+            elif e_pt_cvt == ePointConversion.Unchanged:
+                pass
+            else:
+                raise ValueError('Unknown conversion enumeration for function argument e_pt_cvt, ensure the enum ePointConversion is used.')
 
     if e_out_format == ePointsFormat.ForPolyLine:
         poly_pts = _np.array(out, dtype='int32')
@@ -275,7 +286,6 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointsFormat.XY):
 
 
 
-@_decs.decgetimg
 def sample_rect(img, w, h):
     '''(str|ndarray,int,int,int,int)->ndarray|None
     Return a retangle of an image as an ndarray
@@ -287,7 +297,7 @@ def sample_rect(img, w, h):
     '''
     # if isinstance(img, str):
     #   img = _cv2.imread(path.normpath(img) , -1)
-
+    img = _getimg(img)
     img_w, img_h = _info.ImageInfo.getsize(img)
     if img_w < w or img_h < h:
         return None
@@ -339,12 +349,15 @@ def cropimg_pts(img, corners):
 
 
 def poly_area(pts=None, x=None, y=None):
-    '''(list, list, list)->float
-    If points are in two matched lists, use x= and y=
-    Else if you have an array of points, use pts=
+    '''(list|None, list|None, list|None) -> float
+    Calculate area of a polygon defined by
+    its vertices.
 
-    eg. x=[1,2,3,4], y=[5,6,7,8]
-    or pts=[(1,5),(2,6),(3,7),(4,8)]
+    Supports CVXY or XXXXYYYY format
+
+    Example:
+        >>>poly_area(x=[1,2,3,4], y=[5,6,7,8]) #XXXYYY
+        >>>poly_area(pts=[(1,5),(2,6),(3,7),(4,8)]) #CVXY
     '''
     if pts:
         x = [pt[0] for pt in pts]
@@ -353,7 +366,7 @@ def poly_area(pts=None, x=None, y=None):
     return 0.5 * _np.abs(_np.dot(x, _np.roll(y, 1)) - _np.dot(y, _np.roll(x, 1)))
 
 
-@_decs.decgetimg
+
 def roi_polygons_get(img, points):
     '''(ndarray or path, [tuple list|ndarray])->ndarray, ndarray, ndarray, ndarray
     Points are a tuple list e.g. [(0,0), (50,0), (0,50), (50,50)]
@@ -367,6 +380,7 @@ def roi_polygons_get(img, points):
 
     # mask defaulting to black for 3-channel and transparent for 4-channel
     # (of course replace corners with yours)
+    img = _getimg(img)
     white_mask = _np.zeros(img.shape, dtype=_np.uint8)
 
     roi_corners = _cv2.convexHull(_np.array([points], dtype=_np.int32))
@@ -389,7 +403,7 @@ def roi_polygons_get(img, points):
     return white_mask_crop, mask, bitwise, rectcrop
 
 
-@_decs.decgetimg
+
 def get_image_from_mask(img, mask):
     '''(ndarray, ndarray)->ndarray
     Apply a white mask representing an roi
@@ -398,8 +412,8 @@ def get_image_from_mask(img, mask):
     img and mask must be the same size,
     otherwise None is returned
     '''
-    #assert img.shape[0] == mask.shape[0] and img.shape[1] == mask.shape[1]
 
+    img = _getimg(img)
     if img.shape[0] != mask.shape[0] or img.shape[1] != mask.shape[1]:
         return None
 
@@ -431,9 +445,9 @@ def roi_resize(roi_pts, current, target):
         An array like (which is converted to a numpy array) of points
         in opencv xy format.
     current:
-        size of 'image' which points are from
+        size of 'image' which points are from, (w,h)
     target:
-        size of image to project points on
+        size of image to project points on, (w,h)
 
     returns:
         numpy array of resized points

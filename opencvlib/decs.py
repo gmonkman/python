@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, superfluous-parens
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, superfluous-parens, inconsistent-return-statements
 '''my decorators'''
 
 from functools import wraps as _wraps

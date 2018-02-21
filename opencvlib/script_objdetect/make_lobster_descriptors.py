@@ -26,7 +26,7 @@ if __name__ == "__main__":
     #t1 = transforms.Transform(transforms.togreyscale)
     t2 = transforms.Transform(transforms.equalize_adapthist)
     T = transforms.Transforms(None, t2)
-    RegionsG = G.VGGRegions(None, vggsp, transforms=T)
+    RegionsG = G.VGGDigiKam(None, vggsp, transforms=T)
 
     #D = features.skHOGDetector(cfg.MakeLobsterDescriptors.output_dir)
     D = features.OpenCV_HOG(cfg.MakeLobsterDescriptors.output_dir)

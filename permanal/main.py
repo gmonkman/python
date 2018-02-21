@@ -55,7 +55,7 @@ results = [['tau', 'p']]
 df =  df = pandas.read_csv('.\\data\\fmm.csv')
 
 if bool(int(RUN) & EnumData.pam.value):
-    TAU, CONF = statslib.correlation_test_from_csv(df,   scipy.stats.kendalltau(PAM_SCORES, PAM_DAYS)
+    TAU, CONF = statslib.correlation_test_from_csv(df, scipy.stats.kendalltau(PAM_SCORES, PAM_DAYS))
     SUMMARY.append([funclib.datetime_stamp(), 'PAM Kendall on Scores vs days_pa_km', TAU, CONF])
     PAM_CORRS.append([TAU, CONF])
     PAM_CORRS.extend(statslib.permuted_correlation(PAM_SCORES, PAM_DAYS, test_stat=TAU, out_greater_than_test_stat=PAM_GREATER, iterations=ITERATIONS, sem_mean_proportion=SEM, exclude_zero_pairs=EXCLUDE_ZEROS, out_final_iters=FINAL_ITERS_PAM))

@@ -5,17 +5,18 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>script_transforms\sharpen.py</StartupFile>
+    <StartupFile>test\imgpipes\test_generators.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/r-ahe-um"</CommandLineArguments>
+    <CommandLineArguments>
+    </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
-    <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
+    <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
     <Environment>watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER
 watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler" -l "C:/development/python/opencvlib/bin/watershedhistobass" -p BASS
@@ -63,6 +64,7 @@ sharpen.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/
     <Compile Include="histo.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="imgpipes\voc_utils.py" />
     <Compile Include="lenscorrection\fisheye.py" />
     <Compile Include="matcher.py">
       <SubType>Code</SubType>
@@ -96,6 +98,9 @@ sharpen.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\imgpipes\test_generators.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\imgpipes\test_voc_utils.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_color.py">
@@ -286,6 +291,7 @@ sharpen.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/
     <Content Include="lenscorrection\undistort_all.bat" />
     <Content Include="lenscorrection\undistort_hero5fov.bat" />
     <Content Include="make_model.bat" />
+    <Content Include="requirements.txt" />
     <Content Include="script_objdetect\detectors.cfg" />
     <Content Include="pylintrc" />
     <Content Include="script_objdetect\lobster\vlcsnap-00001.jpg" />
@@ -300,12 +306,13 @@ sharpen.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/
     <Content Include="test\bin\images\lena.jpg" />
     <Content Include="test\bin\images\matt_pemb5.jpg" />
     <Content Include="test\bin\images\pca_test1.jpg" />
+    <Content Include="test\bin\images\vgg_regions.json" />
     <Content Include="test\bin\images\vgg_rotations.json" />
     <Content Include="test\bin\movie\lobster-lowres.mp4" />
     <Content Include="test\bin\movie\test-mpeg_512kb.mp4" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="{2af0f10d-7135-4994-9156-5d01c9c11b7e}\3.5" />
+    <InterpreterReference Include="{9a7a9026-48c1-4688-9d5d-e5699d47d074}\3.5" />
   </ItemGroup>
   <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />
   <Import Condition="!Exists($(PtvsTargetsFile))" Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />

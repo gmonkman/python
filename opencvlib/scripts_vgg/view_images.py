@@ -41,7 +41,7 @@ def main():
     T = transforms.Transforms(None, t2)
 
     out = []
-    reg = G.VGGRegions(None, vggsp, transforms=T)
+    reg = G.VGGDigiKam(None, vggsp, transforms=T)
     
     for img, f, dummy in reg.generate():
         k, dummy1 = show(img)

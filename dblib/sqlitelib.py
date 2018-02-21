@@ -10,7 +10,6 @@ import sqlite3
 import fuckit
 import pickle
 
-
 import funclib.baselib as baselib
 
 # endregion

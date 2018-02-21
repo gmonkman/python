@@ -1,15 +1,26 @@
 # pylint: disable=C0103, locally-disabled, attribute-defined-outside-init, protected-access, unused-import, arguments-differ, unused-argument
-'''simple image file generators.
+'''Image generatrs for multiple sources.
 
 All yielded generators have an error handler wrapping which logs errors
 to prevent stop failures during big processing tasks
 
-The RandomRegion generator returns None on err'''
+NEW GENERATORS
+    Filter (sieve) and Transform Support
+        When providing new generators, ensure to add delegate filtering
+        and transformation by adding the following after the image is obtained:
+
+        img = _cv2.imread(fname, outflag)
+        if not super().isimagevalid(img):
+            #do something if the image doesnt pass the filter
+    Yield
+        All generators should yield ndarray, filepath, dict
+        Where dict is generator specific information.
+    '''
 
 from os import path as _path
 import abc as _abc
 from enum import Enum as _Enum
-
+from warnings import warn as _warn
 import cv2 as _cv2
 import numpy as _np
 from numpy.random import randint as _randint
@@ -28,11 +39,9 @@ import opencvlib.imgpipes.vgg as _vgg
 import opencvlib.imgpipes.digikamlib as _digikamlib
 import opencvlib.imgpipes.filters as _filters
 from opencvlib.imgpipes import config as _config
+import opencvlib.imgpipes.voc_utils as _voc
 
-from opencvlib.roi import roi_polygons_get as _roi_polygons_get
-from opencvlib.roi import sample_rect as _sample_rect
-from opencvlib.roi import get_image_from_mask as _get_image_from_mask
-
+import opencvlib.roi as _roi
 import opencvlib.transforms as _transforms
 from opencvlib import Log as _log
 
@@ -405,7 +414,7 @@ class FromPaths(_Generator):
 
 
 
-class VGGRegions(_Generator):
+class VGGDigiKam(_Generator):
     '''Generate regions configured in VGG
     Example:
         VGGRegions(self.dkPos, self.vggPos, filters=None, transforms=None)
@@ -501,7 +510,7 @@ class VGGRegions(_Generator):
                                                 i = super().generate(i)
 
                                                 if isinstance(i, _np.ndarray):
-                                                    mask, dummy, dummy1, cropped_image = _roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
+                                                    mask, dummy, dummy1, cropped_image = _roi.roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
                                                 else:
                                                     _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
                                                     cropped_image = None
@@ -547,7 +556,7 @@ class VGGRegions(_Generator):
                                                 i = super().generate(i)
 
                                                 if isinstance(i, _np.ndarray):
-                                                    mask, dummy, dummy1, cropped_image = _roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
+                                                    mask, dummy, dummy1, cropped_image = _roi.roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
                                                 else:
                                                     _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
                                                     cropped_image = None
@@ -558,10 +567,97 @@ class VGGRegions(_Generator):
                     _log.exception(s)
 
 
+class VGGROI(_Generator):
+    '''Generate images specified in a VGG file
+
+    Accepts a list of shapes types to return, and
+    a dictionary to check for an item by item match
+    with the VGG region attributes per image.
+
+    vgg_file_paths:
+        Full paths to vgg files, e.g.
+        'c:/vgg.json'
+        ['c:/vgg.json','c:/vgg_other.json']
+
+    filters:
+        Keyword argument containing a list of filter function from imgpipes.filters, passed as filters=...
+    transforms:
+        Keyword argument containing lit of ist of imgpipes.transforms functions, passed as transforms=...
+        to apply to output image
+    Example:
+        gen = VGG('c:/vgg.json', ['ellipse', 'rect'], {'part': 'hand', 'id': '1'})
+
+    See test/test_generators.py for some examples.
+    '''
+    def __init__(self, vgg_file_paths, *args, **kwargs):
+        '''(str|list, list|None, dict|None) -> void'''
+        self.vgg_file_paths = vgg_file_paths
+        '''Paths to vgg json files, e.g. 'C:/vgg.json'''
+        self.silent = True
+        '''Suppress console messages'''
+        self.shape_type = shape_type
+        self.region_attrs = region_attrs
+        super().__init__(*args, **kwargs)
+
+
+    def generate(self, shape_type='rect', region_attrs=None, path_only=False, outflag=_cv2.IMREAD_UNCHANGED):
+        '''(str|list|None, dict, bool, cv2.imread option) -> ndarray|None, str, dict|None
+        Yields the images with the bounding boxes and category name of all objects
+        in the pascal voc images
+
+        The region_attributes are yielded in the dictionary object.
+        shape_type:
+            The type of shape. ONLY SUPPORTS rect at the moment
+            #Valid values are 'rect', 'circle', 'point', 'ellipse'.
+            Also accepts a list or tuple. If None, then all shapes yielded.
+        region_attr_match:
+            A dictionary which is matched against the region attributes
+            of the shape.
+        path_only:
+            Only yield the path to the image, the image and dict returned will
+            be None
+        outflag:
+            <0  Loads as is, with alpha channel if present
+            0   Force grayscale
+            >0  3 channel color iage (stripping alpha if present
+
+
+        Yields:
+            image, path, region_attributes dict, which can differ between regions.
+         '''
+        # TODO Support other 2D-shapes, currently only rects
+        assert shape_type == 'rect', 'Only rectangles are supported'
+
+        for vgg_file in self.vgg_file_paths:
+            try:
+                _vgg.load_json(vgg_file)
+                for I in _vgg.imagesGenerator():
+                    if path_only:
+                        yield None, I.filepath, None
+                        continue
+
+                    for reg in I.roi_generator(shape_type, region_attr_match):
+                        assert isinstance(reg, _vgg.Region)
+                        img = _cv2.imread(I.filepath, flags=outflag)
+                        if not super().isimagevalid(img):
+                            continue
+                        img = super().executeTransforms(img)
+                        img = _roi.cropimg_xywh(img, *reg.bounding_rectangle_xywh)
+                        yield img, I.filepath, reg.region_attr
+            except Exception as e:
+                _log.exception(e)
+                if not self.silent:
+                    _warn(str(e))
+
+
 
 class RandomRegions(DigiKam):
-    '''get random regions from the digikam library based on search criteria
-    which are first set in the DigikamSearchParams class.
+    '''Get random regions from the digikam library
+    based on search criteria which are first set
+    in the DigikamSearchParams class.
+
+    generate:
+        Returns none on error
     '''
     def __init__(self, digikam_params, *args, **kwargs):
         #resolutions is a dictionary of dictionaries {'c:\pic.jpg':{'w':1024, 'h':768}}
@@ -630,11 +726,11 @@ class RandomRegions(DigiKam):
                 if self.isimagevalid(sample_image):
                     if region_w <= samp_path[1][0] and region_h <= samp_path[1][1]:
                         sample_image = self.executeTransforms(sample_image)
-                        imgout = _sample_rect(sample_image, region_w, region_h)
+                        imgout = _roi.sample_rect(sample_image, region_w, region_h)
                         break
                     elif region_w <= samp_path[1][1] and region_h <= samp_path[1][0]: #see if ok
                         sample_image = self.executeTransforms(sample_image)
-                        imgout = _sample_rect(sample_image, region_h, region_w)
+                        imgout = _roi.sample_rect(sample_image, region_h, region_w)
                         imgout = _cv2.rotate(imgout, _cv2.ROTATE_90_CLOCKWISE)
                         assert imgout.shape[0] == region_h and imgout.shape[1] == region_w
                         break
@@ -656,7 +752,7 @@ class RandomRegions(DigiKam):
                 return None, samp_path[0], {}
 
         if not mask is None:
-            imgout = _get_image_from_mask(imgout, mask=mask)
+            imgout = _roi.get_image_from_mask(imgout, mask=mask)
 
         return imgout, samp_path[0], {}
 
@@ -754,8 +850,8 @@ class RegionDualPosNeg():
         assert isinstance(self.T, _transforms.Transforms)
         assert isinstance(self.F, _filters.Filters)
 
-        PipePos = VGGRegions(self.dkPos, self.vggPos, filters=None, transforms=None)
-        PipeNeg = VGGRegions(self.dkNeg, self.vggNeg, filters=None, transforms=None)
+        PipePos = VGGDigiKam(self.dkPos, self.vggPos, filters=None, transforms=None)
+        PipeNeg = VGGDigiKam(self.dkNeg, self.vggNeg, filters=None, transforms=None)
 
         for dummy, img_path, argsout in PipePos.generate(pathonly=True, outflag=outflag): #Pipe is a region generator
             self._pos_list.append([img_path, argsout.get('roi')])
@@ -778,8 +874,8 @@ class RegionDualPosNeg():
                 if imgposT is None: continue
                 if imgnegT is None: continue
 
-                ipos = _roi_polygons_get(imgposT, x[1])
-                ineg = _roi_polygons_get(imgnegT, self._neg_list[ind][1])
+                ipos = _roi.roi_polygons_get(imgposT, x[1])
+                ineg = _roi.roi_polygons_get(imgnegT, self._neg_list[ind][1])
             except Exception as dummy1:
                 s = 'Failed to generate a test region for %s' % img_path
                 _log.warning(s)
@@ -831,7 +927,7 @@ class RegionPosRandomNeg():
             where dict = {'imgpath':img_path, 'region_img_path':region_img_path}
         '''
         #Get training region
-        Pipe = VGGRegions(self.pos_dkSP, self.vggSP, filters=self.F, transforms=self.T)
+        Pipe = VGGDigiKam(self.pos_dkSP, self.vggSP, filters=self.F, transforms=self.T)
 
         #Instantiate random sample generator class
         RR = RandomRegions(self.neg_dkSP, filters=self.F, transforms=self.T)
@@ -851,6 +947,95 @@ class RegionPosRandomNeg():
                 continue
 
             yield img, test_region, {'imgpath':img_path, 'region_img_path':region_img_path}
+
+
+
+
+class VOC(_Generator):
+    '''Generate images from the Pascal VOC data
+    Yields images of a requested category type (train, val or trainval)
+    with the bounding boxes from the PASCAL VOC image set.
+
+    category:
+        The object category, e.g. cat
+    dataset:
+        String specifyig the dataset.
+        i.e. 'test', 'train', 'val' or 'train_val'
+    filters:
+        Keyword argument containing a list of filter function from imgpipes.filters, passed as filters=...
+    transforms:
+        Keyword argument containing lit of ist of imgpipes.transforms functions, passed as transforms=...
+        to apply to output image
+
+    Example:
+        VOC = generators.VOC('cat', 'train', transforms=T, filters=F)
+        for img, file_path, empty_dic in VOC.generate:
+        #do some work
+
+    See test/test_generators.py for other examples.
+    '''
+    def __init__(self, category, dataset='train', *args, **kwargs):
+        '''(str, str) -> void
+        '''
+        self.category = category
+        self.dataset = dataset
+        self.silent = True
+        '''Quite console'''
+        super().__init__(*args, **kwargs)
+
+
+    def generate(self, outflag=_cv2.IMREAD_UNCHANGED, pathonly=False):
+        '''(cv2.imread option, bool, bool) -> ndarray|None, str, dict|None
+        Yields the images with the bounding boxes and category name of all objects
+        in the pascal voc images
+
+        The points and category names are yielded in the dictionary object
+        outflag:
+            <0 - Loads as is, with alpha channel if present)
+            0 - Force grayscale
+            >0 - 3 channel color iage (stripping alpha if present
+        pathonly:
+            only generate image paths, the ndarray will be None
+
+        Yields:
+            image, path, {'categories':list of categories, 'rects':CVXY points}
+            Example of the dictionary:
+                {
+                categories:[cat, cat, dog],
+                rects:[[0,0],[10,10],[0,10],[10,0]
+                        [0,0],[10,10],[0,10],[10,0],
+                        [0,0],[10,10],[0,10],[10,0]]
+                }
+
+        Note:
+            If pathonly is used, the dict will be empty
+         '''
+        imgs = [x for x in _voc.get_image_url_list(self.category, self.dataset)]
+        for fname in imgs:
+            if pathonly:
+                yield None, fname, None
+            else:
+                try:
+                    img = _cv2.imread(fname, outflag)
+                    if not super().isimagevalid(img):
+                        continue
+                    img = super().generate(img) #delegate to base method to transform and filter (if specified)
+                    if isinstance(img, _np.ndarray):
+                        cats = []
+                        rects = []
+                        for cat_name, rect in _voc.regions_generator(fname, self.category):
+                            cats.append(cat_name)
+                            rects.append(rect)
+                        yield img, fname, {'categories':cats, 'rects':rects}
+                except Exception as _:
+                    s = 'Processing of %s failed.' % fname
+                    if not self.silent:
+                        print(s)
+                    _log.exception(s)
+
+
+
+
 
 
 #region Helper funcs

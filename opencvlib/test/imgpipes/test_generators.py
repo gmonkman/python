@@ -11,7 +11,9 @@ from opencvlib.view import show
 import opencvlib.imgpipes.generators as gnr
 import opencvlib.transforms as transforms
 from opencvlib.imgpipes import filters
+import opencvlib.roi as roi
 import funclib.iolib as iolib
+import opencvlib.common as common
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -21,11 +23,10 @@ class Test(unittest.TestCase):
         '''
         self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
         self.modpath = _path.normpath(self.pth)
-        self.test_images_path = 'C:/development/python/opencvlib/test/bin/images'
-
+        self.test_images_path = _path.normpath(_path.join('..', 'bin/images'))
 
     #DEBUG Double check test_image_pipeline
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_RegionPosRandomNeg(self):
         '''test_RegionPosRandomNeg'''
         #Get training region
@@ -67,11 +68,12 @@ class Test(unittest.TestCase):
         #f2 = filters.Filter(filters.is_lower_res, w=10000, h=10000)
         #F = filters.Filters(None, f1, f2)
 
-        Gen = gnr.VGGRegions(dk_sp, vgg_sp, transforms=None, filters=None)
+        Gen = gnr.VGGDigiKam(dk_sp, vgg_sp, transforms=None, filters=None)
         for img, dummy, dummy1 in Gen.generate():
             show(img)
 
 
+    @unittest.skip("Temporaily disabled while debugging")
     def test_frompaths(self):
         '''test frompaths image generator
         '''
@@ -81,6 +83,24 @@ class Test(unittest.TestCase):
             self.assertIsInstance(img, np.ndarray)
             self.assertIsInstance(imgpath, str)
             self.assertIsInstance(dic, dict)
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_voc(self):
+        '''test the pascal voc generator
+        '''
+        VOC = gnr.VOC('cat', 'train')
+        for img, pth, regions in VOC.generate():
+            assert isinstance(regions, dict)
+            lbls = regions['categories']
+            rects = regions['rects']
+
+            for i, lbl in enumerate(lbls):
+                pts = rects[i]
+                img = common.draw_points(pts, img)
+                common.draw_str(img, pts[0][0], pts[0][1], lbl, box_background=(0))
+            show(img)
+
 
 
 if __name__ == '__main__':

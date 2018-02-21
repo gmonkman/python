@@ -17,7 +17,6 @@ import os.path as _path
 import json
 import logging
 
-
 from shutil import copy as _copy
 from math import pi as _pi
 
@@ -30,7 +29,8 @@ from funclib.iolib import get_file_parts2 as _get_file_parts2
 from funclib.iolib import print_progress as _print_progress
 from funclib.baselib import list_not as _list_not
 from funclib.baselib import list_and as _list_and
-
+from funclib.baselib import dic_match as _dic_match
+from funclib.baselib import eDictMatch as _eDictMatch
 import opencvlib.roi as _roi
 from opencvlib.info import ImageInfo as _ImageInfo
 
@@ -137,6 +137,7 @@ def imagesGenerator():
             yield i
 
 
+
 class Image(object):
     '''Load and iterate VGG configured image regions
     based on the actual image file name, size and path
@@ -208,8 +209,12 @@ class Image(object):
 
 
     def subjects_generator(self, species):
-        '''(str)->Subject
-        identify subject of given species'''
+        '''(str)->Class:Subject
+        Subjects generator for the specied species
+
+        Yields
+            Class:Subjects
+        '''
         subjectids = []
 
         if species not in VALID_SPECIES:
@@ -234,6 +239,60 @@ class Image(object):
             if not SILENT:
                 print(s)
             logging.warning(s)
+
+
+    def roi_generator(self, shape_type=None, region_attr_match=None):
+        '''(tuple|list|str|None, dic) -> Class:Region
+        Class region represents a shape and contains the
+        shape attributes, e.g. points and shape type. It
+        has no idea of a subject, where a subject represents
+        an object of interest, which may have multiple
+        associated ROIs.
+
+        shape_type:
+            The type of shape, 'rect', 'circle', 'point', 'ellipse'.
+            Also accepts a list or tuple. If None, then all shapes yielded.
+        region_attr_match:
+            A dictionary which is matched against the region attributes
+            of the shape. If not a dictionary, then all shapes will
+            be yielded.
+
+        Yields:
+            Class:Region
+        '''
+        if isinstance(shape_type, str):
+            shape_type = [shape_count]
+
+        d = _dictp(JSON_FILE)
+        regions = d[self._key]['regions']
+        if regions:
+            assert isinstance(regions, dict)
+            for region in regions.values():
+                region_attrs = region.get('region_attributes', None)
+                shape_attrs = region.get('shape_attributes', None)
+
+                assert isinstance(region_attrs, dict)
+                assert isinstance(shape_attrs, dict)
+
+                if shape_attrs is None:
+                    continue
+
+                if not shape_attrs.get('name') in shape_type:
+                    continue
+
+                reg = None
+                regionid = region_attrs.get('regionid')
+                if not isinstance(region_attr_match, dict):
+                    reg = _load_region(shape_attrs, region_attrs, self._key, regionid)
+                    yield reg
+                else: #we have asked for a filter
+                    m = _dic_match(region_attr_match, region_attrs)
+                    if m  == _eDictMatch.Exact or m == _eDictMatch.Subset:
+                        reg = _load_region(shape_attrs, region_attrs, self._key, regionid)
+
+                if isinstance(reg, Region):
+                    yield reg
+
 
 
     @property
@@ -406,22 +465,9 @@ class Subject(object):
                 continue
 
             if shape_attr:
-                reg = Region(part=region_attr.get('part', 'whole'),
-                             image_key=self.key,  # no get, error if doesnt exist
-                             has_attrs=True if region_attr else False,
-                             region_key=region_key,  # no get, error if doesnt exist
-                             species=region_attr.get('species'),
-                             subjectid=region_attr.get('subjectid'),
-                             shape=shape_attr.get('name'),
-                             x=shape_attr.get('x'),
-                             y=shape_attr.get('y'),
-                             r=shape_attr.get('r'),
-                             w=shape_attr.get('width'),
-                             h=shape_attr.get('height'),
-                             all_points_x=shape_attr.get('all_points_x'),
-                             all_points_y=shape_attr.get('all_points_y'))
-                if part == '' or part.casefold() == region_attr['part'].casefold():
-                    if shape == '' or shape.casefold() == shape_attr.get('name'):
+                reg = _load_region(shape_attr, region_attr, self.key, region_key)
+                if part == '' or part.casefold() == region_attr['part'].casefold(): #only get parts we ask for - this is a custimisation
+                    if shape == '' or shape.casefold() == shape_attr.get('name'): #only get shapes we ask for
                         yield reg
 
 
@@ -443,23 +489,26 @@ class Region(object):
 
         values set to None if not read
 
-        Coordinate system for VGG (which is the same as *points* in opencv) is:
+        Coordinate system for VGG (which is the same as CVXY in opencv) is:
         x = Columns, with origin at left
         y = Rows, with origin at top
 
         So: 50x50 image. Top Left x=0,y=0: Bottom Right x=50, y=50
 
         bounding_rectangle property is the x,y,w,h representation of a rectangle
+
+        Note that the entire region attributes dictionary is also suffed into Region.region_attr
         '''
-        self.image_key = kwargs['image_key']
-        self.has_attrs = kwargs.get('has_attrs')
+        self.region_attr = kwargs.get('region_attr', None) #store the entire region attributes anyway, just incase we need them for future use
+        self.image_key = kwargs.get('image_key', None)
+        self.has_attrs = kwargs.get('has_attrs', False)
         # should never be None (but can be an empty dict), so error if not
         # present
-        self.region_key = kwargs['region_key']
+        self.region_key = kwargs.get('region_key', None)
         self.shape = kwargs.get('shape')
-        self.species = kwargs.get('species')
-        self.part = kwargs.get('part')
-        self.subjectid = kwargs.get('subjectid')
+        self.species = kwargs.get('species', None)
+        self.part = kwargs.get('part', None)
+        self.subjectid = kwargs.get('subjectid', None)
         self.area = 0
         if self.shape == 'rect':
             self.x = kwargs.get('x')
@@ -480,8 +529,8 @@ class Region(object):
         self.h = kwargs.get('h')
 
         # polygon
-        self.all_points_x = kwargs.get('all_points_x')
-        self.all_points_y = kwargs.get('all_points_y')
+        self.all_points_x = kwargs.get('all_points_x', None)
+        self.all_points_y = kwargs.get('all_points_y', None)
 
         if self.shape == 'polygon':
             self.all_points = list(zip(self.all_points_x, self.all_points_y))
@@ -517,6 +566,47 @@ class Region(object):
         JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['species'] = self.species
         JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['part'] = self.part
 
+
+def _load_region(shape_attr, region_attr=None, image_key=None, region_key=None):
+    '''(dict, str|None, str|None, dict|None)-> Class:Region
+    Make a region object from the dictionary
+    representations read from the VGG file.
+
+    shape_attr:
+        shape_attributes dictionary from VGG
+    region_attr:
+        region_attributes dictionary from VGG
+
+    Returns:
+        Class instance of Region.
+
+    Notes:
+        Entire region attributes (if present)
+        are stored in the region class as region_attr
+    '''
+    if not isinstance(shape_attr, dict):
+        return None
+
+    reg = Region(region_attr=region_attr, #store all the region attributes incase we need them
+                part=region_attr.get('part'),
+                image_key=image_key,  # no get, error if doesnt exist
+                has_attrs=True if region_attr else False,
+                region_key=region_key,  # no get, error if doesnt exist
+                species=region_attr.get('species'),
+                subjectid=region_attr.get('subjectid'),
+                shape=shape_attr.get('name'),
+                x=shape_attr.get('x'),
+                y=shape_attr.get('y'),
+                r=shape_attr.get('r'),
+                w=shape_attr.get('width'),
+                h=shape_attr.get('height'),
+                cx=shape_attr.get('cx'),
+                cy=shape_attr.get('cy'),
+                rx=shape_attr.get('rx'),
+                ry=shape_attr.get('ry'),
+                all_points_x=shape_attr.get('all_points_x'),
+                all_points_y=shape_attr.get('all_points_y'))
+    return reg
 
 
 # region Save and Load the file

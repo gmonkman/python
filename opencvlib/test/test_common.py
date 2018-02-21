@@ -37,7 +37,7 @@ class Test(unittest.TestCase):
     def test_draw_str(self):
         '''test drawing text'''
         img = np.copy(self.lena)
-        _common.draw_str(img, 10, 10, 'This is some text', (0, 0, 0),scale=0.5, box_background=255)
+        _common.draw_str(img, 10, 10, 'This is some text', (0, 0, 0), scale=0.5, box_background=255)
         show(img)
 
 

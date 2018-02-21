@@ -8,12 +8,11 @@ import warnings
 
 # packages
 import pandas as _pd
-import rpy2 as _rpy2
+
 
 import numpy as _np
 import scipy as _scipy
 import scipy.stats as _stats
-import rpy2.robjects as _ro
 
 
 # mine
@@ -30,13 +29,6 @@ class EnumMethod(Enum):
     kendall = 1
     spearman = 2
     pearson = 3
-
-
-class EnumStatsEngine(Enum):
-    '''enum used to select the engine used to calculate stats'''
-    r = 1
-    scipy = 2
-# endregion
 
 
 # region Correlations
@@ -93,12 +85,12 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMet
     return results
 
 
-def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, test_type=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
+def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, test_type=EnumMethod.kendall):
     ''' (string|_pd.dataframe,string,string,EnumMethod,EnumStatsEngine) -> dictionary
     Assumes that the first row is headers, will fail if this is not the case.
-    
+
     NOTE:This opens file_name each time so dont recommend it for repeating tests.
-    
+
     Returns:
         {'teststat':, 'p':, 'n':}
 
@@ -114,41 +106,13 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
 
     for case in _baselib.switch(test_type):
         if case(EnumMethod.kendall):
-            if engine == EnumStatsEngine.r:
-                _rpy2.convert
-                df_r = _rpy2.robjects.pandas2ri(df)
-                _ro.globalenv['cordf'] = df_r
-                tmpstr = 'cor.test(cordf$' + col_a_name + \
-                    ',cordf$' + col_b_name + ', method="kendall")'
-                result = _ro.r(tmpstr)
-                teststat = result[3][0]
-                pval = result[2][0]
-            else:
-                teststat, pval = _stats.kendalltau(list_a, list_b)
+            teststat, pval = _stats.kendalltau(list_a, list_b)
             break
         if case(EnumMethod.pearson):
-            if engine == EnumStatsEngine.r:
-                df_r = _rpy2.robjects.pandas2ri(df)
-                _ro.globalenv['cordf'] = df_r
-                tmpstr = 'cor.test(cordf$' + col_a_name + \
-                    ',cordf$' + col_b_name + ', method="pearson")'
-                result = _ro.r(tmpstr)
-                teststat = result[3][0]
-                pval = result[2][0]
-            else:
-                teststat, pval = _stats.pearsonr(list_a, list_b)
+            teststat, pval = _stats.pearsonr(list_a, list_b)
             break
         if case(EnumMethod.spearman):
-            if engine == EnumStatsEngine.r:
-                df_r = _rpy2.robjects.pandas2ri(df)
-                _ro.globalenv['cordf'] = df_r
-                tmpstr = 'cor.test(cordf$' + col_a_name + \
-                    ',cordf$' + col_b_name + ', method="spearman")'
-                result = _ro.r(tmpstr)
-                teststat = result[3][0]
-                pval = result[2][0]
-            else:
-                teststat, pval = _stats.spearmanr(list_a, list_b)
+            teststat, pval = _stats.spearmanr(list_a, list_b)
             break
         if case():
             raise ValueError('Enumeration member not in e_method')
@@ -156,7 +120,7 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
     return {'teststat': teststat, 'p': pval, 'n': len(list_a)}
 
 
-def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
+def correlation(a, b, method=EnumMethod.kendall):
     '''(list|ndarray, list|ndarray, enumeration, enumeration) -> dict
     Returns a dictionary: {'teststat':teststat, 'p':pval}
     method: is an enumeration member of EnumMethod
@@ -205,40 +169,22 @@ def correlation(a, b, method=EnumMethod.kendall, engine=EnumStatsEngine.scipy):
 
     for case in _baselib.switch(method):
         if case(EnumMethod.kendall):
-            if engine == EnumStatsEngine.r:
-                df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
-                df_r = _rpy2.robjects.pandas2ri(df)
-                _ro.globalenv['cordf'] = df_r
-                tmpstr = 'cor.test(cordf$a, cordf$b, method="kendall")'
-                result = _ro.r(tmpstr)
-                teststat = result[3][0]
-                pval = result[2][0]
-            else:
-                teststat, pval = _stats.kendalltau(lst_a, lst_b)
+            teststat, pval = _stats.kendalltau(lst_a, lst_b)
             break
         if case(EnumMethod.pearson):
-            if engine == EnumStatsEngine.r:
-                df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
-                df_r = _rpy2.robjects.pandas2ri(df)
-                _ro.globalenv['cordf'] = df_r
-                tmpstr = 'cor.test(cordf$a, cordf$b, method="pearson")'
-                result = _ro.r(tmpstr)
-                teststat = result[3][0]
-                pval = result[2][0]
-            else:
-                teststat, pval = _stats.pearsonr(lst_a, lst_b)
+            teststat, pval = _stats.pearsonr(lst_a, lst_b)
             break
         if case(EnumMethod.spearman):
-            if engine == EnumStatsEngine.r:
-                df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
-                df_r = _rpy2.robjects.pandas2ri(df)
-                _ro.globalenv['cordf'] = df_r
-                tmpstr = 'cor.test(cordf$a, cordf$b, method="spearman")'
-                result = _ro.r(tmpstr)
-                teststat = result[3][0]
-                pval = result[2][0]
-            else:
-                teststat, pval = _stats.spearmanr(lst_a, lst_b)
+            #if engine == EnumStatsEngine.r:
+            #    df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
+            #    df_r = _rpy2.robjects.pandas2ri(df)
+            #    _ro.globalenv['cordf'] = df_r
+            #    tmpstr = 'cor.test(cordf$a, cordf$b, method="spearman")'
+            #    result = _ro.r(tmpstr)
+            #    teststat = result[3][0]
+            #    pval = result[2][0]
+            #else:
+            teststat, pval = _stats.spearmanr(lst_a, lst_b)
             break
         if case():
             raise ValueError('Enumeration member not in e_method')
@@ -314,7 +260,7 @@ def focal_permutation(x, y, teststat, iters=1000):
         a = _arraylib.np_focal_mean(a, False)
 
         # use scipy - p will be wrong, but the taus will be right
-        res = correlation(a, y, engine=EnumStatsEngine.scipy)
+        res = correlation(a, y)
         taus.append(res['teststat'])
 
         _iolib.print_progress(cnt + 1, iters, prefix=pre, bar_length=30)
@@ -467,7 +413,7 @@ def best_fit_distribution(data, bins=200, ax=None):
     x = (x + _np.roll(x, -1))[:-1] / 2.0
 
     # Distributions to check
-    DISTRIBUTIONS = [        
+    DISTRIBUTIONS = [
         _stats.alpha, _stats.anglit, _stats.arcsine, _stats.beta, _stats.betaprime, _stats.bradford, _stats.burr, _stats.cauchy, _stats.chi, _stats.chi2, _stats.cosine,
         _stats.dgamma, _stats.dweibull, _stats.erlang, _stats.expon, _stats.exponnorm, _stats.exponweib, _stats.exponpow, _stats.f, _stats.fatiguelife, _stats.fisk,
         _stats.foldcauchy, _stats.foldnorm, _stats.frechet_r, _stats.frechet_l, _stats.genlogistic, _stats.genpareto, _stats.gennorm, _stats.genexpon,
@@ -512,7 +458,7 @@ def best_fit_distribution(data, bins=200, ax=None):
                         _pd.Series(pdf, x).plot(ax=ax)
                 except Exception:
                     pass
-                
+
                 # identify if this distribution is better
                 if best_sse > sse > 0:
                     best_distribution = distribution

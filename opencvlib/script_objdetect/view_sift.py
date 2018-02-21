@@ -53,7 +53,7 @@ def main():
 
 
     out = []
-    reg = G.VGGRegions(None, vggsp, transforms=T, filters=F)
+    reg = G.VGGDigiKam(None, vggsp, transforms=T, filters=F)
     
     for img, imgpath, dummy in reg.generate():
         features.SILENT = True

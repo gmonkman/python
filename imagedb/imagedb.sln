@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "plotlib", "..\plotlib\plotlib.pyproj", "{008BC738-5450-45B4-9D24-61DE8A3B0096}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "pgnet", "..\pgnet\pgnet.pyproj", "{52FB7047-B7AD-43D1-A402-BB033DB31901}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,8 @@ Global
 		{3791C3EB-165F-4A04-83E2-956959C15823}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{008BC738-5450-45B4-9D24-61DE8A3B0096}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{008BC738-5450-45B4-9D24-61DE8A3B0096}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52FB7047-B7AD-43D1-A402-BB033DB31901}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52FB7047-B7AD-43D1-A402-BB033DB31901}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

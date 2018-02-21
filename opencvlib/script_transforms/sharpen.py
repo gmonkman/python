@@ -68,7 +68,7 @@ def main():
     for img, imgpath, _ in FP.generate():
         scale = normalise(info.sharpval(img))
         vs.append(scale)
-        img = transforms.sharpen_unsharpmask(img,  (5, 5), 5/255, scale)
+        img = transforms.sharpen_unsharpmask(img, (5, 5), 5/255, scale)
         s = path.normpath(out + '/usm' + iolib.get_file_parts2(imgpath)[1])
         cv2.imwrite(s, img)
         PP.increment()

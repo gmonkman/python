@@ -1,4 +1,4 @@
-# pylint: disable=C0103, locally-disabled, redefined-variable-type
+# pylint: disable=C0103, locally-disabled
 '''show stacked bar graph using matplotlib'''
 __author__ = "Michael Imelfort"
 __copyright__ = "Copyright 2014"
@@ -185,7 +185,7 @@ class StackedBarGrapher:
 
 
 #region ticks
-        if yTicks is not "none":
+        if yTicks is not None:
             # it is either a set of ticks or the number of auto ticks to make
             real_ticks = False
             if _baselib.isIterable(yTicks):
@@ -246,7 +246,7 @@ class StackedBarGrapher:
         ax.spines["left"].set_visible(False)
 
         # make ticks if necessary
-        if yTicks is not "none":
+        if yTicks is not None:
             ax.tick_params(axis='y', which='both',
                            labelsize=8, direction="out")
             ax.yaxis.tick_left()

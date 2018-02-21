@@ -9,13 +9,25 @@ import collections as _collections
 import sys as _sys
 import operator
 from copy import deepcopy as _deepcopy
+from enum import Enum as _enum
 
 import numpy as _np
 
 
+class eDictMatch(_enum):
+    '''do dictionaries match
+    '''
+    Exact = 0 #every element matches in both
+    Subset = 1 #one dic is a subset of the other
+    Superset = 2 #dic is a superset of the other
+    Intersects = 3 #some elements match
+    Disjoint = 4 #No match
+
+
 #Decorators
 class classproperty(property):
-    '''class prop decorator'''
+    '''class prop decorator, used
+    to enable class level properties'''
     def __get__(self, obj, objtype=None):
         return super(classproperty, self).__get__(objtype)
     def __set__(self, obj, value):
@@ -183,7 +195,97 @@ def dic_sort_by_key(d):
     return sorted(d.items(), key=operator.itemgetter(0))
 
 
+def dic_match(a, b):
+    '''(dict, dict) -> Enum:eDictMatch
+    Compares dictionary a to dictionary b.
+
+    a:
+        Dictionary, compared to b
+    b:
+        Dictionary, which a is compared to
+    Returns:
+        Value from the enum, baselib.eDictMatch
+
+    Example:
+        >>>dic_match({'a':1}, {'a':1, 'b':2})
+        eDictMatch.Subset
+
+        >>>dic_match({'a':1, 'b':2}}, {'a':1, 'b':2})
+        eDictMatch.Exact
+    '''
+    if not isinstance(a, dict) or not isinstance(a, dict):
+        return None
+
+    unmatched = False
+    matched = False
+    b_lst = list(b.items())
+    a_lst = list(a.items())
+
+    if len(a_lst) < len(b_lst):
+        for i in a_lst:
+            if i in b_lst:
+                matched = True
+            else:
+                unmatched = True
+
+        if matched and unmatched:
+            return eDictMatch.Intersects
+
+        if not matched:
+            return eDictMatch.Disjoint
+
+        if not unmatched:
+            return eDictMatch.Subset
+    elif len(a_lst) > len(b_lst):
+        for i in b_lst:
+            if i in a_lst:
+                matched = True
+            else:
+                unmatched = True
+
+        if matched and unmatched:
+            return eDictMatch.Intersects
+
+        if not matched:
+            return eDictMatch.Disjoint
+
+        if not unmatched:
+            return eDictMatch.Superset
+    else:   #same length
+        for i in b_lst:
+            if i in a_lst:
+                matched = True
+            else:
+                unmatched = True
+
+        if matched and unmatched:
+            return eDictMatch.Intersects
+
+        if not matched:
+            return eDictMatch.Disjoint
+
+        if not unmatched:
+            return eDictMatch.Exact
+
+
+
 # region lists
+def list_delete_value_pairs(list_a, list_b, match_value=0):
+    '''(list,list,str|number) -> void
+    Given two lists, removes matching values pairs occuring
+    at same index location.
+
+    Used primarily to remove matched zeros prior to
+    correlation analysis.
+    '''
+    assert isinstance(list_a, list), 'list_a was not a list'
+    assert isinstance(list_b, list), 'list_b was not a list'
+    for ind, value in reversed(list(enumerate(list_a))):
+        if value == match_value and list_b[ind] == match_value:
+            del list_a[ind]
+            del list_b[ind]
+
+
 def list_add_elementwise(lsts):
     '''lists->list
     Add lists elementwise.
@@ -230,7 +332,7 @@ def depth(l):
         d = lambda L: isinstance(L, tuple) and (max(map(depth, L)) + 1) if L else 1
     else:
         s = 'Depth takes a list or a tuple but got a %s' % (type(l))
-        raise(ValueError(s))
+        raise ValueError(s)
     return d(l)
 
 

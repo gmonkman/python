@@ -17,7 +17,7 @@ import cv2
 import numpy as np
 import train
 from pgnet import model
-from inputs import pascal
+from pgnet.inputs import pascal
 from inputs import image_processing
 import utils
 

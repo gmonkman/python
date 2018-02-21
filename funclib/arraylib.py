@@ -1,26 +1,10 @@
 # pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, not-context-manager, invalid-name
 '''routines to manipulate array like objects like lists, tuples etc'''
+from warnings import warn as _warn
+
 import numpy as _np
 import numpy.random
 import scipy.ndimage as _ndimage
-import xlwings
-
-# list stuff
-
-def list_delete_value_pairs(list_a, list_b, match_value=0):
-    '''(list,list,str|number) -> void
-    Given two lists, removes matching values pairs occuring
-    at same index location.
-
-    Used primarily to remove matched zeros prior to
-    correlation analysis.
-    '''
-    assert isinstance(list_a, list), 'list_a was not a list'
-    assert isinstance(list_b, list), 'list_b was not a list'
-    for ind, value in reversed(list(enumerate(list_a))):
-        if value == match_value and list_b[ind] == match_value:
-            del list_a[ind]
-            del list_b[ind]
 
 
 # region NUMPY
@@ -210,7 +194,7 @@ def np_round_extreme(a):
     '''(ndarray) -> ndarray
     '''
     tmp = _np.copy(a)
-    tmp[tmp < 0] = _np.floor(tmp[tmp<0])
+    tmp[tmp < 0] = _np.floor(tmp[tmp < 0])
     tmp[tmp > 0] = _np.ceil(tmp[tmp > 0])
     return tmp
 
@@ -328,7 +312,12 @@ def np_pickled_in_excel(pickle_name):
     Currently assumes a 1D or 2D array. Unknown behaviour with >2 axis.
     '''
     arr = _np.load(pickle_name)
-    xlwings.view(arr)
+    try:
+        import xlwings
+        xlwings.view(arr)
+    except Exception as _:
+        _warn('np_pickled_in_excel not supported because of xlwings dependency')
+
 
 
 def np_frequencies(a):

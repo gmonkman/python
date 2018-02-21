@@ -49,7 +49,7 @@ class Test(unittest.TestCase):
         vgg_param = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['head'], species=['bass'])
         dk_param = Gen.DigikamSearchParams(search_type=Gen.eDigiKamSearchType.innerOr_outerAnd, roll='0', pitch='0', yaw=['0', '180'])
 
-        VGG = Gen.VGGRegions(dk_param, vgg_param)
+        VGG = Gen.VGGDigiKam(dk_param, vgg_param)
 
         #get first image as ref
         for img, imgpath, dummy in VGG.generate():
@@ -94,7 +94,7 @@ class Test(unittest.TestCase):
         M = matcher.BruteForceMatcher(first_feat, test_feat)
 
         vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['head'], species=['bass'])
-        VGG_part = Gen.VGGRegions(None, vgg_param_part)
+        VGG_part = Gen.VGGDigiKam(None, vgg_param_part)
 
         for img_part, imgpath, dummy in VGG_part.generate():
             img_whole = getimg(imgpath)
@@ -122,7 +122,7 @@ class Test(unittest.TestCase):
         M = matcher.BruteForceMatcher(first_feat, test_feat)
 
         vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['caudal fin'], species=['bass'])
-        VGG_part = Gen.VGGRegions(None, vgg_param_part)
+        VGG_part = Gen.VGGDigiKam(None, vgg_param_part)
 
         for img_part, imgpath, dummy in VGG_part.generate():
             img_whole = getimg(imgpath)
@@ -176,7 +176,7 @@ class Test(unittest.TestCase):
 
         dk_param_part = Gen.DigikamSearchParams('14292366_1279024908815039_4406607645719848778_n.jpg', 'images', '/bass/angler')
         vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['caudal fin'], species=['bass'])
-        VGG_part = Gen.VGGRegions(dk_param_part, vgg_param_part)
+        VGG_part = Gen.VGGDigiKam(dk_param_part, vgg_param_part)
 
         for img_train, imgpath, dummy in VGG_part.generate():
             pass
@@ -188,7 +188,7 @@ class Test(unittest.TestCase):
         #loop over all whole fish
         vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['whole'], species=['bass'])
         #VGG_part = Gen.VGGRegions(None, vgg_param_part)
-        VGG_part = Gen.VGGRegions(dk_param_part, vgg_param_part)
+        VGG_part = Gen.VGGDigiKam(dk_param_part, vgg_param_part)
 
         for img_part, imgpath, dummy in VGG_part.generate():
             img_whole = getimg(imgpath)
@@ -218,7 +218,7 @@ class Test(unittest.TestCase):
 
         t1 = _transforms.Transform(_transforms.histeq_adapt)
         T = _transforms.Transforms(None, t1)
-        VGG_part = Gen.VGGRegions(dk_param_part, vgg_param_part, transforms=T)
+        VGG_part = Gen.VGGDigiKam(dk_param_part, vgg_param_part, transforms=T)
 
         for img_train, imgpath, dummy in VGG_part.generate():
             if not img_train is None: #we're only getting a single image
@@ -228,7 +228,7 @@ class Test(unittest.TestCase):
 
         #loop over all whole fish
         vgg_param_part = Gen.VGGSearchParams(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/vgg.json'], parts=['whole'], species=['bass'])
-        VGG_part = Gen.VGGRegions(None, vgg_param_part, transforms=T)
+        VGG_part = Gen.VGGDigiKam(None, vgg_param_part, transforms=T)
 
         for img_part, imgpath, dummy in VGG_part.generate():
             img_whole = getimg(imgpath)

@@ -3,7 +3,6 @@
 #by_segmentation.by "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore" -s
 import sys
 import cv2
-import imutils
 import numpy as np
 import argparse
 
@@ -37,15 +36,15 @@ def main(img, show_debug_images=False):
 
     filtered = filter_img(img)
     blurred = cv2.GaussianBlur(filtered, (5, 5), 0)
-    blurred_grey = transforms.togreyscale(blurred)   
+    blurred_grey = transforms.togreyscale(blurred)
     thresh = cv2.threshold(blurred_grey, 1, 255, cv2.THRESH_BINARY)
     dilated = cv2.dilate(thresh.copy(), None, iterations=3)
 
     cnts = cv2.findContours(dilated.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = cnts[0] if imutils.is_cv2() else cnts[1]
+    cnts = cnts[0]
     hullImage = np.zeros(img.shape[:2], dtype='uint8')
 
-    if show_debug_images: 
+    if show_debug_images:
         outimg = mosaic([img, thresh, dilated])
         show(outimg, title='original/thresh/dilated')
 
@@ -66,7 +65,7 @@ def main(img, show_debug_images=False):
             cv2.putText(img, shape, (x, y -10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (240, 0, 159), 2)
             print('Contour #{} -- aspect_ratio={:.1f}, extent={:.1f}, solidity={:.2f}'.format(i + 1, aspect_ratio, extent, solidity))
 
-            if show_debug_images: 
+            if show_debug_images:
                 show(hullImage, title='Convex Hull - hullImage')
 
             show(img, 'Fish Region')

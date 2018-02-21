@@ -22,14 +22,15 @@ print('\n**Press Escape to Quit**\n')
 orig_image = cv2.imread(img_path)
 Keys = display_utils.KeyBoardInput()
 functions = {'escape':'exit'}
-getval = lambda tb_val, min, max: tb_val*(max - min)*0.01 + min #given the state of the slider, get the value variable
+tb_ticks = 100 #tool bars have 100 ticks set in createTrackbar and used in set_params, which calls the getval lambda below
+getval = lambda tb_val, min, max, tb_max: tb_val*(max - min)*(1/tb_max) + min #given the state of the slider, get the value variable
 
 cv2.namedWindow('original')
 cv2.namedWindow('ctrls', cv2.WINDOW_NORMAL)
-cv2.createTrackbar('gkernel', 'ctrls', 5, 100, lambda x: x)
-cv2.createTrackbar('sigma', 'ctrls', 10, 100, lambda x: x)
-cv2.createTrackbar('thresh', 'ctrls', 0, 100, lambda x: x)
-cv2.createTrackbar('weight', 'ctrls', 20, 100, lambda x: x)
+cv2.createTrackbar('gkernel', 'ctrls', 5, tb_ticks, lambda x: x)
+cv2.createTrackbar('sigma', 'ctrls', 10, tb_ticks, lambda x: x)
+cv2.createTrackbar('thresh', 'ctrls', 0, tb_ticks, lambda x: x)
+cv2.createTrackbar('weight', 'ctrls', 20, tb_ticks, lambda x: x)
 dummy_img = np.zeros((2, 300), np.uint8)
 cv2.imshow('ctrls', dummy_img)
 
@@ -41,7 +42,7 @@ WEIGHT = None
 
 def set_params():
     '''set params'''
-    sz = getval(cv2.getTrackbarPos('gkernel', 'ctrls'), 1, 100)
+    sz = getval(cv2.getTrackbarPos('gkernel', 'ctrls'), 1, 100, tb_ticks)
     sz = 1 if int(sz) < 1 else int(sz)
     #kernel size must be odd
     if sz%2 == 0:
@@ -49,15 +50,16 @@ def set_params():
     global GAUSS_KERNEL_SIZE
     GAUSS_KERNEL_SIZE = (sz, sz)
     global GAUSS_SIGMA
-    GAUSS_SIGMA = getval(cv2.getTrackbarPos('sigma', 'ctrls'), 0.01, 50)
+    GAUSS_SIGMA = getval(cv2.getTrackbarPos('sigma', 'ctrls'), 0.01, 50, tb_ticks)
     global THRESHHOLD
-    THRESHHOLD = getval(cv2.getTrackbarPos('thresh', 'ctrls'), 0, 1)
+    THRESHHOLD = getval(cv2.getTrackbarPos('thresh', 'ctrls'), 0, 1, tb_ticks)
     global WEIGHT
-    WEIGHT = getval(cv2.getTrackbarPos('weight', 'ctrls'), 0, 10)
+    WEIGHT = getval(cv2.getTrackbarPos('weight', 'ctrls'), 0, 10, tb_ticks)
 
 set_params()
 
-def write_text(img):
+
+def write_text(image):
     '''(byref:ndarray)->ndarray
     write status text to image
     '''
@@ -68,7 +70,7 @@ def write_text(img):
     s.append('thresh: {0:.2f} [uint:{1:d}]'.format(THRESHHOLD, thresh_as_uint8))
     s.append('weight: {0:.2f}'.format(WEIGHT))
     txt = ' '.join(s)
-    draw_str(img, 4, 4, txt, color=(0, 0, 0), scale=0.5, box_background=255, box_pad=2)
+    draw_str(image, 4, 4, txt, color=(0, 0, 0), scale=0.5, box_background=255, box_pad=2)
 
 
 cv2.imshow('original', orig_image)
