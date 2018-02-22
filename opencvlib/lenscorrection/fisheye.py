@@ -103,7 +103,7 @@ class FishEye(object):
         subpix_criteria = (_cv2.TERM_CRITERIA_EPS + _cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
 
         if show_imgs:
-            _cv2.namedWindow('checkboard img', _cv2.WINDOW_AUTSIZE)
+            _cv2.namedWindow('checkboard img', _cv2.WINDOW_AUTOSIZE)
             _cv2.namedWindow('fail img', _cv2.WINDOW_AUTOSIZE)
 
         if img_paths is not None:

@@ -10,8 +10,7 @@ NEW GENERATORS
         and transformation by adding the following after the image is obtained:
 
         img = _cv2.imread(fname, outflag)
-        if not super().isimagevalid(img):
-            #do something if the image doesnt pass the filter
+        img = super().generate(img) #transforms and checks the filter
     Yield
         All generators should yield ndarray, filepath, dict
         Where dict is generator specific information.
@@ -362,7 +361,7 @@ class FromPaths(_Generator):
     Example:
         See test/imgpipes/test_generators.py
     '''
-    def __init__(self, paths, wildcards=_IMAGE_EXTENSIONS_AS_WILDCARDS, *args, **kwargs):
+    def __init__(self, paths, *args, wildcards=_IMAGE_EXTENSIONS_AS_WILDCARDS, **kwargs):
         self._paths = paths
         self._wildcards = wildcards
         super().__init__(*args, **kwargs)
@@ -451,7 +450,7 @@ class VGGDigiKam(_Generator):
         self.dirty_filters = True #for use in inherited classes, not needed for this explicitly
 
 
-    def generate(self, pathonly=False, outflag=_cv2.IMREAD_UNCHANGED, *args, **kwargs):
+    def generate(self, *args, pathonly=False, outflag=_cv2.IMREAD_UNCHANGED, **kwargs):
         '''(bool)-> ndarray,str, dict
 
         Uses the filters set in the VGGFilter and DigikamSearchParams
@@ -589,13 +588,15 @@ class VGGROI(_Generator):
 
     See test/test_generators.py for some examples.
     '''
-    def __init__(self, vgg_file_paths, *args, **kwargs):
+    def __init__(self, vgg_file_paths, *args, region_attrs=None, **kwargs):
         '''(str|list, list|None, dict|None) -> void'''
+        if isinstance(vgg_file_paths, str):
+            vgg_file_paths = [vgg_file_paths]
         self.vgg_file_paths = vgg_file_paths
         '''Paths to vgg json files, e.g. 'C:/vgg.json'''
         self.silent = True
         '''Suppress console messages'''
-        self.shape_type = shape_type
+
         self.region_attrs = region_attrs
         super().__init__(*args, **kwargs)
 
@@ -635,15 +636,16 @@ class VGGROI(_Generator):
                     if path_only:
                         yield None, I.filepath, None
                         continue
-
-                    for reg in I.roi_generator(shape_type, region_attr_match):
-                        assert isinstance(reg, _vgg.Region)
-                        img = _cv2.imread(I.filepath, flags=outflag)
-                        if not super().isimagevalid(img):
-                            continue
-                        img = super().executeTransforms(img)
-                        img = _roi.cropimg_xywh(img, *reg.bounding_rectangle_xywh)
-                        yield img, I.filepath, reg.region_attr
+                    else:
+                        for reg in I.roi_generator(shape_type, self.region_attrs):
+                            assert isinstance(reg, _vgg.Region)
+                            img = _cv2.imread(I.filepath, flags=outflag)
+                            img = super().generate(img)
+                            if img is None:
+                                continue
+                            #img = super().executeTransforms(img)
+                            img = _roi.cropimg_xywh(img, reg.x, reg.y, reg.w, reg.h)
+                            yield img, I.filepath, reg.region_attr
             except Exception as e:
                 _log.exception(e)
                 if not self.silent:
@@ -731,7 +733,7 @@ class RandomRegions(DigiKam):
                     elif region_w <= samp_path[1][1] and region_h <= samp_path[1][0]: #see if ok
                         sample_image = self.executeTransforms(sample_image)
                         imgout = _roi.sample_rect(sample_image, region_h, region_w)
-                        imgout = _cv2.rotate(imgout, _cv2.ROTATE_90_CLOCKWISE)
+                        imgout = _transforms.rotate(imgout, -90, no_crop=True)
                         assert imgout.shape[0] == region_h and imgout.shape[1] == region_w
                         break
                     elif len(samples) > 1: #image too small to get region sample, delete it and try again
@@ -974,7 +976,7 @@ class VOC(_Generator):
 
     See test/test_generators.py for other examples.
     '''
-    def __init__(self, category, dataset='train', *args, **kwargs):
+    def __init__(self, category, *args, dataset='train', **kwargs):
         '''(str, str) -> void
         '''
         self.category = category

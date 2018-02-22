@@ -35,12 +35,12 @@ def blur_face(imagepath, save_face=False, overwrite_original=False):
     face_cascade.load(face_cascade_name)
 
     # Preprocess the image
-    grayimg = _cv2.cvtColor(image, _cv2.cv.CV_BGR2GRAY)
+    grayimg = _cv2.cvtColor(image, _cv2.COLOR_BGR2GRAY)
     grayimg = _cv2.equalizeHist(grayimg)
 
     # Run the classifiers
     faces = face_cascade.detectMultiScale(
-        grayimg, 1.1, 2, 0 | _cv2.cv.CV_HAAR_SCALE_IMAGE, (30, 30))
+        grayimg, 1.1, 2, 0 | _cv2.CASCADE_SCALE_IMAGE, (30, 30))
 
     # If there are faces in the images
     for f in faces:         # For each face in the image

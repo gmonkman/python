@@ -87,7 +87,7 @@ class Transforms():
 
     Transforms are first in - first out
     '''
-    def __init__(self, img=None, *args):
+    def __init__(self, *args, img=None):
         '''(str|ndarray, Transform(s))
 
         Transforms can be queued before

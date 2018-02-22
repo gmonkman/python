@@ -26,7 +26,7 @@ import os.path as _path
 import cv2
 
 import funclib.iolib as iolib
-
+import opencvlib
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
 
@@ -35,6 +35,7 @@ class Test(unittest.TestCase):
         '''
         self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
         self.modpath = _path.normpath(self.pth)
+		self.module_root = _path.normpath(opencvlib.__path__[0]) #root of opencvlib
         self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
         self.I = cv2.imread(self.imgpath)
 

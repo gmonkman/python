@@ -152,15 +152,6 @@ def load_annotation(img_filename):
     return _BS(xml, 'lxml')
 
 
-# TODO: implement this
-def get_all_obj_and_box(objname, img_set):
-    '''get_all_obj_and_box to implement'''
-    img_list = imgs_from_category_as_list(objname, img_set)
-
-    for img in img_list:
-        _ = load_annotation(img)
-
-
 def load_img(img_filename):
     """
     Load image from the filename. Default is to load in color if

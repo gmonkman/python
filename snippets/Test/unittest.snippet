@@ -23,6 +23,7 @@ import unittest
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 import funclib.iolib as iolib
+import opencvlib
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -30,8 +31,10 @@ class Test(unittest.TestCase):
     def setUp(self):
         '''setup variables etc for use in test cases
         '''
-        self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
-        self.modpath = _path.normpath(self.pth)
+        self.this_file_path = _path.normpath(iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0])
+        self.module_root = _path.normpath(opencvlib.__path__[0]) #root of opencvlib
+        self.test_images_path = _path.normpath(_path.join(self.module_root, 'test/bin/images'))
+
 
 
 

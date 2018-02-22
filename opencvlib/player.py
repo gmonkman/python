@@ -23,7 +23,6 @@ from enum import Enum as _Enum
 import cv2 as _cv2
 
 
-#from common import draw_str as _draw_str
 from opencvlib import transforms as _transforms
 from opencvlib import stopwatch as _stopwatch
 from opencvlib import common as _common
@@ -53,15 +52,15 @@ class MultiProcessStream():
     queue (Class:Transforms) to apply
     per frame.
     '''
-    
-    
+
+
     _snap_path = _iolib.temp_folder()
     _snap_increment = 0
     _snap_pad = 6
 
     def __init__(self, source=None, Transforms=None):
         '''(int|str|None, Class:Transforms)
-        
+
         source:
             capture device number, or filepath to movie
         Transforms:
@@ -69,7 +68,7 @@ class MultiProcessStream():
             to be applied per frame.
         '''
         self.signal_strength = _deque(maxlen=10)
-        
+
         self.subject_hist = []
         self._threadn = _cv2.getNumberOfCPUs()
         self.VideoCapture = None
@@ -78,20 +77,20 @@ class MultiProcessStream():
         self._selected_function = ''
 
         self._frame_out = None #holds the current movie frame, without overlays
-        
+
         self.Transforms = Transforms if isinstance(Transforms, _transforms.Transforms) else _transforms.Transforms()
         self._xform = False
 
         self._initialise()
-        
-        self._wk_time = 1 #waitkey time       
+
+        self._wk_time = 1 #waitkey time
 
         #mouse selection stuff
         self._region_img = None
         self._region_selection = 0, 0, 0, 0
         self._drag_start = None
 
-        #frame stuff        
+        #frame stuff
         self._pending = _deque()
         self._at_end = False
         self._frame_current = 0
@@ -100,6 +99,7 @@ class MultiProcessStream():
         self.detect = False
 
 
+#TODO Shoe horned in for demo, will need to do properly at some point
 #region backproject
     def load_saved_histos(self):
         '''load saved normalised histos'''
@@ -112,7 +112,7 @@ class MultiProcessStream():
 
     def back_proj(self):
         '''Apply back proj using cached histogram(s)
-        
+
         Each histogram is used in bkproj
         and the bkproj with the highest match
         is used
@@ -121,7 +121,7 @@ class MultiProcessStream():
         if not self.subject_hist:
             return
         ihsv = _cv2.cvtColor(self._frame_out, _cv2.COLOR_BGR2HSV)
-        
+
         bkprojs = [_cv2.calcBackProject([ihsv], (0, 1), b[0], (0, 180, 0, 256), 1)  for b in self.subject_hist]
 
         sumbp = [bk.sum() for bk in bkprojs]
@@ -188,22 +188,22 @@ class MultiProcessStream():
         if self._xform:
             img = self.Transforms.executeQueue(img)
         return img, fr_nr
-            
+
 
     #Main play loop
     def play(self):
         '''READ'''
         pool = _ThreadPool(processes=self._threadn)
         is_start = True
-        
+
 
         _cv2.namedWindow(self._source, _cv2.WINDOW_NORMAL) #main movie window
         _cv2.namedWindow('region', _cv2.WINDOW_NORMAL) #selected region
 
 
         #Progress bars
-        _cv2.createTrackbar('frames', self._source, self._frame_current, 
-                            int(self._Status.total_frames), 
+        _cv2.createTrackbar('frames', self._source, self._frame_current,
+                            int(self._Status.total_frames),
                             lambda v: self.tbProgressCallback(v, self))
 
 
@@ -226,7 +226,7 @@ class MultiProcessStream():
             #process and add to display queue
             if len(self._pending) < self._threadn:
                 self._frame_current = self._Status.frame_next
-                ret, raw_frame = self.VideoCapture.read()                
+                ret, raw_frame = self.VideoCapture.read()
 
                 if not ret:
                     self._at_end = True
@@ -272,7 +272,7 @@ class MultiProcessStream():
     @staticmethod
     def onmouse(event, x, y, flags, self):
         '''mouse click handler'''
-        
+
         #print('x:%s, y:%s' % (x, y))
         if event == _cv2.EVENT_LBUTTONDOWN:  #click
             self._wk_time = 0 #pause
@@ -303,7 +303,7 @@ class MultiProcessStream():
                 print("selection is complete")
                 self._drag_start = None
 
-    
+
     @staticmethod
     def tbProgressCallback(frame_nr, self):
         '''(int)
@@ -318,14 +318,14 @@ class MultiProcessStream():
             if ret:
                 _common.draw_str(read, 20, 20, 'Press "p" to play')
                 _cv2.imshow(self._source, read)
-        self._at_end = (frame_nr == self._Status.total_frames - 1) 
+        self._at_end = (frame_nr == self._Status.total_frames - 1)
 
-       
+
 
     def set_frame(self, frame_nr):
         '''(int|float|str)
         Set the net frame to play.
-        
+
         Supports the following
 
         frame_nr
@@ -352,15 +352,15 @@ class MultiProcessStream():
                 self._at_end = False
         elif isinstance(frame_nr, int):
             f_nr = frame_nr
-            self._at_end = (frame_nr == self._Status.total_frames - 1) 
+            self._at_end = (frame_nr == self._Status.total_frames - 1)
         elif isinstance(frame_nr, float):
             self._at_end = (frame_nr == 1)
             if 0 <= frame_nr <= 1:
                 f_nr = (self._Status.total_frames - 1) * frame_nr
-        
+
         self._frame_current = f_nr
         self.VideoCapture.set(_cv2.CAP_PROP_POS_FRAMES, f_nr)
-        
+
 
     @staticmethod
     def snap(img, silent=False):
@@ -381,8 +381,8 @@ class MultiProcessStream():
             s = 'snapshot taken folder:%s name:%s' % (fullname, fname)
             print(s)
         return fname, path_
-        
-    
+
+
 
 
 class _StatusInfo():

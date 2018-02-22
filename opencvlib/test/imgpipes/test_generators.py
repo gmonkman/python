@@ -14,6 +14,7 @@ from opencvlib.imgpipes import filters
 import opencvlib.roi as roi
 import funclib.iolib as iolib
 import opencvlib.common as common
+import opencvlib
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -21,9 +22,9 @@ class Test(unittest.TestCase):
     def setUp(self):
         '''setup variables etc for use in test cases
         '''
-        self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
-        self.modpath = _path.normpath(self.pth)
-        self.test_images_path = _path.normpath(_path.join('..', 'bin/images'))
+        self.this_file_path = _path.normpath(iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0])
+        self.module_root = _path.normpath(opencvlib.__path__[0]) #root of opencvlib
+        self.test_images_path = _path.normpath(_path.join(self.module_root, 'test/bin/images'))
 
     #DEBUG Double check test_image_pipeline
     @unittest.skip("Temporaily disabled while debugging")
@@ -57,7 +58,6 @@ class Test(unittest.TestCase):
         '''test vggregions'''
         #Get training region
         vgg_sp = gnr.VGGSearchParams('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler', 'whole', 'bass')
-        #TODO Double check boolean handling
         dk_sp = gnr.DigikamSearchParams(search_type=gnr.eDigiKamSearchType.innerOr_outerAnd, pitch='0', yaw='180', roll='0')
 
         #t1 = transforms.Transform(transforms.togreyscale)
@@ -85,7 +85,7 @@ class Test(unittest.TestCase):
             self.assertIsInstance(dic, dict)
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_voc(self):
         '''test the pascal voc generator
         '''
@@ -101,6 +101,23 @@ class Test(unittest.TestCase):
                 common.draw_str(img, pts[0][0], pts[0][1], lbl, box_background=(0))
             show(img)
 
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_VGGROI(self):
+        '''test the VGG ROI generator, which generates
+        generic regions of interest from the VGG file,
+        with an option to filter by a partial dictionary
+        match on a regions attributes (region_attributes in the json file)
+        '''
+        fp = _path.normpath(_path.join(self.test_images_path, 'vgg_regions.json'))
+        VGGROI = gnr.VGGROI(fp)
+        for img, pth, dic in VGGROI.generate():
+            show(img)
+
+        attrs =  {'shape': 'rect', 'id': '1'}
+        VGGROI = gnr.VGGROI(fp, region_attrs=attrs)
+        for img, pth, dic in VGGROI.generate():
+            show(img)
 
 
 if __name__ == '__main__':

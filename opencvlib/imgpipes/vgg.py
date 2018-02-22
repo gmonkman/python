@@ -261,7 +261,7 @@ class Image(object):
             Class:Region
         '''
         if isinstance(shape_type, str):
-            shape_type = [shape_count]
+            shape_type = [shape_type]
 
         d = _dictp(JSON_FILE)
         regions = d[self._key]['regions']
@@ -284,10 +284,9 @@ class Image(object):
                 regionid = region_attrs.get('regionid')
                 if not isinstance(region_attr_match, dict):
                     reg = _load_region(shape_attrs, region_attrs, self._key, regionid)
-                    yield reg
                 else: #we have asked for a filter
                     m = _dic_match(region_attr_match, region_attrs)
-                    if m  == _eDictMatch.Exact or m == _eDictMatch.Subset:
+                    if m == _eDictMatch.Exact or m == _eDictMatch.Subset:
                         reg = _load_region(shape_attrs, region_attrs, self._key, regionid)
 
                 if isinstance(reg, Region):
@@ -528,6 +527,8 @@ class Region(object):
         self.w = kwargs.get('w')
         self.h = kwargs.get('h')
 
+        self.w = kwargs.get('width') if self.w is None else self.w
+        self.h = kwargs.get('height') if self.h is None else self.h
         # polygon
         self.all_points_x = kwargs.get('all_points_x', None)
         self.all_points_y = kwargs.get('all_points_y', None)

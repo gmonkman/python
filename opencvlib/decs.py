@@ -101,7 +101,7 @@ def decgetimg8bpp(func):
     @_wraps(func)
     def _getimg_wrapper(img, *args, **kwargs):
 
-        g = lambda g: _cv2.imread(_fixp(g), _cv2.CV_LOAD_IMAGE_COLOR) #forces 8bits per pixel (32/24 bit image)
+        g = lambda g: _cv2.imread(_fixp(g), _cv2.IMREAD_COLOR) #forces 8bits per pixel (32/24 bit image)
 
         if img is None:
             return func(None, *args, **kwargs)

@@ -52,7 +52,7 @@ class Filters():
     '''this handles building search filters
     to apply to an image
     '''
-    def __init__(self, img=None, *args):
+    def __init__(self, *args, img=None):
         '''(str|ndarray, Filter functions)
         '''
         self.img = _getimg(img)

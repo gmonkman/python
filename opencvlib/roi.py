@@ -12,7 +12,6 @@ import cv2 as _cv2
 import numpy as _np
 from numpy import ma as _ma
 
-import opencvlib.decs as _decs
 import opencvlib as _opencvlib
 import opencvlib.info as _info
 import opencvlib.distance as _dist
@@ -356,8 +355,8 @@ def poly_area(pts=None, x=None, y=None):
     Supports CVXY or XXXXYYYY format
 
     Example:
-        >>>poly_area(x=[1,2,3,4], y=[5,6,7,8]) #XXXYYY
-        >>>poly_area(pts=[(1,5),(2,6),(3,7),(4,8)]) #CVXY
+        >>>poly_area(x=[1,2,3,4], y=[5,6,7,8])
+        >>>poly_area(pts=[(1,5),(2,6),(3,7),(4,8)])
     '''
     if pts:
         x = [pt[0] for pt in pts]
