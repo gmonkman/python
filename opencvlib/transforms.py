@@ -278,6 +278,29 @@ def rescale_intensity(img, in_range='image', out_range='dtype'):
 #endregion
 
 
+def chswap(img, new_order):
+    '''(str|ndarray, tuple|list) -> ndarray
+    Change the channel order
+
+    new_order:
+        new channel order as a tuple, so
+        (0,2,1) whould swap ch2 to ch1 etc.
+
+    Comment:
+        Can also be used to convert any single
+        channel to grayscale.
+
+    Examples:
+    Swap BGR to RGB
+    chswap(img, (2,1,0)
+
+    '''
+
+    img = _getimg(img)
+    i = _np.dsplit(img, 3)
+    return _np.dstack((i[new_order[0]], i[new_order[1]], i[new_order[2]]))
+
+
 def crop(img, region, eRegfmt=eRegionFormat.RCHW, around_point=None, allow_crop_truncate=True):
     '''(ndarray, list|tuple, Enum:roi.eRegionFormat, 2-tuple|None, bool) -> ndarray
     Crops an image.
@@ -439,7 +462,7 @@ def histeq_color(img, cvtToHSV=True):
         Equalize histogram of color image
         '''
     img = _getimg(img)
-    
+
     if cvtToHSV:
         img_yuv = _cv2.cvtColor(img, _cv2.COLOR_BGR2YUV)
     else:
