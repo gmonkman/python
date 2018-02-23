@@ -64,9 +64,9 @@ def rndstr(l):
         >>>rndstr(3)
         A12
         >>>rndstr(5)
-        DFG12
+        DeG12
     '''
-    return  ''.join(_random.choice(_string.ascii_uppercase + _string.digits) for _ in range(l))
+    return  ''.join(_random.choice(_string.ascii_uppercase + _string.ascii_lowercase + _string.digits) for _ in range(l))
 
 
 # region files and paths related

@@ -14,7 +14,7 @@ Modes:
     overwrite   overwite files with same name
     halt        stop processing if there is a name clash
     skip        do not save the file if file exists
-    rename      save the file with a new name (random suffix used)
+    rename      save the file with a new name if it already exists in output_folder (random suffix used)
     req_new_dir the output_folder must not exist
 
 Example:
@@ -70,14 +70,13 @@ def main():
     prefix = args.prefix
     if mode == 'req_new_dir':
         assert src.lower() != out.lower(), 'The source and output folders must be different.'
-    assert mode in [MODES], 'Mode must be empty or in %s' % ''.join(MODES)
+    assert mode in MODES, 'Mode must be in %s, but got mode %s.' % ' '.join(MODES, mode)
 
-    print('\nMode is %s\n' % mode)
+    print('Mode is %s\n' % mode)
 
     vgg_file = path.normpath(src + '/' + args.vgg_file_name)
     vgg.load_json(vgg_file)
     PP.max = iolib.file_count(src, '*.jpg', False)
-    skipped = 0; processed = 0
 
     if path.isdir(out):
         pass
@@ -89,12 +88,14 @@ def main():
     #generator can take a list of vgg files
 
     mkname = lambda dest_folder, prefix, fname_noext, suffix, ext: path.normpath(path.join(dest_folder, prefix + fname_noext + suffix + ext))
-
+    saved = []
+    not_saved = []
+    already_existed = []
     G = VGGROI(vgg_file)
     for img, pth, _ in G.generate():
+        PP.increment()
         try:
             dummy, fname_noext, ext = iolib.get_file_parts(pth)
-            outname = path.normpath(path.join(out, prefix + fname_noext + ext))
             outname = mkname(out, prefix, fname_noext, '', ext)
             if mode == 'overwrite':
                 pass
@@ -103,7 +104,7 @@ def main():
                     raise FileExistsError('File %s already exists.' % outname)
             elif mode == 'skip':
                 if path.isfile(outname):
-                    print('Image %s skipped because it already exists in %s' % (pth, out))
+                    already_existed.append(pth)
                     continue
             elif mode == 'rename':
                 cnt = 0
@@ -111,17 +112,15 @@ def main():
                     if cnt > 100:
                         raise InterruptedError('Name generation loop failed to generate a new name after 100 iterations')
                     cnt += 1
-                    outname = mkname(out, prefix, fname_noext, stringslib.rndstr(4), ext)
                     if not path.isfile(outname) and not path.isdir(outname):
                         break
+                    outname = mkname(out, prefix, fname_noext, stringslib.rndstr(4), ext)
 
             if isinstance(img, np.ndarray):
                 cv2.imwrite(outname, img)
-                PP.increment()
-                processed += 1
-                print('ROI %s saved' % outname)
+                saved.append(outname)
             else:
-                print('ROI **NOT SAVED** for file %s' % pth)
+                not_saved.append(pth)
         except FileExistsError as fee:
             raise fee
         except InterruptedError as ie:
@@ -130,7 +129,21 @@ def main():
             pass
 
 
-    print('\n%s of %s images dumped. %s images skipped.\n' % (processed, PP.max, skipped))
+
+
+    if saved:
+        print('\nExported ROIs:')
+        print('\n'.join(saved))
+
+    if not_saved:
+        print('\nImages no ROI:')
+        print('\n'.join(not_saved))
+
+    if already_existed:
+        print('\nNot exported, destination existed:')
+        print('\n'.join(already_existed))
+
+    print('\n%s of %s images dumped. %s images skipped.\n' % (len(saved), PP.max, len(already_existed)))
 
 
 

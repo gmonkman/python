@@ -1,0 +1,2 @@
+C:\development\python\opencvlib\scripts_vgg\roi2img.py\roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train" vgg_body-caudal.json
+pause

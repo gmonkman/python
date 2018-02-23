@@ -12,8 +12,7 @@
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>-m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train" vgg_body-caudal.json</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -37,7 +36,8 @@ lenscorrection.py -m undistort -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDr
 lenscorrection.py -m undistort_fisheye -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted_fisheye -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2
 
 rotate.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter\fujifilm/undistorted" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated"  vgg_rotations.json
-sharpen.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/r-ahe-um"</Environment>
+sharpen.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/r-ahe-um"
+roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train" vgg_body-caudal.json</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -295,6 +295,7 @@ sharpen.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/
     <Content Include="lenscorrection\undistort_hero5fov.bat" />
     <Content Include="make_model.bat" />
     <Content Include="requirements.txt" />
+    <Content Include="scripts_vgg\roi2img.bat" />
     <Content Include="script_objdetect\detectors.cfg" />
     <Content Include="pylintrc" />
     <Content Include="script_objdetect\lobster\vlcsnap-00001.jpg" />
