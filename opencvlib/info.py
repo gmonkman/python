@@ -2,6 +2,7 @@
 '''info about an image'''
 from enum import Enum as _Enum
 from glob import glob as _glob
+import os.path as _path
 import imghdr as _imghdr
 
 
@@ -225,11 +226,22 @@ class ImageInfo():
 
     @staticmethod
     def is_image(file_path, try_load=False):
-        '''(str)->bool
+        '''(str, bool) ->b ool
         Pass in a file string and see if it looks like an image.
-        If try_load is true, we try and load the file using _cv2.imread (costly)
+
+        try_load:
+            Try and loading file_path with _cv2.imread (costly)
+
+        Example:
+            >>>is_image('C:/temp/picture.jpg', try_load=False)
+            True
         '''
         ret = False
+        file_path = _path.normpath(file_path)
+
+        if not _path.isfile(file_path):
+            return False
+
         if not _imghdr.what(file_path) is None:
             ret = True
             if try_load:

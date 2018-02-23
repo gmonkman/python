@@ -114,10 +114,23 @@ class Test(unittest.TestCase):
         for img, pth, dic in VGGROI.generate():
             show(img)
 
-        attrs =  {'shape': 'rect', 'id': '1'}
+        attrs = {'shape': 'rect', 'id': '1'}
         VGGROI = gnr.VGGROI(fp, region_attrs=attrs)
         for img, pth, dic in VGGROI.generate():
             show(img)
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_VGGImages(self):
+        '''test the VGGImages generator, which is a
+        simple generator for all images in a set of
+        VGG file.
+        '''
+        fp = _path.normpath(_path.join(self.test_images_path, 'vgg_regions.json'))
+        VGGImages = gnr.VGGImages(fp)
+        for img, pth, dic in VGGImages.generate():
+            print(pth)
+            self.assertIs(isinstance(img, np.ndarray) and isinstance(pth, str) and isinstance(dic, dict), True)
 
 
 if __name__ == '__main__':

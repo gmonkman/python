@@ -4,6 +4,8 @@
 # base imports
 import time
 import numbers
+import random as _random
+import string as _string
 
 # my imports
 import funclib.numericslib
@@ -13,8 +15,8 @@ import funclib.numericslib
 class Visible():
     visible_strict_with_space = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ '
     visible_strict_sans_space = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
-    
-    
+
+
     @staticmethod
     def ord_dict(with_space=False):
         '''(bool) -> dict
@@ -49,6 +51,22 @@ def read_number(test, default=0):
         return test
     else:  # not a string or not a number
         return default
+
+
+def rndstr(l):
+    '''(int) -> str
+    Return random alphanumeric string of length l
+
+    l:
+        string length
+
+    Example:
+        >>>rndstr(3)
+        A12
+        >>>rndstr(5)
+        DFG12
+    '''
+    return  ''.join(_random.choice(_string.ascii_uppercase + _string.digits) for _ in range(l))
 
 
 # region files and paths related

@@ -5,12 +5,14 @@ Rotate images generated from VGG file and save them the specified folder.
 Rotations are calculated by using two points without any attributes which
 have been added to the image using vgg.
 
-The output folder must be empty
+The output folder must be empty, and is created if it doesn't exist.
+
 Example:
-rotate.py "C:/temp/image" "C:/temp/images/rotated" vgg_rotations.json
+    rotate.py "C:/temp/image" "C:/temp/images/rotated" vgg_rotations.json
 '''
 import argparse
 import os.path as path
+import os
 
 import cv2
 
@@ -44,6 +46,11 @@ def main():
     src = path.normpath(args.source_folder)
     out = path.normpath(args.output_folder)
     assert src.lower() != out.lower(), 'The source and output folders must be different.'
+
+    if path.isdir(out):
+        pass
+    else:
+        os.mkdir(out) #checked, this fails if out is a file
 
     assert not iolib.folder_has_files(out), 'Folder "%s" contains files. The directory must be empty.' % out
 

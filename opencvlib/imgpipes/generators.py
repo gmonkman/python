@@ -1,4 +1,5 @@
 # pylint: disable=C0103, locally-disabled, attribute-defined-outside-init, protected-access, unused-import, arguments-differ, unused-argument
+#TOO Suppress excepions globally for this module when in SILENT mode, check iolib which has the routine to do it
 '''Image generatrs for multiple sources.
 
 All yielded generators have an error handler wrapping which logs errors
@@ -20,6 +21,8 @@ from os import path as _path
 import abc as _abc
 from enum import Enum as _Enum
 from warnings import warn as _warn
+
+
 import cv2 as _cv2
 import numpy as _np
 from numpy.random import randint as _randint
@@ -69,6 +72,9 @@ class _BaseGenerator(_abc.ABC):
         pass
 
 
+#TODO Implement regex sieve on image filenames
+#Do it in the base class so it is used by all
+#classes which inherit from _Generator
 class _Generator(_BaseGenerator):
     '''base generator class
     Use with BaseGenerator to create new generators
@@ -566,6 +572,60 @@ class VGGDigiKam(_Generator):
                     _log.exception(s)
 
 
+class VGGImages(_Generator):
+    '''Generate images only specified in a VGG file.
+    This does not generate ROIs.
+
+    vgg_file_paths:
+        Full paths to vgg files, e.g.
+        'c:/vgg.json'
+        ['c:/vgg.json','c:/vgg_other.json']
+
+    filters:
+        Keyword argument containing a list of filter function from imgpipes.filters, passed as filters=...
+    transforms:
+        Keyword argument containing lit of ist of imgpipes.transforms functions, passed as transforms=...
+        to apply to output image
+
+    Example:
+        gen = VGGImages('c:/vgg.json')
+        for img, filepath, d in gen()
+            #do work
+
+    See test/test_generators.py for some examples.
+    '''
+
+    def __init__(self, vgg_file_paths, *args, **kwargs):
+        '''(str|list, list|None, dict|None) -> void'''
+        if isinstance(vgg_file_paths, str):
+            vgg_file_paths = [vgg_file_paths]
+        self.vgg_file_paths = vgg_file_paths
+        '''Paths to vgg json files, e.g. 'C:/vgg.json'''
+        self.silent = True
+        '''Suppress console messages'''
+
+        super().__init__(*args, **kwargs)
+
+
+    def generate(self, path_only=False, outflag=_cv2.IMREAD_UNCHANGED):
+        for vgg_file in self.vgg_file_paths:
+            try:
+                _vgg.load_json(vgg_file)
+                for I in _vgg.imagesGenerator():
+                    if path_only:
+                        yield None, I.filepath, None
+                        continue
+                    else:
+                        img = _cv2.imread(I.filepath, flags=outflag)
+                        img = super().generate(img)
+                        yield img, I.filepath, {}
+            except Exception as e:
+                _log.exception(e)
+                if not self.silent:
+                    _warn(str(e))
+
+
+
 class VGGROI(_Generator):
     '''Generate images specified in a VGG file
 
@@ -878,7 +938,7 @@ class RegionDualPosNeg():
 
                 ipos = _roi.roi_polygons_get(imgposT, x[1])
                 ineg = _roi.roi_polygons_get(imgnegT, self._neg_list[ind][1])
-            except Exception as dummy1:
+            except Exception as _:
                 s = 'Failed to generate a test region for %s' % img_path
                 _log.warning(s)
                 ipos = None
