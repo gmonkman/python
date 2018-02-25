@@ -16,7 +16,7 @@ So: 50x50 image. Top Left x=0,y=0: Bottom Right x=50, y=50
 import os.path as _path
 import json
 import logging
-
+from copy import deepcopy as _deepcopy
 from shutil import copy as _copy
 from math import pi as _pi
 
@@ -102,24 +102,44 @@ def _valid_species_in_list(species, silent=False):
     return _list_and(species, VALID_SPECIES)
 
 
-def fix_keys(backup=True, show_progress=False):
-    '''loop through json file and correct file sizes
+def fix_keys(backup=True, show_progress=False, del_if_no_file=False):
+    '''(bool, bool, bool) -> void
+    Loop through json file and correct file sizes
+    so the keys are correct. Keys have to be correct
+    or else they won't be loaded when editing in VGG.
+
+    backup:
+        make a backup of the vgg file
+    show_progress:
+        print progress status to the console
+    del_if_no_file:
+        If the file found in the VGG file does not exist
+        then delete the corresponding key
     '''
     cnt = 0
     _prints('\n\nFixing keys...\n')
+    dkeys = []
     for key in JSON_FILE:
         # relies on VGG JSON file being in same dir as files
         filepath = _get_file_parts(_JSON_FILE_NAME)[0]
         filename = JSON_FILE[key]['filename']
         fullname = _path.join(filepath, filename)
-        size_in_bytes = _path.getsize(fullname)
-        newkey = filename + str(size_in_bytes)
-        JSON_FILE[newkey] = JSON_FILE.pop(key)
+        #only fix if we find it!
+        if _path.isfile(fullname):
+            size_in_bytes = _path.getsize(fullname)
+            newkey = filename + str(size_in_bytes)
+            JSON_FILE[newkey] = JSON_FILE.pop(key)
+        else:
+            dkeys.append(key)
 
         if not SILENT or show_progress:
             cnt += 1
             s = '%s of %s' % (cnt, len(JSON_FILE))
             _print_progress(cnt, len(JSON_FILE), s, bar_length=30)
+
+    if del_if_no_file:
+        for key in dkeys:
+            del JSON_FILE[key]
 
     save_json(backup)
     _prints('\n\nKey fixing complete.\n')

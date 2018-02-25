@@ -227,8 +227,7 @@ def decgetimgpil(func):
 def decgetimgsk(func):
     '''
     decorator to wrap opening an
-    image for consumption by skimage functions
-    which expect RGB format.
+    image for consumption by skimage functions.
 
     Expects an opencv BGR ndarray or loads using cv2.imread to derive
     a BGR image.
@@ -290,7 +289,7 @@ def _isbw(img, single_channel_only=False):
 
     if len(img.shape) > 2:
         looks_like_rgbbw = not False in ((img[:, :, 0:1] == img[:, :, 1:2]) == (img[:, :, 1:2] == img[:, :, 2:3]))
-        looks_like_hsvbw = not False in ((img[:, :, 0:1] == 0) == ((img[:, :, 1:2]) == 0))
+        looks_like_hsvbw = not (True in (img[:,:,0:1] > 0) or True in (img[:,:,1:2] > 0))
         return looks_like_rgbbw or looks_like_hsvbw
     else:
         assert img.shape == 2 #looks like an error if we got here, debug

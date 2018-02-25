@@ -847,7 +847,7 @@ def wait_key():
 
 
 @_contextmanager
-def suppress_stdout(stdout=True, stderr=True):
+def quite(stdout=True, stderr=True):
     '''(bool, bool) -> void
     Stop messages and errors being sent to the console
     '''

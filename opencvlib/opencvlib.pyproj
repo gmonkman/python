@@ -5,15 +5,15 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_vgg\roi2img.py</StartupFile>
+    <StartupFile>scripts_vgg\rotate.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train" vgg_body-caudal.json</CommandLineArguments>
-    <EnableNativeCodeDebugging>True</EnableNativeCodeDebugging>
+    <CommandLineArguments>"c:/temp/fix-fid-sh-gopro" "C:/temp/fix-fid-sh-gopro/rotated" vgg_rotations.json</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
@@ -36,7 +36,9 @@ lenscorrection.py -m undistort -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDr
 lenscorrection.py -m undistort_fisheye -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted_fisheye -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2
 
 rotate.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter\fujifilm/undistorted" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated"  vgg_rotations.json
+rotate.py "c:/temp/fix-fid-sh-gopro" "C:/temp/fix-fid-sh-gopro/rotated" vgg_rotations.json
 sharpen.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/r-ahe-um"
+
 roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train" vgg_body-caudal.json</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

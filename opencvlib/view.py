@@ -20,7 +20,7 @@ import opencvlib.color as _color
 import opencvlib.info as _info
 from opencvlib import transforms as _transforms
 from opencvlib.common import draw_str as _draw_str
-#from opencvlib import getimg as _getimg
+from opencvlib import getimg as _getimg
 
 __all__ = ['mosaic', 'pad_images', 'show', 'showarray']
 
@@ -103,6 +103,30 @@ def pad_images(imgs, pad_color=_color.CVColors.black):
 
     return outimgs
 
+
+def show_all_channels(img):
+    '''(ndarray, str)->void
+    Show a mosaic of all channels of an image
+    '''
+    img = _getimg(img)
+
+    brg = _transforms.chswap(img, (0, 2, 1))
+    _draw_str(brg, 10, 10, 'bgr->brg',color=(0, 0, 0), box_background=255)
+
+    rgb = _transforms.chswap(img, (2, 1, 0))
+    _draw_str(rgb, 10, 10, 'bgr->rgb',color=(0, 0, 0), box_background=255)
+
+    rbg = _transforms.chswap(img, (2, 0, 1))
+    _draw_str(rbg, 10, 10, 'bgr->rbg',color=(0 ,0, 0), box_background=255)
+
+    grb = _transforms.chswap(img, (1, 2, 0))
+    _draw_str(grb, 10, 10, 'bgr->grb',color=(0 ,0, 0), box_background=255)
+
+    gbr = _transforms.chswap(img, (1, 0, 2))
+    _draw_str(gbr, 10, 10, 'bgr->gbr',color=(0, 0, 0), box_background=255)
+
+    m = mosaic([img, brg, rgb, rbg, grb, gbr])
+    show(m)
 
 
 @_decs.decgetimg

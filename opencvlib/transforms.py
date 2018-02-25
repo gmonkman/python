@@ -13,12 +13,21 @@ from opencvlib import color as _color
 from opencvlib import Log as _Log
 from opencvlib.color import BGR2HSV, BGR2RGB, HSVtoGrey, togreyscale
 import opencvlib.roi as _roi
-
+from funclib.iolib import quite
 
 
 #from scikit-image
 #see http://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.is_low_contrast
 import skimage.exposure as _exposure
+
+
+class eChannels(_Enum):
+    '''color channel indexes for cv2 img.
+    Currently used in chswap
+    '''
+    B = 0
+    G = 1
+    R = 2
 
 
 class eRegionFormat(_Enum):
@@ -214,7 +223,7 @@ def equalize_adapthist(img, kernel_size=None, clip_limit=0.01, nbins=256):
     nbins : int, optional
         Number of gray bins for histogram (“data range”).
     '''
-    i = _exposure.equalize_adapthist(img, kernel_size=kernel_size, clip_limit=clip_limit, nbins=nbins)
+    i = _exposure.equalize_adapthist(img, kernel_size=kernel_size, clip_limit=clip_limit, nbins=nbins)  #i will be floating point, so can't be shown with cv2, unless cvt using np.array(i*255, dtype=("uint8"))
     return _color.RGB2BGR(i) #this func is wrapped to handle black and white as well
 
 

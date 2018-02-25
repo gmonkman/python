@@ -21,7 +21,6 @@ import funclib.iolib as iolib
 import opencvlib.roi as roi
 import opencvlib.imgpipes.vgg as vgg
 import opencvlib.transforms as transforms
-
 PP = iolib.PrintProgress()
 
 def main():
@@ -50,9 +49,10 @@ def main():
     if path.isdir(out):
         pass
     else:
+        print('Creating dir %s' % out)
         os.mkdir(out) #checked, this fails if out is a file
 
-    assert not iolib.folder_has_files(out), 'Folder "%s" contains files. The directory must be empty.' % out
+    assert not iolib.folder_has_files(out), 'Folder %s contains files. The directory must be empty.' % out
 
     vgg_file = path.normpath(src + '/' + args.vgg_file_name)
     vgg.load_json(vgg_file)

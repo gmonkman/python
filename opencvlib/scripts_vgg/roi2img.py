@@ -4,7 +4,7 @@ Output defined rectangular ROIs specified
 in a VGG file and save them to a specified folder
 
     -m: Action for handling file naming clashes. Valid modes are: "overwrite", "halt", "skip", "rename", "req_new_dir".'
-        Default='rename'
+        This must be explicitly specified.
     -p: File prefix to append to the outputted filename. Defaults to roi.
         Default='roi'
     Positional args:
@@ -56,7 +56,7 @@ def main():
                                       'roi2img.py -m overwrite -p roi "C:/temp/image" "C:/temp/images/rotated" "vgg_rotations.josn"'
                                       )
 
-    cmdline.add_argument('-m', '--mode', help='Action for handling file naming clashes. Valid modes are: "overwrite", "halt", "skip", "rename", "req_new_dir"', default='rename')
+    cmdline.add_argument('-m', '--mode', help='Action for handling file naming clashes. Valid modes are: "overwrite", "halt", "skip", "rename", "req_new_dir"', required=True)
     cmdline.add_argument('-p', '--prefix', help='File prefix to append to the outputted filename', default='')
     cmdline.add_argument('source_folder', help='The folder containing the images and vgg file')
     cmdline.add_argument('output_folder', help='The folder to save the ROIs to')
@@ -70,7 +70,7 @@ def main():
     prefix = args.prefix
     if mode == 'req_new_dir':
         assert src.lower() != out.lower(), 'The source and output folders must be different.'
-    assert mode in MODES, 'Mode must be in %s, but got mode %s.' % ' '.join(MODES, mode)
+    assert mode in MODES, 'Mode must be in %s, but got mode %s.' % (' '.join(MODES), mode)
 
     print('Mode is %s\n' % mode)
 

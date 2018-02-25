@@ -79,7 +79,7 @@ while True:
     img = np.copy(orig_image)
     if GAUSS_KERNEL_SIZE[0] >= 1 and GAUSS_SIGMA > 0 and THRESHHOLD >= 0 and WEIGHT >= 0:
         set_params()
-        with iolib.suppress_stdout(stdout=True, stderr=True):
+        with iolib.quite(stdout=True, stderr=True):
             img = t.sharpen_unsharpmask(orig_image, GAUSS_KERNEL_SIZE, THRESHHOLD, WEIGHT, GAUSS_SIGMA)
 
     write_text(img)
