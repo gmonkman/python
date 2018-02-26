@@ -18,7 +18,7 @@ Modes:
     req_new_dir the output_folder must not exist
 
 Example:
-    roi2img.py -m rename -p myprefix "C:/temp/image" "C:/temp/images/rotated" vgg_rotations.json
+    img2roi.py -m rename -p myprefix "C:/temp/image" "C:/temp/images/rotated" vgg_rotations.json
 
 Comments:
     output_folder will be created if it doesn't exist
@@ -40,7 +40,7 @@ from opencvlib.view import show
 
 PP = iolib.PrintProgress()
 MODES = ['overwrite', 'halt', 'skip', 'rename', 'req_new_dir']
-
+vgg.SILENT = True
 
 def main():
     '''
@@ -53,7 +53,7 @@ def main():
     cmdline = argparse.ArgumentParser(description='Output defined rectangular ROIs specified'
                                       'in a VGG file and save them to a specified folder\n\n'
                                       'Example:\n'
-                                      'roi2img.py -m overwrite -p roi "C:/temp/image" "C:/temp/images/rotated" "vgg_rotations.josn"'
+                                      'img2roi.py -m overwrite -p roi "C:/temp/image" "C:/temp/images/rotated" "vgg_rotations.josn"'
                                       )
 
     cmdline.add_argument('-m', '--mode', help='Action for handling file naming clashes. Valid modes are: "overwrite", "halt", "skip", "rename", "req_new_dir"', required=True)
@@ -76,12 +76,14 @@ def main():
 
     vgg_file = path.normpath(src + '/' + args.vgg_file_name)
     vgg.load_json(vgg_file)
+    print('Loaded vgg file %s' % vgg_file)
     PP.max = iolib.file_count(src, '*.jpg', False)
 
     if path.isdir(out):
-        pass
+        print('Found output folder %s' % out)
     else:
         os.mkdir(out) #checked, this fails if out is a file
+        print('Created output folder %s' % out)
 
 
     #only single vgg_file currently supported by this script, although the

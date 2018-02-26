@@ -33,8 +33,12 @@ def main():
     args = cmdline.parse_args()
 
     vgg.SILENT = True
-    print('Fixing keys...')
+    if not path.isfile(path.normpath(args.file)):
+        print('File "%s" not found')
+        return
+
     vgg.load_json(path.normpath(args.file), fixkeys=True)  # also fixes keys
+    print('Fixing keys in "%s" ...' % args.file)
     print('Done')
 
 

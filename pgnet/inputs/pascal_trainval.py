@@ -21,11 +21,14 @@ from collections import defaultdict
 import math
 import cv2
 
-CLASSES = [
+CLASSES _OLD= [
     "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat",
     "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person",
     "pottedplant", "sheep", "sofa", "train", "tvmonitor"
 ]
+
+CLASSES = ['bass', 'not_bass']
+
 
 # Add the definition of an (unused) background class ID
 BACKGROUND_CLASS_ID = len(CLASSES)  # classes ids are 0 based

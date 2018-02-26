@@ -414,22 +414,35 @@ def get_file_parts2(filepath):
     return [folder, fname, ext]
 
 
-def folder_has_files(fld):
-    '''(str) -> bool
-
-    Does the folder contain files?
+def folder_has_files(fld, ext_dotted=[]):
+    '''(str, str|list) -> bool
+    Does the folder contain files, optionally matching
+    extensions. Extensions are dotted.
 
     fld:
         folder path
-
+    ext_dotted:
+        list of extensions to match
     Example:
     >>>folder_has_files('C:/windows')
     True
+
+    >>>folder_has_files('C:/windows', ['.dll'])
+    >>>True
     '''
+    if isinstance(ext_dotted, str):
+        ext_dotted = [ext_dotted]
+
     for _, _, files in _os.walk(_os.path.normpath(fld)):
-        if files:
+        if files and not ext_dotted:
             return True
-        return False
+
+        for fname in files:
+            for ext in ext_dotted:
+                if fname.endswith(ext):
+                    return True
+
+    return False
 
 
 def get_available_drives(strip=['-'], return_when_unidentified='??'):
@@ -534,14 +547,22 @@ def file_count(paths, wildcards, recurse):
 
 
 def file_list_generator1(paths, wildcards, recurse=False):
-    '''(iterable, iterable) -> str
-    Takes a list of paths and wildcards and creates a
-    generator which iterates through all the FILES found
-    in the paths matching the wildcards.
+    '''(str|iterable, str|iterable, bool) -> yields str
+    Takes path(s) and wildcard(s), yielding the
+    full path to matched files.
 
-    So yields all the file names found.
+    paths:
+        Single path or list/tuple of paths
+    wildcards:
+        Single file extension or list of file extensions.
+        Extensions should be dotted, an asterix is appended
+        if none exists.
+    recurse:
+        recurse down folders
 
-    Now supports recurssion
+    Example syntax:
+    >>>for fname in file_list_generator1('C:/temp', '*.txt', recurse=False):
+    >>>for fname in file_list_generator1(['C:/temp', 'C:/windows'], ['.bat', '.cmd'], recurse=True):
     '''
     if isinstance(paths, str):
         paths = [paths]

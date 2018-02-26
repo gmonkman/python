@@ -15,21 +15,23 @@ import time
 from datetime import datetime
 import numpy as np
 import tensorflow as tf
+from os import path
 from pgnet import model
-from inputs import pascal
+from pgnet.inputs import pascal
 
 # graph parameteres
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-SESSION_DIR = CURRENT_DIR + "/session"
-SUMMARY_DIR = CURRENT_DIR + "/summary"
-MODEL_PATH = CURRENT_DIR + "/model.pb"
+CURRENT_DIR = path.normpath(os.path.dirname(os.path.abspath(__file__)))
+SESSION_DIR = path.normpath(CURRENT_DIR + "/session")
+SUMMARY_DIR = path.normpath(CURRENT_DIR + "/summary")
+MODEL_PATH = path.normpath(CURRENT_DIR + "/model.pb")
 
 # cropped pascal parameters
-CSV_PATH = "~/data/datasets/PASCAL_2012_cropped"
+CSV_PATH = path.normpath("~/data/datasets/PASCAL_2012_cropped")
 
 # Number of classes in the dataset plus 1.
 # NUM_CLASSES + 1 is reserved for an (unused) background class.
-NUM_CLASSES = pascal.NUM_CLASSES + 1
+#NUM_CLASSES = pascal.NUM_CLASSES + 1
+NUM_CLASSES = 1 + 1
 
 # train & validation parameters
 STEP_FOR_EPOCH = math.ceil(pascal.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN /
@@ -322,5 +324,5 @@ def train(args):
 
 if __name__ == "__main__":
     ARG_PARSER = argparse.ArgumentParser(description="Train the model")
-    ARG_PARSER.add_argument("--device", default="/gpu:1")
+    ARG_PARSER.add_argument("--device", default="/cpu:1")
     sys.exit(train(ARG_PARSER.parse_args()))

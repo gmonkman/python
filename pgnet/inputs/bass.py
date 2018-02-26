@@ -7,10 +7,13 @@
 #licenses expressed under Section 1.12 of the MPL v2.
 """Generate the input from the pascal dataset"""
 
-import os
-import tensorflow as tf
-from . import _image_processing
-from . import pascal_trainval
+import os as _os
+
+import tensorflow as _tf
+import numpy as _np
+
+from . import image_processing as _image_processing
+from . import pascal_trainval as pascal_trainval
 
 # Global constants describing the cropped pascal data set.
 NUM_CLASSES = 1
@@ -36,7 +39,7 @@ def read_cropped_pascal(cropped_dataset_path, queue):
     """
 
     # Reader for text lines
-    reader = tf.TextLineReader(skip_header_lines=True)
+    reader = _tf.TextLineReader(skip_header_lines=True)
 
     # read a record from the queue
     _, row = reader.read(queue)
@@ -44,13 +47,13 @@ def read_cropped_pascal(cropped_dataset_path, queue):
     # file,width,height,label
     record_defaults = [[""], [0], [0], [0]]
 
-    image_path, width, height, label = tf.decode_csv(
+    image_path, width, height, label = _tf.decode_csv(
         row, record_defaults, field_delim=",")
 
-    image_path = cropped_dataset_path + tf.constant("/") + image_path
-    label = tf.cast(label, tf.int64)
-    width = tf.cast(width, tf.int64)
-    height = tf.cast(height, tf.int64)
+    image_path = cropped_dataset_path + _tf.constant("/") + image_path
+    label = _tf.cast(label, _tf.int64)
+    width = _tf.cast(width, _tf.int64)
+    height = _tf.cast(height, _tf.int64)
     return image_path, label, width, height
 
 
@@ -75,9 +78,9 @@ def _generate_image_and_label_batch(image,
 
     # Create a queue that shuffles the examples, and then
     # read 'batch_size' images + labels from the example queue.
-    num_preprocess_threads = 8
+    num_preprocess_threads = 2
 
-    images, sparse_labels = tf.train.shuffle_batch(
+    images, sparse_labels = _tf.train.shuffle_batch(
         [image, label],
         batch_size=batch_size,
         num_threads=num_preprocess_threads,
@@ -86,7 +89,7 @@ def _generate_image_and_label_batch(image,
 
     # Display the training images in the visualizer.
     # Add a scope to the summary.
-    tf.summary.image(task + '/images', images)
+    _tf.summary.image(task + '/images', images)
 
     return images, sparse_labels
 
@@ -94,7 +97,7 @@ def _generate_image_and_label_batch(image,
 def train(cropped_dataset_path,
           batch_size,
           input_side,
-          csv_path=os.path.abspath(os.getcwd())):
+          csv_path=_os.path.abspath(_os.getcwd())):
     """Returns a batch of images from the train dataset.
     Applies random distortion to the examples.
 
@@ -107,16 +110,14 @@ def train(cropped_dataset_path,
         images: Images. 4D tensor of [batch_size, input_side, input_side, 3 size.
         labes: Labels. 1D tensor of [batch_size] size.
     """
-    cropped_dataset_path = os.path.abspath(
-        os.path.expanduser(cropped_dataset_path)).rstrip("/") + "/"
-    csv_path = csv_path.rstrip("/") + "/"
-
     # Create a queue that produces the filenames (and other atrributes) to read
-    queue = tf.train.string_input_producer([csv_path + "train.csv"])
+    queue = _tf.train.string_input_producer([csv_path + "train.csv"])
+
+
 
     # Read examples from the queue
     image_path, label, widht, height = read_cropped_pascal(
-        tf.constant(cropped_dataset_path), queue)
+        _tf.constant(cropped_dataset_path), queue)
 
     # read, random distortion, resize to input_side²
     # and scale value between [-1,1]
@@ -138,7 +139,7 @@ def train(cropped_dataset_path,
 def validation(cropped_dataset_path,
                batch_size,
                input_side,
-               csv_path=os.path.abspath(os.getcwd())):
+               csv_path=_os.path.abspath(_os.getcwd())):
     """Returns a batch of images from the validation dataset
 
     Args:
@@ -151,15 +152,15 @@ def validation(cropped_dataset_path,
         labes: Labels. 1D tensor of [batch_size] size.
     """
 
-    cropped_dataset_path = os.path.abspath(
-        os.path.expanduser(cropped_dataset_path)).rstrip("/") + "/"
+    cropped_dataset_path = _os.path.abspath(
+        _os.path.expanduser(cropped_dataset_path)).rstrip("/") + "/"
     csv_path = csv_path.rstrip("/") + "/"
 
-    queue = tf.train.string_input_producer([csv_path + "validation.csv"])
+    queue = _tf.train.string_input_producer([csv_path + "validation.csv"])
 
     # Read examples from files in the filename queue.
     image_path, label, _, _ = read_cropped_pascal(
-        tf.constant(cropped_dataset_path), queue)
+        _tf.constant(cropped_dataset_path), queue)
 
     # read, resize, scale between [-1,1]
     image = _image_processing.eval_image(
@@ -184,7 +185,7 @@ def validation(cropped_dataset_path,
 def test(test_dataset_path,
          batch_size,
          input_side,
-         file_list_path=os.path.abspath(os.getcwd())):
+         file_list_path=_os.path.abspath(_os.getcwd())):
     """Returns a batch of images from the test dataset.
 
     Args:
@@ -199,21 +200,21 @@ def test(test_dataset_path,
         filenames: file names. [batch_size] tensor with the fileneme read. (without extension)
     """
 
-    test_dataset_path = os.path.abspath(os.path.expanduser(
+    test_dataset_path = _os.path.abspath(_os.path.expanduser(
         test_dataset_path)).rstrip("/") + "/"
 
     # read every line in the file, only once
-    queue = tf.train.string_input_producer(
+    queue = _tf.train.string_input_producer(
         [file_list_path], num_epochs=1, shuffle=False)
 
     # Reader for text lines
-    reader = tf.TextLineReader()
+    reader = _tf.TextLineReader()
 
     # read a record from the queue
     _, filename = reader.read(queue)
 
-    image_path = test_dataset_path + tf.constant(
-        "/JPEGImages/") + filename + tf.constant(".jpg")
+    image_path = test_dataset_path + _tf.constant(
+        "/JPEGImages/") + filename + _tf.constant(".jpg")
 
     # read, resize, scale between [-1,1]
     image = _image_processing.eval_image(
@@ -221,7 +222,7 @@ def test(test_dataset_path,
 
     # create a batch of images & filenames
     # (using a queue runner, that extracts image from the queue)
-    images, filenames = tf.train.batch(
+    images, filenames = _tf.train.batch(
         [image, filename],
         batch_size,
         shapes=[[input_side, input_side, 3], []],

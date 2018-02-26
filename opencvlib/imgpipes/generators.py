@@ -361,11 +361,19 @@ class DigiKam(_Generator):
 
 class FromPaths(_Generator):
     '''Generate images from a list of folders
-    Transforms can be added by instantiating Transform objects and
-    adding them to Transforms
+    Transforms and filters can be added by instantiating lists Transform and Filter
+    objects and passing them as named arguments. See test_generators for more
+    examples.
+
+    paths:
+        Single path or list/tuple of paths
+    wildcards:
+        Single file extension or list of file extensions.
+        Extensions should be dotted, an asterix is appended
+        if none exists.
 
     Example:
-        See test/imgpipes/test_generators.py
+        fp = generators.FromPaths('C:/temp', wildcards='*.jpg')
     '''
     def __init__(self, paths, *args, wildcards=_IMAGE_EXTENSIONS_AS_WILDCARDS, **kwargs):
         self._paths = paths

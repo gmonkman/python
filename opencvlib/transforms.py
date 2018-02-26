@@ -465,7 +465,6 @@ def rotate(image, angle, no_crop=True):
     return _cv2.warpAffine(img, M, (w, h))
 
 
-
 def histeq_color(img, cvtToHSV=True):
     '''(ndarray)->ndarray
         Equalize histogram of color image
@@ -499,7 +498,6 @@ def histeq_adapt(img, clip_limit=2, tile_size=(8, 8)):
     img_bw = _color.togreyscale(img)
     clahe = _cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_size)
     return clahe.apply(img_bw)
-
 
 
 @_decs.decgetimg

@@ -52,7 +52,9 @@ def main():
         print('Creating dir %s' % out)
         os.mkdir(out) #checked, this fails if out is a file
 
-    assert not iolib.folder_has_files(out), 'Folder %s contains files. The directory must be empty.' % out
+    if iolib.folder_has_files(out, '.jpg'):
+        print('Output folder "%s contains files. The directory must be empty.' % out)
+        return
 
     vgg_file = path.normpath(src + '/' + args.vgg_file_name)
     vgg.load_json(vgg_file)
@@ -66,7 +68,7 @@ def main():
             continue
         L = roi.Line(*I.image_points)
         img = transforms.rotate(I.filepath, L.angle_min_rotation_to_x, no_crop=True)
-        img = transforms.equalize_adapthist(img)
+        #img = transforms.equalize_adapthist(img)
         s = path.normpath(out + '/r' + I.filename)
         cv2.imwrite(s, img)
         PP.increment()

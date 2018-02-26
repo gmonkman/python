@@ -258,12 +258,23 @@ class ImageInfo():
 
 
     @staticmethod
-    def get_image_resolutions(glob_str):
-        '''(str)->list of lists
-        Takes a path with wildcard (eg C:/temp/*.jpg') and using wildcards globs through all images
-        Returns all unique image resolutions (column, row) as
+    def get_image_resolutions(glob_str, unique=True):
+        '''(str, bool)-> depth-2 list
+        Returns all image resolutions (column, row) as
         list of lists
-        [[800,600],[1024,768]]
+
+        glob_str:
+            Wildcarded file system path
+        unique:
+            return unique resolutions only, otherwise
+            every resolution will be returned
+
+        Examples:
+        >>>get_image_resolutions('C:/temp/*.jpg', False)
+        [[800,600], [1024,768]]
+
+        >>>get_image_resolutions('C:/temp/*.jpg', True)
+        [[800,600], [1024,768], [800,600]]
         '''
         dims = []
         for pic in _glob(glob_str):
@@ -273,7 +284,7 @@ class ImageInfo():
                 if isinstance(img, _np.ndarray):
                     h, w = img.shape[:2]
                     e = [w, h]
-                    if e not in dims:
+                    if e not in dims or not unique:
                         dims.append(e)
         return dims
 

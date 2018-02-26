@@ -18,10 +18,14 @@ import itertools as _it
 from contextlib import contextmanager as _contextmanager
 from opencvlib import getimg as _getimg
 from funclib.baselib import tuple_add_elementwise as _tupadd
+import funclib.iolib as _iolib
+import opencvlib.info as _info
 
-
-IMAGE_EXTENSIONS = ['.bmp', '.jpg', '.jpeg',
+IMAGE_EXTENSIONS_DOTTED = ['.bmp', '.jpg', '.jpeg',
                     '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
+
+IMAGE_EXTENSIONS_SANS_DOT = ['bmp', 'jpg', 'jpeg',
+                    'png', 'tif', 'tiff', 'pbm', 'pgm', 'ppm']
 
 class Bunch(object):
     def __init__(self, **kw):

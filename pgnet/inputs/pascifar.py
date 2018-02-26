@@ -9,7 +9,7 @@
 
 import os
 import tensorflow as tf
-from . import image_processing
+from . import _image_processing
 
 # The depth of the example
 INPUT_DEPTH = 3
@@ -75,7 +75,7 @@ def test(pascifar_path,
     image_path, label = read_pascifar(pascifar_path, queue)
 
     # read, resize, scale between [-1,1]
-    image = image_processing.eval_image(
+    image = _image_processing.eval_image(
         image_path, input_side, image_type="png")
 
     # create a batch of images & filenames

@@ -20,7 +20,7 @@ import os
 import sys
 import tensorflow as tf
 from . import freeze_graph
-from . import utils
+from . import tflib
 
 # network constants
 INPUT_SIDE = 200
@@ -96,8 +96,8 @@ def conv_layer(input_x, kernel_shape, padding, strides, name="out"):
 
     num_kernels = kernel_shape[3]
 
-    kernels = utils.kernels(kernel_shape, "kernels")
-    bias = utils.bias([num_kernels], "bias")
+    kernels = tflib.kernels(kernel_shape, "kernels")
+    bias = tflib.bias([num_kernels], "bias")
 
     return tf.add(tf.nn.conv2d(
         input_x, kernels, strides=strides, padding=padding),
@@ -223,8 +223,8 @@ def last_layer(input_x, kernel_side, num_kernels, rate):
         atrous_kernel_shape = (kernel_side, kernel_side,
                                input_x.get_shape()[3].value, num_kernels)
 
-        kernels = utils.kernels(atrous_kernel_shape, "kernels")
-        bias = utils.bias([num_kernels], "bias")
+        kernels = tflib.kernels(atrous_kernel_shape, "kernels")
+        bias = tflib.bias([num_kernels], "bias")
 
         return tf.nn.relu(
             tf.add(atrous_conv2d(

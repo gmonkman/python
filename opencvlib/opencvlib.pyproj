@@ -12,7 +12,8 @@
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"c:/temp/fix-fid-sh-gopro" "C:/temp/fix-fid-sh-gopro/rotated" vgg_rotations.json</CommandLineArguments>
+    <CommandLineArguments>
+    </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -80,7 +81,7 @@ roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/
     <Compile Include="scripts_streams\play.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="scripts_vgg\roi2img.py">
+    <Compile Include="scripts_vgg\img2roi.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_vgg\rotate.py">
@@ -297,8 +298,10 @@ roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/
     <Content Include="lenscorrection\undistort_hero5fov.bat" />
     <Content Include="make_model.bat" />
     <Content Include="requirements.txt" />
-    <Content Include="scripts_vgg\roi2img.bat" />
+    <Content Include="scripts_vgg\fixvgg.bat" />
+    <Content Include="scripts_vgg\img2roi.bat" />
     <Content Include="scripts_vgg\rotate.bat" />
+    <Content Include="scripts_vgg\vgg_body-caudal.json" />
     <Content Include="script_objdetect\detectors.cfg" />
     <Content Include="pylintrc" />
     <Content Include="script_objdetect\lobster\vlcsnap-00001.jpg" />
