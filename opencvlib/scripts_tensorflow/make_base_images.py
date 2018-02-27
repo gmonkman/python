@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import, unused-variable
 '''
 Generate base train, evaluation and test image sets
 
@@ -22,7 +22,7 @@ import opencvlib.info as info
 
 PP = iolib.PrintProgress()
 
-_SOURCE = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/bass_all_unprocessed'
+_SOURCE = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/bass_all_unprocessed/sharpened'
 _OUT_EVAL = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval'
 _OUT_TEST = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test'
 _OUT_TRAIN = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train'
@@ -44,37 +44,40 @@ def chkdir(d):
 def main():
     '''main
     '''
-    if not chkdir(_OUT_EVAL) or not chkdir(_OUT_TEST) or not not chkdir(_OUT_TRAIN):
+    if not chkdir(_OUT_EVAL) or not chkdir(_OUT_TEST) or not chkdir(_OUT_TRAIN):
         return
 
     PP.max = iolib.file_count(_SOURCE, '*.jpg', False)
     skipped = 0; processed = 0
 
-    res = info.ImageInfo.get_image_resolutions(_SOURCE, False)
+    res = info.ImageInfo.get_image_resolutions(path.normpath(path.join(_SOURCE, '*.jpg')), False)
     if not res:
         print('Found no resolutions for images in "%s"' % _SOURCE)
+        return
 
-    aspect = [h/w for h, w in enumerate(res)]
-    aspect = sum(aspect) / len(aspect)
+    zres = list(zip(*res))
+    heights = zres[1]
+    widths = zres[0]
+    minh = min(heights)
+    minw = min(widths)
 
     h = sum(heights)/len(heights)
     w = sum(widths)/len(widths)
-
-    for img, pth, d in gen.FromPaths(_SOURCE, '*.jpg'):
-        if len(I.image_points) != 2:
-            skipped += 1
-            continue
-        L = roi.Line(*I.image_points)
-        img = transforms.rotate(I.filepath, L.angle_min_rotation_to_x, no_crop=True)
-        #img = transforms.equalize_adapthist(img)
-        s = path.normpath(out + '/r' + I.filename)
+    HEIGHT = 120 #smallest image height
+    WIDTH = int(HEIGHT * (w/h))
+    Gen = gen.FromPaths(_SOURCE, '*.jpg')
+    for img, fname, _ in Gen.generate():
+        #img = transforms.histeq_color(img)
+        img = transforms.resize(img, width=WIDTH, height=HEIGHT)
+        f = iolib.get_file_parts2(fname)[1]
+        s = path.normpath(_OUT_TRAIN + '/mbi' + f)
         cv2.imwrite(s, img)
         PP.increment()
         processed += 1
 
 
 
-    print('\n%s of %s images rotated. %s images skipped.\n' % (processed, PP.max, skipped))
+    print('\n%s of %s images processed. %s images skipped.\n' % (processed, PP.max, skipped))
 
 
 

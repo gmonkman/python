@@ -13,7 +13,7 @@ from . import _image_processing
 from . import pascal_trainval
 
 # Global constants describing the cropped pascal data set.
-NUM_CLASSES = 1
+NUM_CLASSES = 2
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 329
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 329
 CLASSES = pascal_trainval.CLASSES
@@ -26,7 +26,7 @@ def read_cropped_pascal(cropped_dataset_path, queue):
     """ Reads and parses files from the queue.
     Args:
         cropped_dataset_path: a constant string tensor representing the path of the cropped dataset
-        queue: A queue of strings in the format: file, widht, height, label
+        queue: A queue of strings in the format: file, width, height, label
 
     Returns:
         image_path: a tf.string tensor. The absolute path of the image in the dataset

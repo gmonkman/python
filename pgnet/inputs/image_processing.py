@@ -163,7 +163,7 @@ def read_and_batchify_image(image_path, shape, image_type="jpg"):
         image_type: image type
     Returns:
         original_image, patches
-        where original image is a tensor in the format [widht, height 3]
+        where original image is a tensor in the format [widht, height, 3]
         and patches is a tensor of processed images, ready to be classified, with size
         [batch_size, w, h, 3]"""
 

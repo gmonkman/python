@@ -266,6 +266,7 @@ def equalize_hist(img, nbins=256, mask=None):
     return _color.RGB2BGR(i)
 
 
+@_decs.decgetimgsk
 def rescale_intensity(img, in_range='image', out_range='dtype'):
     '''(ndarray|str, str|2-tuple, str|2-tuple) -> ndarray
 
@@ -281,7 +282,6 @@ def rescale_intensity(img, in_range='image', out_range='dtype'):
     2-tuple
         Use range_values as explicit min/max intensities.
     '''
-    img = _getimg(img)
     i = _exposure.rescale_intensity(img, in_range=in_range, out_range=out_range)
     return _color.RGB2BGR(i)
 #endregion
@@ -598,7 +598,7 @@ def homotrans(H, x, y):
 def sharpen_unsharpmask(img, kernel_size=(5, 5), threshhold=0.0, weight=1, sigma=3):
     #see pg 185 digital image processing
     '''(ndarray|str, 2-tuple) -> ndarray
-    Sharpen an image using unsharp mask
+    Sharpen an image using unsharp mask, rescales intensity.
 
     img:
         image or filepath to an image
@@ -630,6 +630,13 @@ def sharpen_unsharpmask(img, kernel_size=(5, 5), threshhold=0.0, weight=1, sigma
     usm_img = _skimage.img_as_ubyte(usm_img)
     return usm_img
 
+
+def bilateral_filter(img):
+    '''to implement'''
+    #TODO Implement
+    #http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html
+    #in opencv as cv2.bilateralfilter
+    pass
 
 
 #Todo add bilatal filtering support

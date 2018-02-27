@@ -111,19 +111,19 @@ def show_all_channels(img):
     img = _getimg(img)
 
     brg = _transforms.chswap(img, (0, 2, 1))
-    _draw_str(brg, 10, 10, 'bgr->brg',color=(0, 0, 0), box_background=255)
+    _draw_str(brg, 10, 10, 'bgr->brg', color=(0, 0, 0), box_background=255)
 
     rgb = _transforms.chswap(img, (2, 1, 0))
-    _draw_str(rgb, 10, 10, 'bgr->rgb',color=(0, 0, 0), box_background=255)
+    _draw_str(rgb, 10, 10, 'bgr->rgb', color=(0, 0, 0), box_background=255)
 
     rbg = _transforms.chswap(img, (2, 0, 1))
-    _draw_str(rbg, 10, 10, 'bgr->rbg',color=(0 ,0, 0), box_background=255)
+    _draw_str(rbg, 10, 10, 'bgr->rbg', color=(0, 0, 0), box_background=255)
 
     grb = _transforms.chswap(img, (1, 2, 0))
-    _draw_str(grb, 10, 10, 'bgr->grb',color=(0 ,0, 0), box_background=255)
+    _draw_str(grb, 10, 10, 'bgr->grb', color=(0, 0, 0), box_background=255)
 
     gbr = _transforms.chswap(img, (1, 0, 2))
-    _draw_str(gbr, 10, 10, 'bgr->gbr',color=(0, 0, 0), box_background=255)
+    _draw_str(gbr, 10, 10, 'bgr->gbr', color=(0, 0, 0), box_background=255)
 
     m = mosaic([img, brg, rgb, rbg, grb, gbr])
     show(m)

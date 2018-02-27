@@ -575,11 +575,10 @@ def file_list_generator1(paths, wildcards, recurse=False):
     #for ind, v in enumerate(paths):
        # paths[ind] = _os.path.normpath(v)
 
-    for vals in (_stringslib.add_right(x[0]) + x[1]
-                 for x in _itertools.product(paths, wildcards)):
+    for vals in (_stringslib.add_right(x[0]) + x[1] for x in _itertools.product(paths, wildcards)):
         if recurse:
             for f in file_list_glob_generator(vals, recurse=True):
-                yield f
+                yield _os.path.normpath(f)
         else:
             for myfile in _glob.glob(_os.path.normpath(vals)):
                 yield _os.path.normpath(myfile)

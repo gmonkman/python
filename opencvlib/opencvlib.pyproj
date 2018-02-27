@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_vgg\rotate.py</StartupFile>
+    <StartupFile>scripts_tensorflow\make_base_images.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -81,6 +81,12 @@ roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/
     <Compile Include="scripts_streams\play.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts_tensorflow\make_base_images.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripts_tensorflow\make_negs.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts_vgg\img2roi.py">
       <SubType>Code</SubType>
     </Compile>
@@ -94,7 +100,8 @@ roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/
     <Compile Include="script_objdetect\by_segmentation.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="script_transforms\transform_viewer.py" />
+    <Compile Include="script_transforms\view_adapthist.py" />
+    <Compile Include="script_transforms\view_unsharp_mask.py" />
     <Compile Include="script_transforms\sharpen.py" />
     <Compile Include="stopwatch.py" />
     <Compile Include="template_match.py">
@@ -267,11 +274,13 @@ roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/
     <Folder Include="calibration\nextbase512g\" />
     <Folder Include="imgpipes\" />
     <Folder Include="bin\" />
+    <Folder Include="scripts_tensorflow\" />
     <Folder Include="script_transforms\" />
     <Folder Include="script_aruco\" />
     <Folder Include="scripts_segmentation\" />
     <Folder Include="scripts_streams\" />
     <Folder Include="script_objdetect\lobster\" />
+    <Folder Include="script_transforms\img\" />
     <Folder Include="test\" />
     <Folder Include="script_objdetect\" />
     <Folder Include="scripts_faces\" />
@@ -309,6 +318,7 @@ roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/
     <Content Include="script_objdetect\lobster\vlcsnap-00003.jpg" />
     <Content Include="script_objdetect\lobster\vlcsnap-00004.jpg" />
     <Content Include="script_objdetect\make_lobster_descriptors.ini" />
+    <Content Include="script_transforms\img\lena.jpg" />
     <Content Include="test\bin\images\box.png" />
     <Content Include="test\bin\images\box_in_scene.png" />
     <Content Include="test\bin\images\graf1.png" />

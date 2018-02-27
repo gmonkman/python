@@ -21,7 +21,7 @@ from collections import defaultdict
 import math
 import cv2
 
-CLASSES _OLD= [
+CLASSES_OLD= [
     "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat",
     "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person",
     "pottedplant", "sheep", "sofa", "train", "tvmonitor"

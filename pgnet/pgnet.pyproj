@@ -38,6 +38,7 @@
   <ItemGroup>
     <Compile Include="freeze_graph.py" />
     <Compile Include="inputs\image_processing.py" />
+    <Compile Include="inputs\bass.py" />
     <Compile Include="inputs\pascal.py" />
     <Compile Include="inputs\pascal_trainval.py" />
     <Compile Include="inputs\pascifar.py" />

@@ -48,7 +48,7 @@ def main():
     assert not iolib.folder_has_files(out), 'Folder "%s" contains files. The directory must be empty.' % out
     maxsharp = None; minsharp = None
     sharps = []
-    FP = FromPaths(src, ['*.jpg'])
+    FP = FromPaths(src, wildcards=['*.jpg'])
     for img, imgpath, _  in FP.generate():
         sharps.append(info.sharpval(img)) #high value is sharper, low value is more blury
         maxsharp = sharps[-1] if maxsharp is None or sharps[-1] > maxsharp else maxsharp
@@ -57,8 +57,10 @@ def main():
             maxsharpimg = imgpath
         if minsharp == sharps[-1]:
             minsharpimg = imgpath
-    print('Sharpest image was %s at %s' % (maxsharpimg, maxsharp))
-    print('Blurriest image was %s at %s' % (minsharpimg, minsharp))
+
+    if maxsharpimg and maxsharp:
+        print('Sharpest image was %s at %s\n' % (maxsharpimg, int(maxsharp)))
+        print('Blurriest image was %s at %s\n' % (minsharpimg, int(minsharp)))
 
     PP.max = len(sharps)
     skipped = 0; processed = 0
@@ -68,12 +70,13 @@ def main():
     for img, imgpath, _ in FP.generate():
         scale = normalise(info.sharpval(img))
         vs.append(scale)
+        #img = transforms.equalize_adapthist(img)
         img = transforms.sharpen_unsharpmask(img, (5, 5), 5/255, scale)
         s = path.normpath(out + '/usm' + iolib.get_file_parts2(imgpath)[1])
         cv2.imwrite(s, img)
         PP.increment()
         processed += 1
-    print(vs)
+    #print(vs)
     print('\n%s of %s images sharpened. %s images skipped.\n' % (processed, PP.max, skipped))
 
 

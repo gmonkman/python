@@ -1,14 +1,6 @@
-#Copyright (C) 2016 Paolo Galeone <nessuno@nerdz.eu>
-#
-#This Source Code Form is subject to the terms of the Mozilla Public
-#License, v. 2.0. If a copy of the MPL was not distributed with this
-#file, you can obtain one at http://mozilla.org/MPL/2.0/.
-#Exhibit B is not attached; this software is compatible with the
-#licenses expressed under Section 1.12 of the MPL v2.
-"""Generate the input from the pascal dataset"""
-
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+"""Generate bass images"""
 import os as _os
-
 import tensorflow as _tf
 import numpy as _np
 
@@ -16,7 +8,7 @@ from . import image_processing as _image_processing
 from . import pascal_trainval as pascal_trainval
 
 # Global constants describing the cropped pascal data set.
-NUM_CLASSES = 1
+NUM_CLASSES = 2
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 329
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 329
 CLASSES = pascal_trainval.CLASSES

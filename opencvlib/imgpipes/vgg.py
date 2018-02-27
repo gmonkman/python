@@ -16,7 +16,6 @@ So: 50x50 image. Top Left x=0,y=0: Bottom Right x=50, y=50
 import os.path as _path
 import json
 import logging
-from copy import deepcopy as _deepcopy
 from shutil import copy as _copy
 from math import pi as _pi
 

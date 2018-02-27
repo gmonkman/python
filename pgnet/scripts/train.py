@@ -66,7 +66,7 @@ def train(args):
         # if not otherwise specified
         with graph.as_default(), tf.device('/cpu:0'):
 
-            with tf.variable_scope("train_input"):
+            with tf.variable_scope("train_input"): #open new context to share variables (layers)
                 # get the train input
                 train_images_queue, train_labels_queue = pascal.train(
                     CSV_PATH,

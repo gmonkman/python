@@ -633,7 +633,6 @@ class VGGImages(_Generator):
                     _warn(str(e))
 
 
-
 class VGGROI(_Generator):
     '''Generate images specified in a VGG file
 
@@ -670,7 +669,7 @@ class VGGROI(_Generator):
 
 
     def generate(self, shape_type='rect', region_attrs=None, path_only=False, outflag=_cv2.IMREAD_UNCHANGED):
-        '''(str|list|None, dict, bool, cv2.imread option) -> ndarray|None, str, dict|None
+        '''(str|list|None, dict, bool, cv2.imread option) -> ndarray|None, str, dict
         Yields the images with the bounding boxes and category name of all objects
         in the pascal voc images
 
@@ -692,7 +691,13 @@ class VGGROI(_Generator):
 
 
         Yields:
-            image, path, region_attributes dict, which can differ between regions.
+            image, path, region_attributes dict
+        or
+            None, path, region_attributes dict
+
+        Notes:
+            If yields a rectangle, the coordinates can be accessed from
+            the returned dict with dict.x, dict.y, dict.w, dict.h
          '''
         # TODO Support other 2D-shapes, currently only rects
         assert shape_type == 'rect', 'Only rectangles are supported'
@@ -701,24 +706,21 @@ class VGGROI(_Generator):
             try:
                 _vgg.load_json(vgg_file)
                 for I in _vgg.imagesGenerator():
-                    if path_only:
-                        yield None, I.filepath, None
-                        continue
-                    else:
-                        for reg in I.roi_generator(shape_type, self.region_attrs):
-                            assert isinstance(reg, _vgg.Region)
+                    for reg in I.roi_generator(shape_type, self.region_attrs):
+                        assert isinstance(reg, _vgg.Region)
+                        if path_only:
+                            yield None, I.filepath, reg.region_attr
+                        else:
                             img = _cv2.imread(I.filepath, flags=outflag)
                             img = super().generate(img)
                             if img is None:
                                 continue
-                            #img = super().executeTransforms(img)
                             img = _roi.cropimg_xywh(img, reg.x, reg.y, reg.w, reg.h)
                             yield img, I.filepath, reg.region_attr
             except Exception as e:
                 _log.exception(e)
                 if not self.silent:
                     _warn(str(e))
-
 
 
 class RandomRegions(DigiKam):

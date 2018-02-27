@@ -2,9 +2,9 @@
 <CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
   <CodeSnippet Format="1.0.0">
     <Header>
-      <Title>wait-keypress</Title>
-      <Shortcut>wait-keypress</Shortcut>
-      <Description>Prompt and wait for a keypress</Description>
+      <Title>paths-base</Title>
+      <Shortcut>paths-base</Shortcut>
+      <Description>Get base paths of executing module and package</Description>
       <Author>Graham Monkman</Author>
       <SnippetTypes>
         <SnippetType>Expansion</SnippetType>
@@ -13,10 +13,11 @@
     <Snippet>
       <Code Language="Python"><![CDATA[
 import path as _path
+from inspect import getsourcefile as _getsourcefile
 import funclib.iolib as _iolib
 import opencvlib as _opencvlib
 
-self.this_file_path = _path.normpath(_iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]) #root of the executing py (ie this)
+self.this_file_path = _path.normpath(_iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]) #root of the executing py (ie this module)
 self.module_root = _path.normpath(_opencvlib.__path__[0]) #root of opencvlib
 
 ]]></Code>
