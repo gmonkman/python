@@ -709,14 +709,14 @@ class VGGROI(_Generator):
                     for reg in I.roi_generator(shape_type, self.region_attrs):
                         assert isinstance(reg, _vgg.Region)
                         if path_only:
-                            yield None, I.filepath, reg.region_attr
+                            yield None, I.filepath, reg
                         else:
                             img = _cv2.imread(I.filepath, flags=outflag)
                             img = super().generate(img)
                             if img is None:
                                 continue
                             img = _roi.cropimg_xywh(img, reg.x, reg.y, reg.w, reg.h)
-                            yield img, I.filepath, reg.region_attr
+                            yield img, I.filepath, reg
             except Exception as e:
                 _log.exception(e)
                 if not self.silent:

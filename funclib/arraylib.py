@@ -8,6 +8,46 @@ import scipy.ndimage as _ndimage
 
 
 # region NUMPY
+def  vstackt(arrays):
+    '''(list:ndarray) - > ndarray
+    vstack arrays, cropping to smallest width
+
+    arrays:
+        list of ndarrays
+
+    Returns:
+        single ndarray, a vstack of arrays
+    '''
+    widths = [a.shape[1] for a in arrays]
+
+    for i, a in enumerate(arrays):
+        if i == 0:
+            out = a[:, 0:min(widths), :]
+        else:
+            out = _np.vstack([out, a[:, 0:min(widths), :]])
+    return out
+
+
+def  hstackt(arrays):
+    '''(list:ndarray) - > ndarray
+    hstack arrays, cropping to smallest height
+
+    arrays:
+        list of ndarrays
+
+    Returns:
+        single ndarray, a hstack of arrays
+    '''
+    heights = [a.shape[0] for a in arrays]
+
+    for i, a in enumerate(arrays):
+        if i == 0:
+            out = a[0:min(heights), :, :]
+        else:
+            out = _np.hstack([out, a[0:min(heights), :, :]])
+    return out
+
+
 def check_array(a, b):
     '''(ndarray,ndarray)
     perform array checks raising error if problem
