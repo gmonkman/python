@@ -1,3 +1,5 @@
+#pylint: skip-file
+
 #Copyright (C) 2016 Paolo Galeone <nessuno@nerdz.eu>
 #
 #This Source Code Form is subject to the terms of the Mozilla Public
@@ -31,7 +33,7 @@ CSV_PATH = path.normpath("~/data/datasets/PASCAL_2012_cropped")
 # Number of classes in the dataset plus 1.
 # NUM_CLASSES + 1 is reserved for an (unused) background class.
 #NUM_CLASSES = pascal.NUM_CLASSES + 1
-NUM_CLASSES = 1 + 1
+NUM_CLASSES = 2 + 1
 
 # train & validation parameters
 STEP_FOR_EPOCH = math.ceil(pascal.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN /

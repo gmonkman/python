@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{52fb7047-b7ad-43d1-a402-bb033db31901}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\train.py</StartupFile>
+    <StartupFile>scripts\sort_test_train_eval.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -42,8 +42,14 @@
     <Compile Include="inputs\pascal.py" />
     <Compile Include="inputs\pascal_trainval.py" />
     <Compile Include="inputs\pascifar.py" />
+    <Compile Include="inputs\test.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="inputs\__init__.py" />
     <Compile Include="model.py" />
+    <Compile Include="scripts\sort_test_train_eval.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts\test_classification_pascal_rf.py" />
     <Compile Include="scripts\test_classification_pascifar.py" />
     <Compile Include="scripts\test_localization_pascal_rf.py" />
@@ -52,6 +58,9 @@
     <Compile Include="scripts\test_localization_single_rp.py" />
     <Compile Include="scripts\train.py" />
     <Compile Include="scripts\utils.py" />
+    <Compile Include="test\test_bass.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tflib.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>

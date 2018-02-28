@@ -1,3 +1,5 @@
+#pylint: skip-file
+
 #Copyright (C) 2016 Paolo Galeone <nessuno@nerdz.eu>
 #
 #This Source Code Form is subject to the terms of the Mozilla Public
@@ -115,13 +117,13 @@ def train(cropped_dataset_path,
     queue = tf.train.string_input_producer([csv_path + "train.csv"])
 
     # Read examples from the queue
-    image_path, label, widht, height = read_cropped_pascal(
+    image_path, label, width, height = read_cropped_pascal(
         tf.constant(cropped_dataset_path), queue)
 
     # read, random distortion, resize to input_side²
     # and scale value between [-1,1]
     distorted_image = _image_processing.train_image(
-        image_path, widht, height, input_side, image_type="jpg")
+        image_path, width, height, input_side, image_type="jpg")
 
     # Ensure that the random shuffling has good mixing properties.
     fraction_of_examples_in_queue = 0.8
@@ -131,8 +133,7 @@ def train(cropped_dataset_path,
     print(
         'Filling queue with {} pascal cropped images before starting to train. '
         'This will take a few....'.format(min_queue_examples))
-    return _generate_image_and_label_batch(
-        distorted_image, label, min_queue_examples, batch_size, task='train')
+    return _generate_image_and_label_batch(distorted_image, label, min_queue_examples, batch_size, task='train')
 
 
 def validation(cropped_dataset_path,
