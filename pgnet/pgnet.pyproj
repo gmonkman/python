@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{52fb7047-b7ad-43d1-a402-bb033db31901}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\sort_test_train_eval.py</StartupFile>
+    <StartupFile>scripts\testreader.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -50,6 +50,9 @@
     <Compile Include="scripts\sort_test_train_eval.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts\testreader.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts\test_classification_pascal_rf.py" />
     <Compile Include="scripts\test_classification_pascifar.py" />
     <Compile Include="scripts\test_localization_pascal_rf.py" />
@@ -68,6 +71,8 @@
     <Folder Include="bin\" />
     <Folder Include="bin\images" />
     <Folder Include="inputs" />
+    <Folder Include="scripts\session\" />
+    <Folder Include="scripts\summary\" />
     <Folder Include="test\" />
     <Folder Include="scripts" />
   </ItemGroup>

@@ -21,7 +21,7 @@ _EVAL_NEG = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial
 _TEST_POS = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/bass'
 _TEST_NEG = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/not_bass'
 
-from shutil import copyfile
+from shutil import copy2
 import os.path as path
 import random
 
@@ -44,7 +44,7 @@ def chkempty(dirs):
     for d in dirs:
         assert not iolib.folder_has_files(path.normpath(d)), '\nDir %s must be empty.' % path.normpath(d)
 
-def gen_csv_file(dirs, out_fname):
+def gen_csv_file(dirs, out_fname, is_test=False):
     '''(str|list, str) -> void
     Save csv file to out_fname, from the
     .jpg files in dirs.
@@ -59,10 +59,13 @@ def gen_csv_file(dirs, out_fname):
     PP = iolib.PrintProgress(fcnt)
     for f in iolib.file_list_generator1(dirs, '*.jpg'):
         is_pos = 0 if 'not_bass' in f else 1
-        all_.append([path.normpath(f), is_pos, W, H])
+        if is_test:
+            all_.append([path.normpath(f)]) #if it is test, we dont need the dimensions etc
+        else:
+            all_.append([path.normpath(f), is_pos, W, H])
         PP.increment()
 
-    iolib.writecsv(all_, path.normpath(out_fname), inner_as_rows=False)
+    iolib.writecsv(path.normpath(out_fname), all_, inner_as_rows=False)
     print('\nCSV written to %s.' %  out_fname)
 
 
@@ -81,51 +84,51 @@ def assign():
     fpos = [path.normpath(f) for f in iolib.file_list_generator1(_ALL_POS, '*.jpg')]
     fneg = [path.normpath(f) for f in iolib.file_list_generator1(_ALL_NEG, '*.jpg')]
 
-    nr_fpos = (int(len(fpos)*x) for x in RATIO_TVT) #RATIO_TVT order is train, validation, test
+    nr_fpos = [int(len(fpos)*x) for x in RATIO_TVT] #RATIO_TVT order is train, validation, test
     nr_fpos[0] = nr_fpos[0] + len(fpos) - sum(nr_fpos) #fix if rounding has meant we havent got all the elements
 
-    nr_fneg = (int(len(fneg)*x) for x in RATIO_TVT)
+    nr_fneg = [int(len(fneg)*x) for x in RATIO_TVT]
     nr_fneg[0] = nr_fneg[0] + len(fneg) - sum(nr_fneg) #fix if rounding has meant we havent got all the elements
 
 
-    fpos_shuf = random.shuffle(fpos)
-    fneg_shuf = random.shuffle(fpos)
-    PP = iolib.PrintProgress(len(fpos_shuf) + len(fneg_shuf))
+    random.shuffle(fpos)
+    random.shuffle(fneg)
+    PP = iolib.PrintProgress(len(fpos) + len(fneg))
 
-    for i, f in enumerate(fpos_shuf):
+    for i, f in enumerate(fpos):
         PP.increment()
         if i <= nr_fpos[0] - 1:
-            copyfile(f, _TRAIN_POS)
+            copy2(f, _TRAIN_POS)
         elif nr_fpos[0] < i < nr_fpos[0] + nr_fpos[1] - 1:
-            copyfile(f, _EVAL_POS)
+            copy2(f, _EVAL_POS)
         else:
-            copyfile(f, _TEST_POS)
+            copy2(f, _TEST_POS)
 
-    for i, f in enumerate(fneg_shuf):
+    for i, f in enumerate(fneg):
         PP.increment()
         if i <= nr_fneg[0] - 1:
-            copyfile(f, _TRAIN_NEG)
+            copy2(f, _TRAIN_NEG)
         elif nr_fneg[0] < i < nr_fneg[0] + nr_fneg[1] - 1:
-            copyfile(f, _EVAL_NEG)
+            copy2(f, _EVAL_NEG)
         else:
-            copyfile(f, _TEST_NEG)
+            copy2(f, _TEST_NEG)
 
 
 
 def main():
     '''main entry'''
-    assign()
-    #train
+    #assign()
     gen_csv_file([_TRAIN_POS, _TRAIN_NEG],
-                 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/file_list.csv'
+                 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train.csv'
                  )
 
     gen_csv_file([_EVAL_POS, _EVAL_NEG],
-                 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/file_list.csv'
+                 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval.csv'
                  )
 
     gen_csv_file([_TEST_POS, _TEST_NEG],
-                'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/file_list.csv'
+                'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test.csv',
+                is_test=True
                 )
 
 if __name__ == "__main__":

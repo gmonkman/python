@@ -23,9 +23,11 @@ import sys
 import tensorflow as tf
 from . import freeze_graph
 from . import tflib
+from pgnet.inputs import bass
 
 # network constants
-INPUT_SIDE = 200
+#INPUT_SIDE = 200
+H = bass.H; W = bass.W
 INPUT_DEPTH = 3
 KERNEL_SIDE = 3
 
@@ -38,7 +40,8 @@ LAST_CONV_OUTPUT_STRIDE = 1
 LAST_CONV_INPUT_STRIDE = 12  # atrous conv rate
 REAL_LAST_KERNEL_SIDE = 3
 
-DOWNSAMPLING_FACTOR = math.ceil(INPUT_SIDE / LAST_KERNEL_SIDE)
+#DOWNSAMPLING_FACTOR = math.ceil(INPUT_SIDE / LAST_KERNEL_SIDE)
+DOWNSAMPLING_FACTOR = math.ceil(H / LAST_KERNEL_SIDE)
 FC_NEURONS = 2048
 
 # train constants
@@ -112,7 +115,7 @@ def prepad(input_x, kernel_side):
     a convolution of input_x padded, with kernel side, returns an output
     with the same size of input_x.
     Args:
-        input_x: 4d tensor (batch_size, widht, height, depth)
+        input_x: 4d tensor (batch_size, width, height, depth)
         kernel_side: the side of the convolutional kernel
     """
     # pad the input with the right amount of padding
@@ -467,7 +470,7 @@ def define(num_classes, train_phase):
 
     images_ = tf.placeholder(
         tf.float32,
-        shape=(None, INPUT_SIDE, INPUT_SIDE, INPUT_DEPTH),
+        shape=(None, H, W, INPUT_DEPTH),
         name=INPUT_TENSOR_NAME)
 
     # build a graph that computes the logits predictions from the images

@@ -1,32 +1,36 @@
-#pylint: skip-file
-
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 """Generate bass images"""
 import os as _os
 
 import tensorflow as _tf
-import numpy as _np
+#import numpy as _np
 
 
 import funclib.iolib as iolib
 from . import image_processing as _image_processing
-from . import pascal_trainval as pascal_trainval
+#from . import pascal_trainval as pascal_trainval
 
 
 CLASSES = ['bass', 'not_bass']
 NUM_CLASSES = len(CLASSES)
 BACKGROUND_CLASS_ID = len(CLASSES)
 
-_POS_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/bass'
-_NEG_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/bass'
+_TRAIN_POS_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/bass'
+_TRAIN_NEG_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/bass'
+
+_EVAL_POS_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval/bass'
+_EVAL_NEG_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval/bass'
 
 W = 514; H = 120
 FRACTION_OF_SAMPLES_IN_QUEUE = 0.8
-NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = iolib.file_count([_POS_DIR, _NEG_DIR])
+NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = iolib.file_count([_TRAIN_POS_DIR, _TRAIN_NEG_DIR], '*.jpg', False)
+NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = iolib.file_count([_EVAL_POS_DIR, _EVAL_NEG_DIR], '*.jpg', False)
 NUM_PREPROCESS_THREADS = 2
 
 
 def read_csv(queue):
-    """ Reads and parses files from the queue.
+    '''
+    Reads and parses files from the queue.
 
     Reads a single text line from a pascal text file
 
@@ -38,7 +42,8 @@ def read_csv(queue):
         label: a int64 tensor with the label
         widht: a int64 tensor with the widht
         height: a int64 tensor with the height
-    """
+    '''
+
 
     # Reader for text lines
     reader = _tf.TextLineReader(skip_header_lines=0)
@@ -49,7 +54,7 @@ def read_csv(queue):
     # file,width,height,label
     record_defaults = [[""], [0], [0], [0]]
 
-    image_path, label, width, height,  = _tf.decode_csv(row, record_defaults, field_delim=",")
+    image_path, label, width, height = _tf.decode_csv(row, record_defaults)
 
     label = _tf.cast(label, _tf.int64)
     width = _tf.cast(width, _tf.int64)
@@ -93,7 +98,6 @@ def _generate_image_and_label_batch(image,
 
 def train(cropped_dataset_path,
           batch_size,
-          input_side,
           csv_path=_os.path.abspath(_os.getcwd())):
     """Returns a batch of images from the train dataset.
     Applies random distortion to the examples.
@@ -108,10 +112,10 @@ def train(cropped_dataset_path,
         labes: Labels. 1D tensor of [batch_size] size.
     """
     # Create a queue that produces the filenames (and other atrributes) to read
-    queue = _tf.train.string_input_producer(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/file_list.csv'])
+    queue = _tf.train.string_input_producer(["C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train.csv"])
 
     # Read examples from the queue
-    image_path, label, width, height = read_csv(queue)
+    image_path, label, _, _ = read_csv(queue)
 
     # read, random distortion, resize to input_side² and scale value between [-1,1]
     #distorted_image = _image_processing.train_image(image_path, width, height, input_side, image_type="jpg")
@@ -126,14 +130,14 @@ def train(cropped_dataset_path,
 
 def validation(cropped_dataset_path,
                batch_size,
-               input_side,
                csv_path=_os.path.abspath(_os.getcwd())):
     """Returns a batch of images from the validation dataset
+
+    Tensor shapes for images is rows, cols, channels
 
     Args:
         cropped_dataset_path: path of the cropped pascal dataset
         batch_size: Number of images per batch.
-        input_side: resize images to shape [input_side, input_side, 3]
         csv_path: path of valdation.csv
     Returns:
         images: Images. 4D tensor of [batch_size, input_side, input_side, 3 size.
@@ -141,17 +145,17 @@ def validation(cropped_dataset_path,
     """
     csv_path = csv_path.rstrip("/") + "/"
 
-    queue = _tf.train.string_input_producer([csv_path + "validation.csv"])
+    queue = _tf.train.string_input_producer(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test.csv'])
 
     # Read examples from files in the filename queue.
     image_path, label, _, _ = read_csv(queue)
 
     # read, resize, scale between [-1,1]
-    image = _image_processing.eval_image(image_path, input_side, image_type="jpg")
+    image = _image_processing.read_image(image_path, 3, image_type="jpg")
+    #image = _image_processing.eval_image(image_path, input_side, image_type="jpg")
 
     # Ensure that the random shuffling has good mixing properties.
-    fraction_of_examples_in_queue = 0.8
-    min_queue_examples = int(NUM_EXAMPLES_PER_EPOCH_FOR_EVAL * fraction_of_examples_in_queue)
+    min_queue_examples = int(NUM_EXAMPLES_PER_EPOCH_FOR_EVAL * FRACTION_OF_SAMPLES_IN_QUEUE)
 
     # min_after_dequeue defines how big a buffer we will randomly sample
     #   from -- bigger means better shuffling but slower start up and more
@@ -165,7 +169,6 @@ def validation(cropped_dataset_path,
 
 def test(test_dataset_path,
          batch_size,
-         input_side,
          file_list_path=_os.path.abspath(_os.getcwd())):
     """Returns a batch of images from the test dataset.
 
@@ -184,25 +187,23 @@ def test(test_dataset_path,
     test_dataset_path = _os.path.abspath(_os.path.expanduser(test_dataset_path)).rstrip("/") + "/"
 
     # read every line in the file, only once
-    queue = _tf.train.string_input_producer([file_list_path], num_epochs=1, shuffle=False)
+    queue = _tf.train.string_input_producer(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test.csv'], num_epochs=1, shuffle=False)
 
     # Reader for text lines
     reader = _tf.TextLineReader()
 
     # read a record from the queue
     _, filename = reader.read(queue)
-
-    image_path = test_dataset_path + _tf.constant("/JPEGImages/") + filename + _tf.constant(".jpg")
+    image_path = _os.path.normpath(filename)
 
     # read, resize, scale between [-1,1]
-    image = _image_processing.eval_image(image_path, input_side, image_type="jpg")
+    image = _image_processing.read_image(image_path, 3, image_type="jpg")
 
     # create a batch of images & filenames
     # (using a queue runner, that extracts image from the queue)
     images, filenames = _tf.train.batch([image, filename],
         batch_size,
-        shapes=[[input_side, input_side, 3], []],
         num_threads=1,
-        capacity=20000,
+        capacity=2000,
         enqueue_many=False)
     return images, filenames

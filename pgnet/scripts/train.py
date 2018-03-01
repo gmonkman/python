@@ -1,4 +1,4 @@
-#pylint: skip-file
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 
 #Copyright (C) 2016 Paolo Galeone <nessuno@nerdz.eu>
 #
@@ -19,7 +19,9 @@ import numpy as np
 import tensorflow as tf
 from os import path
 from pgnet import model
-from pgnet.inputs import pascal
+#from pgnet.inputs import pascal
+from pgnet.inputs import bass
+
 
 # graph parameteres
 CURRENT_DIR = path.normpath(os.path.dirname(os.path.abspath(__file__)))
@@ -28,15 +30,15 @@ SUMMARY_DIR = path.normpath(CURRENT_DIR + "/summary")
 MODEL_PATH = path.normpath(CURRENT_DIR + "/model.pb")
 
 # cropped pascal parameters
-CSV_PATH = path.normpath("~/data/datasets/PASCAL_2012_cropped")
+CSV_PATH = path.normpath("C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi")
 
 # Number of classes in the dataset plus 1.
 # NUM_CLASSES + 1 is reserved for an (unused) background class.
-#NUM_CLASSES = pascal.NUM_CLASSES + 1
-NUM_CLASSES = 2 + 1
+NUM_CLASSES = bass.NUM_CLASSES + 1
+
 
 # train & validation parameters
-STEP_FOR_EPOCH = math.ceil(pascal.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN /
+STEP_FOR_EPOCH = math.ceil(bass.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN /
                            model.BATCH_SIZE)
 DISPLAY_STEP = math.ceil(STEP_FOR_EPOCH / 25)
 MEASUREMENT_STEP = DISPLAY_STEP
@@ -70,41 +72,34 @@ def train(args):
 
             with tf.variable_scope("train_input"): #open new context to share variables (layers)
                 # get the train input
-                train_images_queue, train_labels_queue = pascal.train(
+                train_images_queue, train_labels_queue = bass.train(
                     CSV_PATH,
                     model.BATCH_SIZE,
-                    model.INPUT_SIDE,
                     csv_path=CURRENT_DIR)
 
             with tf.variable_scope("validation_input"):
-                validation_images_queue, validation_labels_queue = pascal.validation(
+                validation_images_queue, validation_labels_queue = bass.validation(
                     CSV_PATH,
                     model.BATCH_SIZE,
-                    model.INPUT_SIDE,
                     csv_path=CURRENT_DIR)
 
             with tf.device(args.device):  #GPU
                 # train global step
-                global_step = tf.Variable(
-                    0, trainable=False, name="global_step")
+                global_step = tf.Variable(0, trainable=False, name="global_step")
 
                 # model inputs, used in train and validation
                 labels_ = tf.placeholder(tf.int64, shape=[None], name="labels_")
 
-                is_training_, keep_prob_, images_, logits = model.define(
-                    NUM_CLASSES, train_phase=True)
+                is_training_, keep_prob_, images_, logits = model.define(NUM_CLASSES, train_phase=True)
 
-                # loss op
                 loss_op = model.loss(logits, labels_)
-
-                # train op
                 train_op = model.train(loss_op, global_step)
 
             # collect summaries for the previous defined variables
             summary_op = tf.summary.merge_all()
 
             with tf.variable_scope("accuracy"):
-                # since pgnet if fully convolutional remove dimensions of size 1
+                # since pgnet is fully convolutional remove dimensions of size 1
                 reshaped_logits = tf.squeeze(logits, [1, 2])
 
                 # returns the label predicted
@@ -118,17 +113,14 @@ def train(args):
                 # [BATCH_SIZE] vector
                 correct_predictions = tf.equal(labels_, predictions)
 
-                accuracy = tf.reduce_mean(
-                    tf.cast(correct_predictions, tf.float32), name="accuracy")
+                accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32), name="accuracy")
 
                 # use a separate summary op for the accuracy (that's shared between test
-                # and validation)
+                # and validation
 
                 # attach a summary to the placeholder
-                train_accuracy_summary_op = tf.summary.scalar("train_accuracy",
-                                                              accuracy)
-                validation_accuracy_summary_op = tf.summary.scalar(
-                    "validation_accuracy", accuracy)
+                train_accuracy_summary_op = tf.summary.scalar("train_accuracy",accuracy)
+                validation_accuracy_summary_op = tf.summary.scalar("validation_accuracy", accuracy)
 
             # create a saver: to store current computation and restore the graph
             # useful when the train step has been interrupeted
