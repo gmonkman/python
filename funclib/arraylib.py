@@ -232,6 +232,8 @@ def np_nans_to_zero(a):
 
 def np_round_extreme(a):
     '''(ndarray) -> ndarray
+    Rounds negative numbers to be more negative int
+    and positve numbers to be more positive int
     '''
     tmp = _np.copy(a)
     tmp[tmp < 0] = _np.floor(tmp[tmp < 0])

@@ -25,6 +25,8 @@ from shutil import copy2
 import os.path as path
 import random
 
+from funclib.iolib import wait_key
+
 import funclib.iolib as iolib
 W = 514; H = 120
 RATIO_TVT = (0.6, 0.2, 0.2) #order is train, validation, test
@@ -117,7 +119,10 @@ def assign():
 
 def main():
     '''main entry'''
-    #assign()
+    k = wait_key('\nPress "y" to distribute train files to test and eval folders')
+    if k == 'y':
+        assign()
+
     gen_csv_file([_TRAIN_POS, _TRAIN_NEG],
                  'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train.csv'
                  )

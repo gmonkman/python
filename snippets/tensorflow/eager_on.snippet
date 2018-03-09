@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>eager_on</Title>
+      <Shortcut>eager_on</Shortcut>
+      <Description>Switch on eager execution</Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Imports>
+        <Import>
+          <Namespace>unittest</Namespace>
+        </Import>
+      </Imports>
+      <Code Language="Python"><![CDATA[import tensorflow.contrib.eager as tfe
+tfe.enable_eager_execution()
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

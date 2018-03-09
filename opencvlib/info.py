@@ -11,7 +11,7 @@ import cv2 as _cv2
 import fuckit as _fuckit
 
 import opencvlib.decs as _decs
-
+from opencvlib import getimg as _getimg
 
 __all__ = ['Info', 'ImageInfo']
 
@@ -258,8 +258,8 @@ class ImageInfo():
 
 
     @staticmethod
-    def get_image_resolutions(glob_str, unique=True):
-        '''(str, bool)-> depth-2 list
+    def get_image_resolutions(glob_str, unique=True, as_row_col=False):
+        '''(str, bool, bool)-> depth-2 list
         Returns all image resolutions (COLUMN, ROW) as
         list of lists
 
@@ -268,6 +268,8 @@ class ImageInfo():
         unique:
             return unique resolutions only, otherwise
             every resolution will be returned
+        as_row_col:
+            returns as row, col
 
         Examples:
         >>>get_image_resolutions('C:/temp/*.jpg', False)
@@ -283,7 +285,11 @@ class ImageInfo():
                     img = _cv2.imread(pic)
                 if isinstance(img, _np.ndarray):
                     h, w = img.shape[:2]
-                    e = [w, h]
+                    if as_row_col:
+                        e = [h, w]
+                    else:
+                        e = [w, h]
+
                     if e not in dims or not unique:
                         dims.append(e)
         return dims

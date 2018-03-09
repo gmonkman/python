@@ -1,209 +1,143 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
-"""Generate bass images"""
-import os as _os
+'''Generate bass images'''
+#Further more advanced example
+#https://github.com/tensorflow/models/blob/master/tutorials/image/cifar10/cifar10_input.py
+import os.path as _path
+
+from random import sample as _sample
 
 import tensorflow as _tf
-#import numpy as _np
+import numpy as _np
+import cv2 as _cv2
 
 
-import funclib.iolib as iolib
-from . import image_processing as _image_processing
+
+
+from funclib.iolib import PrintProgress as _PP
+from opencvlib.info import ImageInfo as _inf
+from opencvlib.imgpipes.generators import FromPaths as _FromPaths
+
 #from . import pascal_trainval as pascal_trainval
 
-
-CLASSES = ['bass', 'not_bass']
+CLASSES = ['not_bass', 'bass']
 NUM_CLASSES = len(CLASSES)
 BACKGROUND_CLASS_ID = len(CLASSES)
 
-_TRAIN_POS_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/bass'
-_TRAIN_NEG_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/bass'
 
-_EVAL_POS_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval/bass'
-_EVAL_NEG_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval/bass'
+W = 514; H = 120 #hardcoded for now
 
-W = 514; H = 120
-FRACTION_OF_SAMPLES_IN_QUEUE = 0.8
-NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = iolib.file_count([_TRAIN_POS_DIR, _TRAIN_NEG_DIR], '*.jpg', False)
-NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = iolib.file_count([_EVAL_POS_DIR, _EVAL_NEG_DIR], '*.jpg', False)
-NUM_PREPROCESS_THREADS = 2
+class ImagesFromPaths():
+    '''Creates list of imagepaths with their labels
+    Arguments:
+        batch_size
+            size of batch, trims negative images so total train set fits
+            is exactly divisible by batch_size. If None, nothing is done.
+    Properties:
+        img_paths:
+            list of full image paths, eg ['c:/a.jpg','c:/b.jpg']
 
+        labels:
+            labels for images referred to in img_paths, eg [1,0]
+            where label[0] is label for image img_paths[0].
 
-def read_csv(queue):
+        img_info_list:
+            list of all images, with corresponding labels and rows and columns.
+            eg, [['c:/a.jpg', 'c:/b.jpg'], [1, 0], [600, 128], [800, 512]]
     '''
-    Reads and parses files from the queue.
-
-    Reads a single text line from a pascal text file
-
-    Args:
-        queue: A queue of strings in the format: file, width, height, label
-
-    Returns:
-        image_path: a tf.string tensor. The absolute path of the image in the dataset
-        label: a int64 tensor with the label
-        widht: a int64 tensor with the widht
-        height: a int64 tensor with the height
-    '''
+    def __init__(self, paths_with_images, labels, batch_size=None):
+        self._paths_with_images = [_path.normpath(s) for s in paths_with_images]
+        self._labels = labels
+        self.img_info_list = [] #list of lists, [imagepaths, labels, resolutions]
+        self.img_paths = []
+        self.labels = []
+        self.batch_size = batch_size
+        self._read()
 
 
-    # Reader for text lines
-    reader = _tf.TextLineReader(skip_header_lines=0)
-
-    # read a record from the queue
-    _, row = reader.read(queue)
-
-    # file,width,height,label
-    record_defaults = [[""], [0], [0], [0]]
-
-    image_path, label, width, height = _tf.decode_csv(row, record_defaults)
-
-    label = _tf.cast(label, _tf.int64)
-    width = _tf.cast(width, _tf.int64)
-    height = _tf.cast(height, _tf.int64)
-    return image_path, label, width, height
+    @property
+    def image_count(self):
+        '''sample nr'''
+        return len(self._paths_with_images)
 
 
-def _generate_image_and_label_batch(image,
-                                    label,
-                                    min_queue_examples,
-                                    batch_size,
-                                    task='train'):
-    """Construct a queued batch of images and labels.
-    Args:
-      image: 3-D Tensor of [input_side, input_side, 3] of type.float32.
-      label: 1-D Tensor of type int64
-      min_queue_examples: int64, minimum number of samples to retain
-        in the queue that provides of batches of examples. The higher the most random (! important)
-    batch_size: Number of images per batch.
-    task: 'train' or 'validation'. In both cases use a shuffle queue
-    Returns:
-    images: Images. 4D tensor of [batch_size, input_side, input_side, 3] size.
-    labels: Labels. 1D tensor of [batch_size] size.
-    """
-    assert task == 'train' or task == 'validation'
+    def _read(self):
+        '''creates the full list of files
+        with their labels and resolutions
 
-    # Create a queue that shuffles the examples, and then
-    # read 'batch_size' images + labels from the example queue.
-    images, sparse_labels = _tf.train.shuffle_batch([image, label],
-        batch_size=batch_size,
-        num_threads=NUM_PREPROCESS_THREADS,
-        capacity=min_queue_examples + 3 * batch_size,
-        min_after_dequeue=min_queue_examples)
+        The assumption is that each path contains a single
+        object class, and the label for the object class
+        is set on per path
+        '''
+        self.img_info_list = []
+        self.img_paths = []
+        self.labels = []
+        drop_candidates = []
+        for i, pth in enumerate(self._paths_with_images):
+            FP = _FromPaths(pth, wildcards='.jpg')
+            for _, fname, _ in FP.generate(pathonly=True):
+                fname = _path.normpath(fname)
+                w, h = _inf.resolution(fname)
+                if w == W and h == H:
+                    self.img_paths.append(fname)
+                    lbl = self._labels[i]
+                    self.labels.append([lbl])
+                    self.img_info_list.append([fname, lbl, h, w])
+                else:
+                    print('Expected image res of (%s, %s), got (%s, %s)' % (W, H, w, h))
 
-    # Display the training images in the visualizer.
-    # Add a scope to the summary.
-    _tf.summary.image(task + '/images', images)
+        assert self.img_info_list, 'No jpg files found in %s' % str(self._paths_with_images)
 
-    return images, sparse_labels
+        #fudge to drop neg trainng images to make the set fit
+        #a whole nr of batch sizes
+        if self.batch_size is None:
+            return
 
+        drop_candidates = [i for i, x in enumerate(self.img_info_list) if x[1] == 0] #0 is a neg image, we  have lots of them
+        nr_to_drop = self.image_count % self.batch_size
+        if nr_to_drop == 0:
+            return
 
-def train(cropped_dataset_path,
-          batch_size,
-          csv_path=_os.path.abspath(_os.getcwd())):
-    """Returns a batch of images from the train dataset.
-    Applies random distortion to the examples.
-
-    Args:
-        cropped_dataset_path: path of the cropped pascal dataset
-        batch_size: Number of images per batch.
-
-        csv_path: path of train.csv
-    Returns:
-        images: Images. 4D tensor of [batch_size, input_side, input_side, 3 size.
-        labes: Labels. 1D tensor of [batch_size] size.
-    """
-    # Create a queue that produces the filenames (and other atrributes) to read
-    queue = _tf.train.string_input_producer(["C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train.csv"])
-
-    # Read examples from the queue
-    image_path, label, _, _ = read_csv(queue)
-
-    # read, random distortion, resize to input_side² and scale value between [-1,1]
-    #distorted_image = _image_processing.train_image(image_path, width, height, input_side, image_type="jpg")
-    distorted_image = _image_processing.read_image(image_path, channel=3, image_type="jpg")
-
-    # Ensure that the random shuffling has good mixing properties.
-    min_queue_examples = int(NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN * FRACTION_OF_SAMPLES_IN_QUEUE)
-
-    print('Filling queue with {} images prior to training ...'.format(min_queue_examples))
-    return _generate_image_and_label_batch(distorted_image, label, min_queue_examples, batch_size, task='train')
+        drop_inds = _sample(drop_candidates, nr_to_drop)
+        for d in drop_inds:
+            del self.img_info_list[d]
+            del self.labels[d]
+            del self.img_paths[d]
 
 
-def validation(cropped_dataset_path,
-               batch_size,
-               csv_path=_os.path.abspath(_os.getcwd())):
-    """Returns a batch of images from the validation dataset
-
-    Tensor shapes for images is rows, cols, channels
-
-    Args:
-        cropped_dataset_path: path of the cropped pascal dataset
-        batch_size: Number of images per batch.
-        csv_path: path of valdation.csv
-    Returns:
-        images: Images. 4D tensor of [batch_size, input_side, input_side, 3 size.
-        labes: Labels. 1D tensor of [batch_size] size.
-    """
-    csv_path = csv_path.rstrip("/") + "/"
-
-    queue = _tf.train.string_input_producer(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test.csv'])
-
-    # Read examples from files in the filename queue.
-    image_path, label, _, _ = read_csv(queue)
-
-    # read, resize, scale between [-1,1]
-    image = _image_processing.read_image(image_path, 3, image_type="jpg")
-    #image = _image_processing.eval_image(image_path, input_side, image_type="jpg")
-
-    # Ensure that the random shuffling has good mixing properties.
-    min_queue_examples = int(NUM_EXAMPLES_PER_EPOCH_FOR_EVAL * FRACTION_OF_SAMPLES_IN_QUEUE)
-
-    # min_after_dequeue defines how big a buffer we will randomly sample
-    #   from -- bigger means better shuffling but slower start up and more
-    #   memory used.
-    # capacity must be larger than min_after_dequeue and the amount larger
-    #   determines the maximum we will prefetch.  Recommendation:
-    #   min_after_dequeue + (num_threads + a small safety margin) * batch_size
-    # Generate a batch of images and labels by building up a queue of examples.
-    return _generate_image_and_label_batch(image, label, min_queue_examples, batch_size, task='validation')
+    @property
+    def Tlabels(self):
+        '''return labels as a tensor'''
+        assert self.labels, 'No labels initialised'
+        assert len(self.labels) == len(self.img_paths), 'Number of labels and image paths did not match'
+        return _tf.constant(self.labels)
 
 
-def test(test_dataset_path,
-         batch_size,
-         file_list_path=_os.path.abspath(_os.getcwd())):
-    """Returns a batch of images from the test dataset.
+    @property
+    def TImages(self):
+        '''return all images in a tensor'''
+        assert self.labels, 'No labels initialised'
+        assert len(self.labels) == len(self.img_paths), 'Number of labels and image paths did not match'
+        print('\nStacking ndarray with images from the file system....')
+        prog = _PP(len(self.img_paths))
+        for i, f in enumerate(self.img_paths):
+            if i == 0:
+                nd_imgs = _np.expand_dims(_cv2.imread(f), 0)
+            else:
+                nd_imgs = _np.concatenate([nd_imgs, _np.expand_dims(_cv2.imread(f), 0)], 0)
+            prog.increment()
 
-    Args:
-        test_dataset_path: path of the test dataset
-        batch_size: Number of images per batch.
-        input_side: resize images to shape [input_side, input_side, 3]
-        file_list_path: path (into the test dataset usually) where to find the list of file to read.
-                        specify the filename and the path here, eg:
-                         ~/data/PASCAL_2012/test/VOCdevkit/VOC2012/ImageSets/Main/test.txt
-    Returns:
-        images: Images. 4D tensor of [batch_size, input_side, input_side, 3] size.
-        filenames: file names. [batch_size] tensor with the fileneme read. (without extension)
-    """
+        assert nd_imgs.shape[0] == len(self.img_paths), 'Depth stack size of images ndarray did not match expected number of images'
+        return _tf.constant(nd_imgs)
 
-    test_dataset_path = _os.path.abspath(_os.path.expanduser(test_dataset_path)).rstrip("/") + "/"
 
-    # read every line in the file, only once
-    queue = _tf.train.string_input_producer(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test.csv'], num_epochs=1, shuffle=False)
+BassTrain = ImagesFromPaths(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/bass',
+                            'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/not_bass'],
+                            [1, 0])
 
-    # Reader for text lines
-    reader = _tf.TextLineReader()
+BassTest = ImagesFromPaths(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/bass',
+                            'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/not_bass'],
+                            [1, 0])
 
-    # read a record from the queue
-    _, filename = reader.read(queue)
-    image_path = _os.path.normpath(filename)
-
-    # read, resize, scale between [-1,1]
-    image = _image_processing.read_image(image_path, 3, image_type="jpg")
-
-    # create a batch of images & filenames
-    # (using a queue runner, that extracts image from the queue)
-    images, filenames = _tf.train.batch([image, filename],
-        batch_size,
-        num_threads=1,
-        capacity=2000,
-        enqueue_many=False)
-    return images, filenames
+BassEval = ImagesFromPaths(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval/not_bass',
+                            'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval/bass'],
+                            [1, 0])

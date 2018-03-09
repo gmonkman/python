@@ -1,5 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
-
+#pylint: skip-file
 #Copyright (C) 2016 Paolo Galeone <nessuno@nerdz.eu>
 #
 #This Source Code Form is subject to the terms of the Mozilla Public
@@ -38,6 +37,7 @@ NUM_CLASSES = bass.NUM_CLASSES + 1
 
 
 # train & validation parameters
+EPOCHS = 10
 STEP_FOR_EPOCH = math.ceil(bass.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN /
                            model.BATCH_SIZE)
 DISPLAY_STEP = math.ceil(STEP_FOR_EPOCH / 25)
@@ -48,6 +48,7 @@ MAX_ITERATIONS = STEP_FOR_EPOCH * 500
 AVG_VALIDATION_ACCURACY_EPOCHS = 1
 # list of average validation at the end of every epoch
 AVG_VALIDATION_ACCURACIES = [0.0 for _ in range(AVG_VALIDATION_ACCURACY_EPOCHS)]
+
 
 # tensorflow saver constant
 SAVE_MODEL_STEP = math.ceil(STEP_FOR_EPOCH / 2)
@@ -72,10 +73,10 @@ def train(args):
 
             with tf.variable_scope("train_input"): #open new context to share variables (layers)
                 # get the train input
-                train_images_queue, train_labels_queue = bass.train(
-                    CSV_PATH,
-                    model.BATCH_SIZE,
-                    csv_path=CURRENT_DIR)
+                train_images_queue = tf.placeholder(tf.float32, shape=[bass.H, bass.W])
+                train_labels = tf.placeholder(tf.int64)
+
+                #train_images_queue, train_labels_queue = bass.train(model.BATCH_SIZE)
 
             with tf.variable_scope("validation_input"):
                 validation_images_queue, validation_labels_queue = bass.validation(
@@ -129,6 +130,7 @@ def train(args):
 
             # tensor flow operator to initialize all the variables in a session
             init_op = tf.global_variables_initializer()
+
 
             with tf.Session(
                     config=tf.ConfigProto(allow_soft_placement=True)) as sess:

@@ -44,7 +44,7 @@ _FOLDERS = ['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial
             'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/gopro_all_undistorted',
             'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/s5690/undistorted']
 
-_OUT = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/not_bass'
+_OUT = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/not_bass'
 
 
 
@@ -73,7 +73,7 @@ def main():
         print('\nSource folders appear to be empty or invalid. Check the _SOURCES assignment in this script')
         return
 
-    h_neg = 120; w_neg = 512 #size of bass train imgs
+    h_neg = 120; w_neg = 514 #size of bass train imgs
 
     negs = 0
 

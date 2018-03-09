@@ -13,7 +13,7 @@ import shutil as _shutil
 import string as _string
 import tempfile as _tempfile
 from contextlib import contextmanager as _contextmanager
-
+import datetime as _datetime
 
 try:
     import cPickle as _pickle
@@ -815,6 +815,22 @@ def print_progress(
         print("\n")
 
 
+class PrintProgressFlash(object):
+    '''class to print a progress flasher
+    to console'''
+
+    def __init__(self, ticks=60):
+        self.ticks = ticks
+        print('\n')
+
+    def update(self):
+        secs = _datetime.datetime.timetuple(_datetime.datetime.now()).tm_sec
+        n = int(self.ticks*(secs/60))
+        s = '#' * n  + ' ' * (self.ticks - n) #print spaces at end
+        _sys.stdout.write('%s\r' % s)
+        _sys.stdout.flush()
+
+
 class PrintProgress(object):
     '''Class for dos progress bar. Implement as global for module level progress
 
@@ -842,10 +858,16 @@ class PrintProgress(object):
 # endregion
 
 
-def wait_key():
-    ''' (void) -> str
-    Wait for a key press on the console and returns it. '''
+def wait_key(msg=''):
+    ''' (str) -> str
+    Wait for a key press on the console and returns it.
+    msg:
+        prints msg if not empty
+    '''
     result = None
+    if len(msg) > 0:
+        print(msg)
+
     if _os.name == 'nt':
         import msvcrt
         result = msvcrt.getch()
@@ -865,7 +887,7 @@ def wait_key():
         finally:
             _termios.tcsetattr(fd, _termios.TCSAFLUSH, oldterm)
 
-    return result
+    return result.decode()
 
 
 @_contextmanager

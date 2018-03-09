@@ -1,3 +1,5 @@
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+'''test stuff'''
 import tensorflow as tf
 
 
@@ -14,13 +16,13 @@ col1, col2, col3, col4 = tf.decode_csv(value, record_defaults=record_defaults)
 
 with tf.Session() as sess:
   # Start populating the filename queue.
-  coord = tf.train.Coordinator()
-  threads = tf.train.start_queue_runners(coord=coord)
+    coord = tf.train.Coordinator()
+    threads = tf.train.start_queue_runners(coord=coord)
 
-  for i in range(10):
-    #Retrieve single instance:
-    example, label = sess.run([col1, col2])
-    print(example, label)
+    for i in range(10):
+        #Retrieve single instance:
+        example, label = sess.run([col1, col2])
+        print(example, label)
 
-  coord.request_stop()
-  coord.join(threads)
+    coord.request_stop()
+    coord.join(threads)

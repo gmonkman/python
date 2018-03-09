@@ -56,6 +56,48 @@ def homotrans(H, x, y):
     return xs / s, ys / s
 
 
+def overlay(l_img, s_img, x_offset, y_offset, s_img_alpha_px=(255, 255, 255)):
+    '''(ndarray, ndarray, int, int, 3-tuple) -> ndarray
+    Give two 3 channel images, overlay s_img
+    onto l_img.
+
+    The alpha channel of s_imgis is s_img_alpha_px
+
+    l_img, s_image:
+        image
+    x_offset, y_offset:
+        where to position s_img on l_img, CVXY coords.
+    s_img_alpha_px:
+        alpha channel pixels, i.e these will be transparent
+
+    Returns:
+        l_img, overlayed with s_img
+    '''
+    y1, y2 = y_offset, y_offset + s_img.shape[0]
+    x1, x2 = x_offset, x_offset + s_img.shape[1]
+    assert isinstance(l_img, _np.ndarray)
+    assert isinstance(s_img, _np.ndarray)
+
+    ch1 = _np.ones(s_img.shape[0:2]) * s_img_alpha_px[0]
+    ch2 = _np.ones(s_img.shape[0:2]) * s_img_alpha_px[1]
+    ch3 = _np.ones(s_img.shape[0:1]) * s_img_alpha_px[2]
+    m1 = s_img[..., 0] == s_img_alpha_px[0]
+    m2 = s_img[..., 1] == s_img_alpha_px[1]
+    m3 = s_img[..., 2] == s_img_alpha_px[2]
+    mask =  _np.logical_and.reduce((m1, m2, m3)) #logical_and only accepts 2 arrays
+    alpha = _np.array(mask, dtype='uint8') * 255 #0 should keep background, 1 should keep foreground
+    foreground = _np.dstack(s_img, alpha)
+
+    alpha_s = foreground[:, :, 3] / 255.0
+    alpha_l = 1.0 - alpha_s
+
+    for c in range(0, 3):
+        l_img[y1:y2, x1:x2, c] = (alpha_s * foreground[:, :, c] +
+                                  alpha_l * l_img[y1:y2, x1:x2, c])
+    return l_img
+
+
+
 def to_rect(a):
     a = _np.ravel(a)
     if len(a) == 2:
