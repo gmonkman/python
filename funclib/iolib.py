@@ -528,7 +528,7 @@ def file_list_generator(paths, wildcards):
         yield _os.path.normpath(vals)
 
 
-def file_count(paths, wildcards, recurse):
+def file_count(paths, wildcards, recurse=False):
     '''(iterable|str, iterable|str, bool) -> int
 
     Counts files in paths matching wildcards

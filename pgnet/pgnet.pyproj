@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{52fb7047-b7ad-43d1-a402-bb033db31901}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test\test_bass.py</StartupFile>
+    <StartupFile>scripts\try_slice.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -59,6 +59,10 @@
     <Compile Include="scripts\test_localization_single_rf.py" />
     <Compile Include="scripts\test_localization_single_rp.py" />
     <Compile Include="scripts\train.py" />
+    <Compile Include="scripts\train_original.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripts\try_slice.py" />
     <Compile Include="scripts\utils.py" />
     <Compile Include="test\test_bass.py">
       <SubType>Code</SubType>

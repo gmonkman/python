@@ -428,3 +428,10 @@ focalpermute/RESULT20161003181026.txt
 *.db
 *.pdf
 *.bak
+imagedb/CodeGraphData/Result_pgnet/xml/compound.xsd
+imagedb/CodeGraphData/Result_pgnet/xml/combine.xslt
+imagedb/CodeGraphData/Result_pgnet/xml/classtest__bass_1_1_test.xml
+*.xml
+imagedb/CodeGraphData/Result_pgnet/xml/index.xsd
+*.graph
+imagedb/CodeGraphData/config.json

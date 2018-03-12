@@ -32,7 +32,7 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled while debugging")
     def test_bass(self):
         lbls = bass.BassTrain.Tlabels
-        imgs = bass.BassTrain.TImages
+        imgs = bass.BassTrain.Timages
         iolib.wait_key('\nPress any key to stop.')
 
 
