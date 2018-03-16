@@ -19,6 +19,7 @@ from funclib.iolib import PrintProgress as _PP
 from funclib.iolib import file_count as _filecnt
 from opencvlib.info import ImageInfo as _inf
 from opencvlib.imgpipes.generators import FromPaths as _FromPaths
+import opencvlib.transforms as _transforms
 
 #from . import pascal_trainval as pascal_trainval
 
@@ -26,7 +27,8 @@ CLASSES = ['not_bass', 'bass']
 NUM_CLASSES = len(CLASSES)
 BACKGROUND_CLASS_ID = len(CLASSES)
 BATCH_SIZE = 100
-W = 514; H = 120 #hardcoded for now
+#W = 514; H = 120 #hardcoded for now
+W = 200; H = 200 #hardcoded for now
 
 BassTrain = None
 BassEval = None #Validation - Model  Tuning
@@ -65,16 +67,22 @@ class ImagesFromPaths():
     @property
     def image_count(self):
         '''sample nr'''
-        return len(self._paths_with_images)
+        return len(self.img_info_list)
 
 
-    def _read(self):
-        '''creates the full list of files
-        with their labels and resolutions
+    def _read(self, skip_res_test=True):
+        '''(bool) -> void
+        creates the full list of files
+        with their labels and resolutions and
+        sets as class propertes.
 
         The assumption is that each path contains a single
         object class, and the label for the object class
         is set on per path
+
+        skip_res_test:
+            dont check resolutions meet an
+            expected value
         '''
         self.img_info_list = []
         self.img_paths = []
@@ -89,16 +97,21 @@ class ImagesFromPaths():
                 pp.increment()
                 fname = _path.normpath(fname)
                 w, h = _inf.resolution(fname)
-                if w == W and h == H:
+                if skip_res_test:
                     lbl = self._labels[i]
                     self.img_info_list.append([fname, lbl, h, w])
                 else:
-                    print('Expected image res of (%s, %s), got (%s, %s)' % (W, H, w, h))
+                    if w == W and h == H:
+                        lbl = self._labels[i]
+                        self.img_info_list.append([fname, lbl, h, w])
+                    else:
+                        print('Expected image res of (%s, %s), got (%s, %s)' % (W, H, w, h))
         assert self.img_info_list, 'No jpg files found in %s' % str(self._paths_with_images)
 
         _shuffle(self.img_info_list)
-        self.img_paths = self.img_info_list[0]
-        self.labels = self.img_info_list[1]
+        lsts = list(map(list, zip(*self.img_info_list))) #map as zip returns list of tuples, not lists
+        self.img_paths = lsts[0]
+        self.labels = lsts[1]
 
         #fudge to drop neg trainng images to make the set fit
         #a whole nr of batch sizes
@@ -111,6 +124,7 @@ class ImagesFromPaths():
             return
 
         drop_inds = _sample(drop_candidates, nr_to_drop)
+        drop_inds.sort(reverse=True) #del from end of img_info_list first
         for d in drop_inds:
             del self.img_info_list[d]
             del self.labels[d]
@@ -142,7 +156,7 @@ class ImagesFromPaths():
     def Timages(self):
         '''return all images in a tensor constant'''
         nd_images = self._make_img_array()
-        return _tf.constant(self.ndimages)
+        return _tf.constant(nd_images)
 
 
     @property
@@ -164,10 +178,13 @@ class ImagesFromPaths():
         print('\nStacking ndarrays with images (and their labels) from the file system....')
         prog = _PP(len(self.img_paths))
         for i, f in enumerate(self.img_paths):
+            img = _cv2.imread(f)
+            img = _transforms.resize(img, width=W, height=H)
+            img = _transforms.toFloat(img, _transforms.eCvt.uint8_to_1minus1)
             if i == 0:
-                nd_imgs = _np.expand_dims(_cv2.imread(f)/255, 0)
+                nd_imgs = _np.expand_dims(img, 0)
             else:
-                nd_imgs = _np.concatenate([nd_imgs, _np.expand_dims(_cv2.imread(f)/255, 0)], 0)
+                nd_imgs = _np.concatenate([nd_imgs, _np.expand_dims(img, 0)], 0)
             prog.increment()
 
         assert nd_imgs.shape[0] == len(self.img_paths), 'Depth stack size of images ndarray did not match expected number of images'
@@ -177,8 +194,8 @@ class ImagesFromPaths():
 
 
 
-def init_(batch_size=10, init=['DebugImages', 'BassTest', 'BassEval', 'BassTrain']):
-    '''(int, str|list') ->void
+def init_(batch_size=10, init=('DebugImages', 'BassTest', 'BassEval', 'BassTrain')):
+    '''(int, str|list|tuple') ->void
     initialise classes which used to retrieve images
 
     batch_size:

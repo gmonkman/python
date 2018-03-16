@@ -8,7 +8,7 @@ import tensorflow as tf
 #tfe.enable_eager_execution()
 
 
-import funclib.iolib as iolib
+#import funclib.iolib as iolib
 #import opencvlib
 
 import pgnet.inputs.bass as bass

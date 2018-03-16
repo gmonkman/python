@@ -1,5 +1,3 @@
-#pylint: skip-file
-
 #Copyright (C) 2016 Paolo Galeone <nessuno@nerdz.eu>
 #
 #This Source Code Form is subject to the terms of the Mozilla Public

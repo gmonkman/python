@@ -21,6 +21,12 @@ from funclib.iolib import quite
 import skimage.exposure as _exposure
 
 
+class eCvt(_Enum):
+    '''enum for conversion'''
+    uint8_to_1minus1 = 0
+    unint8_to_01 = 1
+
+
 class eChannels(_Enum):
     '''color channel indexes for cv2 img.
     Currently used in chswap
@@ -242,15 +248,43 @@ def to8bpp(img):
     return img
 
 
-def toFloat(img):
-    '''(ndarray:float)->ndarray:uint8
+def toFloat(img, conv=eCvt.unint8_to_01):
+    '''(ndarray:uint8)->ndarray:float
     Convert 8bpp image representation to float.
+
+    img:
+        ndarray representation of image, unint8
+    conv:
+        Enumeration eCvt, output can be scaled
+        between 0 and 1 or -1 to +1
+
+    Note that if an ndarray of type float is passed in
+    then it will be tested for negative values and
+    rescaled accordingly.
     '''
     assert isinstance(img, _np.ndarray)
     if 'uint' in str(img.dtype):
-        return _np.array(img / 255, dtype=_np.float)
+        if conv == eCvt.uint8_to_1minus1:
+            return  (_np.array(img / 255, dtype=_np.float) - 0.5) * 2
+        elif conv == eCvt.unint8_to_01:
+            return _np.array(img / 255, dtype=_np.float)
     elif 'float' in str(img.dtype):
-        return img
+        if _np.any(img < 0): #have negatives
+            if conv == eCvt.uint8_to_1minus1: #already negatives, return unchanged
+                return img
+            elif conv == eCvt.unint8_to_01:
+                return (img - 0.5) * 2
+            else:
+                raise ValueError('Unexpected array datatype passed to transforms.toFloat()')
+        else: #no negatives
+            if conv == eCvt.unint8_to_01: #no negatives and a float, return the float
+                return img
+            elif conv == eCvt.uint8_to_1minus1:
+                return (img - 0.5) * 2
+            else:
+                raise ValueError('Unexpected array datatype passed to transforms.toFloat()')
+
+
 
     assert 'float' in str(img.dtype) #unexpected, debug if occurs
     return img

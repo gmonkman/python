@@ -435,3 +435,16 @@ imagedb/CodeGraphData/Result_pgnet/xml/classtest__bass_1_1_test.xml
 imagedb/CodeGraphData/Result_pgnet/xml/index.xsd
 *.graph
 imagedb/CodeGraphData/config.json
+*.dll
+haar/opencv_annotation.exe
+*.exe
+pgnet-master/LICENSE
+pgnet-master/results/VOC2012/Action/_dummy
+pgnet-master/results/VOC2012/Segmentation/_dummy
+pgnet/scripts/session/checkpoint
+*.data-00000-of-00001
+pgnet/scripts/summary/train/events.out.tfevents.1521133563.TOSHIBA
+*.TOSHIBA
+pgnet-master/results/VOC2012/Main/_dummy
+pgnet-master/results/VOC2012/Layout/_dummy
+*.md

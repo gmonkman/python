@@ -8,12 +8,16 @@ from cv2 import imread
 import cv2
 import numpy as np
 
-from matplotlib import pyplot
+#from matplotlib import pyplot
 
-from skimage import exposure
-from skimage.io import imshow as skimshow
-from skimage.io import imread as skimread
-from scipy import signal
+#from skimage import exposure
+#from skimage.io import imshow as skimshow
+#from skimage.io import imread as skimread
+#from scipy import signal
+
+import tensorflow as tf
+from tensorflow.contrib import eager as tfe
+tfe.enable_eager_execution()
 
 from opencvlib.view import show, mosaic, showarray
 from opencvlib.color import CVColors
@@ -23,13 +27,14 @@ from opencvlib.keypoints import printkp
 from plotlib.qplot import histo, scatter
 from funclib.arraylib import shape
 
-testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'
+#testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'
+testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass/mbiusmchfu_r358_UND.jpg'
 testmovie = 'C:/development/python/opencvlib/test/bin/movie/test-mpeg_512kb.mp4'
 
 
 I = cv2.imread(testimg, -1)
 Ibw = cv2.cvtColor(I, cv2.COLOR_BGR2GRAY,0) #blackwhite version
-Isk = skimread(testimg)
+#Isk = skimread(testimg)
 Ihsv = cv2.cvtColor(I, cv2.COLOR_BGR2HSV)
 
 PATCH = np.array([[0,0,0,0,0],[0,255,255,255,0],[0,255,255,255,0],[0,255,255,255,0],[0,0,0,0,0]])
@@ -39,12 +44,16 @@ MG = np.meshgrid(list(range(0,250,10)),list(range(0,250,10)))
 Gradient = np.stack([MG[0],MG[0],MG[0]],2).astype('uint8') #3channel greyscale
 Gradient = Gradient[:,:,0] #ok back to 1channel
 
-hogx_kern = np.array([[0,0,0],[-1,0,1],[0,0,0]])
-hogy_kern = np.array([[0,-1,0],[0,0,0],[0,1,0]])
-Gx = abs(signal.convolve2d(Gradient, hogx_kern, mode='valid'))
-Gy = abs(signal.convolve2d(Gradient, hogy_kern,mode='valid'))
-Theta = np.arctan(Gy/Gx) #Gradient direction
-g = np.sqrt(Gx**2 + Gy**2) #gradient magnitude
+
+#region HOG bits
+#hogx_kern = np.array([[0,0,0],[-1,0,1],[0,0,0]])
+#hogy_kern = np.array([[0,-1,0],[0,0,0],[0,1,0]])
+#Gx = abs(signal.convolve2d(Gradient, hogx_kern, mode='valid'))
+#Gy = abs(signal.convolve2d(Gradient, hogy_kern,mode='valid'))
+#Theta = np.arctan(Gy/Gx) #Gradient direction
+#g = np.sqrt(Gx**2 + Gy**2) #gradient magnitude
+#endregion
+
 
 BLUE_PATCH = np.zeros((100,100,3)).astype('uint8')
 BLUE_PATCH[:,:,0:1] = 255
@@ -93,6 +102,6 @@ def pimport(script_path, modulename=''):
     return f
 
 
-def skshow(img):
-    skimshow(img)
-    pyplot.show()
+#def skshow(img):
+ #   skimshow(img)
+  #  pyplot.show()

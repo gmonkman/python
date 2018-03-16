@@ -393,6 +393,20 @@ def list_append_unique(list_in, val):
     if val not in list_in:
         list_in.append(val)
 
+def list_get_unique(list_in):
+    '''(list) -> list
+    Returns a new list with
+    duplicates removed and
+    maintains order
+
+    If order is not important sets can be used
+    #https://stackoverflow.com/questions/7961363/removing-duplicates-in-lists
+    '''
+    out = []
+    for x in list_in:
+        list_append_unique(out, x)
+    return out
+
 
 def list_flatten(items, seqtypes=(list, tuple)):
     '''flatten a list
