@@ -449,3 +449,8 @@ pgnet-master/results/VOC2012/Main/_dummy
 pgnet-master/results/VOC2012/Layout/_dummy
 *.md
 *.pbtxt
+*.index
+*.index
+pgnet/scripts/session/model-best-0.index
+*.index
+pgnet/scripts/session/model-0.index

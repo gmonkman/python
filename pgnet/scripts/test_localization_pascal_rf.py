@@ -11,6 +11,7 @@
 
 import argparse
 import os
+from os import path
 import sys
 from collections import defaultdict
 import tensorflow as tf
@@ -35,13 +36,10 @@ def main(args):
     model.export(train.NUM_CLASSES, train.SESSION_DIR, "model-best-0",
                  train.MODEL_PATH)
 
-    results_dir = "{}/results".format(
-        os.path.dirname(os.path.abspath(__file__)))
-    files = {
-        label:
-        open(results_dir + "/VOC2012/Main/comp3_det_test_{}.txt".format(label), "w")
-        for label in pascal.CLASSES
-    }
+    results_dir = "{}/results".format(os.path.dirname(os.path.abspath(__file__)))
+
+    pth = path.normpath(results_dir + "/VOC2012/Main/comp3_det_test_{}.txt".format(label))
+    files = {label:open(pth, "w") for label in pascal.CLASSES}
 
     graph = model.load(train.MODEL_PATH, args.device)
     with graph.as_default():
@@ -61,9 +59,7 @@ def main(args):
         k = 2
         input_side = model.INPUT_SIDE + model.DOWNSAMPLING_FACTOR * model.LAST_CONV_INPUT_STRIDE * k
 
-        test_queue, test_filename_queue = pascal.test(
-            args.test_ds, 29, input_side,
-            args.test_ds + "/ImageSets/Main/test.txt")
+        test_queue, test_filename_queue = pascal.test(args.test_ds, 29, input_side, args.test_ds + "/ImageSets/Main/test.txt")
 
         init_op = tf.group(tf.global_variables_initializer(),
                            tf.initialize_local_variables())

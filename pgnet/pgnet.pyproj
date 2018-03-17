@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{52fb7047-b7ad-43d1-a402-bb033db31901}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\test_localization_single_rf.py</StartupFile>
+    <StartupFile>scripts\train.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>
     </WorkingDirectory>
@@ -15,8 +15,10 @@
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
     <IsWindowsApplication>False</IsWindowsApplication>
-    <CommandLineArguments>--image-path "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/bass"</CommandLineArguments>
+    <CommandLineArguments>
+    </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <Environment>test_localization_single_rf --image-path "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/bass"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -36,11 +38,18 @@
     <Content Include="bin\images\people-sport.jpg" />
     <Content Include="bin\images\person-dog.jpg" />
     <Content Include="bin\images\train.jpg" />
+    <Content Include="pgnet.ini">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="pylintrc" />
     <Content Include="readme.txt" />
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="freeze_graph.py" />
+    <Compile Include="ini.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="inputs\bass.py">
       <SubType>Code</SubType>
     </Compile>
@@ -63,9 +72,6 @@
     <Compile Include="scripts\test_localization_single_rf.py" />
     <Compile Include="scripts\test_localization_single_rp.py" />
     <Compile Include="scripts\train.py" />
-    <Compile Include="scripts\train_original.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="scripts\try_slice.py" />
     <Compile Include="scripts\try_stuff.py">
       <SubType>Code</SubType>

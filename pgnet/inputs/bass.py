@@ -1,18 +1,18 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''Generate bass images
-Call init() to initalse data classes
+Call init_() to initalse data classes
+
+This reads the image paths from ini file in package root
 '''
 #Further more advanced example
 #https://github.com/tensorflow/models/blob/master/tutorials/image/cifar10/cifar10_input.py
 import os.path as _path
-
 from random import sample as _sample
 from random import shuffle as _shuffle
+
 import tensorflow as _tf
 import numpy as _np
 import cv2 as _cv2
-
-
 
 
 from funclib.iolib import PrintProgress as _PP
@@ -20,8 +20,10 @@ from funclib.iolib import file_count as _filecnt
 from opencvlib.info import ImageInfo as _inf
 from opencvlib.imgpipes.generators import FromPaths as _FromPaths
 import opencvlib.transforms as _transforms
+import pgnet.ini as _ini
 
-#from . import pascal_trainval as pascal_trainval
+
+
 
 CLASSES = ['not_bass', 'bass']
 NUM_CLASSES = len(CLASSES)
@@ -196,7 +198,9 @@ class ImagesFromPaths():
 
 def init_(batch_size=10, init=('DebugImages', 'BassTest', 'BassEval', 'BassTrain')):
     '''(int, str|list|tuple') ->void
-    initialise classes which used to retrieve images
+    initialise classes which used to retrieve images.
+    Paths to the images are defined in pgnet.ini in
+    the module root.
 
     batch_size:
         the batch size which will be used
@@ -216,20 +220,24 @@ def init_(batch_size=10, init=('DebugImages', 'BassTest', 'BassEval', 'BassTrain
             raise ValueError('Invalid bass init_ option %s' % s)
 
     if 'BassTrain' in init:
+        pos = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'train_images_path'), 'bass'))
+        neg = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'train_images_path'), 'not_bass'))
         global BassTrain
-        BassTrain = ImagesFromPaths(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/bass',
-                                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/not_bass'],
-                                    [1, 0], batch_size=batch_size)
+        BassTrain = ImagesFromPaths([pos, neg], [1, 0], batch_size=batch_size)
+
     if 'BassEval' in init:
+        pos = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'eval_images_path'), 'bass'))
+        neg = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'eval_images_path'), 'not_bass'))
         global BassEval
-        BassEval = ImagesFromPaths(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval/not_bass',
-                                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval/bass'],
-                                    [1, 0], batch_size=batch_size)
+        BassEval = ImagesFromPaths([pos, neg], [1, 0], batch_size=batch_size)
+
     if 'BassTest' in init:
+        pos = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'test_images_path'), 'bass'))
+        neg = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'test_images_path'), 'not_bass'))
         global BassTest
-        BassTest = ImagesFromPaths(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/bass',
-                                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/not_bass'],
-                                    [1, 0], batch_size=batch_size)
+        BassTest = ImagesFromPaths([pos, neg], [1, 0], batch_size=batch_size)
+
     if 'DebugImages' in init:
+        pos = _path.normpath(_ini.Cfg.tryread('bass.py', 'debug_images_path'))
         global DebugImages
-        DebugImages = ImagesFromPaths(['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/debug'], [1])
+        DebugImages = ImagesFromPaths([pos], [1])

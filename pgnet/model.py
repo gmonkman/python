@@ -252,7 +252,7 @@ def get(num_classes, images_, keep_prob_, is_training_, train_phase=False):
 
     # 200x200x3
     print(images_)
-
+    tf.summary.image('raw_images', images_, 3)
     num_kernels = 2**6  #64
     with tf.variable_scope(str(num_kernels)):
         with tf.variable_scope("conv1"):
@@ -275,6 +275,7 @@ def get(num_classes, images_, keep_prob_, is_training_, train_phase=False):
         with tf.variable_scope("conv2.1"):
             conv2 = eq_conv_layer(conv2, KERNEL_SIDE, num_kernels, (1, 1, 1, 1), is_training_)
             #output: 100x100x64, filters: (3x3x64)x64
+            tf.summary.image('conv2.1', images_, 3)
             print(conv2)
             #60,257,64
     num_kernels *= 2  # 128
@@ -499,16 +500,12 @@ def export(num_classes, session_dir, input_checkpoint, model_abspath):
                     return -1
 
                 # save model skeleton (the empty graph, its definition)
-                tf.train.write_graph(
-                    graph.as_graph_def(),
-                    session_dir,
-                    "skeleton.pbtxt",
-                    as_text=True)
+                tf.train.write_graph(graph.as_graph_def(), session_dir, "skeleton.pbtxt", as_text=True)
 
-                freeze_graph.freeze_graph(
-                    session_dir + "/skeleton.pbtxt", "", False,
-                    session_dir + "/" + input_checkpoint, OUTPUT_TENSOR_NAME,
-                    "save/restore_all", "save/Const:0", model_abspath, True, "")
+                skl_pth = os.path.normpath(os.path.join(session_dir, 'skeleton.pbtxt'))
+                inp_chk = os.path.normpath(os.path.join(session_dir, input_checkpoint))
+
+                freeze_graph.freeze_graph(skl_pth, "", False, inp_chk, OUTPUT_TENSOR_NAME, "save/restore_all", "save/Const:0", model_abspath, True, "")
     else:
         print("{} already exists. Skipping export".format(model_abspath))
 

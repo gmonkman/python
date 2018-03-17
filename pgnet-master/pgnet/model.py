@@ -24,6 +24,7 @@ import sys
 import tensorflow as tf
 from . import freeze_graph
 from . import utils
+from os import path as _path
 
 # network constants
 INPUT_SIDE = 200
@@ -508,6 +509,9 @@ def export(num_classes, session_dir, input_checkpoint, model_abspath):
                           will look into session_dir/input_checkpoint (eg: session_dir/model-0)
         model_abspath: absolute path of the saved model
     """
+    session_dir = _path.normpath(session_dir)
+    model_abspath = _path.normpath(model_abspath)
+
     # if the trained model does not exist
     if not os.path.exists(model_abspath):
         # create an empty graph into the CPU because GPU can run OOM
@@ -522,7 +526,7 @@ def export(num_classes, session_dir, input_checkpoint, model_abspath):
             with tf.Session(config=tf.ConfigProto(
                     allow_soft_placement=True)) as sess:
                 try:
-                    saver.restore(sess, session_dir + "/" + input_checkpoint)
+                    saver.restore(sess, _path.normpath(_path.join(session_dir, input_checkpoint)))
                 except ValueError:
                     print(
                         "[E] Unable to restore from checkpoint",
@@ -530,16 +534,12 @@ def export(num_classes, session_dir, input_checkpoint, model_abspath):
                     return -1
 
                 # save model skeleton (the empty graph, its definition)
-                tf.train.write_graph(
-                    graph.as_graph_def(),
-                    session_dir,
-                    "skeleton.pbtxt",
-                    as_text=True)
+                tf.train.write_graph(graph.as_graph_def(), session_dir, "skeleton.pbtxt", as_text=True)
 
-                freeze_graph.freeze_graph(
-                    session_dir + "/skeleton.pbtxt", "", False,
-                    session_dir + "/" + input_checkpoint, OUTPUT_TENSOR_NAME,
-                    "save/restore_all", "save/Const:0", model_abspath, True, "")
+                skl_pth = _path.normpath(_path.join(session_dir, 'skeleton.pbtxt'))
+                inp_chk = _path.normpath(_path.join(session_dir, input_checkpoint))
+
+                freeze_graph.freeze_graph(skl_pth, "", False, inp_chk, OUTPUT_TENSOR_NAME, "save/restore_all", "save/Const:0", model_abspath, True, "")
     else:
         print("{} already exists. Skipping export".format(model_abspath))
 

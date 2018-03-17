@@ -1,6 +1,6 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-variable
 #Adapted from Paolo Galeone <nessuno@nerdz.eu>
-'''train'''
+'''pgnet train'''
 import argparse
 import math
 import os
@@ -9,12 +9,14 @@ import sys
 import time
 from datetime import datetime
 
+
 import numpy as np
 import tensorflow as tf
 
 from funclib.baselib import list_get_unique as _lstunq
 from pgnet import model
 from pgnet.inputs import bass
+import pgnet.ini as _ini
 
 
 # graph parameteres
@@ -28,20 +30,19 @@ if not os.path.exists(SESSION_DIR):
 if not os.path.exists(SUMMARY_DIR):
     os.makedirs(SUMMARY_DIR)
 
-BATCH_SIZE = 10
+BATCH_SIZE = int(_ini.Cfg.tryread('train.py', 'BATCH_SIZE', value_on_create=10))
+EPOCHS = int(_ini.Cfg.tryread('train.py', 'EPOCHS', value_on_create=1))
 
 AVG_VALIDATION_ACCURACY_EPOCHS = 1  #stop when
 AVG_VALIDATION_ACCURACIES = [0.0 for _ in range(AVG_VALIDATION_ACCURACY_EPOCHS)] # list of average validation at the end of every epoc
 
-
-
-EPOCHS = 5
 STEP_FOR_EPOCH = 0
 DISPLAY_STEP = 0
 MAX_ITERATIONS = 0
 MEASUREMENT_STEP = DISPLAY_STEP
 NUM_CLASSES = 2 #bass, not bass
 SAVE_MODEL_STEP = 0
+
 
 
 def set_params():
@@ -134,7 +135,7 @@ def train(args):
                     print("[I] Unable to restore from checkpoint")
                 # endregion
 
-                summary_writer = tf.summary.FileWriter(path.normpath(SUMMARY_DIR + "/train"), graph=sess.graph)
+                summary_writer = tf.summary.FileWriter(path.normpath(path.join(SUMMARY_DIR, "train")), graph=sess.graph)
                 total_start = time.time()
                 current_epoch = 0
                 max_validation_accuracy = 0.0
@@ -147,7 +148,7 @@ def train(args):
                         # train, get loss value, get summaries
                         nd_train_imgs = train_images_batch.eval()
                         nd_train_lbls = train_labels_batch.eval()
-
+                        
                         _, loss_val, summary_line, gs_value = sess.run([train_op, loss_op, summary_op, global_step], feed_dict={keep_prob_: 0.4, is_training_: True, images_:nd_train_imgs, labels_:nd_train_lbls})
 
                         duration = time.time() - start
@@ -201,17 +202,19 @@ def train(args):
                             sum_validation_accuracy = 0.0
 
                         if step % SAVE_MODEL_STEP == 0 or (step + 1) == MAX_ITERATIONS or stop_training:
-                            saver.save(sess, path.normpath(SESSION_DIR + "/model"), global_step=0)
+                            _ = saver.save(sess, path.normpath(SESSION_DIR + "/model.ckpt"))
 
                         if save:
-                            saver.save(sess, path.normpath(SESSION_DIR + "/model-best"), global_step=0)
+                            _ = saver.save(sess, path.normpath(SESSION_DIR + "/model-best.ckpt"))
                             print('Model with the highest validation accuracy saved.')
 
                         if stop_training:
-                            raise tf.errors.OutOfRangeError
+                            raise StopIteration
 
-                except tf.errors.OutOfRangeError as e:
-                    model.export(NUM_CLASSES, SESSION_DIR, "model-0", MODEL_PATH)
+                except (tf.errors.OutOfRangeError, StopIteration) as e:
+                    #model.export(NUM_CLASSES, SESSION_DIR, "model-0", MODEL_PATH)
+                    #this export creates a transferable file, known as a GraphDef, it wont generally be needed.
+                    #See https://www.tensorflow.org/mobile/prepare_models
                     print("Train completed in {}".format(time.time() - total_start))
                 except Exception as e:
                     print(e)

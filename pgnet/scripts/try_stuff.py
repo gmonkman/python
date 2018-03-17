@@ -1,7 +1,7 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''mucking around with basic TF stuff'''
 import tensorflow as tf
-import numpy as np
+#import numpy as np
 
 def op1(n, m):
     '''mul'''
@@ -24,8 +24,8 @@ def main():
     with  graph.as_default(), tf.device("/cpu:0"):
         a = tf.placeholder(dtype=tf.float64, shape=[1])
         b = tf.placeholder(dtype=tf.float64, shape=[1])
-        n = tf.placeholder(dtype=tf.float64, shape=[1])
-        m = tf.placeholder(dtype=tf.float64, shape=[1])
+       # n = tf.placeholder(dtype=tf.float64, shape=[1])
+       # m = tf.placeholder(dtype=tf.float64, shape=[1])
       #  ta = tf.get_variable('ta', shape=[1], dtype=tf.float64, initializer=tf.constant_initializer(12, dtype=tf.float64))
        # tb = tf.get_variable('tb', shape=[1], dtype=tf.float64, initializer=tf.constant_initializer(12, dtype=tf.float64))
 
@@ -33,8 +33,8 @@ def main():
 
         #op_ = tf.add(a, b)
         #op2_ = tf.subtract(n, m)
-        ta = [10]
-        tb = [20]
+       # ta = [10]
+       # tb = [20]
         with tf.Session() as sess:
             assert isinstance(sess, tf.Session)
             sess.run(init_op)

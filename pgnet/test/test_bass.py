@@ -31,6 +31,7 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_bass(self):
+        bass.init_()
         lbls = bass.BassTrain.Tlabels
         imgs = bass.BassTrain.Timages
         iolib.wait_key('\nPress any key to stop.')
