@@ -17,13 +17,14 @@ from collections import defaultdict
 import tensorflow as tf
 import cv2
 import numpy as np
+
 import train
 import utils
 from pgnet import model
 from inputs import pascal, image_processing
 
 # detection parameters
-RECT_SIMILARITY = 0.9
+RECT_SIMILARITY = 0.7
 
 
 def main(args):
@@ -232,4 +233,5 @@ if __name__ == "__main__":
         description="Apply the model to image-path")
     PARSER.add_argument("--device", default="/gpu:1")
     PARSER.add_argument("--image-path")
-    sys.exit(main(PARSER.parse_args()))
+    P = PARSER.parse_args()
+    sys.exit(main(P))

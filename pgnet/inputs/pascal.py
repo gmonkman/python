@@ -11,7 +11,7 @@
 
 import os
 import tensorflow as tf
-from . import _image_processing
+from . import image_processing
 from . import pascal_trainval
 
 # Global constants describing the cropped pascal data set.

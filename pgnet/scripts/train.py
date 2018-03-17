@@ -33,21 +33,38 @@ BATCH_SIZE = 10
 AVG_VALIDATION_ACCURACY_EPOCHS = 1  #stop when
 AVG_VALIDATION_ACCURACIES = [0.0 for _ in range(AVG_VALIDATION_ACCURACY_EPOCHS)] # list of average validation at the end of every epoc
 
-bass.init_(batch_size=BATCH_SIZE, init=['BassTest', 'BassTrain', 'BassEval'])
+
 
 EPOCHS = 5
-STEP_FOR_EPOCH = math.ceil(bass.BassTrain.image_count/BATCH_SIZE)
-DISPLAY_STEP = math.ceil(STEP_FOR_EPOCH / 25)
-MAX_ITERATIONS = STEP_FOR_EPOCH * 500
+STEP_FOR_EPOCH = 0
+DISPLAY_STEP = 0
+MAX_ITERATIONS = 0
 MEASUREMENT_STEP = DISPLAY_STEP
-#NUM_CLASSES = 2 + 1 # Number of classes in the dataset plus 1
 NUM_CLASSES = 2 #bass, not bass
-SAVE_MODEL_STEP = math.ceil(STEP_FOR_EPOCH / 2) # tensorflow saver constant
+SAVE_MODEL_STEP = 0
 
+
+def set_params():
+    '''set global params after module bass
+    has been initialized so we know
+    train pic numbers'''
+    global STEP_FOR_EPOCH
+    STEP_FOR_EPOCH = math.ceil(bass.BassTrain.image_count/BATCH_SIZE)
+    global DISPLAY_STEP
+    DISPLAY_STEP = math.ceil(STEP_FOR_EPOCH / 25)
+    global MAX_ITERATIONS
+    MAX_ITERATIONS = STEP_FOR_EPOCH * 500
+    global MEASUREMENT_STEP
+    MEASUREMENT_STEP = DISPLAY_STEP
+    global SAVE_MODEL_STEP
+    SAVE_MODEL_STEP = math.ceil(STEP_FOR_EPOCH / 2) # tensorflow saver constant
 
 
 def train(args):
     '''train'''
+    bass.init_(batch_size=BATCH_SIZE, init=['BassTest', 'BassTrain', 'BassEval'])
+    set_params()
+
     if not os.path.exists(MODEL_PATH):
         graph = tf.Graph()
 
@@ -183,8 +200,7 @@ def train(args):
                             current_epoch += 1
                             sum_validation_accuracy = 0.0
 
-                        if step % SAVE_MODEL_STEP == 0 or (
-                                step + 1) == MAX_ITERATIONS or stop_training:
+                        if step % SAVE_MODEL_STEP == 0 or (step + 1) == MAX_ITERATIONS or stop_training:
                             saver.save(sess, path.normpath(SESSION_DIR + "/model"), global_step=0)
 
                         if save:
@@ -192,18 +208,18 @@ def train(args):
                             print('Model with the highest validation accuracy saved.')
 
                         if stop_training:
-                            break
+                            raise tf.errors.OutOfRangeError
+
                 except tf.errors.OutOfRangeError as e:
-                    print('Exhausted Samples')
+                    model.export(NUM_CLASSES, SESSION_DIR, "model-0", MODEL_PATH)
+                    print("Train completed in {}".format(time.time() - total_start))
                 except Exception as e:
                     print(e)
                 finally:
-                    print("Train completed in {}".format(time.time() - total_start))
                     summary_writer.flush() # save train summaries to disk
                     coord.request_stop() # When done, ask the threads to stop.
                     coord.join(threads) # Wait for threads to finish.
 
-        model.export(NUM_CLASSES, SESSION_DIR, "model-0", MODEL_PATH)
     else:
         print("Trained model {} already exits".format(MODEL_PATH))
     return 0

@@ -7,13 +7,15 @@
 #file, you can obtain one at http://mozilla.org/MPL/2.0/.
 #Exhibit B is not attached; this software is compatible with the
 #licenses expressed under Section 1.12 of the MPL v2.
-"""Utils contains utility functions to test the model"""
+"""pgnet
+Utils contains utility functions to test the model"""
 
 import math
 from collections import defaultdict
 import cv2
 import numpy as np
-from inputs import pascal
+from pgnet.inputs import bass
+
 
 
 def rnd_color():
@@ -22,7 +24,7 @@ def rnd_color():
     return (rnd(), rnd(), rnd())
 
 
-LABEL_COLORS = {label: rnd_color() for label in pascal.CLASSES}
+LABEL_COLORS = {label: rnd_color() for label in bass.CLASSES}
 
 
 def legend():
@@ -30,7 +32,7 @@ def legend():
     colors and labels"""
     image = np.zeros((400, 200, 3), dtype=np.uint8)
     height = 20
-    for label in pascal.CLASSES:
+    for label in bass.CLASSES:
         color = LABEL_COLORS[label]
         cv2.putText(image, label, (5, height), 0, 1, color, thickness=2)
         height += 20

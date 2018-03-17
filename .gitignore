@@ -448,3 +448,4 @@ pgnet/scripts/summary/train/events.out.tfevents.1521133563.TOSHIBA
 pgnet-master/results/VOC2012/Main/_dummy
 pgnet-master/results/VOC2012/Layout/_dummy
 *.md
+*.pbtxt

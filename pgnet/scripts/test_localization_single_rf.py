@@ -1,4 +1,3 @@
-#pylint: skip-file
 
 #Copyright (C) 2016 Paolo Galeone <nessuno@nerdz.eu>
 #
@@ -8,7 +7,6 @@
 #Exhibit B is not attached; this software is compatible with the
 #licenses expressed under Section 1.12 of the MPL v2.
 """test_localization_single_rf.py --image-path <img path>"""
-
 import argparse
 import os
 import sys
@@ -17,14 +15,15 @@ from collections import defaultdict
 import tensorflow as tf
 import cv2
 import numpy as np
+
 import train
 from pgnet import model
 from pgnet.inputs import pascal
-from inputs import image_processing
+from pgnet.inputs import image_processing
 import utils
 
 # detection parameters
-RECT_SIMILARITY = 0.9
+RECT_SIMILARITY = 0.7
 
 
 def main(args):
@@ -191,4 +190,6 @@ if __name__ == "__main__":
         description="Apply the model to image-path")
     PARSER.add_argument("--device", default="/gpu:1")
     PARSER.add_argument("--image-path")
-    sys.exit(main(PARSER.parse_args()))
+    P = PARSER.parse_args()
+    main(P)
+    sys.exit()

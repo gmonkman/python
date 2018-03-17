@@ -26,13 +26,13 @@ def main():
         b = tf.placeholder(dtype=tf.float64, shape=[1])
         n = tf.placeholder(dtype=tf.float64, shape=[1])
         m = tf.placeholder(dtype=tf.float64, shape=[1])
-        ta = tf.get_variable('ta', shape=[1], dtype=tf.float64, initializer=tf.constant_initializer(12, dtype=tf.float64))
-        tb = tf.get_variable('tb', shape=[1], dtype=tf.float64, initializer=tf.constant_initializer(12, dtype=tf.float64))
+      #  ta = tf.get_variable('ta', shape=[1], dtype=tf.float64, initializer=tf.constant_initializer(12, dtype=tf.float64))
+       # tb = tf.get_variable('tb', shape=[1], dtype=tf.float64, initializer=tf.constant_initializer(12, dtype=tf.float64))
 
         init_op = [tf.global_variables_initializer(), tf.local_variables_initializer()]
 
-        op_ = tf.add(a, b)
-        op2_ = tf.subtract(n, m)
+        #op_ = tf.add(a, b)
+        #op2_ = tf.subtract(n, m)
         ta = [10]
         tb = [20]
         with tf.Session() as sess:

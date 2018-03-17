@@ -21,7 +21,7 @@ from pgnet import model
 from inputs import pascal, image_processing
 
 # detection parameters
-RECT_SIMILARITY = 0.9
+RECT_SIMILARITY = 0.7
 
 
 def main(args):
@@ -39,8 +39,7 @@ def main(args):
         os.path.dirname(os.path.abspath(__file__)))
     files = {
         label:
-        open(results_dir + "/VOC2012/Main/comp3_det_test_{}.txt".format(label),
-             "w")
+        open(results_dir + "/VOC2012/Main/comp3_det_test_{}.txt".format(label), "w")
         for label in pascal.CLASSES
     }
 
@@ -206,6 +205,6 @@ def main(args):
 
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description="Test the model")
-    PARSER.add_argument("--device", default="/gpu:1")
+    PARSER.add_argument("--device", default="/cpu:1")
     PARSER.add_argument("--test-ds")
     sys.exit(main(PARSER.parse_args()))
