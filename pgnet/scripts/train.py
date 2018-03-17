@@ -7,6 +7,7 @@ import os
 from os import path
 import sys
 import time
+from datetime import timedelta
 from datetime import datetime
 
 
@@ -148,7 +149,7 @@ def train(args):
                         # train, get loss value, get summaries
                         nd_train_imgs = train_images_batch.eval()
                         nd_train_lbls = train_labels_batch.eval()
-                        
+
                         _, loss_val, summary_line, gs_value = sess.run([train_op, loss_op, summary_op, global_step], feed_dict={keep_prob_: 0.4, is_training_: True, images_:nd_train_imgs, labels_:nd_train_lbls})
 
                         duration = time.time() - start
@@ -215,7 +216,7 @@ def train(args):
                     #model.export(NUM_CLASSES, SESSION_DIR, "model-0", MODEL_PATH)
                     #this export creates a transferable file, known as a GraphDef, it wont generally be needed.
                     #See https://www.tensorflow.org/mobile/prepare_models
-                    print("Train completed in {}".format(time.time() - total_start))
+                    print("Train completed in %s" % str(timedelta(seconds=time.time() - total_start)))
                 except Exception as e:
                     print(e)
                 finally:
