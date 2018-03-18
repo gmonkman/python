@@ -44,7 +44,9 @@ def main():
     #multiple arguments: e.g. script.py -files_in 'c:/' 'd:/'
     #for fname in args.files_in:
     cmdline.add_argument('-i', '--files_in', help='VGG JSON files to merge', nargs='+')
-    
+    args = cmdline.parse_args()
+    if args.recurse == True:
+        #dostuff
     
 if __name__ == "__main__":
     main()

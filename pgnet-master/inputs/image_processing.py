@@ -196,6 +196,6 @@ def read_and_batchify_image(image_path, shape, image_type="jpg"):
     # the last patch is not a "patch" but the whole image resized to patch_side² x 3
     # to give a glance to the whole image, in parallel with the patch analysis
     normalized_patches.append(zm_mp(resize_bl(original_image, patch_side)))
-    batch_of_patches = tf.pack(normalized_patches)
+    batch_of_patches = tf.stack(normalized_patches)
     return tf.image.convert_image_dtype(original_image,
                                         tf.uint8), batch_of_patches

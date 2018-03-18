@@ -74,9 +74,11 @@ class CSVMatch(CSVIo):
         '''returns a list of matching rows
         key = the column name on the _csv
         value = the value to match in that column
+
+        Returns None if no match
         '''
         if value or not value not in self.values:
-            return
+            return None
 
         match = None
         for row in self.rows:
@@ -87,13 +89,17 @@ class CSVMatch(CSVIo):
         return match
 
     def row_for_object(self, match_function, obj):
-        '''like row_for_value, but allows for a more complicated match.
+        '''
+        like row_for_value, but allows for a more complicated match.
         match_function takes three parameters (vals, row, object) and return true/false
+
+        Returns:
+            None if no match, else the returns the row
         '''
         for row in self.rows:
             if match_function(row, obj):
                 return row
-
+        return None
 
 class MultipleMatchError(RuntimeError):
     '''helper'''
@@ -817,16 +823,37 @@ def print_progress(
 
 class PrintProgressFlash(object):
     '''class to print a progress flasher
-    to console'''
+    to console
 
-    def __init__(self, ticks=60):
+    args
+        ticks:  max size of chars before reset,
+                set to None to print fixed length flasher
+        msg:
+                print msg to console
+    '''
+
+    def __init__(self, ticks=60, msg='\n'):
+        '''init'''
         self.ticks = ticks
-        print('\n')
+        print(msg)
 
     def update(self):
+        '''update state'''
         secs = _datetime.datetime.timetuple(_datetime.datetime.now()).tm_sec
-        n = int(self.ticks*(secs/60))
-        s = '#' * n  + ' ' * (self.ticks - n) #print spaces at end
+
+        if self.ticks is None:
+            if secs % 3 == 0:
+                s = '////'
+            elif secs % 2 == 0:
+                s = '||||'
+            else:
+                s = '\\\\\\\\'
+        else:
+            n = int(self.ticks*(secs/60))
+            s = '#' * n  + ' ' * (self.ticks - n) #print spaces at end
+
+
+
         _sys.stdout.write('%s\r' % s)
         _sys.stdout.flush()
 
@@ -865,7 +892,7 @@ def wait_key(msg=''):
         prints msg if not empty
     '''
     result = None
-    if len(msg) > 0:
+    if msg:
         print(msg)
 
     if _os.name == 'nt':

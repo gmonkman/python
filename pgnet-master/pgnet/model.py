@@ -1,3 +1,5 @@
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+
 #Copyright (C) 2016 Paolo Galeone <nessuno@nerdz.eu>
 #
 #This Source Code Form is subject to the terms of the Mozilla Public
@@ -47,7 +49,7 @@ DOWNSAMPLING_FACTOR = math.ceil(INPUT_SIDE / LAST_KERNEL_SIDE)
 FC_NEURONS = 2048
 
 # train constants
-BATCH_SIZE = 64
+BATCH_SIZE = 3
 LEARNING_RATE = 2e-4
 
 # output tensor name
@@ -276,7 +278,7 @@ def get(num_classes, images_, keep_prob_, is_training_, train_phase=False):
                 conv1 = tf.nn.dropout(conv1, keep_prob_, name="dropout")
             print(conv1)
             #output: 200x200x64, filters: (3x3x3)x64
-
+            tf.summary.image('conv1', images_, 10)
         with tf.variable_scope("conv1.1"):
             conv1 = eq_conv_layer(conv1, KERNEL_SIDE, num_kernels, (1, 1, 1, 1),
                                   is_training_)
@@ -413,8 +415,7 @@ def loss(logits, labels):
         labels = tf.cast(labels, tf.int64)
 
         # cross_entropy across the batch
-        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            logits, labels, name="cross_entropy_per_example")
+        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels, name="cross_entropy_per_example")
 
         mean_cross_entropy = tf.reduce_mean(
             cross_entropy, name="mean_cross_entropy")
@@ -457,8 +458,8 @@ def variables_to_save(addlist, tf_trainable=True, req_non_train=True):
         return tf.trainable_variables() + addlist
     elif req_non_train:
         return tf.get_collection_ref(REQUIRED_NON_TRAINABLES) + addlist
-    else:
-        return addlist
+
+    return addlist
 
 
 def define(num_classes, train_phase):

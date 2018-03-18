@@ -1,3 +1,5 @@
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unnecessary-lambda
+
 #Copyright (C) 2016 Paolo Galeone <nessuno@nerdz.eu>
 #
 #This Source Code Form is subject to the terms of the Mozilla Public
@@ -18,14 +20,17 @@ import tensorflow as tf
 from pgnet import model
 from inputs import pascal
 
+fpath = lambda pth: os.path.normpath(pth)
+fjpath = lambda a, b: os.path.normpath(os.path.join(a, b))
+
 # graph parameteres
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-SESSION_DIR = CURRENT_DIR + "/session"
-SUMMARY_DIR = CURRENT_DIR + "/summary"
-MODEL_PATH = CURRENT_DIR + "/model.pb"
+SESSION_DIR = fjpath(CURRENT_DIR, "session")
+SUMMARY_DIR = fjpath(CURRENT_DIR, "summary")
+MODEL_PATH = fjpath(CURRENT_DIR, "/model.pb")
 
 # cropped pascal parameters
-CSV_PATH = 'f:\VOC2012\cropped'  #"~/data/datasets/PASCAL_2012_cropped"
+CSV_PATH = 'f:/VOC2012/cropped'  #"~/data/datasets/PASCAL_2012_cropped"
 
 # Number of classes in the dataset plus 1.
 # NUM_CLASSES + 1 is reserved for an (unused) background class.
@@ -33,7 +38,7 @@ NUM_CLASSES = pascal.NUM_CLASSES + 1
 
 # train & validation parameters
 STEP_FOR_EPOCH = math.ceil(pascal.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN /
-                           model.BATCH_SIZE)
+                           model.BATCH_SIZE) #steps
 DISPLAY_STEP = math.ceil(STEP_FOR_EPOCH / 25)
 MEASUREMENT_STEP = DISPLAY_STEP
 MAX_ITERATIONS = STEP_FOR_EPOCH * 500
@@ -44,8 +49,8 @@ AVG_VALIDATION_ACCURACY_EPOCHS = 1
 AVG_VALIDATION_ACCURACIES = [0.0 for _ in range(AVG_VALIDATION_ACCURACY_EPOCHS)]
 
 # tensorflow saver constant
-SAVE_MODEL_STEP = math.ceil(STEP_FOR_EPOCH / 2)
-
+SAVE_MODEL_STEP = math.ceil(STEP_FOR_EPOCH / 2) #save 1/2 way through 1 epoch
+SAVE_MODEL_STEP = 2
 
 def train(args):
     """train model"""
@@ -123,6 +128,7 @@ def train(args):
             # create a saver: to store current computation and restore the graph
             # useful when the train step has been interrupeted
             variables_to_save = model.variables_to_save([global_step])
+            variables_to_save = list(set(variables_to_save))
             saver = tf.train.Saver(variables_to_save)
 
             # tensor flow operator to initialize all the variables in a session

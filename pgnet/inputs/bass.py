@@ -32,6 +32,7 @@ BATCH_SIZE = 100
 #W = 514; H = 120 #hardcoded for now
 W = 200; H = 200 #hardcoded for now
 
+#these will be an instance of class ImageFromPaths
 BassTrain = None
 BassEval = None #Validation - Model  Tuning
 BassTest = None
@@ -39,7 +40,10 @@ DebugImages = None
 
 
 class ImagesFromPaths():
-    '''Creates list of imagepaths with their labels
+    '''Creates list of imagepaths with their labels.
+
+    img_paths and labels correspond by index.
+    ie. the img_paths[12] imagepath has label labels[12]
     Arguments:
         batch_size
             size of batch, trims negative images so total train set fits
@@ -54,7 +58,9 @@ class ImagesFromPaths():
 
         img_info_list:
             list of all images, with corresponding labels and rows and columns.
-            eg, [['c:/a.jpg', 'c:/b.jpg'], [1, 0], [600, 128], [800, 512]]
+            eg, [['c:/a.jpg', 1, 600, 128],
+                 ['c:/b.jpg'], 0, 600, 128]
+                 ['c:/12.jpg'], 0, 800, 600]]
     '''
     def __init__(self, paths_with_images, labels, batch_size=None):
         self._paths_with_images = [_path.normpath(s) for s in paths_with_images]
@@ -168,6 +174,18 @@ class ImagesFromPaths():
         nd_images = self._make_img_array()
         return nd_images
 
+    @property
+    def lst_imgs_and_lbls(self):
+        '''return list of images and labels
+
+        Example:
+        >>>print(bass.lst_imgs_and_lbls)
+        [['c:\1.jpg', 1]
+            ['c:\2.jpg', 0]
+        ]]
+        '''
+        return list(zip(self.img_paths, self.labels))
+
 
     def _make_img_array(self):
         '''(void) -> ndarray
@@ -198,7 +216,7 @@ class ImagesFromPaths():
 
 def init_(batch_size=10, init=('DebugImages', 'BassTest', 'BassEval', 'BassTrain')):
     '''(int, str|list|tuple') ->void
-    initialise classes which used to retrieve images.
+    initialise classes which are used to retrieve images.
     Paths to the images are defined in pgnet.ini in
     the module root.
 

@@ -1,37 +1,38 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
-'''randomly assign positive and negative images to
-test and validation, move them out of the training folder
-and create the csv files used to stuff the
-tensorflow queue
+'''Start with positive images and negative images in 2 seperate folders.
+Randomly assigns positve and negative images into training, eval and test
+batches.
 
-Assumes all images start out in:
-C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass
-and
-C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/not_bass'''
+Creates csv listings of the files. Settings specified in pgnet.ini.
+'''
 
-_ALL_POS = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass'
-_ALL_NEG = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/not_bass'
-
-_TRAIN_POS = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/bass'
-_TRAIN_NEG = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train/not_bass'
-
-_EVAL_POS = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval/bass'
-_EVAL_NEG = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval/not_bass'
-
-_TEST_POS = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/bass'
-_TEST_NEG = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/not_bass'
 
 from shutil import copy2
 import os.path as path
 import random
 
 from funclib.iolib import wait_key
-
 import funclib.iolib as iolib
+import pgnet.ini as ini
+
+
 W = 514; H = 120
 RATIO_TVT = (0.6, 0.2, 0.2) #order is train, validation, test
 assert sum(RATIO_TVT) == 1, 'RATIO_TVT must add up to 1'
 
+
+_ALL_POS = ini.Cfg.tryread('sort_test_train_eval.py', 'ALL_POS', error_on_read_fail=True)
+_ALL_NEG = ini.Cfg.tryread('sort_test_train_eval.py', 'ALL_NEG', error_on_read_fail=True)
+_TRAIN_POS = ini.Cfg.tryread('sort_test_train_eval.py', 'TRAIN_POS', error_on_read_fail=True)
+_TRAIN_NEG = ini.Cfg.tryread('sort_test_train_eval.py', 'TRAIN_NEG', error_on_read_fail=True)
+_EVAL_POS = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_POS', error_on_read_fail=True)
+_EVAL_NEG = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_NEG', error_on_read_fail=True)
+_TEST_POS = ini.Cfg.tryread('sort_test_train_eval.py', 'TEST_POS', error_on_read_fail=True)
+_TEST_NEG = ini.Cfg.tryread('sort_test_train_eval.py', 'TEST_NEG', error_on_read_fail=True)
+
+_CSV_EVAL = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_POS', error_on_read_fail=True)
+_CSV_TRAIN = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_POS', error_on_read_fail=True)
+_CSV_TEST = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_POS', error_on_read_fail=True)
 
 
 
@@ -61,10 +62,7 @@ def gen_csv_file(dirs, out_fname, is_test=False):
     PP = iolib.PrintProgress(fcnt)
     for f in iolib.file_list_generator1(dirs, '*.jpg'):
         is_pos = 0 if 'not_bass' in f else 1
-        if is_test:
-            all_.append([path.normpath(f)]) #if it is test, we dont need the dimensions etc
-        else:
-            all_.append([path.normpath(f), is_pos, W, H])
+        all_.append([path.normpath(f), is_pos, W, H])
         PP.increment()
 
     iolib.writecsv(path.normpath(out_fname), all_, inner_as_rows=False)
@@ -119,22 +117,15 @@ def assign():
 
 def main():
     '''main entry'''
-    k = wait_key('\nPress "y" to distribute train files to test and eval folders')
+    k = wait_key('\nPress "y" to distribute train files to test and eval folders.\n'
+                'Press any other key to continue to create csv image lists.')
     if k == 'y':
         assign()
 
-    gen_csv_file([_TRAIN_POS, _TRAIN_NEG],
-                 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/train.csv'
-                 )
+    gen_csv_file([_TRAIN_POS, _TRAIN_NEG], _CSV_TRAIN)
+    gen_csv_file([_EVAL_POS, _EVAL_NEG], _CSV_EVAL)
+    gen_csv_file([_TEST_POS, _TEST_NEG], _CSV_TEST, is_test=True)
 
-    gen_csv_file([_EVAL_POS, _EVAL_NEG],
-                 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/eval.csv'
-                 )
-
-    gen_csv_file([_TEST_POS, _TEST_NEG],
-                'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test.csv',
-                is_test=True
-                )
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, consider-using-enumerate
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, consider-using-enumerate, stop-iteration-return, simplifiable-if-statement, stop-iteration-return, too-many-return-statements
 # unused-variable
 '''Decorators, base classes and misc functions
 for manipulatin other base classes.
@@ -459,7 +459,7 @@ def isPython2():
 
 def get_platform():
     '''-> str
-    returns windows, mac, linux
+    returns windows, mac, linux or unknown
     '''
     s = _sys.platform.lower()
     if s == "linux" or s == "linux2":
@@ -468,6 +468,8 @@ def get_platform():
         return 'mac'
     elif s == "win32" or s == "windows":
         return 'windows'
+    return 'unknown'
+
 # endregion
 
 

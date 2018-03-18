@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>sess-with</Title>
+      <Shortcut>sess_with</Shortcut>
+      <Description>Session and init variables</Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Imports>
+        <Import>
+          <Namespace>unittest</Namespace>
+        </Import>
+      </Imports>
+      <Code Language="Python"><![CDATA[
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
+        sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

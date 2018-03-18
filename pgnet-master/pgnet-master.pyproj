@@ -51,6 +51,7 @@
     <Content Include="images\people-sport.jpg" />
     <Content Include="images\person-dog.jpg" />
     <Content Include="images\train.jpg" />
+    <Content Include="pylintrc" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="images" />

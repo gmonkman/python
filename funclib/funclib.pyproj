@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ec8e1821-0c22-445e-af07-22bbe247f71e}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test\test_arraylib.py</StartupFile>
+    <StartupFile>scripts\del_blank_lines.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -17,6 +17,7 @@
     <CommandLineArguments>
     </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <Environment>del_blank_lines.py "F:/VOC2012/cropped/ts.csv" ts_emptyless.csv</Environment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -57,6 +58,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts\fix_newlines.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripts\del_blank_lines.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="shell_lib.py" />

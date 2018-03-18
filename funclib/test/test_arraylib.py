@@ -24,6 +24,7 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_vstackt_hstackt(self):
+        '''test cropping stacks'''
         a = [np.ones((100, 100, 3)), np.ones((200, 200, 3)), np.ones((300, 300, 3))]
 
         m = arraylib.hstackt(a)
@@ -37,4 +38,3 @@ class Test(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
-

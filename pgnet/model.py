@@ -49,7 +49,7 @@ DOWNSAMPLING_FACTOR = math.ceil(H / LAST_KERNEL_SIDE)
 FC_NEURONS = 2048
 
 # train constants
-BATCH_SIZE = 64
+BATCH_SIZE = 3
 LEARNING_RATE = 2e-4
 
 # output tensor name

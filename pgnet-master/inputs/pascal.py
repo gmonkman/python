@@ -5,17 +5,24 @@
 #file, you can obtain one at http://mozilla.org/MPL/2.0/.
 #Exhibit B is not attached; this software is compatible with the
 #licenses expressed under Section 1.12 of the MPL v2.
-"""Generate the input from the pascal dataset"""
+"""pgnet-master
+Generate the input from the pascal dataset"""
 
 import os
 import tensorflow as tf
 from . import image_processing
 from . import pascal_trainval
 
+
+fpath = lambda pth: os.path.normpath(pth)
+fjpath = lambda a, b: os.path.normpath(os.path.join(a, b))
+
+
 # Global constants describing the cropped pascal data set.
 NUM_CLASSES = 20
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 293
-NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 27157
+#NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 2157
+NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 2000
 CLASSES = pascal_trainval.CLASSES
 BACKGROUND_CLASS_ID = pascal_trainval.BACKGROUND_CLASS_ID
 
@@ -107,21 +114,24 @@ def train(cropped_dataset_path,
         images: Images. 4D tensor of [batch_size, input_side, input_side, 3 size.
         labes: Labels. 1D tensor of [batch_size] size.
     """
-    cropped_dataset_path = os.path.abspath(
-        os.path.expanduser(cropped_dataset_path)).rstrip("/") + "/"
-    csv_path = csv_path.rstrip("/") + "/"
+    #cropped_dataset_path = os.path.abspath(os.path.expanduser(cropped_dataset_path)).rstrip("/") + "/"
+    #csv_path = csv_path.rstrip("/") + "/"
+    cropped_dataset_path = os.path.normpath('f:\VOC2012\cropped')
+
 
     # Create a queue that produces the filenames (and other atrributes) to read
-    queue = tf.train.string_input_producer([csv_path + "train.csv"])
+    queue = tf.train.string_input_producer([os.path.normpath(os.path.join(cropped_dataset_path,"train.csv"))])
 
     # Read examples from the queue
     image_path, label, widht, height = read_cropped_pascal(
         tf.constant(cropped_dataset_path), queue)
 
+    aspect = widht/height
+    tf.summary.histogram('train/aspect', aspect)
+
     # read, random distortion, resize to input_side²
     # and scale value between [-1,1]
-    distorted_image = image_processing.train_image(
-        image_path, widht, height, input_side, image_type="jpg")
+    distorted_image = image_processing.train_image(image_path, widht, height, input_side, image_type="jpg")
 
     # Ensure that the random shuffling has good mixing properties.
     fraction_of_examples_in_queue = 0.8
@@ -151,24 +161,20 @@ def validation(cropped_dataset_path,
         labes: Labels. 1D tensor of [batch_size] size.
     """
 
-    cropped_dataset_path = os.path.abspath(
-        os.path.expanduser(cropped_dataset_path)).rstrip("/") + "/"
+    cropped_dataset_path = os.path.normpath('F:/VOC2012/cropped')
     csv_path = csv_path.rstrip("/") + "/"
 
-    queue = tf.train.string_input_producer([csv_path + "validation.csv"])
+    queue = tf.train.string_input_producer([fjpath(cropped_dataset_path, "validation.csv")])
 
     # Read examples from files in the filename queue.
-    image_path, label, _, _ = read_cropped_pascal(
-        tf.constant(cropped_dataset_path), queue)
+    image_path, label, _, _ = read_cropped_pascal(tf.constant(cropped_dataset_path), queue)
 
     # read, resize, scale between [-1,1]
-    image = image_processing.eval_image(
-        image_path, input_side, image_type="jpg")
+    image = image_processing.eval_image(image_path, input_side, image_type="jpg")
 
     # Ensure that the random shuffling has good mixing properties.
     fraction_of_examples_in_queue = 0.8
-    min_queue_examples = int(NUM_EXAMPLES_PER_EPOCH_FOR_EVAL *
-                             fraction_of_examples_in_queue)
+    min_queue_examples = int(NUM_EXAMPLES_PER_EPOCH_FOR_EVAL * fraction_of_examples_in_queue)
 
     # min_after_dequeue defines how big a buffer we will randomly sample
     #   from -- bigger means better shuffling but slower start up and more
@@ -177,8 +183,7 @@ def validation(cropped_dataset_path,
     #   determines the maximum we will prefetch.  Recommendation:
     #   min_after_dequeue + (num_threads + a small safety margin) * batch_size
     # Generate a batch of images and labels by building up a queue of examples.
-    return _generate_image_and_label_batch(
-        image, label, min_queue_examples, batch_size, task='validation')
+    return _generate_image_and_label_batch(image, label, min_queue_examples, batch_size, task='validation')
 
 
 def test(test_dataset_path,

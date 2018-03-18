@@ -73,7 +73,7 @@ def train(args):
         with graph.as_default(), tf.device(args.device):
 
             with tf.variable_scope("train_input"): #open new context to share variables (layers)
-                train_input_images = bass.BassTrain.Timages
+                train_input_images = bass.BassTrain.Timages #these are constants
                 train_input_labels = bass.BassTrain.Tlabels
                 train_image, train_label = tf.train.slice_input_producer([train_input_images, train_input_labels], num_epochs=EPOCHS) #produces 1 image per session.run
                 train_images_batch, train_labels_batch = tf.train.shuffle_batch([train_image, train_label], batch_size=BATCH_SIZE, num_threads=1, min_after_dequeue=10, capacity=100)

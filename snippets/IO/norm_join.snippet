@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>norm-join</Title>
+      <Shortcut>norm-join</Shortcut>
+      <Description>lambdas for norm path and norm-join path</Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[
+fpath = lambda pth: os.path.normpath(pth)
+fjpath = lambda a, b: os.path.normpath(os.path.join(a, b))
+
+]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>
