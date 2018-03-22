@@ -15,6 +15,7 @@ import numpy as np
 import tensorflow as tf
 
 from funclib.baselib import list_get_unique as _lstunq
+#from pgnet.inputs import image_processing
 from pgnet import model
 from pgnet.inputs import bass
 import pgnet.ini as _ini
@@ -33,16 +34,19 @@ if not os.path.exists(SUMMARY_DIR):
 
 BATCH_SIZE = int(_ini.Cfg.tryread('train.py', 'BATCH_SIZE', value_on_create=10))
 EPOCHS = int(_ini.Cfg.tryread('train.py', 'EPOCHS', value_on_create=1))
+SHUFFLE_QUEUE_BUFFER_SIZE = int(_ini.Cfg.tryread('train.py', 'SHUFFLE_QUEUE_BUFFER_SIZE', value_on_create=100))
 
 AVG_VALIDATION_ACCURACY_EPOCHS = 1  #stop when
 AVG_VALIDATION_ACCURACIES = [0.0 for _ in range(AVG_VALIDATION_ACCURACY_EPOCHS)] # list of average validation at the end of every epoc
 
+#these are placeholders, values assigned in set_params()
 STEP_FOR_EPOCH = 0
 DISPLAY_STEP = 0
 MAX_ITERATIONS = 0
 MEASUREMENT_STEP = DISPLAY_STEP
 NUM_CLASSES = 2 #bass, not bass
 SAVE_MODEL_STEP = 0
+
 
 
 
@@ -62,6 +66,44 @@ def set_params():
     SAVE_MODEL_STEP = math.ceil(STEP_FOR_EPOCH / 2) # tensorflow saver constant
 
 
+def img_get(filename, label):
+    '''(V:str, V:int64, PH:bool) -> V:ndarray, V:int64
+
+    Load image from filename, return corresponding label
+    untouched. If placeholder apply_distortion_ is
+    True, then distort the image.
+
+    filename:
+        a string tensor filepath pointer, e.g. 'C:/myimg.jpg'
+    label:
+        a tensor of int64, label for filename
+    apply_distortion_
+        apply a distortion or not
+    '''
+    #TODO apply stanardiszation using the whole training set
+    #https://stats.stackexchange.com/questions/322802/per-image-normalization-vs-overall-dataset-normalization
+    #https://www.tensorflow.org/api_docs/python/tf/image/per_image_standardization
+    #apply_distortion = tf.placeholder(dtype=tf.bool, shape=[1], name='apply_distortion')
+    image_string = tf.read_file(filename)
+    image_decoded = tf.image.decode_image(image_string)
+    image_decoded.set_shape([bass.H_ORIG, bass.W_ORIG, bass.CH_ORIG])
+    #resize image
+    image_rsz = tf.expand_dims(image_decoded, 0)
+    image_rsz = tf.image.resize_bilinear(image_rsz, [bass.H, bass.W], align_corners=False) # now image is 4-D float32 tensor: [1, side, side, image.depth]
+    image_rsz = tf.squeeze(image_rsz, [0])
+    img_standardized = img_std(image_rsz/255.0) #-1 to 1, not strictly a standardization
+    return img_standardized, label
+
+
+def img_std(image):
+    '''(tensor) -> tensor
+    Rescale image to float (-1 to 1)
+    '''
+    #image = tf.image.per_image_standardization(image)
+    # rescale to [-1,1] instead of [0, 1)
+    return tf.multiply(tf.subtract(image, 0.5), 2)
+
+
 def train(args):
     '''train'''
     bass.init_(batch_size=BATCH_SIZE, init=['BassTest', 'BassTrain', 'BassEval'])
@@ -70,24 +112,27 @@ def train(args):
     if not os.path.exists(MODEL_PATH):
         graph = tf.Graph()
 
-        with graph.as_default(), tf.device(args.device):
-
+        with graph.as_default(), tf.device('/cpu:1'):
             with tf.variable_scope("train_input"): #open new context to share variables (layers)
-                train_input_images = bass.BassTrain.Timages #these are constants
-                train_input_labels = bass.BassTrain.Tlabels
-                train_image, train_label = tf.train.slice_input_producer([train_input_images, train_input_labels], num_epochs=EPOCHS) #produces 1 image per session.run
-                train_images_batch, train_labels_batch = tf.train.shuffle_batch([train_image, train_label], batch_size=BATCH_SIZE, num_threads=1, min_after_dequeue=10, capacity=100)
+                dsTrain = tf.data.Dataset.from_tensor_slices((bass.BassTrain.img_paths, bass.BassTrain.labels))
+                dsTrain = dsTrain.map(img_get)
+                dsTrain = dsTrain.shuffle(buffer_size=SHUFFLE_QUEUE_BUFFER_SIZE, reshuffle_each_iteration=True)
+                dsTrain = dsTrain.batch(BATCH_SIZE) #batch
+                dsTrain = dsTrain.repeat(EPOCHS) #epochs
+                train_iter = dsTrain.make_one_shot_iterator()
+                train_images_batch, train_labels_batch = train_iter.get_next()
                 train_labels_batch = tf.cast(train_labels_batch, tf.int64)
 
 
             with tf.variable_scope("validation_input"):
-                validation_images = bass.BassEval.Timages
-                validation_labels = bass.BassEval.Tlabels
-                validation_image, validation_label = tf.train.slice_input_producer([validation_images, validation_labels], num_epochs=EPOCHS)
-                validation_images_batch, validation_labels_batch = tf.train.shuffle_batch([validation_image, validation_label], batch_size=BATCH_SIZE, num_threads=1, min_after_dequeue=10, capacity=100)
+                dsValidation = tf.data.Dataset.from_tensor_slices((bass.BassTrain.img_paths, bass.BassTrain.labels))
+                dsValidation = dsValidation.map(img_get)
+                dsValidation = dsValidation.shuffle(buffer_size=SHUFFLE_QUEUE_BUFFER_SIZE, reshuffle_each_iteration=True)
+                dsValidation = dsValidation.batch(BATCH_SIZE) #batch
+                dsValidation = dsValidation.repeat(EPOCHS) #epochs
+                validation_iter = dsValidation.make_one_shot_iterator()
+                validation_images_batch, validation_labels_batch = validation_iter.get_next()
                 validation_labels_batch = tf.cast(validation_labels_batch, tf.int64)
-
-
 
 
             global_step = tf.Variable(0, trainable=False, name="global_step") # train global step
@@ -116,15 +161,15 @@ def train(args):
 
             with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
                 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
-                coord = tf.train.Coordinator()
-                threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+                #coord = tf.train.Coordinator()
+                #threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
                 def validate():
                     '''validation data'''
                     np_validation_imgs = validation_images_batch.eval()
                     np_validation_lbls = validation_labels_batch.eval()
                     validation_accuracy, summary_line = sess.run([accuracy, validation_accuracy_summary_op],
-                        feed_dict={keep_prob_: 1.0, images_:np_validation_imgs, labels_:np_validation_lbls, is_training_: False,})
+                        feed_dict={keep_prob_: 1.0, images_:np_validation_imgs, labels_:np_validation_lbls, is_training_:False,})
                     return validation_accuracy, summary_line
 
 
@@ -221,8 +266,6 @@ def train(args):
                     print(e)
                 finally:
                     summary_writer.flush() # save train summaries to disk
-                    coord.request_stop() # When done, ask the threads to stop.
-                    coord.join(threads) # Wait for threads to finish.
 
     else:
         print("Trained model {} already exits".format(MODEL_PATH))

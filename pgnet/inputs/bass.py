@@ -29,7 +29,7 @@ CLASSES = ['not_bass', 'bass']
 NUM_CLASSES = len(CLASSES)
 BACKGROUND_CLASS_ID = len(CLASSES)
 BATCH_SIZE = 100
-#W = 514; H = 120 #hardcoded for now
+W_ORIG = 514; H_ORIG = 120; CH_ORIG = 3 #hardcoded for now
 W = 200; H = 200 #hardcoded for now
 
 #these will be an instance of class ImageFromPaths

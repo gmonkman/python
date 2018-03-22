@@ -459,3 +459,5 @@ pgnet/scripts/session/model-0.index
 pgnet/scripts/session/model-0.index
 pgnet/scripts/session/model-best-0.index
 *.index
+*.index
+pgnet/scripts/session/model-0.index
