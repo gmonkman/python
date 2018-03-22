@@ -30,9 +30,9 @@ _EVAL_NEG = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_NEG', error_on_read
 _TEST_POS = ini.Cfg.tryread('sort_test_train_eval.py', 'TEST_POS', error_on_read_fail=True)
 _TEST_NEG = ini.Cfg.tryread('sort_test_train_eval.py', 'TEST_NEG', error_on_read_fail=True)
 
-_CSV_EVAL = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_POS', error_on_read_fail=True)
-_CSV_TRAIN = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_POS', error_on_read_fail=True)
-_CSV_TEST = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_POS', error_on_read_fail=True)
+_CSV_EVAL = ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_EVAL', error_on_read_fail=True)
+_CSV_TRAIN = ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_TRAIN', error_on_read_fail=True)
+_CSV_TEST = ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_TEST', error_on_read_fail=True)
 
 
 

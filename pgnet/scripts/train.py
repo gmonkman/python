@@ -112,7 +112,7 @@ def train(args):
     if not os.path.exists(MODEL_PATH):
         graph = tf.Graph()
 
-        with graph.as_default(), tf.device('/cpu:1'):
+        with graph.as_default(), tf.device('/cpu:0'):
             with tf.variable_scope("train_input"): #open new context to share variables (layers)
                 dsTrain = tf.data.Dataset.from_tensor_slices((bass.BassTrain.img_paths, bass.BassTrain.labels))
                 dsTrain = dsTrain.map(img_get)
@@ -274,5 +274,5 @@ def train(args):
 
 if __name__ == "__main__":
     ARG_PARSER = argparse.ArgumentParser(description="Train the model")
-    ARG_PARSER.add_argument("--device", default="/cpu:1")
+    ARG_PARSER.add_argument("--device", default="/cpu:0")
     sys.exit(train(ARG_PARSER.parse_args()))
