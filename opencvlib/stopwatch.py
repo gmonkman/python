@@ -1,9 +1,15 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''Class with a stopwatch to calculate
 the time and rates of events'''
-from collections import deque as _deque
-import cv2 as _cv2
 
+#NOTE THE CV2 DEPENDENCY
+from time import sleep #for convieience
+import datetime as _datetime
+from collections import deque as _deque
+import time as _time
+
+import cv2 as _cv2
+from funclib.iolib import time_pretty as time_pretty #convieniance function, takes secs
 
 def _clock():
     '''
@@ -28,7 +34,7 @@ class _StopWatchInterval():
         else:
             self.running_event_ticks = previous_interval.running_event_ticks + self.event_ticks
         self.previous_interval = previous_interval
-            
+
 
     @property
     def event_rate(self):
@@ -42,18 +48,22 @@ class _StopWatchInterval():
     def laptime(self):
         '''Time difference in ms between
         this interval and the previous one'''
-        return self.time - self.previous_interval.time
-        
+        try:
+            tm = self.time - self.previous_interval.time
+        except Exception as e:
+            tm = 0
+        return tm
+
     @property
     def event_rate_smoothed(self):
-        '''event laptime getter'''
+        '''event laptime getter, as seconds'''
         if self.previous_interval is None:
             return self.event_rate
         return _StopWatchInterval.SMOOTH_COEFF * self.previous_interval.event_rate + (1.0 - _StopWatchInterval.SMOOTH_COEFF) * self.event_rate
 
 
     def __repr__(self):
-        s = 'Event %s took %.2f s, at a rate of %.2f[%.2f] per s' % (self.event_name, self.laptime, self.event_rate, self.event_rate_smoothed)
+        s = 'Event %s took %.2f s, at a rate of %.2f [%.2f] per s' % (self.event_name, self.laptime, self.event_rate, self.event_rate_smoothed)
         return s
 
 
@@ -73,8 +83,7 @@ class StopWatch():
     def __init__(self, qsize=5, event_name=''):
         self.qsize = qsize
         self._event_name = event_name
-        self.reset()    
-        self._prevInterval = None
+        self.reset()
 
     def reset(self):
         '''reset the stopwatch,
@@ -86,6 +95,25 @@ class StopWatch():
         self._firstInterval = _StopWatchInterval(0, None, self._event_name)
         self._prevInterval = self._firstInterval
         self.Times.append(self._firstInterval)
+
+
+    def remaining(self, n):
+        '''(int) -> float
+        Estimate time left in seconds using
+        the smoothed event time
+
+        n:
+            number of events left
+        '''
+        #don't use smoothed till queue is full
+        try:
+            if len(self.Times) < self.qsize:
+                x = self.Times[-1]. event_rate * n
+            else:
+                x = self.Times[-1].event_rate_smoothed * n
+        except Exception as e:
+            x = 0
+        return x
 
 
     def lap(self, event_ticks=1):
@@ -101,7 +129,7 @@ class StopWatch():
         self._prevInterval = Int
 
 
-    @property 
+    @property
     def run_time(self):
         ''' -> float
         Returns:
@@ -109,7 +137,7 @@ class StopWatch():
             since timer initialised or reset
         '''
         return _clock() -  self._birth_time
-    
+
 
     @property
     def birth_time(self):
@@ -147,7 +175,7 @@ class StopWatch():
         assert isinstance(t, _StopWatchInterval)
         return (t.time - self._birth_time)/t.running_event_ticks
 
-    
+
     @property
     def laptime(self):
         '''(void) -> float
@@ -158,8 +186,22 @@ class StopWatch():
 
     def __repr__(self):
         if self.Times:
+            evt = 'lap' if self._event_name == '' else self._event_name
             s = str(self.Times[-1])
-            s = 'Birth time %s. Last "lap":%s' % (self._birth_time, s)
+            s = 'Birth time %s. Last %s :%s' % (self._birth_time, evt, s)
         else:
             s = 'Birth time %s. No laps.' % self._birth_time
         return s
+
+
+    @staticmethod
+    def pretty_now():
+        '''() -> str
+        Pretty date time'''
+        return _time.strftime("%Y-%m-%d %H:%M")
+
+
+    @staticmethod
+    def pretty_time(secs):
+        '''pretty print a duration'''
+        return time_pretty(secs)

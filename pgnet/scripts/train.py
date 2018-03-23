@@ -7,14 +7,14 @@ import os
 from os import path
 import sys
 import time
-from datetime import timedelta
-from datetime import datetime
 
 
 import numpy as np
 import tensorflow as tf
 
 from funclib.baselib import list_get_unique as _lstunq
+from opencvlib.stopwatch import StopWatch
+
 #from pgnet.inputs import image_processing
 from pgnet import model
 from pgnet.inputs import bass
@@ -32,21 +32,20 @@ if not os.path.exists(SESSION_DIR):
 if not os.path.exists(SUMMARY_DIR):
     os.makedirs(SUMMARY_DIR)
 
+
 BATCH_SIZE = int(_ini.Cfg.tryread('train.py', 'BATCH_SIZE', value_on_create=10))
 EPOCHS = int(_ini.Cfg.tryread('train.py', 'EPOCHS', value_on_create=1))
 SHUFFLE_QUEUE_BUFFER_SIZE = int(_ini.Cfg.tryread('train.py', 'SHUFFLE_QUEUE_BUFFER_SIZE', value_on_create=100))
+SAVE_EVERY_N_STEP = int(_ini.Cfg.tryread('train.py', 'SAVE_EVERY_N_STEP', value_on_create=1))
 
 AVG_VALIDATION_ACCURACY_EPOCHS = 1  #stop when
-AVG_VALIDATION_ACCURACIES = [0.0 for _ in range(AVG_VALIDATION_ACCURACY_EPOCHS)] # list of average validation at the end of every epoc
+EPOCH_VALIDATION_ACCURACIES = []
 
 #these are placeholders, values assigned in set_params()
-STEP_FOR_EPOCH = 0
-DISPLAY_STEP = 0
+STEPS_PER_EPOCH = 0 #number of steps in EPOCH
+TOTAL_STEPS = 0
 MAX_ITERATIONS = 0
-MEASUREMENT_STEP = DISPLAY_STEP
 NUM_CLASSES = 2 #bass, not bass
-SAVE_MODEL_STEP = 0
-
 
 
 
@@ -54,16 +53,10 @@ def set_params():
     '''set global params after module bass
     has been initialized so we know
     train pic numbers'''
-    global STEP_FOR_EPOCH
-    STEP_FOR_EPOCH = math.ceil(bass.BassTrain.image_count/BATCH_SIZE)
-    global DISPLAY_STEP
-    DISPLAY_STEP = math.ceil(STEP_FOR_EPOCH / 25)
-    global MAX_ITERATIONS
-    MAX_ITERATIONS = STEP_FOR_EPOCH * 500
-    global MEASUREMENT_STEP
-    MEASUREMENT_STEP = DISPLAY_STEP
-    global SAVE_MODEL_STEP
-    SAVE_MODEL_STEP = math.ceil(STEP_FOR_EPOCH / 2) # tensorflow saver constant
+    global STEPS_PER_EPOCH
+    STEPS_PER_EPOCH = math.ceil(bass.BassTrain.image_count/BATCH_SIZE)
+    global TOTAL_STEPS
+    TOTAL_STEPS = EPOCHS * STEPS_PER_EPOCH
 
 
 def img_get(filename, label):
@@ -182,77 +175,78 @@ def train(args):
                 # endregion
 
                 summary_writer = tf.summary.FileWriter(path.normpath(path.join(SUMMARY_DIR, "train")), graph=sess.graph)
-                total_start = time.time()
-                current_epoch = 0
+
+                current_epoch = 1
                 max_validation_accuracy = 0.0
                 sum_validation_accuracy = 0.0
-
+                watch = StopWatch(qsize=10, event_name='step')
                 try:
                     #Main training loop
-                    for step in range(MAX_ITERATIONS):
-                        start = time.time()
-                        # train, get loss value, get summaries
+                    for step in range(1, STEPS_PER_EPOCH * EPOCHS + 1):
+                        stop_training = False; save = False
                         nd_train_imgs = train_images_batch.eval()
                         nd_train_lbls = train_labels_batch.eval()
 
                         _, loss_val, summary_line, gs_value = sess.run([train_op, loss_op, summary_op, global_step], feed_dict={keep_prob_: 0.4, is_training_: True, images_:nd_train_imgs, labels_:nd_train_lbls})
-
-                        duration = time.time() - start
-                        summary_writer.add_summary(summary_line, global_step=gs_value) # save summary for current step
+                        summary_writer.add_summary(summary_line, global_step=gs_value)
 
                         if np.isnan(loss_val):
                             print('Model diverged with loss = NaN', file=sys.stderr)
-                            # print reshaped logits value for debug purposes
                             print(sess.run(reshaped_logits, feed_dict={keep_prob_: 1.0, is_training_: False, images_:nd_train_imgs, labels_:nd_train_lbls}, file=sys.stderr))
                             return 1
 
-                        if step % DISPLAY_STEP == 0 and step > 0:
-                            examples_per_sec = model.BATCH_SIZE / duration
-                            sec_per_batch = float(duration)
-                            print("{} step: {} loss: {} ({} examples/sec; {} batch/sec)".format(datetime.now(), gs_value, loss_val, examples_per_sec, sec_per_batch))
+                        validation_accuracy, summary_line = validate()
+                        summary_writer.add_summary(summary_line, global_step=gs_value)
+                        train_accuracy, summary_line = sess.run([accuracy, train_accuracy_summary_op], feed_dict={images_:nd_train_imgs, labels_:nd_train_lbls, keep_prob_: 1.0, is_training_: False,})
+                        summary_writer.add_summary(summary_line, global_step=gs_value)
+                        watch.lap()
+                        remain_total_steps = STEPS_PER_EPOCH - step    +  (EPOCHS - current_epoch) * STEPS_PER_EPOCH
+                        time_left_seconds = watch.remaining(remain_total_steps)
 
-                        stop_training = False; save = False
+                        txt_progress = '%s >> Step %s of %s in Epoch %s of %s' % (watch.pretty_now(), step, STEPS_PER_EPOCH, current_epoch, EPOCHS)
+                        txt_step = 'A step takes %s' % watch.pretty_time(watch.event_rate_smoothed)
+                        txt_epoch = 'An epoch is estimated to take %s' %  watch.pretty_time(watch.remaining(TOTAL_STEPS) / EPOCHS)
+                        txt_time_left = 'Maximum time remaining is %s' % watch.pretty_time(time_left_seconds)
+                        txt_loss = 'Loss >> %0.3f' % loss_val
+                        txt_accuracy = 'Batch accuracy >> train: %0.3f, validation: %0.3f' % (train_accuracy, validation_accuracy)
+                        pad = 15
+                        print('\n')
+                        print('%s' % '-' * pad)
+                        print(txt_progress)
+                        print(txt_step)
+                        print(txt_epoch)
+                        print(txt_time_left)
+                        print('%s' % '.' * int(pad*0.5))
+                        print(txt_loss)
+                        print(txt_accuracy)
+                        print('%s' % '-' * pad)
 
-                        if step % MEASUREMENT_STEP == 0 and step > 0:
-                            validation_accuracy, summary_line = validate()
-                            # save summary for validation_accuracy
-                            summary_writer.add_summary(summary_line, global_step=gs_value)
+                        sum_validation_accuracy += validation_accuracy
+                        if validation_accuracy > max_validation_accuracy:
+                            max_validation_accuracy = validation_accuracy
+                            save = True
 
-                            # test accuracy
-                            test_accuracy, summary_line = sess.run([accuracy, train_accuracy_summary_op], feed_dict={images_:nd_train_imgs, labels_:nd_train_lbls, keep_prob_: 1.0, is_training_: False,})
-                            # save summary for training accuracy
-                            summary_writer.add_summary(summary_line, global_step=gs_value)
 
-                            print("{} step: {} validation accuracy: {} training accuracy: {}".format(datetime.now(), gs_value, validation_accuracy, test_accuracy))
+                        if step % STEPS_PER_EPOCH == 0 and step > 0: #END OF AN EPOCH
+                            mean_validation_accuracy = sum_validation_accuracy / STEPS_PER_EPOCH
+                            EPOCH_VALIDATION_ACCURACIES.append(mean_validation_accuracy)
+                            print("Epoch {} finised. Mean validation accuracy: {}".format(current_epoch, mean_validation_accuracy))
 
-                            sum_validation_accuracy += validation_accuracy
-                            if validation_accuracy > max_validation_accuracy:
-                                max_validation_accuracy = validation_accuracy
-                                save = True
-
-                        if step % STEP_FOR_EPOCH == 0 and step > 0:
-                            current_validation_accuracy = sum_validation_accuracy * MEASUREMENT_STEP / STEP_FOR_EPOCH
-                            print("Epoch {} finised. Average validation accuracy/epoch: {}".format(current_epoch, current_validation_accuracy))
-
-                            # sum previous avg accuracy
-                            history_avg_accuracy = sum(AVG_VALIDATION_ACCURACIES) / AVG_VALIDATION_ACCURACY_EPOCHS
-
-                            if current_validation_accuracy <= history_avg_accuracy:
-                                print("Average validation accuracy not increased after {} epochs. Exit".format(AVG_VALIDATION_ACCURACY_EPOCHS))
-                                stop_training = True
-
-                            # save avg validation accuracy in the next slot
-                            AVG_VALIDATION_ACCURACIES[current_epoch % AVG_VALIDATION_ACCURACY_EPOCHS] = current_validation_accuracy
+                            if len(EPOCH_VALIDATION_ACCURACIES) > 1:
+                                if mean_validation_accuracy < sum(EPOCH_VALIDATION_ACCURACIES)/len(EPOCH_VALIDATION_ACCURACIES):
+                                    print("Last epoch did not increase average validation accuracy. Stopping.")
+                                    stop_training = True
 
                             current_epoch += 1
                             sum_validation_accuracy = 0.0
 
-                        if step % SAVE_MODEL_STEP == 0 or (step + 1) == MAX_ITERATIONS or stop_training:
+                        if step % SAVE_EVERY_N_STEP == 0:
                             _ = saver.save(sess, path.normpath(SESSION_DIR + "/model.ckpt"))
 
                         if save:
                             _ = saver.save(sess, path.normpath(SESSION_DIR + "/model-best.ckpt"))
                             print('Model with the highest validation accuracy saved.')
+
 
                         if stop_training:
                             raise StopIteration
@@ -261,11 +255,12 @@ def train(args):
                     #model.export(NUM_CLASSES, SESSION_DIR, "model-0", MODEL_PATH)
                     #this export creates a transferable file, known as a GraphDef, it wont generally be needed.
                     #See https://www.tensorflow.org/mobile/prepare_models
-                    print("Train completed in %s" % str(timedelta(seconds=time.time() - total_start)))
+                    print("Train completed in %s" % watch.pretty_time(watch.run_time))
                 except Exception as e:
                     print(e)
                 finally:
                     summary_writer.flush() # save train summaries to disk
+
 
     else:
         print("Trained model {} already exits".format(MODEL_PATH))

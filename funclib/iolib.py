@@ -1,6 +1,7 @@
 # pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, locally-disabled, not-context-manager, redefined-builtin
 
-'''My file input and output library, e.g. for _csv handling.'''
+'''My file input and output library, e.g. for _csv handling.
+Also for general IO to the console'''
 from __future__ import print_function as _print_function
 
 
@@ -935,3 +936,23 @@ def quite(stdout=True, stderr=True):
         finally:
             _sys.stdout = old_stdout
             _sys.stderr = old_stderr
+
+
+def time_pretty(seconds):
+    '''(float) -> str
+    Return a prettified time interval
+    for printing
+    '''
+    sign_string = '-' if seconds < 0 else ''
+    seconds = abs(int(seconds))
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if days > 0:
+        return '%s%dd %dh %dm %ds' % (sign_string, days, hours, minutes, seconds)
+    elif hours > 0:
+        return '%s%dh %dm %ds' % (sign_string, hours, minutes, seconds)
+    elif minutes > 0:
+        return '%s%dm %ds' % (sign_string, minutes, seconds)
+    else:
+        return '%s%ds' % (sign_string, seconds)
