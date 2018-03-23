@@ -915,7 +915,10 @@ def wait_key(msg=''):
         finally:
             _termios.tcsetattr(fd, _termios.TCSAFLUSH, oldterm)
 
-    return result.decode()
+    if isinstance(result, bytes):
+        return result.decode()
+
+    return result
 
 
 @_contextmanager
