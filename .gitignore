@@ -4,7 +4,7 @@
 # Directories
 opencvlib/calibration
 opencvlib/movies
-
+pgnet/scripts/summary
 # User-specific files
 *.suo
 *.user
