@@ -6,16 +6,13 @@ import math
 import os
 from os import path
 import sys
-import time
-
+import logging
 
 import numpy as np
 import tensorflow as tf
 
 from funclib.baselib import list_get_unique as _lstunq
 from opencvlib.stopwatch import StopWatch
-
-#from pgnet.inputs import image_processing
 from pgnet import model
 from pgnet.inputs import bass
 import pgnet.ini as _ini
@@ -37,6 +34,8 @@ BATCH_SIZE = int(_ini.Cfg.tryread('train.py', 'BATCH_SIZE', value_on_create=10))
 EPOCHS = int(_ini.Cfg.tryread('train.py', 'EPOCHS', value_on_create=1))
 SHUFFLE_QUEUE_BUFFER_SIZE = int(_ini.Cfg.tryread('train.py', 'SHUFFLE_QUEUE_BUFFER_SIZE', value_on_create=100))
 SAVE_EVERY_N_STEP = int(_ini.Cfg.tryread('train.py', 'SAVE_EVERY_N_STEP', value_on_create=1))
+LOG_FILE = _ini.Cfg.tryread('train.py', 'LOG_FILE', os.path.normpath(os.path.join(CURRENT_DIR, 'train.py.log')))
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO, filemod='w')
 
 AVG_VALIDATION_ACCURACY_EPOCHS = 1  #stop when
 EPOCH_VALIDATION_ACCURACIES = []
@@ -88,6 +87,15 @@ def img_get(filename, label):
     return img_standardized, label
 
 
+def log(args, msg):
+    '''(argparse.parse, str) -> void
+    '''
+    if args.log == 'yes':
+        logging.info(msg)
+    else:
+        print(msg)
+
+
 def img_std(image):
     '''(tensor) -> tensor
     Rescale image to float (-1 to 1)
@@ -99,13 +107,17 @@ def img_std(image):
 
 def train(args):
     '''train'''
+    log(args, '\nInifile settings')
+    log(args, 'BATCH_SIZE: %s, EPOCHS: %s, SHUFFLE_QUEUE_BUFFER_SIZE: %s, SAVE_EVERY_N_STEP: %s' % (BATCH_SIZE, EPOCHS, SHUFFLE_QUEUE_BUFFER_SIZE, SAVE_EVERY_N_STEP))
+
     bass.init_(batch_size=BATCH_SIZE, init=['BassTest', 'BassTrain', 'BassEval'])
     set_params()
+
 
     if not os.path.exists(MODEL_PATH):
         graph = tf.Graph()
 
-        with graph.as_default(), tf.device('/cpu:0'):
+        with graph.as_default():
             with tf.variable_scope("train_input"): #open new context to share variables (layers)
                 dsTrain = tf.data.Dataset.from_tensor_slices((bass.BassTrain.img_paths, bass.BassTrain.labels))
                 dsTrain = dsTrain.map(img_get)
@@ -155,8 +167,7 @@ def train(args):
             with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
                 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
                 #coord = tf.train.Coordinator()
-                #threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-
+                #threads = tf.train.start_queue_runners(sess=sess, coord=coord).
                 def validate():
                     '''validation data'''
                     np_validation_imgs = validation_images_batch.eval()
@@ -171,7 +182,7 @@ def train(args):
                 if checkpoint and checkpoint.model_checkpoint_path:
                     saver.restore(sess, checkpoint.model_checkpoint_path)
                 else:
-                    print("[I] Unable to restore from checkpoint")
+                    log(args, "[I] Unable to restore from checkpoint")
                 # endregion
 
                 summary_writer = tf.summary.FileWriter(path.normpath(path.join(SUMMARY_DIR, "train")), graph=sess.graph)
@@ -191,8 +202,9 @@ def train(args):
                         summary_writer.add_summary(summary_line, global_step=gs_value)
 
                         if np.isnan(loss_val):
-                            print('Model diverged with loss = NaN', file=sys.stderr)
-                            print(sess.run(reshaped_logits, feed_dict={keep_prob_: 1.0, is_training_: False, images_:nd_train_imgs, labels_:nd_train_lbls}, file=sys.stderr))
+                            log(args, 'Model diverged with loss = NaN')
+                            s = str(sess.run(reshaped_logits, feed_dict={keep_prob_: 1.0, is_training_: False, images_:nd_train_imgs, labels_:nd_train_lbls}, file=sys.stderr))
+                            log(args, s)
                             return 1
 
                         validation_accuracy, summary_line = validate()
@@ -210,16 +222,15 @@ def train(args):
                         txt_loss = 'Loss >> %0.3f' % loss_val
                         txt_accuracy = 'Batch accuracy >> train: %0.3f, validation: %0.3f' % (train_accuracy, validation_accuracy)
                         pad = 15
-                        print('\n')
-                        print('%s' % '-' * pad)
-                        print(txt_progress)
-                        print(txt_step)
-                        print(txt_epoch)
-                        print(txt_time_left)
-                        print('%s' % '.' * int(pad*0.5))
-                        print(txt_loss)
-                        print(txt_accuracy)
-                        print('%s' % '-' * pad)
+                        log(args, '\n%s' % '-' * pad)
+                        log(args, txt_progress)
+                        log(args, txt_step)
+                        log(args, txt_epoch)
+                        log(args, txt_time_left)
+                        log(args, '%s' % '.' * int(pad*0.5))
+                        log(args, txt_loss)
+                        log(args, txt_accuracy)
+                        log(args, '%s' % '-' * pad)
 
                         sum_validation_accuracy += validation_accuracy
                         if validation_accuracy > max_validation_accuracy:
@@ -230,11 +241,11 @@ def train(args):
                         if step % STEPS_PER_EPOCH == 0 and step > 0: #END OF AN EPOCH
                             mean_validation_accuracy = sum_validation_accuracy / STEPS_PER_EPOCH
                             EPOCH_VALIDATION_ACCURACIES.append(mean_validation_accuracy)
-                            print("Epoch {} finised. Mean validation accuracy: {}".format(current_epoch, mean_validation_accuracy))
+                            log(args, "Epoch {} finised. Mean validation accuracy: {}".format(current_epoch, mean_validation_accuracy))
 
                             if len(EPOCH_VALIDATION_ACCURACIES) > 1:
                                 if mean_validation_accuracy < sum(EPOCH_VALIDATION_ACCURACIES)/len(EPOCH_VALIDATION_ACCURACIES):
-                                    print("Last epoch did not increase average validation accuracy. Stopping.")
+                                    log(args, "Last epoch did not increase average validation accuracy. Stopping.")
                                     stop_training = True
 
                             current_epoch += 1
@@ -245,7 +256,7 @@ def train(args):
 
                         if save:
                             _ = saver.save(sess, path.normpath(SESSION_DIR + "/model-best.ckpt"))
-                            print('Model with the highest validation accuracy saved.')
+                            log(args, 'Model with the highest validation accuracy saved.')
 
 
                         if stop_training:
@@ -255,19 +266,21 @@ def train(args):
                     #model.export(NUM_CLASSES, SESSION_DIR, "model-0", MODEL_PATH)
                     #this export creates a transferable file, known as a GraphDef, it wont generally be needed.
                     #See https://www.tensorflow.org/mobile/prepare_models
-                    print("Train completed in %s" % watch.pretty_time(watch.run_time))
+                    log(args, "Train completed in %s" % watch.pretty_time(watch.run_time))
                 except Exception as e:
-                    print(e)
+                    log(args, print(e))
                 finally:
                     summary_writer.flush() # save train summaries to disk
 
-
     else:
-        print("Trained model {} already exits".format(MODEL_PATH))
+        log(args, "Trained model {} already exits".format(MODEL_PATH))
     return 0
 
 
 if __name__ == "__main__":
     ARG_PARSER = argparse.ArgumentParser(description="Train the model")
     ARG_PARSER.add_argument("--device", default="/cpu:0")
-    sys.exit(train(ARG_PARSER.parse_args()))
+    ARG_PARSER.add_argument("--log", default="no")
+    train(ARG_PARSER.parse_args())
+
+    sys.exit()

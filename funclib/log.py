@@ -49,10 +49,10 @@ class RootLogger(object):
         logger = _logging.getLogger(self._LOGGER_NAME)
         logger.addHandler(rotate_file)
 
-        # print log messages to console
+        #print log messages to console
         consoleHandler = _logging.StreamHandler()
         logFormatter = _logging.Formatter(log_format)
         consoleHandler.setFormatter(logFormatter)
         logger.addHandler(consoleHandler)
-
+        logger.propagate
         self.logger = logger

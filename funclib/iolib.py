@@ -177,12 +177,24 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
     useheader = False
     # make sure we have the correct versions of python
     if _sys.version_info.major == 2:
-        csvfile = open(filename, 'wb')
+        try:
+            csvfile = open(filename, 'wb')
+        except FileNotFoundError as e:
+            print("Could not create file %s, check the file's folder exists." % filename)
+            return
+        except Exception as e:
+            raise e
     elif _sys.version_info.major == 3:
-        csvfile = open(filename, 'w', newline='')
+        try:
+            csvfile = open(filename, 'w', newline='')
+        except FileNotFoundError as e:
+            print("Could not create file %s, check the file's folder exists." % filename)
+            return
+        except Exception as e:
+            raise e
     else:
-        _sys.stderr.write('You need to use python 2* or 3* \n')
-        exit(1)
+        raise NotImplementedError('You need to use python 2* or 3*')
+
 
     # if user passed a numpy array, convert it
     if isinstance(datalist, _numpy_ndarray):

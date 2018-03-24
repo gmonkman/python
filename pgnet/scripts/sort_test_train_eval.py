@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''Start with positive images and negative images in 2 seperate folders.
 Randomly assigns positve and negative images into training, eval and test
