@@ -21,6 +21,24 @@ opencvlib/movies
 *.zip
 *.rar
 *.tar
+*.index
+*.data-00000-of-00001
+*.TOSHIBA
+*.md
+*.pbtxt
+*.exe
+*.dll
+*.graph
+*.xml
+*.xlsx
+*.xslt
+*.xls
+*.doc
+*.docx
+*.db
+*.pdf
+*.bak
+*.lnk
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -366,7 +384,6 @@ ENV/
 
 # OSX
 # =========================
-
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -409,55 +426,28 @@ $RECYCLE.BIN/
 *.msp
 
 # Windows shortcuts
-*.lnk
-permanal/data/fmm_results1000.csv
-permanal/data/fmm_results10000.csv
-permanal/data/pam_results1000.csv
-permanal/data/pam_results10000.csv
-permanal/data/fmm_results_i10_No0
-permanal/data/pam_results_i10_No0
-permanal/data/pam_results_i10.0_No0
-*.csv
-permanal/data/kendall_100000/fmm_results_i100000.xlsx
-permanal/data/kendall_100000/pam_results_i100000_No0.xlsx
-permanal/data/kendall_100000/fmm_results_i100000_No0.xlsx
-permanal/data/kendall_100000/pam_results_i100000.xlsx
-permanal/data/kendall_100000/kendall_100000_master.xlsx
-*.xlsx
+
+
+#PROJECT SPECIFIC
+permanal/data/*
+permanal/output/*
+
 focalpermute/RESULT20161003181026.txt
-*.db
-*.pdf
-*.bak
+focalpermute/data/*
+
+imagedb/CodeGraphData/Result_pgnet/xml/classtest__bass_1_1_test.xml
 imagedb/CodeGraphData/Result_pgnet/xml/compound.xsd
 imagedb/CodeGraphData/Result_pgnet/xml/combine.xslt
-imagedb/CodeGraphData/Result_pgnet/xml/classtest__bass_1_1_test.xml
-*.xml
 imagedb/CodeGraphData/Result_pgnet/xml/index.xsd
-*.graph
 imagedb/CodeGraphData/config.json
-*.dll
-haar/opencv_annotation.exe
-*.exe
+
+imgscrape/sel/*.csv
+
 pgnet-master/LICENSE
 pgnet-master/results/VOC2012/Action/_dummy
 pgnet-master/results/VOC2012/Segmentation/_dummy
-pgnet/scripts/session/checkpoint
-*.data-00000-of-00001
-pgnet/scripts/summary/train/events.out.tfevents.1521133563.TOSHIBA
-*.TOSHIBA
 pgnet-master/results/VOC2012/Main/_dummy
 pgnet-master/results/VOC2012/Layout/_dummy
-*.md
-*.pbtxt
-*.index
-*.index
-pgnet/scripts/session/model-best-0.index
-*.index
-pgnet/scripts/session/model-0.index
-pgnet/scripts/session/model-0.index
-*.index
-pgnet/scripts/session/model-0.index
-pgnet/scripts/session/model-best-0.index
-*.index
-*.index
-pgnet/scripts/session/model-0.index
+pgnet/scripts/session/*
+
+pgnet/pgnet.ini
