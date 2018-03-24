@@ -1,8 +1,12 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access, unused-import
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access, unused-import, too-many-return-statements
 '''transforms on an image which return an image'''
 import cv2 as _cv2
 import numpy as _np
 from enum import Enum as _Enum
+import logging as _logging
+from inspect import getsourcefile as _getsourcefile
+import os.path as _path
+
 
 import funclib.baselib as _baselib
 import scipy.stats as _stats
@@ -10,10 +14,33 @@ import skimage as _skimage
 import opencvlib.decs as _decs
 from opencvlib import getimg as _getimg
 from opencvlib import color as _color
-from opencvlib import Log as _Log
+
 from opencvlib.color import BGR2HSV, BGR2RGB, HSVtoGrey, togreyscale
 import opencvlib.roi as _roi
 from funclib.iolib import quite
+import funclib.iolib as _iolib
+
+
+
+
+SILENT = True
+
+_pth = _iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
+_LOGPATH = _path.normpath(_path.join(_pth, 'features.py.log'))
+_logging.basicConfig(format='%(asctime)s %(message)s', filename=_LOGPATH, filemode='w', level=_logging.DEBUG)
+
+def _prints(s, log=True):
+    '''silent print'''
+    if not SILENT:
+        print(s)
+    if log:
+        _logging.propagate = False
+        _logging.info(s)
+        _logging.propagate = True
+
+_prints('Logging to %s' % _LOGPATH)
+
+
 
 
 #from scikit-image
@@ -133,7 +160,7 @@ class Transforms():
         Transforms are executed FIFO when executeQueue is invoked
         '''
         s = 'Queued transforms ' + ' '.join([f._func.__name__ for f in args])
-        _Log.info(s)
+        _logging.info(s)
         self.tQueue.extend(args)
 
 

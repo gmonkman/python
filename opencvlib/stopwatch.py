@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import
 '''Class with a stopwatch to calculate
 the time and rates of events'''
 
@@ -50,7 +50,7 @@ class _StopWatchInterval():
         this interval and the previous one'''
         try:
             tm = self.time - self.previous_interval.time
-        except Exception as e:
+        except Exception as _:
             tm = 0
         return tm
 
@@ -84,6 +84,8 @@ class StopWatch():
         self.qsize = qsize
         self._event_name = event_name
         self.reset()
+        self._prevInterval = None
+
 
     def reset(self):
         '''reset the stopwatch,
@@ -111,7 +113,7 @@ class StopWatch():
                 x = self.Times[-1]. event_rate * n
             else:
                 x = self.Times[-1].event_rate_smoothed * n
-        except Exception as e:
+        except Exception as _:
             x = 0
         return x
 

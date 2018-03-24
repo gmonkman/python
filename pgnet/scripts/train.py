@@ -6,7 +6,7 @@ import math
 import os
 from os import path
 import sys
-import logging
+from pysimplelog import Logger
 
 import numpy as np
 import tensorflow as tf
@@ -16,6 +16,7 @@ from opencvlib.stopwatch import StopWatch
 from pgnet import model
 from pgnet.inputs import bass
 import pgnet.ini as _ini
+from funclib.iolib import files_delete2
 
 
 # graph parameteres
@@ -34,8 +35,12 @@ BATCH_SIZE = int(_ini.Cfg.tryread('train.py', 'BATCH_SIZE', value_on_create=10))
 EPOCHS = int(_ini.Cfg.tryread('train.py', 'EPOCHS', value_on_create=1))
 SHUFFLE_QUEUE_BUFFER_SIZE = int(_ini.Cfg.tryread('train.py', 'SHUFFLE_QUEUE_BUFFER_SIZE', value_on_create=100))
 SAVE_EVERY_N_STEP = int(_ini.Cfg.tryread('train.py', 'SAVE_EVERY_N_STEP', value_on_create=1))
+
 LOG_FILE = _ini.Cfg.tryread('train.py', 'LOG_FILE', os.path.normpath(os.path.join(CURRENT_DIR, 'train.py.log')))
-logging.basicConfig(filename=LOG_FILE, level=logging.INFO, filemod='w')
+files_delete2(LOG_FILE)
+Log = Logger(name='train', logToStdout=False, logToFile=True, logFileMaxSize=1)
+Log.set_log_file(LOG_FILE)
+
 
 AVG_VALIDATION_ACCURACY_EPOCHS = 1  #stop when
 EPOCH_VALIDATION_ACCURACIES = []
@@ -91,7 +96,7 @@ def log(args, msg):
     '''(argparse.parse, str) -> void
     '''
     if args.log == 'yes':
-        logging.info(msg)
+        Log.info(msg)
     else:
         print(msg)
 
@@ -221,16 +226,15 @@ def train(args):
                         txt_time_left = 'Maximum time remaining is %s' % watch.pretty_time(time_left_seconds)
                         txt_loss = 'Loss >> %0.3f' % loss_val
                         txt_accuracy = 'Batch accuracy >> train: %0.3f, validation: %0.3f' % (train_accuracy, validation_accuracy)
-                        pad = 15
-                        log(args, '\n%s' % '-' * pad)
+                        log(args, '\n---------------')
                         log(args, txt_progress)
                         log(args, txt_step)
                         log(args, txt_epoch)
                         log(args, txt_time_left)
-                        log(args, '%s' % '.' * int(pad*0.5))
+                        log(args, '.......')
                         log(args, txt_loss)
                         log(args, txt_accuracy)
-                        log(args, '%s' % '-' * pad)
+                        log(args, '---------------')
 
                         sum_validation_accuracy += validation_accuracy
                         if validation_accuracy > max_validation_accuracy:

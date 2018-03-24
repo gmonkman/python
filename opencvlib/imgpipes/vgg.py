@@ -78,6 +78,7 @@ logging.basicConfig(format='%(asctime)s %(message)s',
                     filemode='w',
                     level=logging.DEBUG)
 
+
 _prints('Logging to %s' % _LOG_FILE_NAME)
 
 

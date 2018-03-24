@@ -23,15 +23,34 @@ import opencvlib.keypoints as _keypoints
 import opencvlib.transforms as _transforms
 import opencvlib.info as _info
 
-from opencvlib import Log as _Log
 from opencvlib.view import show as _show
 
 from funclib import iolib as _iolib
 from funclib import baselib as _baselib
 
+
+import logging as _Log
+from inspect import getsourcefile as _getsourcefile
+
+
+_pth = _iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
+_LOGPATH = _path.normpath(_path.join(_pth, 'features.py.log'))
+_Log.basicConfig(format='%(asctime)s %(message)s', filename=_LOGPATH, filemode='w', level=_Log.DEBUG)
+
+def _prints(s, log=True):
+    '''silent print'''
+    if not SILENT:
+        print(s)
+    if log:
+        _Log.propagate = False
+        _Log.info(s)
+        _Log.propagate = True
+
+_prints('Logging to %s' % _LOGPATH)
+
+
 DESCRIPTOR_EXT = '.dsc'
 FEATURE_POINT_EXT = '.fpt'
-
 SILENT = False
 
 class eFeatureDetectorType(_Enum):
@@ -259,7 +278,7 @@ class _BaseDetector(_ABC):
                 _show(self._img)
 
         except Exception as e:
-            _Log.exception('Keypoints or descriptors image dump or show failed.')
+            #_Log.exception('Keypoints or descriptors image dump or show failed.')
             if not SILENT: print('Error was ' + str(e))
 
 
@@ -863,18 +882,6 @@ def _openCV(img):
 @_decs.decgetimg
 def _opengrey(img):
     return _opencvlib.transforms.togreyscale(img)
-
-
-def _prints(s, log=True):
-    '''silent print'''
-    if not SILENT:
-        print(s)
-    if log:
-        _Log.propagate = False
-        _Log.info(s)
-        _Log.propagate = True
-#endregion
-
 
 
 #region ENTRY
