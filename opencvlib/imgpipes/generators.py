@@ -21,6 +21,8 @@ from os import path as _path
 import abc as _abc
 from enum import Enum as _Enum
 from warnings import warn as _warn
+import logging as _logging
+from inspect import getsourcefile as _getsourcefile
 
 
 import cv2 as _cv2
@@ -45,14 +47,33 @@ import opencvlib.imgpipes.voc_utils as _voc
 
 import opencvlib.roi as _roi
 import opencvlib.transforms as _transforms
-from opencvlib import Log as _log
-
 from opencvlib import IMAGE_EXTENSIONS_AS_WILDCARDS as _IMAGE_EXTENSIONS_AS_WILDCARDS
 
 #__all__ = ['image_generator', 'Images', 'DigikamSearchParams', 'VGGSearchParams']
 
 # hard coded vgg file which needs to be in each directory
 VGG_FILE = 'vgg.json'
+
+
+SILENT = True
+
+_pth = _iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
+_LOGPATH = _path.normpath(_path.join(_pth, 'features.py.log'))
+_logging.basicConfig(format='%(asctime)s %(message)s', filename=_LOGPATH, filemode='w', level=_logging.DEBUG)
+
+
+def _prints(s, log=True):
+    '''silent print'''
+    if not SILENT:
+        print(s)
+    if log:
+        _logging.propagate = False
+        _logging.info(s)
+        _logging.propagate = True
+
+_prints('Logging to %s' % _LOGPATH)
+
+
 
 
 class eDigiKamSearchType(_Enum):
@@ -129,7 +150,7 @@ class _Generator(_BaseGenerator):
             try:
                 img = self.transforms.executeQueue(img)
             except ValueError as e:
-                _log.exception(str(e))
+                _logging.exception(str(e))
         return img
 
 
@@ -312,7 +333,7 @@ class DigiKam(_Generator):
                         yield img, imgpath, {}
             except Exception as dummy:
                 s = 'Processing of %s failed.' % imgpath
-                _log.exception(s)
+                _logging.exception(s)
 
 
 
@@ -423,7 +444,7 @@ class FromPaths(_Generator):
                         yield img, imgpath, {}
             except Exception as dummy:
                 s = 'Processing of %s failed.' % imgpath
-                _log.exception(s)
+                _logging.exception(s)
 
 
 
@@ -525,14 +546,14 @@ class VGGDigiKam(_Generator):
                                                 if isinstance(i, _np.ndarray):
                                                     mask, dummy, dummy1, cropped_image = _roi.roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
                                                 else:
-                                                    _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                                                    _logging.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
                                                     cropped_image = None
 
                                             yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask, 'roi':region.all_points}
 
                 except Exception as dummy:
                     s = 'Processing of file:%s failed.' % Img.filepath
-                    _log.exception(s)
+                    _logging.exception(s)
         else:
             for fld in self.vggParams.folders:
 
@@ -571,13 +592,13 @@ class VGGDigiKam(_Generator):
                                                 if isinstance(i, _np.ndarray):
                                                     mask, dummy, dummy1, cropped_image = _roi.roi_polygons_get(i, region.all_points) #3 is the image cropped to a rectangle, with black outside the region
                                                 else:
-                                                    _log.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
+                                                    _logging.warning('File %s was readable, but ignored because of a filter or failed image transformation. This can usually be ignored.')
                                                     cropped_image = None
 
                                             yield cropped_image, Img.filepath, {'species':spp, 'part':part, 'shape':region.shape, 'mask':mask, 'roi':region.all_points}
                 except Exception as dummy:
                     s = 'Processing of file:%s failed.' % Img.filepath
-                    _log.exception(s)
+                    _logging.exception(s)
 
 
 class VGGImages(_Generator):
@@ -628,7 +649,7 @@ class VGGImages(_Generator):
                         img = super().generate(img)
                         yield img, I.filepath, {}
             except Exception as e:
-                _log.exception(e)
+                _logging.exception(e)
                 if not self.silent:
                     _warn(str(e))
 
@@ -718,7 +739,7 @@ class VGGROI(_Generator):
                             img = _roi.cropimg_xywh(img, reg.x, reg.y, reg.w, reg.h)
                             yield img, I.filepath, reg
             except Exception as e:
-                _log.exception(e)
+                _logging.exception(e)
                 if not self.silent:
                     _warn(str(e))
 
@@ -950,7 +971,7 @@ class RegionDualPosNeg():
                 ineg = _roi.roi_polygons_get(imgnegT, self._neg_list[ind][1])
             except Exception as _:
                 s = 'Failed to generate a test region for %s' % img_path
-                _log.warning(s)
+                _logging.warning(s)
                 ipos = None
                 ineg = None
             finally:
@@ -1015,7 +1036,7 @@ class RegionPosRandomNeg():
 
             if test_region is None:
                 s = 'Failed to generate a test region for %s' % img_path
-                _log.warning(s)
+                _logging.warning(s)
                 continue
 
             yield img, test_region, {'imgpath':img_path, 'region_img_path':region_img_path}
@@ -1103,7 +1124,7 @@ class VOC(_Generator):
                     s = 'Processing of %s failed.' % fname
                     if not self.silent:
                         print(s)
-                    _log.exception(s)
+                    _logging.exception(s)
 
 
 

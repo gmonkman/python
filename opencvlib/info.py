@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, unused-import
 '''info about an image'''
 from enum import Enum as _Enum
 from glob import glob as _glob

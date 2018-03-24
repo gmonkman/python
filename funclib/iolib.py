@@ -14,6 +14,7 @@ import shutil as _shutil
 import string as _string
 import tempfile as _tempfile
 from contextlib import contextmanager as _contextmanager
+from contextlib import suppress as _suppress
 import datetime as _datetime
 
 try:
@@ -619,6 +620,23 @@ def file_list_glob_generator(wilded_path, recurse=False):
 
     for file in _glob.iglob(wilded_path, recursive=recurse):
         yield _os.path.normpath(file)
+
+
+def files_delete2(filenames):
+    '''(list|str) -> void
+    Delete file(s) without raising an error
+
+    filenames:
+        a string or iterable
+
+    Example:
+    >>>files_delete2('C:/myfile.tmp')
+    >>>files_delete2(['C:/myfile.tmp', 'C:/otherfile.log'])
+    '''
+    if isinstance(filenames, str):
+        filenames = [filenames]
+    with _suppress(FileNotFoundError):
+        _ = [_os.remove(fname) for fname in filenames]
 
 
 def files_delete(folder, delsubdirs=False):
