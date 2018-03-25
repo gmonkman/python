@@ -8,10 +8,13 @@ __all__ = [
     'excellib',
     'inifilelib',
     'iolib',
+    'jsonlib',
+    'log',
     'numericslib',
     'pandaslib',
     'shell_lib',
     'statslib',
+    'stopwatch',
     'stringslib']
 
 

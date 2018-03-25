@@ -65,10 +65,12 @@
     </Compile>
     <Compile Include="shell_lib.py" />
     <Compile Include="statslib.py" />
+    <Compile Include="stopwatch.py" />
     <Compile Include="stringslib.py" />
     <Compile Include="test\test_arraylib.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\test_stopwatch.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>

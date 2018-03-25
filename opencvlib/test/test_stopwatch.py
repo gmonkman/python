@@ -29,6 +29,7 @@ class Test(unittest.TestCase):
         SW = stopwatch.StopWatch(event_name='test')
         time.sleep(3)
         SW.lap(3)
+        print(SW)
         self.assertAlmostEqual(SW.event_rate, 1, places=2)
         print(SW.remaining(10))
         self.assertAlmostEqual(SW.remaining(10), SW.event_rate*10, places=2)

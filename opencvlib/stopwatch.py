@@ -16,8 +16,9 @@ def _clock():
     returns absolute time in seconds since
     ticker started (usually when OS started
     '''
-    return _cv2.getTickCount() / _cv2.getTickFrequency()
-
+    # _cv2.getTickCount() / _cv2.getTickFrequency()
+    return _time.time()
+  
 
 class _StopWatchInterval():
     '''stop watch interval'''
@@ -83,8 +84,8 @@ class StopWatch():
     def __init__(self, qsize=5, event_name=''):
         self.qsize = qsize
         self._event_name = event_name
-        self.reset()
         self._prevInterval = None
+        self.reset()
 
 
     def reset(self):
@@ -97,6 +98,7 @@ class StopWatch():
         self._firstInterval = _StopWatchInterval(0, None, self._event_name)
         self._prevInterval = self._firstInterval
         self.Times.append(self._firstInterval)
+
 
 
     def remaining(self, n):
