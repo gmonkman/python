@@ -11,6 +11,7 @@ import os
 import math
 
 import cv2
+from Augmentor import Pipeline
 
 from opencvlib.view import show
 import funclib.iolib as iolib
@@ -19,6 +20,7 @@ import opencvlib.imgpipes.generators as gen
 import opencvlib.transforms as transforms
 import opencvlib.common as common
 import opencvlib.info as info
+
 
 PP = iolib.PrintProgress()
 
@@ -78,6 +80,8 @@ def main():
 
 
     print('\n%s of %s images processed. %s images skipped.\n' % (processed, PP.max, skipped))
+
+
 
 
 

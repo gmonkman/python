@@ -18,7 +18,6 @@ Conventions:
 
 pgnet
 """
-
 import math
 import os
 import sys

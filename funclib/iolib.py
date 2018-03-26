@@ -851,7 +851,7 @@ def print_progress(
     if iteration == total:
         print("\n")
 
-
+#In the consider using tqdm
 class PrintProgressFlash(object):
     '''class to print a progress flasher
     to console
@@ -888,7 +888,7 @@ class PrintProgressFlash(object):
         _sys.stdout.write('%s\r' % s)
         _sys.stdout.flush()
 
-
+#In the future consider using tqdm
 class PrintProgress(object):
     '''Class for dos progress bar. Implement as global for module level progress
 

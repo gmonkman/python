@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_stopwatch.py</StartupFile>
+    <StartupFile>script_transforms\view_gamma_cont.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -96,10 +96,14 @@ roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/
     <Compile Include="script_aruco\aruco_in_vid.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="script_augment\make_train.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="script_objdetect\by_segmentation_filtered.py" />
     <Compile Include="script_objdetect\by_segmentation.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="script_transforms\view_gamma_cont.py" />
     <Compile Include="script_transforms\view_adapthist.py" />
     <Compile Include="script_transforms\view_unsharp_mask.py" />
     <Compile Include="script_transforms\sharpen.py" />
@@ -274,6 +278,7 @@ roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/
     <Folder Include="calibration\nextbase512g\" />
     <Folder Include="imgpipes\" />
     <Folder Include="bin\" />
+    <Folder Include="script_augment\" />
     <Folder Include="scripts_tensorflow\" />
     <Folder Include="script_transforms\" />
     <Folder Include="script_aruco\" />

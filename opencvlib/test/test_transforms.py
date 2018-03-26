@@ -26,9 +26,9 @@ class Test(unittest.TestCase):
         self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
         self.imggraf = r'C:\development\python\opencvlib\test\bin\images\graf1.png'
 
+        self.img_matt_pemb5 = _getimg(self.imgpath)
         self.blurred = _getimg(self.imggraf)
         self.blurred = cv2.GaussianBlur(self.blurred, (9, 9), 10)
-
 
 
     @unittest.skip("Temporaily disabled while debugging")
@@ -63,11 +63,29 @@ class Test(unittest.TestCase):
         show(mosaic([img, self.I]))
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_unsharpmask(self):
         '''sharpen'''
         img = t.sharpen_unsharpmask(self.blurred, kernel_size=(21, 21), weight=1.1)
         show(mosaic([self.blurred, img]))
+
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_intensity_wrapper(self):
+        '''tests intensity wrapper and
+        intensity transform'''
+        #this should increase the contrast
+        iout = t.intensity_wrapper(self.img_matt_pemb5, 1)
+        show(iout)
+        #this should decrease the contrast
+        iout = t.intensity_wrapper(self.img_matt_pemb5, -1)
+        show(iout)
+
+
+    def test_brightness(self):
+        '''bright'''
+        iout = t.brightness(self.img_matt_pemb5, -20)
+        show(iout)
 
 
 if __name__ == '__main__':

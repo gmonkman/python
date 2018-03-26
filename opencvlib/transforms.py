@@ -6,7 +6,8 @@ from enum import Enum as _Enum
 import logging as _logging
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
-
+from random import shuffle as _shuffle
+from math import floor as _floor
 
 import funclib.baselib as _baselib
 import scipy.stats as _stats
@@ -29,11 +30,15 @@ _pth = _iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
 _LOGPATH = _path.normpath(_path.join(_pth, 'features.py.log'))
 _logging.basicConfig(format='%(asctime)s %(message)s', filename=_LOGPATH, filemode='w', level=_logging.DEBUG)
 
-def _prints(s, log=True):
+
+
+_getval = lambda val_in, out_min, out_max, val_in_max: val_in*(out_max - out_min)*(1/val_in_max) + out_min
+
+def _prints(s, log2file=True):
     '''silent print'''
     if not SILENT:
         print(s)
-    if log:
+    if log2file:
         _logging.propagate = False
         _logging.info(s)
         _logging.propagate = True
@@ -92,7 +97,7 @@ class Transform():
     we will wrap them in transforms.py
     '''
     def __init__(self, func, *args, **kwargs):
-        '''the functionand the arguments to be applied
+        '''the function and the arguments to be applied
         '''
         self._args = args
         self._kwargs = kwargs
@@ -163,6 +168,10 @@ class Transforms():
         _logging.info(s)
         self.tQueue.extend(args)
 
+    def shuffle(self):
+        '''inplace random shuffle of the transform queue
+        '''
+        _shuffle(self.tQueue)
 
     @_decs.decgetimgmethod
     def executeQueue(self, img=None):
@@ -192,19 +201,19 @@ class Transforms():
 
 #skimage transforms in skimage.exposure
 @_decs.decgetimgsk
-def adjust_gamma(img, gamma=1, gain=1):
+def gamma1(img, gamma_=1, gain=1):
     '''(ndarray|str, float, float) -> BGR-ndarray
     Performs Gamma Correction on the input image.
     Transforms the input image pixelwise according to the equation O = I**gamma after scaling each pixel to the range 0 to 1.
 
     eg: gamma_corrected = exposure.adjust_gamma(image, 2)
     '''
-    i = _exposure.adjust_gamma(img, gamma, gain)
+    i = _exposure.adjust_gamma(img, gamma_, gain)
     return _color.RGB2BGR(i)
 
 
 @_decs.decgetimgsk
-def adjust_log(img, gain=1, inv=False):
+def log(img, gain=1, inv=False):
     '''(ndarray|str, float, bool) -> BGR-ndarray
     '''
     i = _exposure.adjust_log(img, gain=gain, inv=inv)
@@ -230,7 +239,7 @@ def int32_to_uint8(ndarray, absolute=True):
 
 
 @_decs.decgetimgsk
-def adjust_sigmoid(img, cutoff=0.5, gain=10, inv=False):
+def sigmoid(img, cutoff=0.5, gain=10, inv=False):
     '''(ndarray|str, float, float, bool) -> BGR-ndarray
     Performs Sigmoid Correction on the input image.
     '''
@@ -328,8 +337,9 @@ def equalize_hist(img, nbins=256, mask=None):
 
 
 @_decs.decgetimgsk
-def rescale_intensity(img, in_range='image', out_range='dtype'):
+def intensity(img, in_range='image', out_range='dtype'):
     '''(ndarray|str, str|2-tuple, str|2-tuple) -> ndarray
+    Rescales image range to out_range.
 
     in_range, out_range : str or 2-tuple
     Min and max intensity values of input and output image. The possible values for this parameter are enumerated below.
@@ -341,11 +351,58 @@ def rescale_intensity(img, in_range='image', out_range='dtype'):
     dtype-name
         Use intensity range based on desired dtype. Must be valid key in DTYPE_RANGE.
     2-tuple
-        Use range_values as explicit min/max intensities.
+        Use range_values as explicit min/max intensities, in_range and out_range
+        are uint8.
+        eg (0, 255) or (10, 200)
+
+    Example:
+        >>>I = intensity(img, 'image', out_range=(10, 200)) #decrease contrast
+        >>>I = intensity(img, (10, 210), out_range=(0, 255)) #increase contrast
     '''
     i = _exposure.rescale_intensity(img, in_range=in_range, out_range=out_range)
     return _color.RGB2BGR(i)
 #endregion
+
+
+
+def intensity_wrapper(img, intensity_=0):
+    '''(ndarray|str, float) -> ndarray
+    Friendly wrapper for intensity, allowing
+    intensity to be set with a single value.
+
+    intensity_
+        Takes a single value between -1 and 1,
+        0 is no change, < 0 decreases contrast
+        > 0 increases contrast.
+    '''
+    img = _getimg(img)
+    assert isinstance(img, _np.ndarray)
+    range_ = (img.min(), img.max())
+
+    if -1 > intensity_ > 1:
+        raise ValueError('Invalid value for intensity_, intensity not -1 <= intensity <= 1')
+
+    if intensity_ == 0:
+        return img
+
+    mid_in = (range_[1] - range_[0]) / 2 #centre point of range, ie (100, 200) = 150
+    mid_in_size = abs(range_[1] - mid_in) #1/2 the size of range, ie 50
+
+    mid_out = mid_in
+    mid_out_size = mid_in_size
+
+    if intensity_ < 0: #intensity decrease, shrink output range, increase input range
+        in_range = (0, 255)
+        sz = _floor(_getval(abs(intensity_), 0, mid_out_size, 1))
+        out_range = (range_[0] + sz, range_[1] - sz)
+    else: #intensity increase, shrink input range, leave output range untouched
+        out_range = (0, 255)
+        sz = _floor(_getval(abs(intensity_), 0, mid_in_size, 1))
+        in_range = (range_[0] + sz, range_[1] - sz)
+
+    i = intensity(img, in_range=in_range, out_range=out_range)
+    return i
+
 
 
 def chswap(img, new_order):
@@ -524,6 +581,52 @@ def rotate(image, angle, no_crop=True):
         return _cv2.warpAffine(img, M, (nW, nH))
 
     return _cv2.warpAffine(img, M, (w, h))
+
+
+def gamma(img, gamma_=1.0):
+    '''(str|ndarray, float) -> ndarray
+    Adjust gamma of an image
+
+    gamma:
+        1 means no adjustment, range for gamma_
+        is 0 -> infinity
+        Sensible ranges are 0 -> 5
+    '''
+    img = _getimg(img)
+    invGamma = 1 if gamma_ == 0 else 1.0 / gamma_
+    table = _np.array([((i / 255.0) ** invGamma) * 255 for i in _np.arange(0, 256)]).astype("uint8")
+    return _cv2.LUT(img, table)
+
+
+def brightness(img, value):
+    '''(ndarray|str, int) -> ndarray
+    Adjust brightness of image.
+
+    Simply does a clipped add of value to the v channel
+    after converting image to HSV.
+    '''
+    img = _getimg(img)
+
+    if value == 0:
+        return(img)
+
+    hsv = _cv2.cvtColor(img, _cv2.COLOR_BGR2HSV)
+    h, s, v = _cv2.split(hsv)
+    value = int(value)
+    lim_upper = 255 - value
+    v[v > lim_upper] = 255
+
+    lim_lower = abs(value)
+    v[v < lim_lower] = 0
+
+    if value >= 0: #this is a workaround to a numpy bug on uints
+        v[_np.bitwise_and(v > lim_lower, v <= lim_upper) == True] += value
+    else:
+        v[_np.bitwise_and(v > lim_lower, v <= lim_upper) == True] -= abs(value)
+
+    final_hsv = _cv2.merge((h, s, v))
+    img = _cv2.cvtColor(final_hsv, _cv2.COLOR_HSV2BGR)
+    return img
 
 
 def histeq_color(img, cvtToHSV=True):
