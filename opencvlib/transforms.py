@@ -7,6 +7,7 @@ import logging as _logging
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 from random import shuffle as _shuffle
+from random import uniform as _uniform
 from math import floor as _floor
 
 import funclib.baselib as _baselib
@@ -95,14 +96,22 @@ class Transform():
 
     Where we cant store 3rd party lib transforms directly
     we will wrap them in transforms.py
+
+    func: the function
+    *args, **kwargs: func arguments
+    p: probability of execution, between 0 and 1.
     '''
-    def __init__(self, func, *args, **kwargs):
+    def __init__(self, func, *args, p=1, **kwargs):
         '''the function and the arguments to be applied
+
+        p is the probability it will be applied
         '''
         self._args = args
         self._kwargs = kwargs
         self._func = func
+        self.p = p if 0 <= p <= 1 else 1
         self.img_transformed = None
+
 
 
     @_decs.decgetimgmethod
@@ -129,10 +138,29 @@ class Transform():
 
 
 class Transforms():
-    '''class which holds a queue of Transform classes
-    to apply to a single image.
+    '''
+    Queue transforms and apply to image in FIFO order.
 
-    Transforms are first in - first out
+    properties:
+        img: ndarray, loaded as ndarray if str
+        img_transformed: img after applying the queued transforms
+
+    methods:
+        add: add a transform to the back of the queue
+        shuffle: randomly shuffle the transforms
+        executeQueue:   apply the transforms to self.img, or
+                        pass in a new image
+
+
+    example:
+    >>> from transforms import Transforms as t
+    >>> t1 = t.Transform(t.brightness, p=0.5, value=50)
+    >>> t2 = t.Transform(t.gamma, gamma=0.7)
+    >>> t3 = t.Transform(t.rotate, angle=90)
+    >>> ts = t.Transforms(t1, t2, t3)
+    >>> ts.shuffle()
+    >>> ts.executeQueue('C:/temp/myimg.jpg')
+    >>> cv2.imshow(ts.img_transformed)
     '''
     def __init__(self, *args, img=None):
         '''(str|ndarray, Transform(s))
@@ -140,10 +168,10 @@ class Transforms():
         Transforms can be queued before
         setting img.
         '''
-        self.img = _getimg(img)
+        self._img = _getimg(img)
         self.img_transformed = None
-        self.tQueue = []
-        self.tQueue.extend(args)
+        self._tQueue = []
+        self._tQueue.extend(args)
 
 
     def __call__(self, img=None, execute=True):
@@ -151,65 +179,73 @@ class Transforms():
         Set image if not done previously
         '''
         if not img is None:
-            self.img = _getimg(img)
+            self._img = _getimg(img)
 
         if execute:
             self.executeQueue()
 
 
     def add(self, *args):
-        '''(Transform|Transforms)->void
-
+        '''(Transform|Transforms) -> void
         Queue a transform or many transforms.
 
-        Transforms are executed FIFO when executeQueue is invoked
+        Example:
+        >>>t1 = t.Transform(t.brightness, value=50)
+        >>>ts = t.Transforms(t1) #initialise a transforms instance and queue 1 transform
+        >>>t2 = t.Transform(t.gamma, gamma=0.7)
+        >>>t3 = t.Transform(t.rotate, angle=90)
+        >>>ts.add(t2, t3) #add 2 more transforms to the queue
         '''
         s = 'Queued transforms ' + ' '.join([f._func.__name__ for f in args])
         _logging.info(s)
-        self.tQueue.extend(args)
+        self._tQueue.extend(args)
 
     def shuffle(self):
         '''inplace random shuffle of the transform queue
         '''
-        _shuffle(self.tQueue)
+        _shuffle(self._tQueue)
 
-    @_decs.decgetimgmethod
-    def executeQueue(self, img=None):
+
+    def executeQueue(self, img=None, print_debug=False):
         '''(str|ndarray)->ndarray
-        perform the transformations. Is FIFO.
-        Set img_transformed property, and returns
-        the transformed image
+        Execute transformation, FIFO order and
+        set img_transformed property to the transformed
+        image. Also returns the transformed image.
+
+        img:
+            Image file path or ndarray of image.
+        print_debug:
+            prints the transforms to console.
+
+        Returns:
+            transformed image as ndarray
         '''
         if not img is None:
-            self.img = img
+            self._img = _getimg(img)
 
         first = True
-        if _baselib.isempty(self.tQueue):
-            return self.img
+        if _baselib.isempty(self._tQueue):
+            return self._img
 
-        for T in self.tQueue:
+        for T in self._tQueue:
+            pp = _uniform(0, T.p)
+            if T.p < pp:
+                if print_debug:
+                    print('Skipped %s [%s, %s]. (%.2f < %.2f)' % (T._func.__name__, T._args, T._kwargs, T.p, pp))
+                break
+
+            if print_debug:
+                print('Executing %s [%s, %s]' % (T._func.__name__, T._args, T._kwargs))
+
             assert isinstance(T, Transform)
             if first:
-                self.img_transformed = T.exectrans(self.img)
+                self.img_transformed = T.exectrans(self._img)
                 first = False
             else:
                 self.img_transformed = T.exectrans(self.img_transformed)
 
         return self.img_transformed
 #endregion
-
-
-#skimage transforms in skimage.exposure
-@_decs.decgetimgsk
-def gamma1(img, gamma_=1, gain=1):
-    '''(ndarray|str, float, float) -> BGR-ndarray
-    Performs Gamma Correction on the input image.
-    Transforms the input image pixelwise according to the equation O = I**gamma after scaling each pixel to the range 0 to 1.
-
-    eg: gamma_corrected = exposure.adjust_gamma(image, 2)
-    '''
-    i = _exposure.adjust_gamma(img, gamma_, gain)
-    return _color.RGB2BGR(i)
 
 
 @_decs.decgetimgsk
@@ -387,8 +423,6 @@ def intensity_wrapper(img, intensity_=0):
 
     mid_in = (range_[1] - range_[0]) / 2 #centre point of range, ie (100, 200) = 150
     mid_in_size = abs(range_[1] - mid_in) #1/2 the size of range, ie 50
-
-    mid_out = mid_in
     mid_out_size = mid_in_size
 
     if intensity_ < 0: #intensity decrease, shrink output range, increase input range
@@ -595,7 +629,23 @@ def gamma(img, gamma_=1.0):
     img = _getimg(img)
     invGamma = 1 if gamma_ == 0 else 1.0 / gamma_
     table = _np.array([((i / 255.0) ** invGamma) * 255 for i in _np.arange(0, 256)]).astype("uint8")
-    return _cv2.LUT(img, table)
+    itmp = _cv2.LUT(img, table)
+    return itmp
+
+
+#skimage transforms in skimage.exposure
+@_decs.decgetimgsk
+def gamma1(img, gamma_=1, gain=1):
+    '''(ndarray|str, float, float) -> BGR-ndarray
+    Uses skimage version.
+
+    Performs Gamma Correction on the input image.
+    Transforms the input image pixelwise according to the equation O = I**gamma after scaling each pixel to the range 0 to 1.
+
+    eg: gamma_corrected = exposure.adjust_gamma(image, 2)
+    '''
+    i = _exposure.adjust_gamma(img, gamma_, gain)
+    return _color.RGB2BGR(i)
 
 
 def brightness(img, value):
@@ -619,10 +669,8 @@ def brightness(img, value):
     lim_lower = abs(value)
     v[v < lim_lower] = 0
 
-    if value >= 0: #this is a workaround to a numpy bug on uints
-        v[_np.bitwise_and(v > lim_lower, v <= lim_upper) == True] += value
-    else:
-        v[_np.bitwise_and(v > lim_lower, v <= lim_upper) == True] -= abs(value)
+    v[_np.bitwise_and(v > lim_lower, v <= lim_upper) is True] += _np.uint8(value)
+
 
     final_hsv = _cv2.merge((h, s, v))
     img = _cv2.cvtColor(final_hsv, _cv2.COLOR_HSV2BGR)

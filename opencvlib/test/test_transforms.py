@@ -12,6 +12,7 @@ import opencvlib.transforms as t
 from opencvlib.view import show
 from opencvlib.view import mosaic
 from opencvlib.common import draw_points
+from opencvlib.display_utils import KeyBoardInput as Keys
 
 _fShow = lambda pts: show(draw_points(pts))
 
@@ -82,10 +83,28 @@ class Test(unittest.TestCase):
         show(iout)
 
 
+    @unittest.skip("Temporaily disabled while debugging")
     def test_brightness(self):
         '''bright'''
         iout = t.brightness(self.img_matt_pemb5, -20)
         show(iout)
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_transform_shuffle(self):
+        '''shuffle'''
+        print('Press "q" to stop')
+        t1 = t.Transform(t.brightness, value=50)
+        t2 = t.Transform(t.gamma, gamma_=0.7)
+        t3 = t.Transform(t.rotate, angle=90)
+        Ts = t.Transforms(t1, t2, t3)
+
+        while True:
+            iout = Ts.executeQueue(img=self.img_matt_pemb5, print_debug=True)
+            print('\n')
+            if Keys.check_pressed_key('q', show(iout)[0]):
+                break
+            Ts.shuffle()
 
 
 if __name__ == '__main__':

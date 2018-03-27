@@ -439,6 +439,8 @@ def folder_has_files(fld, ext_dotted=[]):
     Does the folder contain files, optionally matching
     extensions. Extensions are dotted.
 
+    Returns false if the folder does not exist.
+
     fld:
         folder path
     ext_dotted:
