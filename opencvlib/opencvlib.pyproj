@@ -5,15 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>script_transforms\view_gamma_cont.py</StartupFile>
+    <StartupFile>script_imagepipes\dump_digikam.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>-a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/all"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -95,6 +94,9 @@ make_train.py -n 10 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="script_aruco\aruco_in_vid.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="script_imagepipes\dump_digikam.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="script_augment\make_train.py">
@@ -279,6 +281,7 @@ make_train.py -n 10 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/
     <Folder Include="calibration\nextbase512g\" />
     <Folder Include="imgpipes\" />
     <Folder Include="bin\" />
+    <Folder Include="script_imagepipes\" />
     <Folder Include="script_augment\" />
     <Folder Include="scripts_tensorflow\" />
     <Folder Include="script_transforms\" />

@@ -5,14 +5,11 @@
       <SnippetTypes>
         <SnippetType>Expansion</SnippetType>
       </SnippetTypes>
-      <Title>global_cmdline</Title>
+      <Title>cmdline_args</Title>
       <Author>Graham Monkman</Author>
-      <Description>
-      </Description>
-      <HelpUrl>
-      </HelpUrl>
-      <Shortcut>
-      </Shortcut>
+      <Description>Argparse command lines</Description>
+      <HelpUrl></HelpUrl>
+      <Shortcut></Shortcut>
     </Header>
     <Snippet>
       <Code Language="Python" Delimiter="$"><![CDATA[
@@ -23,12 +20,7 @@ import argparse
 
 def main():
 	'''main'''
-    cmdline = argparse.ArgumentParser(description='Description'
-                                      'this is a description '
-                                      'and another line with two new lines.\n\n'
-                                      'Example:\n'
-                                      'scipt.py -part whole "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler"'
-                                      )
+    cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
 
     #named: eg script.py -part head
     cmdline.add_argument('-part', '--part', help='The region part eg. head.', required=True)
@@ -41,13 +33,21 @@ def main():
     #args.folder == 'c:/temp'
     cmdline.add_argument('folder', help='folder')
 
-    #multiple arguments: e.g. script.py -files_in 'c:/' 'd:/'
+	#get a list from comma delimited args
+	
+	#see https://stackoverflow.com/questions/15753701/argparse-option-for-passing-a-list-as-option
+	f = lambda s: [int(itme) for item in s.split(',')]
+	parser.add_argument('-l', '--list', type=f, help='delimited list input, eg -l 12,13,14', type=str)
+	#mylist = args.list
+	
+    #multiple positional arguments: e.g. script.py -files_in 'c:/' 'd:/'
     #for fname in args.files_in:
     cmdline.add_argument('-i', '--files_in', help='VGG JSON files to merge', nargs='+')
     args = cmdline.parse_args()
     if args.recurse == True:
         #dostuff
     
+	
 if __name__ == "__main__":
     main()
 

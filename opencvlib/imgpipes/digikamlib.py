@@ -318,7 +318,7 @@ class ImagePaths(object):
             relative_path='',
             **kwargs):
         '''(str, str, str,str, Key-value kwargs representing parent tag name and child tag name)->list
-        
+
         Performs and between parent tags, and OR within parent tags.
         eg. (species='bass' or 'pollack') and (occlusion=0 or occlusion=10)
 
@@ -332,7 +332,7 @@ class ImagePaths(object):
         '''
 
         aliases = 'abcdefghijklmnopqrstyvwxyz'
-        
+
         start_sql = 'SELECT distinct zz.id, zz.identifier, zz.specificPath, zz.relativePath, zz.name FROM '
 
 
@@ -360,7 +360,7 @@ class ImagePaths(object):
         aliases_used = []
         lst_tables = []
         where = []
-        
+
         if kwargs:
             first = True
             for key, value in kwargs.items():
@@ -372,14 +372,14 @@ class ImagePaths(object):
                             " (parent.name='%s' AND children.name='%s') OR" % (key, val))
                 else: #occlusion='0'
                     where.append(" (parent.name='%s' AND children.name='%s') AND" % (key, value))
-                
+
                 if where[-1][-3:] == 'AND' or where[-1][-4:] == 'AND ':
                     where[-1] = _rreplace(where[-1], 'AND', '', 1)
 
                 if where[-1][-2:] == 'OR' or where[-1][-3:] == 'OR ':
                     where[-1] = _rreplace(where[-1], 'OR', '', 1)
 
-                w = ''.join(where)   
+                w = ''.join(where)
                 tmp = inner_template.replace('___REPLACE___', w)
                 if first:
                     tmp = tmp.replace('_TABLE_ALIAS', aliases[i] + '\n') #as x    - ie the first table
@@ -387,8 +387,8 @@ class ImagePaths(object):
                 else:
                     s = aliases[i] + ' on ' + aliases[i-1] + '.id=' + aliases[i] + '.id\n' #as y on x.id=y.id
                     tmp = tmp.replace('_TABLE_ALIAS', s)
-                
-                tmp.replace("parent.name='__any__' AND'", " ") #passing in _any_=['10','20] should ignore parent
+
+                tmp = tmp.replace("parent.name='__any__' AND", " ") #passing in _any_=['10','20] should ignore parent
 
                 lst_tables.append(tmp)
                 aliases_used.append(aliases[i])
@@ -397,8 +397,8 @@ class ImagePaths(object):
         else:
             tables_sql = ''
 
-        
-        
+
+
 
 
         #make the final sql query (table alias zz)
@@ -409,7 +409,7 @@ class ImagePaths(object):
             'Images '
             'inner join Albums on albums.id=images.album '
             ' inner join AlbumRoots on AlbumRoots.id=Albums.albumRoot '
-            'where 1=1 '    
+            'where 1=1 '
             ]
 
 
@@ -435,9 +435,9 @@ class ImagePaths(object):
             lst_final_sql.append(s)
         else:
             lst_final_sql.append(') as zz')
-            
+
         final_sql = ''.join(lst_final_sql)
-        
+
         query = ''.join([start_sql, tables_sql, final_sql])
 
 
@@ -547,7 +547,7 @@ class ImagePaths(object):
         # Fix string if we arnt bothered about a parent match for any kwarg args
         # which would look like:
         # where parent.name='__any__' AND children.name='bass'
-        query.replace("parent.name='__any__' AND'", " ")
+        query = query.replace("parent.name='__any__' AND", " ")
         rf = _ReadFiles(query, self.digikam_path)
 
         if not SILENT:
@@ -561,11 +561,11 @@ class ImagePaths(object):
 
     #TODO Doesnt currently work because of the
     #kwarg handling
-    #    (parent.name = 'fins' AND 
-                   #           children.name = 'dorsal_spiny') 
+    #    (parent.name = 'fins' AND
+                   #           children.name = 'dorsal_spiny')
     #        AND
-        #    (parent.name = 'fins' AND 
-                   #           children.name = 'causal') 
+        #    (parent.name = 'fins' AND
+                   #           children.name = 'causal')
     #All of these cant be true
     #need to convert it to be like the OR
     def images_by_tags_and(
@@ -664,7 +664,7 @@ class ImagePaths(object):
         # Fix string if we arnt bothered about a parent match for any kwarg args
         # which would look like:
         # where parent.name='__any__' AND children.name='bass'
-        query.replace("parent.name='__any__' AND'", " ")
+        query = query.replace("parent.name='__any__' AND ", " ")
         rf = _ReadFiles(query, self.digikam_path)
 
         if not SILENT:

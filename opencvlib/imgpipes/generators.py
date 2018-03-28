@@ -254,7 +254,19 @@ class DigikamSearchParams():
         The albums relative folder path on the file system
         SQLLite:Albums.relativePath
         e.g. /bass/angler
+    search_type:
+        booling rules to apply
+    keyvaluetags:
+        An unlimited number of key/value tags, where the key
+        is the parent tag and the values are subtags, noting subtags
+        can be a list.
+        Should support the special key value _any_, which will ignore
+        the parent.
+        Examples:
+            __any__ = ['tag1', 'tag2']
+            parenttag1=['tag1', 'tag2], parenttag2=['tag1', 'tag2']
     '''
+    SearchType = eDigiKamSearchType
 
     def __init__(self, filename='', album_label='', relative_path='', search_type=eDigiKamSearchType.innerOr_outerAnd, **keyvaluetags):
         self.filename = filename
@@ -274,7 +286,19 @@ class DigikamSearchParams():
 
 #region Generators
 class DigiKam(_Generator):
-    '''Generate images based on a digikam filter'''
+    '''Generate images based on a digikam filter.
+    Instantiate with an instance of generators.DigikamSearchParams.
+
+    Parameters:
+        digikam_params:
+            an instance of DigikamSearchParams
+
+    Methods
+        generate:generate images, or just paths
+
+    Comment:
+        See DigikamSearchParams.__doc__ for parameter options.
+    '''
 
     #load db in class context for efficiency
     dkImages = _digikamlib.ImagePaths(_config.digikamdb)
@@ -292,7 +316,9 @@ class DigiKam(_Generator):
 
     @property
     def image_list(self):
-        '''image_list getter'''
+        '''() -> list
+        Returns the list of image paths
+        '''
         return self._image_list
 
 
@@ -334,7 +360,6 @@ class DigiKam(_Generator):
             except Exception as dummy:
                 s = 'Processing of %s failed.' % imgpath
                 _logging.exception(s)
-
 
 
     def _refresh_image_list(self, force=False):

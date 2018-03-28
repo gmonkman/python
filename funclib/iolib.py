@@ -748,6 +748,58 @@ def write_to_file(results, prefix='', open_in_npp=True, full_file_path=''):
     return filename
 
 
+def file_copy(src, dest, rename=False, create_dest=True, dest_is_folder=False):
+    '''(str, str, bool, bool, bool) -> str
+    Copy a file from src to dest. Optionally
+    rename the file if it already exists in dest.
+
+    Can create the dest folder if it doesnt exist even when
+    dest is a folder or a full file name.
+
+    src:
+       source file path
+    dest:
+        destination folder or full file path
+    rename:
+        create a new file if dest exists
+    create_dest:
+        create the destination folder if it does not exist
+    dest_is_folder:
+        destination is not a filename but a folder
+    Returns:
+        the name of the created file
+
+    Example:
+    >>>file_copy('c:/temp/myfile.txt', 'c:/temp/newfolder/myfile.txt',
+                    create_dest=True,  dest_is_folder=False)
+    >>>file_copy('c:/temp/myfile.txt', 'c:/temp/subfolder',
+                    create_dest=True, dest_is_folder=True)
+
+    '''
+    if dest_is_folder:
+        _, fname, _ = get_file_parts2(src)
+        if not folder_exists(dest) and create_dest:
+            _os.mkdir(dest)
+        dest = _os.path.join(dest, fname)
+    else:
+        pth, fname, ext = get_file_parts(dest)
+        if not folder_exists(pth) and create_dest:
+            _os.mkdir(pth)
+
+    cnt = 0
+    if rename and file_exists(dest):
+        pth, fname, ext = get_file_parts(dest)
+        dest =  _os.path.join(pth, '%s%s%s' % (fname, _stringslib.rndstr(4), ext))
+        while file_exists(dest):
+            cnt +=1
+            dest = _os.path.join(pth, '%s%s%s' % (fname, _stringslib.rndstr(4), ext))
+            if cnt > 1000: #safety
+                break
+
+    _shutil.copy2(src, dest)
+    return dest
+
+
 def file_create(file_name):
     '''(str) -> void
     creates file if it doesnt exist
@@ -901,8 +953,8 @@ class PrintProgress(object):
         pp.increment
     '''
 
-    def __init__(self, maximum=0, bar_length=30):
-        print('\n')
+    def __init__(self, maximum=0, bar_length=30, init_msg='\n'):
+        print(init_msg)
         self.max = maximum
         self.bar_length = bar_length
         self.iteration = 1

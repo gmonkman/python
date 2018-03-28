@@ -409,7 +409,8 @@ def intensity_wrapper(img, intensity_=0):
     intensity_
         Takes a single value between -1 and 1,
         0 is no change, < 0 decreases contrast
-        > 0 increases contrast.
+        > 0 increases contrast. Sensible values
+        are +/-0.5
     '''
     img = _getimg(img)
     assert isinstance(img, _np.ndarray)
