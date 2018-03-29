@@ -1,7 +1,10 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled,
 # no-self-use, unused-argument
-'''Copies files with defined tags to
-a specified subfolder where the image has valid regions
+'''
+Merge multiple vgg files.
+
+Example
+merge_vggs.py - "C:/temp/a.json" "D:/temp/c.json" -o "C:/temp/merged.json"
 '''
 import argparse
 import os.path as path
@@ -13,22 +16,11 @@ from funclib.baselib import dic_merge_two
 
 
 def main():
-    '''(str, kwags)->void
-    Copies files matching the tags kwargs to
-    the subfolder where the image has no set
-    '''
-
-    cmdline = argparse.ArgumentParser(description='Copies image files to a specified subfolder where which have'
-                                      ' the specified tags in digikam\n\n'
-                                      'Only images in the root of the VGG file folder are checked.\n\n'
-                                      )
-    cmdline.add_argument('-i', '--files_in',
-                         help='VGG JSON files to merge', nargs='+')
-    cmdline.add_argument('-f', '--fix_keys', help='Fix keys, only valid with the -c option',
-                         action='store_true')  # position argument
-    cmdline.add_argument('-o', '--out', help='Output file')
+    '''entry'''
+    cmdline = argparse.ArgumentParser(description=__doc__)
+    cmdline.add_argument('-i', '--files_in', help='VGG JSON files to merge', nargs='+', required=True)
+    cmdline.add_argument('-o', '--out', help='Output file', required=True)
     args = cmdline.parse_args()
-
     vgg.SILENT = True
 
     # precheckes
@@ -42,7 +34,7 @@ def main():
             return
 
         try:
-            vgg.load_json(fname, args.fix_keys, backup=False)
+            vgg.load_json(fname)
             # Python 3.5 syntax y = {**x, **z} not currently supported in PTVS
             # 2017 Apr
             merged = dic_merge_two(merged, vgg.JSON_FILE)

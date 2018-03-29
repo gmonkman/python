@@ -26,6 +26,7 @@ from funclib.iolib import get_file_parts as _get_file_parts
 from funclib.iolib import get_file_parts2 as _get_file_parts2
 
 from funclib.iolib import print_progress as _print_progress
+from funclib.iolib import file_exists as _file_exists
 from funclib.baselib import list_not as _list_not
 from funclib.baselib import list_and as _list_and
 from funclib.baselib import dic_match as _dic_match
@@ -145,15 +146,34 @@ def fix_keys(backup=True, show_progress=False, del_if_no_file=False):
     _prints('\n\nKey fixing complete.\n')
 
 
-def imagesGenerator():
-    '''Generate VGG.Image class objects
+def imagesGenerator(skip_imghdr_check=False):
+    '''(bool)
+    Generate VGG.Image class objects
     for every image in the vgg file
+
+    skip_imghdr_check:
+        Perform simple file exists check instead of using
+        the imghdrlibrary to determine if the file is a
+        valid image.
+
+    Comments:
+        Use the skip_imghdr_check if valid
+        image files are being skipped.
+
+    Yields:
+        VGG.Image class intances
     '''
     for img in JSON_FILE:
         pth = _get_file_parts2(_JSON_FILE_NAME)[0]
         img_pth = _path.join(pth, JSON_FILE[img]['filename'])
-        if _ImageInfo.is_image(img_pth):
-            i = Image(img_pth)
+        if skip_imghdr_check:
+            if _file_exists(img_pth):
+                i = Image(img_pth)
+        else:
+            if _ImageInfo.is_image(img_pth):
+                i = Image(img_pth)
+
+        if isinstance(i, Image):
             yield i
 
 
