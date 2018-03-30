@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_vgg\rotate.py</StartupFile>
+    <StartupFile>scripts_vgg\img2roi.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-u "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/rotated_skipped/skipped" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/rotated_skipped" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/rotated_skipped/rotated" vgg_rotations.json</CommandLineArguments>
+    <CommandLineArguments>-m req_new_dir -p roi "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/all" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/roi" vgg_body.json</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -100,10 +100,11 @@ dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Docum
     <Compile Include="script_aruco\aruco_in_vid.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="script_augment\make_train_imgaug.py" />
     <Compile Include="script_imagepipes\dump_digikam.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="script_augment\make_train.py">
+    <Compile Include="script_augment\make_train_augmentor.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="script_objdetect\by_segmentation_filtered.py" />
@@ -285,6 +286,7 @@ dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Docum
     <Folder Include="calibration\nextbase512g\" />
     <Folder Include="imgpipes\" />
     <Folder Include="bin\" />
+    <Folder Include="script_augment\bin\" />
     <Folder Include="script_imagepipes\" />
     <Folder Include="script_augment\" />
     <Folder Include="scripts_tensorflow\" />
@@ -321,9 +323,12 @@ dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Docum
     <Content Include="make_model.bat" />
     <Content Include="requirements.txt" />
     <Content Include="scripts_vgg\fixvgg.bat" />
-    <Content Include="scripts_vgg\img2roi.bat" />
+    <Content Include="scripts_vgg\img2roi_.bat" />
     <Content Include="scripts_vgg\rotate.bat" />
     <Content Include="scripts_vgg\vgg_body-caudal.json" />
+    <Content Include="script_augment\bin\25.jpg" />
+    <Content Include="script_augment\bin\30.jpg" />
+    <Content Include="script_augment\bin\50.jpg" />
     <Content Include="script_objdetect\detectors.cfg" />
     <Content Include="pylintrc" />
     <Content Include="script_objdetect\lobster\vlcsnap-00001.jpg" />

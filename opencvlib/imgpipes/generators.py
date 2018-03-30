@@ -714,8 +714,8 @@ class VGGROI(_Generator):
         super().__init__(*args, **kwargs)
 
 
-    def generate(self, shape_type='rect', region_attrs=None, path_only=False, outflag=_cv2.IMREAD_UNCHANGED):
-        '''(str|list|None, dict, bool, cv2.imread option) -> ndarray|None, str, dict
+    def generate(self, shape_type='rect', region_attrs=None, path_only=False, outflag=_cv2.IMREAD_UNCHANGED, skip_imghdr_check=False):
+        '''(str|list|None, dict, bool, cv2.imread option, bool) -> ndarray|None, str, dict
         Yields the images with the bounding boxes and category name of all objects
         in the pascal voc images
 
@@ -734,6 +734,10 @@ class VGGROI(_Generator):
             <0  Loads as is, with alpha channel if present
             0   Force grayscale
             >0  3 channel color iage (stripping alpha if present
+        skip_imghdr_check:
+            The Python imghdr lib is used to check for an image, but this can
+            be unreliable. simple_file_check will just check that the image
+            exists.
 
 
         Yields:
@@ -751,7 +755,7 @@ class VGGROI(_Generator):
         for vgg_file in self.vgg_file_paths:
             try:
                 _vgg.load_json(vgg_file)
-                for I in _vgg.imagesGenerator():
+                for I in _vgg.imagesGenerator(skip_imghdr_check=skip_imghdr_check):
                     for reg in I.roi_generator(shape_type, self.region_attrs):
                         assert isinstance(reg, _vgg.Region)
                         if path_only:
