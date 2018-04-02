@@ -419,7 +419,8 @@ class FromPaths(_Generator):
         if none exists.
 
     Example:
-        fp = generators.FromPaths('C:/temp', wildcards='*.jpg')
+        fp = generators.FromPaths('C:/temp', wildcards='*.jpg',
+                            transforms=Transforms, filters=Filters)
     '''
     def __init__(self, paths, *args, wildcards=_IMAGE_EXTENSIONS_AS_WILDCARDS, **kwargs):
         self._paths = paths

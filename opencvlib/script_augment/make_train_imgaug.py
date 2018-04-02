@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+#pylint: skip-file
 '''
 Generate training images with random corrections
 and distortions. This is used to generate
@@ -14,7 +14,7 @@ Example:
 #make_train_imgaug.py -n 10 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass", "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass/subsamples"
 import argparse
 from os import path
-import os
+
 
 import random
 import shutil
@@ -27,8 +27,8 @@ import cv2
 import funclib.iolib as iolib
 from opencvlib.imgpipes.generators import FromPaths
 from opencvlib import transforms
-from opencvlib.display_utils import KeyBoardInput as Keys
-from opencvlib.view import show
+
+
 
 
 

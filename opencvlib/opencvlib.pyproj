@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_vgg\img2roi.py</StartupFile>
+    <StartupFile>learning\forest.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-m req_new_dir -p roi "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/all" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/roi" vgg_body.json</CommandLineArguments>
+    <CommandLineArguments>"C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\candidate\roi_whole\resized"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -44,7 +44,9 @@ roi2img.py -m skip -p "" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/
 
 make_train.py -n 10 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass_subsample"
 
-dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/all"</Environment>
+dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/all"
+
+average_resize -h mean "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole/resized"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -72,6 +74,9 @@ dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Docum
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="imgpipes\voc_utils.py" />
+    <Compile Include="learning\forest.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="lenscorrection\fisheye.py" />
     <Compile Include="matcher.py">
       <SubType>Code</SubType>
@@ -83,9 +88,6 @@ dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Docum
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_streams\play.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="scripts_tensorflow\make_base_images.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_tensorflow\make_negs.py">
@@ -107,10 +109,12 @@ dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Docum
     <Compile Include="script_augment\make_train_augmentor.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts_vgg\view_images_vgg.py" />
     <Compile Include="script_objdetect\by_segmentation_filtered.py" />
     <Compile Include="script_objdetect\by_segmentation.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="script_transforms\average_resize.py" />
     <Compile Include="script_transforms\view_gamma_cont.py" />
     <Compile Include="script_transforms\view_adapthist.py" />
     <Compile Include="script_transforms\view_unsharp_mask.py" />
@@ -220,7 +224,7 @@ dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Docum
     <Compile Include="lenscorrection\lenscorrection.py" />
     <Compile Include="lenscorrection\lenscorrectiondb.py" />
     <Compile Include="lenscorrection\__init__.py" />
-    <Compile Include="scripts_vgg\view_images.py">
+    <Compile Include="script_transforms\view_transform_fld.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="script_objdetect\config.py" />
@@ -286,6 +290,7 @@ dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Docum
     <Folder Include="calibration\nextbase512g\" />
     <Folder Include="imgpipes\" />
     <Folder Include="bin\" />
+    <Folder Include="learning\" />
     <Folder Include="script_augment\bin\" />
     <Folder Include="script_imagepipes\" />
     <Folder Include="script_augment\" />
@@ -302,6 +307,7 @@ dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Docum
     <Folder Include="lenscorrection\" />
     <Folder Include="scripts_vgg\" />
     <Folder Include="test\bin\images\" />
+    <Folder Include="test\bin\learning_data\" />
     <Folder Include="test\bin\movie\" />
     <Folder Include="test\imgpipes\" />
     <Folder Include="test\lenscorrection\" />
@@ -346,6 +352,7 @@ dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Docum
     <Content Include="test\bin\images\pca_test1.jpg" />
     <Content Include="test\bin\images\vgg_regions.json" />
     <Content Include="test\bin\images\vgg_rotations.json" />
+    <Content Include="test\bin\learning_data\sonar.all-data.csv" />
     <Content Include="test\bin\movie\lobster-lowres.mp4" />
     <Content Include="test\bin\movie\test-mpeg_512kb.mp4" />
   </ItemGroup>

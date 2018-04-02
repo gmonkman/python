@@ -649,6 +649,19 @@ def gamma1(img, gamma_=1, gain=1):
     return _color.RGB2BGR(i)
 
 
+def denoise(img, sigma):
+    '''uses the dctDenoising algo from
+    opencv to denoise an image.
+
+    sigma:
+        value, typically between 0 and 50.
+    '''
+    i = _getimg(img)
+    iout = _np.copy(i)
+    _cv2.xphoto.dctDenoising(i, iout, sigma)
+    return iout
+
+
 def brightness(img, value):
     '''(ndarray|str, int) -> ndarray
     Adjust brightness of image.

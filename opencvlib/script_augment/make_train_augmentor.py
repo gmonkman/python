@@ -14,9 +14,6 @@ Example:
 #make_train_augmentor.py -n 10 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass", "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass/subsamples"
 import argparse
 from os import path
-import tempfile
-import os
-import glob
 
 import random
 import shutil
@@ -29,9 +26,6 @@ import cv2
 import funclib.iolib as iolib
 from opencvlib.imgpipes.generators import FromPaths
 from opencvlib import transforms
-from opencvlib.display_utils import KeyBoardInput as Keys
-from opencvlib.view import show
-
 
 
 def chkempty(dirs):

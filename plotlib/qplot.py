@@ -4,7 +4,7 @@
 import matplotlib.pyplot as Plot
 import matplotlib.mlab as _mlab
 import numpy as _np
-
+import funclib.baselib as _baselib
 #import scipy.stats as _stats
 #import math as _math
 
@@ -60,6 +60,10 @@ def scatter(x_data, y_data, group_labels=(), show=True):
             raise ValueError('x_data and y_data lengths must match')
 
     groups = []
+    if not group_labels or len(group_labels) != len(x):
+        print('\nGroup labels empty, or len(group_labels) != len(data). Creating custom labels.')
+        group_labels = []
+        _ = [group_labels.append(str(x)) for x in range(len(x_data))]
 
     for ind, x in enumerate(x_data):
         if len(group_labels) >= ind:

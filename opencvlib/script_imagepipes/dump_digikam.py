@@ -22,13 +22,11 @@ Examples:
     Dump all images with a tag bass and dab in the album IMAGES
     in database C:/digikam.db to folder C:/dump_to_folder
         dump_digikam.py -a IMAGES -k SPECIES -t BASS,DAB "C:/digikam.db" "C:/dump_to_folder"
-
-
 '''
 #dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/all"
 import argparse
 from os import path
-from time import sleep
+
 #import os
 #from contextlib import suppress
 from tqdm import tqdm
@@ -70,7 +68,7 @@ def main():
     search_type = args.search_type.upper()
     key = '__any__' if args.key == '' else args.key
     tags = args.tags #should now be  a list, e.g. ['a', 'b', 'c', 'd']
-    dic = {args.key:tags}
+    dic = {key:tags}
 
     search_type = DigikamSearchParams.SearchType.and_ if args.search_type == 'AND' else DigikamSearchParams.SearchType.or_
     dkp = DigikamSearchParams(album_label=args.album, relative_path=args.album_path, search_type=search_type, **dic)
