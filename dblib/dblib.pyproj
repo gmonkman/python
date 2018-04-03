@@ -34,7 +34,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="pylintrc" />
-    <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">

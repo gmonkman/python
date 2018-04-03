@@ -800,12 +800,14 @@ def file_copy(src, dest, rename=False, create_dest=True, dest_is_folder=False):
     return dest
 
 
-def file_create(file_name):
-    '''(str) -> void
-    creates file if it doesnt exist
+def file_create(file_name, s=''):
+    '''(str, str) -> void
+    Creates file  and write s to it
+    if it doesnt exist
     '''
     if not _os.path.isfile(file_name):
-        write_to_eof(file_name, '')
+
+        write_to_eof(file_name, s)
 
 
 def fixp(pth):

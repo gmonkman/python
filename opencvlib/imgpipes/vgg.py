@@ -11,6 +11,23 @@ x = Columns, with origin at left
 y = Rows, with origin at top
 
 So: 50x50 image. Top Left x=0,y=0: Bottom Right x=50, y=50
+
+
+Example:
+Iterate over every image
+and region specified in the vgg JSON file.
+
+for img in vgg.
+img = vgg.Image(
+    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass' \
+    '/angler/10150756_851703354845619_1559938228217274444_n.jpg'
+    )
+assert isinstance(img, vgg.Image)
+for subject in img.subjects_generator('bass'):
+    assert isinstance(subject, vgg.Subject)
+    for region in subject.regions_generator():
+        assert isinstance(region, vgg.Region)
+        print(region.species, region.part, region.shape)
 '''
 
 import os.path as _path
@@ -288,6 +305,9 @@ class Image(object):
         has no idea of a subject, where a subject represents
         an object of interest, which may have multiple
         associated ROIs.
+
+        This is a more general version of the subjects generator
+        which is currently specific to defined fish species.
 
         shape_type:
             The type of shape, 'rect', 'circle', 'point', 'ellipse'.
