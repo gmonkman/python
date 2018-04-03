@@ -4,10 +4,10 @@ import xml.etree.ElementTree as _et
 from xml.dom import minidom as _minidom
 from os import path as _path
 
-from tqdm import tqdm as _tqdm
 
 import opencvlib.imgpipes.vgg as _vgg
 import funclib.iolib as _iolib
+from funclib.iolib import PrintProgress as _PP
 import funclib.stringslib as _stringslib
 import opencvlib.roi as _roi
 
@@ -50,31 +50,37 @@ def vgg2xml(vgg_in, xml_out):
     create_xml(xml_out)
     tree = _et.parse(xml_out)
     root = tree.getroot()
-    images = root.find('images')
+    eImages = root.find('images')
 
-    assert isinstance(images, _et.Element)
+    assert isinstance(eImages, _et.Element)
     _vgg.load_json(vgg_in)
 
     x = sum(1 for n in _vgg.imagesGenerator(skip_imghdr_check=True))
-    for Img in _tqdm.tqdm(_vgg.imagesGenerator(skip_imghdr_check=True), ascii=True, n=x):
-        assert isinstance(Img, _vgg.Image)
-        eImg = images.Element('image')
-        eImg.attrib = {'file':Img.filename}
-        eBox = eImg.append('box') #add bounding box later
+    PP = _PP(x)
+    for vggImg in _vgg.imagesGenerator(skip_imghdr_check=True):
+        PP.increment()
+        assert isinstance(vggImg, _vgg.Image)
+        eImg = _et.SubElement(eImages, 'image', {'file':vggImg.filename})
+        eBox = _et.SubElement(eImg, 'box')
         pts = []
-        for Reg in Img.roi_generator(shape_type='point'):
-            assert isinstance(Reg, _vgg.Region)
-            lbl = int(Reg.region_key) + 1 if Reg.region_attr['pts'] is None else Reg.region_attr['pts']
+        for vggReg in vggImg.roi_generator(shape_type='point'):
+            assert isinstance(vggReg, _vgg.Region)
+            lbl = int(vggReg.region_json_key) + 1 if vggReg.region_attr.get('pts', None) is None else vggReg.region_attr['pts']
             lbl = str(lbl)
-            pts.append([Reg.x, Reg.y])
-            ePart = eBox.append('part')
-            ePart.attrib = {'name':lbl.zfill(2), 'x':str(pts[0]), 'y':str(pts[1])}
+            pts.append([vggReg.x, vggReg.y])
+            ePart = _et.SubElement(eBox, 'part', {'name':lbl.zfill(2), 'x':str(vggReg.x), 'y':str(vggReg.y)})
 
+        res = vggImg.resolution
         x, y, w, h = _roi.bounding_rect_of_poly(pts, as_points=False)
+        pad = 10
+        x = x - pad if x > pad - 1 else 0
+        y = y - pad if y > pad - 1 else 0
+        w  = w + pad if x + pad <=  res[0] else res[0] - x
+        h  = h + pad if y + pad <=  res[1] else res[1] - y
         eBox.attrib = {'top':str(y), 'left':str(x), 'width':str(w), 'height':str(h)}
 
     tree.write(xml_out)
-    print('XML written to %s')
+    print('XML written to %s' % xml_out)
 
 
 

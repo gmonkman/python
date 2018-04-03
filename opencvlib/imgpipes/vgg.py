@@ -265,6 +265,22 @@ class Image(object):
             self._key = self._get_key()
 
 
+    @property
+    def resolution(self):
+        '''() ->  2-tuple
+        Gets the resolution as (w, h)
+
+        If it fails returns (None, None)
+        '''
+        h = None
+        w = None
+        try:
+           w, h = _ImageInfo.getsize(self.filepath)
+        except:
+            pass
+        return (w, h)
+
+
     def subjects_generator(self, species):
         '''(str)->Class:Subject
         Subjects generator for the specied species
@@ -327,7 +343,8 @@ class Image(object):
         regions = d[self._key]['regions']
         if regions:
             assert isinstance(regions, dict)
-            for region in regions.values():
+            for i, region in enumerate(regions.values()):
+                region_json_key = list(regions.keys())[i]
                 region_attrs = region.get('region_attributes', None)
                 shape_attrs = region.get('shape_attributes', None)
 
@@ -343,11 +360,11 @@ class Image(object):
                 reg = None
                 regionid = region_attrs.get('regionid')
                 if not isinstance(region_attr_match, dict):
-                    reg = _load_region(shape_attrs, region_attrs, self._key, regionid)
+                    reg = _load_region(shape_attrs, region_attrs, self._key, regionid, region_json_key)
                 else: #we have asked for a filter
                     m = _dic_match(region_attr_match, region_attrs)
                     if m == _eDictMatch.Exact or m == _eDictMatch.Subset:
-                        reg = _load_region(shape_attrs, region_attrs, self._key, regionid)
+                        reg = _load_region(shape_attrs, region_attrs, self._key, regionid, region_json_key)
 
                 if isinstance(reg, Region):
                     yield reg
@@ -558,6 +575,7 @@ class Region(object):
 
         Note that the entire region attributes dictionary is also suffed into Region.region_attr
         '''
+        self.region_json_key = kwargs.get('region_json_key', None) #this is the key for the region as read directly from the JSON
         self.region_attr = kwargs.get('region_attr', None) #store the entire region attributes anyway, just incase we need them for future use
         self.image_key = kwargs.get('image_key', None)
         self.has_attrs = kwargs.get('has_attrs', False)
@@ -628,7 +646,7 @@ class Region(object):
         JSON_FILE[self.image_key]['regions'][self.region_key]['region_attributes']['part'] = self.part
 
 
-def _load_region(shape_attr, region_attr=None, image_key=None, region_key=None):
+def _load_region(shape_attr, region_attr=None, image_key=None, region_key=None, region_json_key=None):
     '''(dict, str|None, str|None, dict|None)-> Class:Region
     Make a region object from the dictionary
     representations read from the VGG file.
@@ -637,6 +655,11 @@ def _load_region(shape_attr, region_attr=None, image_key=None, region_key=None):
         shape_attributes dictionary from VGG
     region_attr:
         region_attributes dictionary from VGG
+
+    region_json_key:
+        The dictionary key for the region, as stored in the
+        json file. The "1" in >>> "regions": { "1": { ....
+        "shape
 
     Returns:
         Class instance of Region.
@@ -648,7 +671,8 @@ def _load_region(shape_attr, region_attr=None, image_key=None, region_key=None):
     if not isinstance(shape_attr, dict):
         return None
 
-    reg = Region(region_attr=region_attr, #store all the region attributes incase we need them
+    reg = Region(region_json_key=region_json_key, #the key for the region as stored in the json
+                region_attr=region_attr, #store all the region attributes incase we need them
                 part=region_attr.get('part'),
                 image_key=image_key,  # no get, error if doesnt exist
                 has_attrs=True if region_attr else False,

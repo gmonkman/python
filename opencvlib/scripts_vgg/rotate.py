@@ -62,7 +62,8 @@ def main():
         if iolib.folder_has_files(unmarked_folder, '.jpg'):
             print('Unmarked folder "%s contains jpg files. The directory must be empty.' % unmarked_folder)
             return
-
+    else:
+        unmarked_folder = None
 
 
     vgg_file = path.normpath(src + '/' + args.vgg_file_name)
@@ -104,18 +105,19 @@ def main():
     if fnot_in_vgg:
         print('\nFiles in folder, not in vgg file:\n%s' % '\n'.join(fnot_in_vgg))
 
-    if unmarked_folder != '' and (fnot_in_vgg or fskipped):
-        copy_list = []
-        try:
-            for f in [*fnot_in_vgg, *fskipped]:
-                fsrc = path.normpath(path.join(src, f))
-                iolib.file_copy(fsrc, unmarked_folder, dest_is_folder=True)
-                copy_list.append(f)
-        except Exception as _:
-            pass
-        finally:
-            if copy_list:
-                print('Copied these skipped files:%s' % '\n'.join(copy_list))
+    if unmarked_folder and (fnot_in_vgg or fskipped):
+        if iolib.folder_exists(unmarked_folder):
+            copy_list = []
+            try:
+                for f in [*fnot_in_vgg, *fskipped]:
+                    fsrc = path.normpath(path.join(src, f))
+                    iolib.file_copy(fsrc, unmarked_folder, dest_is_folder=True)
+                    copy_list.append(f)
+            except Exception as _:
+                pass
+            finally:
+                if copy_list:
+                    print('Copied these skipped files:%s' % '\n'.join(copy_list))
 
 
 
