@@ -5,14 +5,19 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{34014272-854c-4379-95c8-9dc9ca7b233a}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test\test_vgg2xml.py</StartupFile>
+    <StartupFile>scripts\vgg_pts_to_xml.py</StartupFile>
     <SearchPath>..\</SearchPath>
-    <WorkingDirectory>.</WorkingDirectory>
+    <WorkingDirectory>
+    </WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
+    <IsWindowsApplication>False</IsWindowsApplication>
+    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole/resized/vgg_keypoints.json" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole/resized/vgg_keypoints.xml"</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <Environment>vgg_pts_to_xml.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole/resized/vgg_test_dup.json" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole/resized/vgg_keypoints.xml"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -23,6 +28,9 @@
   <ItemGroup>
     <Compile Include="ini.py" />
     <Compile Include="scripts\train_shape_predictor.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripts\vgg_pts_to_xml.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_vgg2xml.py">

@@ -1,5 +1,5 @@
 
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-variable
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-variable, protected-access
 '''unit tests for features'''
 import unittest
 from inspect import getsourcefile as _getsourcefile
@@ -25,11 +25,11 @@ class Test(unittest.TestCase):
     def test_vgg2xml(self):
         '''test'''
         iolib.files_delete2(self.xmlout)
-        vgg2xml.create_xml(self.xmlout)
+        vgg2xml._create_xml(self.xmlout)
         self.assertTrue(iolib.file_exists(self.xmlout))
         iolib.files_delete2(self.xmlout)
 
-        vgg2xml.vgg2xml(self.vggin, self.xmlout)
+        vgg2xml.convert(self.vggin, self.xmlout)
 
 
 
