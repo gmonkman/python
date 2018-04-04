@@ -15,9 +15,9 @@ import numpy as np
 #from skimage.io import imread as skimread
 #from scipy import signal
 
-import tensorflow as tf
-from tensorflow.contrib import eager as tfe
-tfe.enable_eager_execution()
+#import tensorflow as tf
+#from tensorflow.contrib import eager as tfe
+#tfe.enable_eager_execution()
 
 from opencvlib.view import show, mosaic, showarray
 from opencvlib.color import CVColors
@@ -27,8 +27,8 @@ from opencvlib.keypoints import printkp
 from plotlib.qplot import histo, scatter
 from funclib.arraylib import shape
 
-#testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'
-testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass/mbiusmchfu_r358_UND.jpg'
+testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/pollock/angler/1238342_855950924420862_2220743491253041339_n.jpg'
+#testimg = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all/bass/mbiusmchfu_r358_UND.jpg'
 testmovie = 'C:/development/python/opencvlib/test/bin/movie/test-mpeg_512kb.mp4'
 
 

@@ -9,6 +9,8 @@ import os.path as _path
 from funclib import iolib
 
 import opencvlib.imgpipes.vgg as vgg
+import opencvlib as _opencvlib
+
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -16,9 +18,11 @@ class Test(unittest.TestCase):
     def setUp(self):
         '''setup variables etc for use in test cases
         '''
-        self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
-        self.modpath = _path.normpath(self.pth)
-        pass
+        self.this_file_path = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
+        self.modpath = _path.normpath(self.this_file_path)
+
+        self.module_root = _path.normpath(_opencvlib.__path__[0]) #root of opencvlib
+
 
 
     #@unittest.skip("Temporaily disabled while debugging")
@@ -42,4 +46,3 @@ class Test(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    

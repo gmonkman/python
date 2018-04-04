@@ -102,7 +102,7 @@ class Test(unittest.TestCase):
             show(img)
 
 
-    @unittest.skip("Temporaily disabled while debugging")
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_VGGROI(self):
         '''test the VGG ROI generator, which generates
         generic regions of interest from the VGG file,
@@ -112,15 +112,23 @@ class Test(unittest.TestCase):
         fp = _path.normpath(_path.join(self.test_images_path, 'vgg_regions.json'))
         VGGROI = gnr.VGGROI(fp)
         for img, pth, dic in VGGROI.generate():
-            show(img)
+            pass
+            #show(img)
 
         attrs = {'shape': 'rect', 'id': '1'}
         VGGROI = gnr.VGGROI(fp, region_attrs=attrs)
         for img, pth, dic in VGGROI.generate():
+            pass
+            #show(img)
+
+        for img, pth, dic in VGGROI.generate(grow_roi_proportion=2):
+            show(img)
+
+        for img, pth, dic in VGGROI.generate(grow_roi_proportion=0.5):
             show(img)
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_VGGImages(self):
         '''test the VGGImages generator, which is a
         simple generator for all images in a set of

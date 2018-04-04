@@ -539,7 +539,7 @@ def crop(img, region, eRegfmt=eRegionFormat.RCHW, around_point=None, allow_crop_
 
     r, c, h, w = _roi.rect_as_rchw(pts)
     h -= 1; w -= 1
-    i = _roi.cropimg_xywh(img, c, r, w, h)
+    i, _ = _roi.cropimg_xywh(img, c, r, w, h)
     return i
 
 

@@ -1,4 +1,9 @@
 @echo off
+
+@echo ARE YOU SURE YOU WISH TO RUN THIS BATCH FILE? CTRL-C TO CANCEL
+pause
+pause
+
 REM charter
 C:\development\python\opencvlib\scripts_vgg\img2roi.py -m skip -p "chfu_" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all" vgg_body-caudal.json
 C:\development\python\opencvlib\scripts_vgg\img2roi.py -m skip -p "chgo_" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/gopro_all_undistorted/rotated" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/all" vgg_body-caudal.json

@@ -107,6 +107,8 @@ def convert(vgg_in, xml_out, ignore_no_roi=True):
         if not SILENT:
             PP.increment()
         assert isinstance(vggImg, _vgg.Image)
+        if vggImg.filename == 'roir5b9bdbaba0b59679f838c4d1619f0c9d1ddca410.jpg':
+            x = 10
 
         valid, problems = _validate(vggImg, ignore_no_roi)
         if not valid:
@@ -121,7 +123,7 @@ def convert(vgg_in, xml_out, ignore_no_roi=True):
         pts = []
         for vggReg in vggImg.roi_generator(shape_type='point'):
             assert isinstance(vggReg, _vgg.Region)
-            lbl = int(vggReg.region_json_key) + 1 if vggReg.region_attr.get('pts', None) is None else vggReg.region_attr['pts']
+            lbl = int(vggReg.region_json_key) + 1 if vggReg.region_attr.get('pts', '') == '' else vggReg.region_attr['pts']
             lbl = str(lbl)
             pts.append([vggReg.x, vggReg.y])
             _ = _et.SubElement(eBox, 'part', {'name':lbl.zfill(2), 'x':str(vggReg.x), 'y':str(vggReg.y)})

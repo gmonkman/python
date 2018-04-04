@@ -715,7 +715,7 @@ class VGGROI(_Generator):
         super().__init__(*args, **kwargs)
 
 
-    def generate(self, shape_type='rect', region_attrs=None, path_only=False, outflag=_cv2.IMREAD_UNCHANGED, skip_imghdr_check=False):
+    def generate(self, shape_type='rect', region_attrs=None, path_only=False, outflag=_cv2.IMREAD_UNCHANGED, skip_imghdr_check=False, grow_roi_proportion=1):
         '''(str|list|None, dict, bool, cv2.imread option, bool) -> ndarray|None, str, dict
         Yields the images with the bounding boxes and category name of all objects
         in the pascal voc images
@@ -739,6 +739,9 @@ class VGGROI(_Generator):
             The Python imghdr lib is used to check for an image, but this can
             be unreliable. simple_file_check will just check that the image
             exists.
+        grow_roi_percent:
+            increase or decreaese roi by this percentage of the
+            original roi.
 
 
         Yields:
@@ -763,10 +766,16 @@ class VGGROI(_Generator):
                             yield None, I.filepath, reg
                         else:
                             img = _cv2.imread(I.filepath, flags=outflag)
-                            img = super().generate(img)
+                            img = super().generate(img) #filter and transform with base class
                             if img is None:
                                 continue
-                            img = _roi.cropimg_xywh(img, reg.x, reg.y, reg.w, reg.h)
+                            if grow_roi_proportion != 1:
+                                pts = _roi.rect_as_points(reg.y, reg.x, reg.w, reg.h)
+                                pts = _roi.roi_rescale(pts, grow_roi_proportion)
+                                pts = _roi.rect_as_rchw(pts) #r,c,h,w
+                                img, _ = _roi.cropimg_xywh(img, pts[1], pts[0], pts[3], pts[2])
+                            else:
+                                img, _ = _roi.cropimg_xywh(img, reg.x, reg.y, reg.w, reg.h)
                             yield img, I.filepath, reg
             except Exception as e:
                 _logging.exception(e)

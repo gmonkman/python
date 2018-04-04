@@ -309,8 +309,11 @@ def sample_rect(img, w, h):
 
 
 def cropimg_xywh(img, x, y, w, h):
-    '''(str|ndarray, int, int, int, int)->ndarray
-    Return a rectangular region from an image. Also see transforms.crop
+    '''(str|ndarray, int, int, int, int)->ndarray, bool
+    Return a rectangular region from an image. Also see transforms.crop.
+
+    Crops to the edge if area would be outside the
+    bounds of the image.
 
     x, y:
         Define the point form which to crop, CVXY assumed
@@ -318,14 +321,19 @@ def cropimg_xywh(img, x, y, w, h):
         Size of region
 
     Returns:
-        cropped image area
+        cropped image area,
+        boolean indicating if crop was truncated to border
+        of the image
 
     Notes:
         transforms.crop provides conversion and cropping
         around a point
     '''
     assert isinstance(img, _np.ndarray)
-    return img[y:y+h, x:x+w]
+    relu = lambda x: max(0, x)
+    crop_truncated = (relu(y), min(y+h, img.shape[0]), relu(x), min(x+w, img.shape[1]))
+    crop = (y, y+h, x, x+w)
+    return img[relu(y):min(y+h, img.shape[0]), relu(x):min(x+w, img.shape[1])], crop_truncated == crop
 
 
 def cropimg_pts(img, corners):
@@ -344,11 +352,12 @@ def cropimg_pts(img, corners):
     '''
     assert isinstance(img, _np.ndarray)
     r, c, h, w = rect_as_rchw(corners)
-    return cropimg_xywh(img, c, r, w, h)
+    img_out, _ = cropimg_xywh(img, c, r, w, h)
+    return img_out
 
 
 def poly_area(pts=None, x=None, y=None):
-    '''(list|None, list|None, list|None) -> float
+    '''(list|ndarray|None, list|None, list|None) -> float
     Calculate area of a polygon defined by
     its vertices.
 
@@ -358,12 +367,22 @@ def poly_area(pts=None, x=None, y=None):
         >>>poly_area(x=[1,2,3,4], y=[5,6,7,8])
         >>>poly_area(pts=[(1,5),(2,6),(3,7),(4,8)])
     '''
-    if pts:
-        x = [pt[0] for pt in pts]
-        y = [pt[1] for pt in pts]
-
+    x = [pt[0] for pt in pts]
+    y = [pt[1] for pt in pts]
     return 0.5 * _np.abs(_np.dot(x, _np.roll(y, 1)) - _np.dot(y, _np.roll(x, 1)))
 
+
+def centroid(pts):
+    '''(ndarray|list) -> 2-tuple
+    Calculate the centroid of non-self-intersecting polygon.
+
+    pts:
+        Numeric array of points, e.g [[1,2],[10,12], ...]
+
+    Returns:
+        2-tuple of the centroid, e.g. (10, 15)
+    '''
+    return (sum([pt[0] for pt in pts]) / len(pts), sum([pt[1] for pt in pts]) / len(pts))
 
 
 def roi_polygons_get(img, points):
@@ -395,8 +414,8 @@ def roi_polygons_get(img, points):
 
     rect = bounding_rect_of_poly(_np.array([points], dtype=_np.int32), as_points=False) #x,y,w,h
     bitwise = _cv2.bitwise_and(img, white_mask)
-    rectcrop = cropimg_xywh(bitwise, *rect)
-    white_mask_crop = cropimg_xywh(white_mask, *rect)
+    rectcrop, _ = cropimg_xywh(bitwise, *rect)
+    white_mask_crop, _ = cropimg_xywh(white_mask, *rect)
     mask = _ma.masked_values(white_mask_crop, 0)
 
     return white_mask_crop, mask, bitwise, rectcrop
@@ -432,11 +451,33 @@ def get_image_from_mask(img, mask):
     return bitwise
 
 
+def roi_rescale(roi_pts, proportion=1):
+    '''(ndarray|list|tuple, float) -> ndarray
+    Grow or shrink an roi around the centre of
+    the roi. CVXY is implied.
+
+    roi_pts:
+        Array of points [[0,0], [10,10] ....]
+
+    Returns:
+        Array of rescaled points, eg.
+        [[0,0], [10,10] ....]
+    '''
+    centre = centroid(roi_pts)
+    getx = lambda x: proportion * x + (1 - proportion) * centre[0]
+    gety = lambda y: proportion * y + (1 - proportion) * centre[1]
+    pts = [[int(getx(x)), int(gety(y))] for x, y in roi_pts]
+    return pts
+
+
 def roi_resize(roi_pts, current, target):
     '''(ndarray|list|tuple, 2-tuple, 2-tuple, bool) -> ndarray
 
     Given an array like of 2d points, transform from the original
     image size to which they refer, to the new image size.
+
+    **Note, this is to maintain the same selection when
+    we resize the image, and will not grow the roi**
 
     roi_points in OpenCV XY frame, where y has origin at image row 0
 
@@ -460,7 +501,7 @@ def roi_resize(roi_pts, current, target):
     t_mat[0, 0] = target[0]/current[0]
     t_mat[1, 1] = target[1]/current[1]
 
-    return _np.array(_np.matrix(roi_pts) * _np.matrix(t_mat))
+    return _np.array(_np.matrix(roi_pts) * _np.matrix(t_mat), dtype='uint8')
 
 
 def roi_rotate(roi_pts, angle, frame_x, frame_y):

@@ -315,7 +315,7 @@ class Image(object):
 
 
     def roi_generator(self, shape_type=None, region_attr_match=None):
-        '''(tuple|list|str|None, dic) -> Class:Region
+        '''(tuple|list|str|None, dic, float) -> Class:Region
         Class region represents a shape and contains the
         shape attributes, e.g. points and shape type. It
         has no idea of a subject, where a subject represents

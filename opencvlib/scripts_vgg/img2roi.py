@@ -53,6 +53,7 @@ def main():
     cmdline = argparse.ArgumentParser(description=__doc__)
     cmdline.add_argument('-m', '--mode', help='Action for handling file naming clashes. Valid modes are: "overwrite", "halt", "skip", "rename", "req_new_dir"', required=True)
     cmdline.add_argument('-p', '--prefix', help='File prefix to append to the outputted filename', default='')
+    cmdline.add_argument('-g', '--grow', help='Grow/shrink roi by this factor', default='1.0')
     cmdline.add_argument('source_folder', help='The folder containing the images and vgg file')
     cmdline.add_argument('output_folder', help='The folder to save the ROIs to')
     cmdline.add_argument('vgg_file_name', help='The filename of the vgg file, must be in source folder')
@@ -62,6 +63,7 @@ def main():
     src = path.normpath(args.source_folder)
     out = path.normpath(args.output_folder)
     mode = path.normcase(args.mode)
+    grow = float(args.grow)
     prefix = args.prefix
 
     assert src.lower() != out.lower(), 'The source and output folders must be different.'
@@ -95,7 +97,7 @@ def main():
     already_existed = []
     G = VGGROI(vgg_file)
     PP.max = sum(1 for x in vgg.imagesGenerator(skip_imghdr_check=True))
-    for img, pth, _ in G.generate(skip_imghdr_check=True):
+    for img, pth, _ in G.generate(skip_imghdr_check=True, grow_roi_proportion=grow):
         PP.increment()
         try:
             dummy, fname_noext, ext = iolib.get_file_parts(pth)
