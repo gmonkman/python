@@ -511,8 +511,8 @@ class VGGDigiKam(_Generator):
         self.dirty_filters = True #for use in inherited classes, not needed for this explicitly
 
 
-    def generate(self, *args, pathonly=False, outflag=_cv2.IMREAD_UNCHANGED, **kwargs):
-        '''(bool)-> ndarray,str, dict
+    def generate(self, *args, pathonly=False, outflag=_cv2.IMREAD_UNCHANGED, file_attr_match=None, **kwargs):
+        '''(bool, int, dict)-> ndarray,str, dict
 
         Uses the filters set in the VGGFilter and DigikamSearchParams
         to yield image regions to the caller.
@@ -522,6 +522,9 @@ class VGGDigiKam(_Generator):
         outflag:
             cv2 flag for imread
             cv2.IMREAD_COLOR|cv2.IMREAD_GRAYSCALE|cv2.IMREAD_UNCHANGED
+        file_attr_match:
+            A dictionary, Only generate regions for file which match these attributes.
+            e.g. file_attr_match = {'train'=1}
 
         Returns [Yields]
             image region, imgpath, dictionary containing additional infornation
@@ -550,7 +553,7 @@ class VGGDigiKam(_Generator):
                         if not self.silent:
                             print('Opened regions file %s' % p)
 
-                        for Img in _vgg.imagesGenerator():
+                        for Img in _vgg.imagesGenerator(file_attr_match=file_attr_match):
 
                             if dk_image_list:
                                 if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
@@ -593,7 +596,7 @@ class VGGDigiKam(_Generator):
                         if not self.silent:
                             print('Opened regions file %s' % p)
 
-                        for Img in _vgg.imagesGenerator():
+                        for Img in _vgg.imagesGenerator(file_attr_match=file_attr_match):
 
                             if dk_image_list:
                                 if not Img.filepath in dk_image_list:  # effectively applying a filter for the digikamlib conditions
@@ -662,11 +665,23 @@ class VGGImages(_Generator):
         super().__init__(*args, **kwargs)
 
 
-    def generate(self, path_only=False, outflag=_cv2.IMREAD_UNCHANGED):
+    def generate(self, path_only=False, outflag=_cv2.IMREAD_UNCHANGED, file_attr_match=None):
+        '''(bool, int, dict|None) -> ndarray|None, str, dict
+        Generate images and paths, dict will be empty.
+
+        file_attr_match:
+            a dictionary which is checked for a partial
+            match against the image file attributes,
+            eg {'is_train'=1}
+
+        Example:
+        >>>for Img, pth, _ in VGGImages.generate(file_attr_match={'train'=1}):
+            #do some work
+        '''
         for vgg_file in self.vgg_file_paths:
             try:
                 _vgg.load_json(vgg_file)
-                for I in _vgg.imagesGenerator():
+                for I in _vgg.imagesGenerator(file_attr_match=file_attr_match):
                     if path_only:
                         yield None, I.filepath, None
                         continue
@@ -715,8 +730,8 @@ class VGGROI(_Generator):
         super().__init__(*args, **kwargs)
 
 
-    def generate(self, shape_type='rect', region_attrs=None, path_only=False, outflag=_cv2.IMREAD_UNCHANGED, skip_imghdr_check=False, grow_roi_proportion=1):
-        '''(str|list|None, dict, bool, cv2.imread option, bool) -> ndarray|None, str, dict
+    def generate(self, shape_type='rect', region_attrs=None, path_only=False, outflag=_cv2.IMREAD_UNCHANGED, skip_imghdr_check=False, grow_roi_proportion=1, file_attr_match=None):
+        '''(str|list|None, dict, bool, cv2.imread option, bool, dict) -> ndarray|None, str, dict
         Yields the images with the bounding boxes and category name of all objects
         in the pascal voc images
 
@@ -742,7 +757,9 @@ class VGGROI(_Generator):
         grow_roi_percent:
             increase or decreaese roi by this percentage of the
             original roi.
-
+        file_attr_match:
+            If not None, only regions from images with the matching file attributes
+            will be generated
 
         Yields:
             image, path, region_attributes dict
@@ -759,7 +776,7 @@ class VGGROI(_Generator):
         for vgg_file in self.vgg_file_paths:
             try:
                 _vgg.load_json(vgg_file)
-                for I in _vgg.imagesGenerator(skip_imghdr_check=skip_imghdr_check):
+                for I in _vgg.imagesGenerator(skip_imghdr_check=skip_imghdr_check, file_attr_match=file_attr_match):
                     for reg in I.roi_generator(shape_type, self.region_attrs):
                         assert isinstance(reg, _vgg.Region)
                         if path_only:

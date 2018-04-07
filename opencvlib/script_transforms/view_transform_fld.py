@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import
 '''
 View image regions in a vgg.json file
 Space advances to the next region, pressing n will be recorded
@@ -19,6 +19,7 @@ import funclib.iolib as iolib
 from opencvlib.display_utils import KeyBoardInput, eSpecialKeys
 
 def main():
+    '''do stuff'''
     print('KEYS\nn: Save filename to a text file.\nq: Quit.')
     cmdline = argparse.ArgumentParser(description=__doc__)
     cmdline.add_argument('folder', help='Folder containing the images')
@@ -31,6 +32,7 @@ def main():
 
     ts = transforms.Transforms(t1, t2, t3)
     FP = G.FromPaths(fld, '*.jpg', transforms=ts)
+    out = []
     for img, f, dummy in  FP.generate():
         k, dummy1 = show(img)
         if KeyBoardInput.check_pressed_key('n', k):

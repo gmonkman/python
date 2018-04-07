@@ -29,8 +29,8 @@ def histo(data, bins='auto', normed=True, show=True):
 
 
 
-def scatter(x_data, y_data, group_labels=(), show=True):
-    '''(listlike|ndarray, listlike|ndarray, bool) - void
+def scatter(x_data, y_data, group_labels=(), ptsizes=4, show=True):
+    '''(list|tuple|ndarray, list|tuple|ndarray, list|tuple|ndarray, bool) - void
 
     Simple x-y scatter plot, supports groups by passing
     multiple iterables to x_data and y_data.
@@ -41,6 +41,12 @@ def scatter(x_data, y_data, group_labels=(), show=True):
         an iterable of iterable data, or an iterable
     group_labels:
         tuple of group labels to use to create a legend
+    ptsizes:
+        single value or list-like of point sizes. If
+        list like, ptsizes matches group_labels by
+        index
+    show:
+        show the plot
 
     Example:
     >>>x_data=[[-1,-2,-3],[3,4,5]]
@@ -60,7 +66,7 @@ def scatter(x_data, y_data, group_labels=(), show=True):
             raise ValueError('x_data and y_data lengths must match')
 
     groups = []
-    if not group_labels or len(group_labels) != len(x):
+    if not group_labels or len(group_labels) != len(x_data):
         print('\nGroup labels empty, or len(group_labels) != len(data). Creating custom labels.')
         group_labels = []
         _ = [group_labels.append(str(x)) for x in range(len(x_data))]
@@ -75,17 +81,22 @@ def scatter(x_data, y_data, group_labels=(), show=True):
         if isinstance(x, _np.ndarray):
             ndX = x.flatten()
         else:
-            ndX = _np.ndarray(x).flatten()
+            ndX = _np.asarray(x).flatten()
 
         if isinstance(y_data[ind], _np.ndarray):
             ndY = y_data[ind].flatten()
         else:
-            ndY = _np.ndarray(y_data[ind]).flatten()
+            ndY = _np.asarray(y_data[ind]).flatten()
 
         groups.append(grp)
-        Plot.scatter(ndX, ndY)
+        Plot.scatter(ndX, ndY, s=ptsizes)
+        lst_mean = lambda lst: sum(lst)/len(lst) if lst else 0
 
-    Plot.legend(groups, loc='upper right')
+        label_pts = [(lst_mean(x), lst_mean(y)) for x, y in zip(x_data, y_data)]
+        for i in range(len(label_pts)):
+            Plot.annotate(group_labels[i], xy=label_pts[i], xytext=label_pts[i], horizontalalignment='center', verticalalignment='center', size=8)
+
+        #Plot.legend(groups, loc='upper right')
 
     if show:
         Plot.show()

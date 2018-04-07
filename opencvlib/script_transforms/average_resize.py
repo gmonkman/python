@@ -69,11 +69,11 @@ def main():
 
     zres = list(zip(*res))
     heights = zres[1]
-    if min(heights) < 30 or min(widths) < 30:
-        print('Found an image had height or width < 30 pixels.')
-        return
-
     widths = zres[0]
+#    if min(heights) < 30 or min(widths) < 30:
+ #       print('Found an image had height or width < 30 pixels.')
+  #      return
+
     minh = min(heights)
     minw = min(widths)
 

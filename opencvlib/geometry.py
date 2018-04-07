@@ -47,7 +47,10 @@ def angle_between_pts(pt1, pt2, as_degrees=True):
     '''
     ang1 = _np.arctan2(*pt1[::-1])
     ang2 = _np.arctan2(*pt2[::-1])
-    return _np.rad2deg((ang1 - ang2) % (2 * _np.pi))
+    if as_degrees:
+        return _np.rad2deg((ang1 - ang2) % (2 * _np.pi))
+
+    return (ang1 - ang2) % (2 * _np.pi)
 
 
 def angle_min_rotation_to_x(angle, as_degrees=True):

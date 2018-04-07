@@ -1455,13 +1455,23 @@ class Point(collections.Mapping):
         raise KeyError('unknown axis {}, expecting x, y or z'.format(axis))
 
     def irotate2d(self, theta, origin=None, axis='z', radians=False):
-
         self.xyz = self.rotate2d(theta, origin, axis, radians).xyz
-
         return self
 
-    def rotate(self, theta_x, theta_y, theta_z, origin=None, radians=False):
 
+    def angle_origin(self, as_degrees=True):
+        '''(bool) -> float
+        Calculate the angle between two points
+        '''
+        ang1 = math.atan2(self.y, self.x)
+        ang2 = math.atan2(0, 0)
+        if as_degrees:
+            return 180/math.pi * ((ang1 - ang2) % (2 * math.pi))
+        else:
+            return (ang1 - ang2) % (2 * math.pi)
+
+
+    def rotate(self, theta_x, theta_y, theta_z, origin=None, radians=False):
         origin = Point._convert(origin)
 
         thetas = [theta_x, theta_y, theta_z]
@@ -1488,18 +1498,18 @@ class PointSequence(collections.Sequence):
         :base: optional base character for labeling points
 
         The first point is labeled with the base character and
-        subsequent points are labeled with the character 
+        subsequent points are labeled with the character
         calculated by:
 
         label = chr(ord(base)+index)
-    
+
         '''
         self(*args, **kwds)
 
     def __call__(self, *args, **kwds):
         '''
         '''
-        
+
         try:
             self._base = kwds['base']
         except KeyError:
@@ -1514,7 +1524,7 @@ class PointSequence(collections.Sequence):
         if len(args) == 1:
             self.vertices.extend(args[0])
         else:
-            self.vertices.extend(args)        
+            self.vertices.extend(args)
 
         try:
             for i,p in enumerate(kwds['defaults']):
@@ -1531,7 +1541,7 @@ class PointSequence(collections.Sequence):
                     setattr(self,label,kwds[label])
                 except KeyError:
                     pass
-            
+
     @property
     def vertices(self):
         try:
@@ -1608,7 +1618,7 @@ class PointSequence(collections.Sequence):
             return self.__dict__[attr]
         except KeyError:
             pass
-        
+
         raise AttributeError("{} object has no attribute '{}'".format(self.__class__.__name__,attr))
 
     def __setattr__(self, attr, value):
@@ -1632,7 +1642,7 @@ class PointSequence(collections.Sequence):
 
         super().__setattr__(attr, value)
 
-        
+
     def __delattr__(self, attr):
         '''
 
@@ -1684,7 +1694,7 @@ class PointSequence(collections.Sequence):
 
         if isinstance(xy,collections.Iterable):
             return (self[xy[0]],self[xy[1]])
-        
+
         return zip(self[0:],self[1:]+self[0:1])
 
     def __eq__(self,other):
@@ -1695,9 +1705,9 @@ class PointSequence(collections.Sequence):
         '''
 
         return len(set(self.vertices).difference(set(other.vertices))) == 0
-    
-    
-    
+
+
+
 class MutablePointSequence(PointSequence,collections.MutableSequence):
     '''
     A labeled mutable sequence of points.  Work in Progress.
@@ -1768,25 +1778,25 @@ class MutablePointSequence(PointSequence,collections.MutableSequence):
     def __isub__(self, other):
         for p in self:
             p -= other
-        return self            
-        
+        return self
+
     def __imul__(self, other):
         for p in self:
             p *= other
-        return self             
+        return self
 
     def __itruediv__(self, other):
         for p in self:
             p /= other
         return self
-    
+
     def __ifloordiv__(self, other):
         for p in self:
             p //= other
         return self
 
-        
-        
+
+
 
 
 

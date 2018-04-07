@@ -22,8 +22,8 @@ import math
 import os
 import sys
 import tensorflow as tf
-from . import freeze_graph
-from . import tflib
+from pgnet import freeze_graph
+from pgnet import tflib
 from pgnet.inputs import bass
 
 # network constants

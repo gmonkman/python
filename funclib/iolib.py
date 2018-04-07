@@ -892,7 +892,7 @@ def print_progress(
         decimals    - Optional  : number of decimals in percent complete (Int)
         bar_length   - Optional  : character length of progbar (Int)
     """
-    filled_length = int(round(bar_length * iteration / float(total)))
+    filled_length =  int(round(bar_length * iteration / float(total))) if total > 0 else 0
     if iteration / float(total) > 1:
         total = iteration
     percents = round(100.00 * (iteration / float(total)), decimals)
@@ -969,6 +969,17 @@ class PrintProgress(object):
             self.iteration, self.max, prefix='%i of %i' %
             (self.iteration, self.max), bar_length=self.bar_length)
         self.iteration += step
+
+    def reset(self, max=None):
+        '''reset the counter. set max
+        if need to change total expected
+        iterations.
+        '''
+        if max:
+            self.max = max
+        self.iteration = 1
+
+
 # endregion
 
 

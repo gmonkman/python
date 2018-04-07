@@ -163,8 +163,8 @@ def fix_keys(backup=True, show_progress=False, del_if_no_file=False):
     _prints('\n\nKey fixing complete.\n')
 
 
-def imagesGenerator(skip_imghdr_check=False):
-    '''(bool)
+def imagesGenerator(skip_imghdr_check=False, file_attr_match=None):
+    '''(bool, dict)
     Generate VGG.Image class objects
     for every image in the vgg file
 
@@ -172,6 +172,14 @@ def imagesGenerator(skip_imghdr_check=False):
         Perform simple file exists check instead of using
         the imghdrlibrary to determine if the file is a
         valid image.
+    file_attr_match:
+        Only yield images which match or partially match
+        this dictionary, e.g. filea_attr_match={'istrain':1}.
+
+        If file_attrs_match is provided, then images with
+        no file attributes will NOT be yielded. 
+        
+        NOTE: All dict values read will be a string
 
     Comments:
         Use the skip_imghdr_check if valid
@@ -183,12 +191,27 @@ def imagesGenerator(skip_imghdr_check=False):
     for img in JSON_FILE:
         pth = _get_file_parts2(_JSON_FILE_NAME)[0]
         img_pth = _path.join(pth, JSON_FILE[img]['filename'])
-        if skip_imghdr_check:
-            if _file_exists(img_pth):
-                i = Image(img_pth)
+
+        doit = False
+        if isinstance(file_attr_match, dict):
+            file_attrs = JSON_FILE[img].get('file_attributes', '')
+            if file_attrs and file_attrs != '':
+                m = _dic_match(file_attr_match, file_attrs)
+                doit = (m == _eDictMatch.Exact or m == _eDictMatch.Subset)
+            else:
+                doit = False #be explicit - if we have attrs, but no attrs defined we dont want it
         else:
-            if _ImageInfo.is_image(img_pth):
-                i = Image(img_pth)
+            doit = True
+
+        if doit:
+            if skip_imghdr_check:
+                if _file_exists(img_pth):
+                    i = Image(img_pth)
+            else:
+                if _ImageInfo.is_image(img_pth):
+                    i = Image(img_pth)
+        else:
+            i = None
 
         if isinstance(i, Image):
             yield i
@@ -275,8 +298,8 @@ class Image(object):
         h = None
         w = None
         try:
-           w, h = _ImageInfo.getsize(self.filepath)
-        except:
+            w, h = _ImageInfo.getsize(self.filepath)
+        except Exception as e:
             pass
         return (w, h)
 

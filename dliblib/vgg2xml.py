@@ -14,6 +14,7 @@ import funclib.baselib as _baselib
 import opencvlib.roi as _roi
 
 SILENT = False
+VALID_LABELS = [str(lbl).zfill(2) for lbl in range(1, 20)]
 
 def _create_xml(fname):
     '''(str) -> void
@@ -54,6 +55,11 @@ def _validate(vggImg, ignore_no_roi):
         assert isinstance(vggReg, _vgg.Region)
         lbl = int(vggReg.region_json_key) + 1 if vggReg.region_attr.get('pts', '') == '' else vggReg.region_attr['pts']
         lbl = str(lbl)
+        if VALID_LABELS:
+            lblz = lbl.zfill(2)
+            if not lblz in VALID_LABELS:
+                problems.append('lbl %s not a valid label (vgg2xml.VALID_LABEL)' % lblz)
+                valid = False
         if lbl in lbls:
             problems.append('lbl %s duplicated.' % lbl)
             valid = False
@@ -107,8 +113,6 @@ def convert(vgg_in, xml_out, ignore_no_roi=True):
         if not SILENT:
             PP.increment()
         assert isinstance(vggImg, _vgg.Image)
-        if vggImg.filename == 'roir5b9bdbaba0b59679f838c4d1619f0c9d1ddca410.jpg':
-            x = 10
 
         valid, problems = _validate(vggImg, ignore_no_roi)
         if not valid:

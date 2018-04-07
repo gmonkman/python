@@ -102,7 +102,7 @@ class Test(unittest.TestCase):
             show(img)
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_VGGROI(self):
         '''test the VGG ROI generator, which generates
         generic regions of interest from the VGG file,
@@ -128,7 +128,7 @@ class Test(unittest.TestCase):
             show(img)
 
 
-    @unittest.skip("Temporaily disabled while debugging")
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_VGGImages(self):
         '''test the VGGImages generator, which is a
         simple generator for all images in a set of
@@ -136,7 +136,7 @@ class Test(unittest.TestCase):
         '''
         fp = _path.normpath(_path.join(self.test_images_path, 'vgg_regions.json'))
         VGGImages = gnr.VGGImages(fp)
-        for img, pth, dic in VGGImages.generate():
+        for img, pth, dic in VGGImages.generate(file_attr_match={'is_train':'1'}):
             print(pth)
             self.assertIs(isinstance(img, np.ndarray) and isinstance(pth, str) and isinstance(dic, dict), True)
 
