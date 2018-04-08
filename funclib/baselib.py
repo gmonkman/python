@@ -326,10 +326,8 @@ def depth(l):
     '''(List|Tuple) -> int
     Depth of a list or tuple
     '''
-    if isinstance(l, list):
-        d = lambda L: isinstance(L, list) and (max(map(depth, L)) + 1) if L else 1
-    elif isinstance(l, tuple):
-        d = lambda L: isinstance(L, tuple) and (max(map(depth, L)) + 1) if L else 1
+    if isinstance(l, (list, tuple)):
+        d = lambda L: isinstance(L, (list, tuple)) and max(map(d, L)) + 1
     else:
         s = 'Depth takes a list or a tuple but got a %s' % (type(l))
         raise ValueError(s)

@@ -316,6 +316,51 @@ def np_delete_paired_zeros_flattened(a, b):
     return {'a': a[mask], 'b': b[mask]}
 
 
+def angles_between(vectors1, vectors2):
+    '''(ndarray|list|tuple, ndarray|list|tuple) -> ndarray
+    Get pairwise angles between an array of vectors.
+
+    This is vectors1 is broadcast across vectors2.
+
+    vectors1, vectors2:
+        arrays of vectors (i.e. 1-nested list likes
+
+    Returns:
+        Numpy array of angles
+    '''
+    v1 = makenp(vectors1)
+    v2 = makenp(vectors2)
+
+    dot_v1_v2 = np.einsum('ij,ij->i', v1, v2)
+    dot_v1_v1 = np.einsum('ij,ij->i', v1, v1)
+    dot_v2_v2 = np.einsum('ij,ij->i', v2, v2)
+    return np.arccos(dot_v1_v2/np.sqrt(dot_v1_v1*dot_v2_v2))
+
+
+def makenp(in_):
+    if isinstance(in_, _np.ndarray):
+        return in_
+
+    if isinstance(in_, (tuple, list, set)):
+        return _np.asarray(in_, dtype=float) #forcing to float will handle None values
+
+    raise ValueError('Expected tuple, list or set. Got %s' % type(in_))
+
+
+def distances(origs, dests):
+    '''(ndarray|list|tuple, ndarray|list|tuple) -> ndarray
+    Create 2d array of distance between n-dimensional points
+
+    origs is broadcasted to dests
+
+
+    '''
+    nd_o = makenp(origs)
+    nd_d = makenp(dests)
+    subts = nd_o[:,None,:] - nd_d
+    return _np.sqrt(_np.einsum('ijk,ijk->ij',subts, subts))
+
+
 def np_delete_zeros(a):
     '''(arraylike) -> ndarray
     delete zeros from an array.

@@ -30,6 +30,7 @@
     <Compile Include="scripts\train_shape_predictor.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts\validate_points2.py" />
     <Compile Include="scripts\validate_points.py">
       <SubType>Code</SubType>
     </Compile>
