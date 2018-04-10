@@ -29,9 +29,10 @@ def histo(data, bins='auto', normed=True, show=True):
 
 
 
-def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_label_font_sz=8, show=True):
+def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_label_font_sz=8, xlim=None, ylim=None, show=True):
     '''(list|tuple|ndarray, list|tuple|ndarray,
-            list|tuple|ndarray, list|tuple|ndarray, bool) - void
+            list|tuple|ndarray, list|tuple|ndarray,
+            2-tuple|None, 2-tuple|None, bool) - void
 
     Simple x-y scatter plot, supports groups by passing
     multiple iterables to x_data and y_data.
@@ -56,6 +57,10 @@ def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_lab
     data_label_font_sz:
         size of data labels, ie the labels of each point.
         8 is usually about right.
+    xlim:
+        2-Tuple, lower and upper limits of x, or None
+    ylim:
+        2-Tuple, lower and upper limits of y, or None
     show:
         show the plot
 
@@ -117,7 +122,18 @@ def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_lab
         else:
             ndY = _np.asarray(y_data[ind]).flatten()
 
+        Plot.figure()
         Plot.scatter(ndX, ndY, s=ptsizes)
+
+        axes = Plot.gca()
+        if isinstance(xlim, (tuple, list)):
+            if len(xlim) == 2:
+                axes.set_xlim(xlim)
+        if isinstance(ylim, (tuple, list)):
+            if len(ylim) == 2:
+                axes.set_ylim(ylim)
+
+
         lst_mean = lambda lst: sum(lst)/len(lst) if lst else 0
 
         #this labels the mid point

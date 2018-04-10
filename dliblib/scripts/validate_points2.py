@@ -9,6 +9,10 @@ from os import path as _path
 
 import numpy as np
 from sklearn import svm
+from sklearn.preprocessing import Imputer
+import sklearn.preprocessing as preproc
+from sklearn.base import BaseEstimator, TransformerMixin
+import xlwings
 
 from funclib.iolib import PrintProgress as _PP
 import funclib.iolib as iolib
@@ -17,10 +21,13 @@ from opencvlib.imgpipes.generators import VGGROI
 from geometry import Point
 from plotlib import qplot
 from funclib.arraylib import distances, angles_between
+from funclib.arraylib import min_indices
+from funclib.baselib import list_flatten
+from funclib.iolib import writecsv
+from funclib.iolib import notepadpp_open_file
 
 LABELS = [str(x+1) for x in range(19)]
-
-
+NEAREST = 5
 
 
 def main():
@@ -35,68 +42,70 @@ def main():
     _vgg.load_json(vgg_in)
 
     #region Load train data
-    x = sum(1 for n in _vgg.imagesGenerator(skip_imghdr_check=True))
+    x = sum([1 for x in _vgg.imagesGenerator(skip_imghdr_check=True, file_attr_match={'is_train':'1'})])
     PP = _PP(x, init_msg='Loading training data and creating model...')
-    PP.max = sum([1 for x in _vgg.imagesGenerator(skip_imghdr_check=True, file_attr_match={'is_train':'1'})])
+    PP.max = x
 
-    train_data = np.array([])
-    train_labels = []
+    train_distances = np.zeros((x, 19, 19))
+    train_angles = np.zeros((x, 19, 19))
+    train_pts = np.empty((x, 19, 2)) #store points
+    train_pts[:] = np.nan
+
+    j = 0
     for vggImg in _vgg.imagesGenerator(skip_imghdr_check=True, file_attr_match={'is_train':'1'}):
         PP.increment()
         assert isinstance(vggImg, _vgg.Image)
-        Pts = [None] * 19 #store all the points
+        Pts = [[None, None]] * 19 #store all the points
         for vggReg in vggImg.roi_generator(shape_type='point'):
             assert isinstance(vggReg, _vgg.Region)
             lbl = int(vggReg.region_json_key) + 1 if vggReg.region_attr.get('pts', '') == '' else int(vggReg.region_attr['pts'])
-            Pts[lbl-1] = (vggReg.x, vggReg.y)
+            Pts[lbl-1] = [vggReg.x, vggReg.y]
 
+        train_pts[j, ...] = np.array(Pts)
+        train_distances[j, :, :] = distances(Pts, Pts).squeeze()
+        train_angles[j, ...] = angles_between(Pts, Pts).squeeze()
+        j += 1
 
-        for i, Pt in  enumerate(Pts):
-            if isinstance(Pt, Point):
-                train_labels.append(i+1) #pt labels are 1 based, enumerate is 0 based
-                dists = distances(Pt, Pts)
-                angles = vector_angles(Pt, Pts)
-                features = np.hstack((dists, angles)).flatten()
-                train_data = np.hstack(features)
+    mean_distances = np.nanmean(train_distances, axis=0) #19x19 array of mean distances between points
+    mean_angles = np.nanmean(train_angles, axis=0)
 
-
-
-    #region KNN training
-    clf = svm.SVC(gamma=0.001, C=100.)
-    clf.fit(train_data, train_labels)
 
     #region Load all data
-    PP = _PP(sum([1 for x in _vgg.imagesGenerator(skip_imghdr_check=True)]), init_msg="\nGenerating full points list")
-
-    all_data = []
-    expected = []
-    all_images = []
-
+    x = sum([1 for x in _vgg.imagesGenerator(skip_imghdr_check=True)])
+    PP = _PP(x, init_msg="\nChecking all images ...")
+    img_stats = []
+    pt_cnt = 0
     for vggImg in _vgg.imagesGenerator(skip_imghdr_check=True):
         PP.increment()
         assert isinstance(vggImg, _vgg.Image)
-        Pts = [None] * 19 #store all the points
+        Pts = [[None, None] for x in range(19)] #store all the points
+        got_points = False
         for vggReg in vggImg.roi_generator(shape_type='point'):
+            got_points = True
             assert isinstance(vggReg, _vgg.Region)
             lbl = int(vggReg.region_json_key) + 1 if vggReg.region_attr.get('pts', '') == '' else int(vggReg.region_attr['pts'])
-            Pts[lbl-1] = (vggReg.x, vggReg.y)
+            Pts[lbl-1] = [vggReg.x, vggReg.y]
+            pt_cnt += 1
 
+        if got_points:
+            distances_ = abs((distances(Pts, Pts).squeeze() - mean_distances))/np.nanmean(mean_distances) #each row has the distances for that point, so row 0 has the distances of every point from point 1.
+            angles_ = abs(angles_between(Pts, Pts).squeeze() - mean_angles)/np.nanmean(mean_angles)
+            err = (distances_ + angles_)/2
+            err = np.apply_along_axis(np.nanmean, 0, err)
+            err = ['' if np.isnan(x) else float(x) for x in err]
+            lst = [vggImg.filename]
+            lst.extend(err)
+            img_stats.append(lst)
+        else:
+            lst = [vggImg.filename]
+            lst.extend(['' for x in range(19)])
+            img_stats.append(lst)
 
-        for i, Pt in  enumerate(Pts):
-            if isinstance(Pt, Point):
-                expected.append(i+1) #pt labels are 1 based, enumerate is 0 based, this contains the expected labels
-                dists = distances(Pt, Pts)
-                angles = angles_between(Pt, Pts)
-                features = np.hstack((dists, angles)).flatten()
-                all_data = np.hstack(features)
-                all_images.append(vggImg.filename)
+    print('\nTotal points was %s' % pt_cnt)
 
-        predictions = clf.predict(all_data)
-
-        diffs = (predictions != expected)
-        all_images = np.asarray(all_images)
-        bad = set(all_images[diffs].tolist())  #get unique values
-
+    if img_stats:
+        writecsv('C:/temp/validate_probs_633bad.txt', img_stats, inner_as_rows=False)
+        notepadpp_open_file('C:/temp/validate_probs_633bad.txt')
 
 
 if __name__ == "__main__":

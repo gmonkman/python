@@ -177,8 +177,8 @@ def imagesGenerator(skip_imghdr_check=False, file_attr_match=None):
         this dictionary, e.g. filea_attr_match={'istrain':1}.
 
         If file_attrs_match is provided, then images with
-        no file attributes will NOT be yielded. 
-        
+        no file attributes will NOT be yielded.
+
         NOTE: All dict values read will be a string
 
     Comments:

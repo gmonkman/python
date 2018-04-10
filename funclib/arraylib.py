@@ -5,7 +5,10 @@ from warnings import warn as _warn
 import numpy as _np
 import numpy.random
 import scipy.ndimage as _ndimage
+from scipy.spatial import distance as dist
 
+
+from funclib.baselib import list_flatten as _list_flatten
 
 # region NUMPY
 def  vstackt(arrays):
@@ -330,16 +333,19 @@ def angles_between(vectors1, vectors2):
     '''
     v1 = makenp(vectors1)
     v2 = makenp(vectors2)
+    costheta = 1 - dist.cdist(v1, v2, 'cosine')
+    return _np.arccos(costheta)
 
-    dot_v1_v2 = np.einsum('ij,ij->i', v1, v2)
-    dot_v1_v1 = np.einsum('ij,ij->i', v1, v1)
-    dot_v2_v2 = np.einsum('ij,ij->i', v2, v2)
-    return np.arccos(dot_v1_v2/np.sqrt(dot_v1_v1*dot_v2_v2))
 
 
 def makenp(in_):
+    '''(ndarray|list|tuple|set) -> ndarray
+    convert list type to numpy
+    array, or return a copy
+    if in_ was already a numpy array
+    '''
     if isinstance(in_, _np.ndarray):
-        return in_
+        return _np.copy(in_).astype(_np.float)
 
     if isinstance(in_, (tuple, list, set)):
         return _np.asarray(in_, dtype=float) #forcing to float will handle None values
@@ -405,6 +411,59 @@ def np_pickled_in_excel(pickle_name):
     except Exception as _:
         _warn('np_pickled_in_excel not supported because of xlwings dependency')
 
+
+def max_indices(arr, k):
+    '''(ndarray|list|tuple, int) -> list
+
+    Returns the indices of the k first largest elements of arr
+    (in descending order in values)
+
+    Example:
+    >>>max_indices([1,4,100,10], 2)
+    [3, 4]
+    '''
+    arr_ = makenp(arr)
+    assert k <= arr_.size, 'k should be smaller or equal to the array size'
+    arr_ = arr_.astype(float)  # make a copy of arr
+    max_idxs = []
+    for _ in range(k):
+        max_element = _np.nanmax(arr_)
+        if _np.isinf(max_element):
+            break
+        else:
+            idx = _np.where(arr_ == max_element)
+        max_idxs.append(idx[0].tolist())
+        arr_[idx] = -_np.inf
+    out = _list_flatten(max_idxs)
+    return out
+
+
+def min_indices(arr, k):
+    '''(ndarray|list|tuple, int) -> list
+
+    Returns the indices of the k first largest elements of arr
+    (in descending order in values)
+
+    Example:
+    >>>max_indices([1,4,100,10], 2)
+    [3, 4]
+    '''
+    arr_ = makenp(arr)
+
+    assert k <= arr_.size, 'k should be smaller or equal to the array size'
+    arr_ = arr_.astype(float)  # make a copy of arr
+    arr_[arr_ == 0.] = _np.inf
+    min_idxs = []
+    for _ in range(k):
+        min_element = _np.nanmin(arr_)
+        if _np.isinf(min_element):
+            break
+        else:
+            idx = _np.where(arr_ == min_element)
+        min_idxs.append(idx[0].tolist())
+        arr_[idx] = _np.inf
+    out = _list_flatten(min_idxs)
+    return out
 
 
 def np_frequencies(a):
