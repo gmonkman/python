@@ -1,26 +1,29 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access, unused-import, too-many-return-statements
 '''transforms on an image which return an image'''
-import cv2 as _cv2
-import numpy as _np
-from enum import Enum as _Enum
-import logging as _logging
-from inspect import getsourcefile as _getsourcefile
+from math import sqrt as _sqrt
 import os.path as _path
 from random import shuffle as _shuffle
 from random import uniform as _uniform
 from math import floor as _floor
+from enum import Enum as _Enum
+import logging as _logging
+from inspect import getsourcefile as _getsourcefile
 
-import funclib.baselib as _baselib
+import cv2 as _cv2
+import numpy as _np
 import scipy.stats as _stats
 import skimage as _skimage
+
+import funclib.baselib as _baselib
+from funclib.iolib import quite
+import funclib.iolib as _iolib
+
 import opencvlib.decs as _decs
 from opencvlib import getimg as _getimg
 from opencvlib import color as _color
-
 from opencvlib.color import BGR2HSV, BGR2RGB, HSVtoGrey, togreyscale
 import opencvlib.roi as _roi
-from funclib.iolib import quite
-import funclib.iolib as _iolib
+import opencvlib.geometry as _geom
 
 
 
@@ -811,6 +814,55 @@ def sharpen(img):
     return i
 
 
+
+def similiarity_matrices(A, B, filter_invalid_pairs=True):
+    '''(ndarray|list|tuple, ndarray|list|tuple, bool) -> ndarray
+    Given to lists of points, get
+    the rotation and translation matrix
+
+    filter_invalid_pairs:
+        Will remove point pairs where any value is None/Nan
+
+
+    Returns the translation matrix compatible with cv2.warpaffine
+    for euclidean (translation, rotation) transforms.
+
+    To use the outputs, the image should be rotated around the centre
+    point of the target image
+
+    **USE SKIMAGE.TRANSFORMS - NOT THIS. NOW REDUNDANT
+    '''
+    assert len(A) == len(B)
+
+
+    N = A.shape[0]; # total points
+    A_ = _np.asarray(A).copy()
+    B_ = _np.asarray(B).copy()
+
+    if filter_invalid_pairs:
+        A_, B_ = _geom.valid_point_pairs(A_, B_)
+
+    centroid_A = _np.mean(A_, axis=0)
+    centroid_B = _np.mean(B_, axis=0)
+
+    # centre the points
+    AA = A_ - _np.tile(centroid_A, (N, 1)) #difference between points and the centroid, i.e. bring to origin
+    BB = B_ - _np.tile(centroid_B, (N, 1)) #difference between points and the centroid
+
+    # dot is matrix multiplication for array
+    H = _np.dot(_np.transpose(AA), BB)
+
+    V, S, W = _np.linalg.svd(H)
+    d = (_np.linalg.det(V) * _np.linalg.det(W)) < 0.0
+
+    if d:
+        S[-1] = -S[-1]
+        V[:,-1] = -V[:,-1]
+    U = _np.dot(V, W).T
+    U[:,:-1] = _np.array([centroid_A - centroid_B]).reshape(2,1)
+    return U
+
+
 def homotrans(H, x, y):
     '''(3x3 ndarray,float,float)->float,float
     return homogenous coordinates
@@ -863,8 +915,6 @@ def bilateral_filter(img):
     #http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html
     #in opencv as cv2.bilateralfilter
     pass
-
-
-#Todo add bilatal filtering support
-#http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html
-#https://docs.opencv.org/3.0-beta/modules/imgproc/doc/filtering.html#sobel
+    #Todo add bilatal filtering support
+    #http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html
+    #https://docs.opencv.org/3.0-beta/modules/imgproc/doc/filtering.html#sobel

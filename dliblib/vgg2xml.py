@@ -1,5 +1,13 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, unused-import
-'''Work with vgg and the dblib/W-300 point format files'''
+'''Work with vgg and the dblib/W-300 point format files.
+
+Currently just works with images, rather than roi with
+points defined inside.
+
+The W300 XML format was designed to accept an image with
+face regions defined by top, left, width and height coords
+and points are defined in a CVXY coord system with respect
+to the image (and not the bounding box)'''
 import xml.etree.ElementTree as _et
 from xml.dom import minidom as _minidom
 from os import path as _path

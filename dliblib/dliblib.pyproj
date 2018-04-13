@@ -15,7 +15,7 @@
     <InterpreterId />
     <InterpreterVersion />
     <IsWindowsApplication>False</IsWindowsApplication>
-    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_grow/resized/vgg_landmarks_633bad.json"</CommandLineArguments>
+    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_grow/resized/vgg_landmarks.json"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <Environment>vgg_pts_to_xml.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole/resized/vgg_keypoints.json" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole/resized/vgg_keypoints.xml"
 
@@ -29,6 +29,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ini.py" />
+    <Compile Include="scripts\predict.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts\train_shape_predictor.py">
       <SubType>Code</SubType>
     </Compile>

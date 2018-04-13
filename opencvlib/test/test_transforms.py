@@ -5,6 +5,7 @@ from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 
 import cv2
+import numpy as np
 
 import funclib.iolib as iolib
 from opencvlib.common import _getimg
@@ -13,6 +14,8 @@ from opencvlib.view import show
 from opencvlib.view import mosaic
 from opencvlib.common import draw_points
 from opencvlib.display_utils import KeyBoardInput as Keys
+import opencvlib.geometry as geom
+from opencvlib.common import draw_points
 
 _fShow = lambda pts: show(draw_points(pts))
 
@@ -90,7 +93,7 @@ class Test(unittest.TestCase):
         show(iout)
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_transform_shuffle(self):
         '''shuffle'''
         print('Press "q" to stop')
@@ -105,6 +108,29 @@ class Test(unittest.TestCase):
             if Keys.check_pressed_key('q', show(iout)[0]):
                 break
             Ts.shuffle()
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_rigid_transform(self):
+        '''test rigid transorm'''
+        pts = geom.get_rnd_pts((300,400), 4)
+        img = draw_points(pts, plot_centroid=True, padding=50)
+        show(img)
+        pts = np.array(pts).astype('float32')
+        cent = geom.centroid(pts)
+
+        pts90 = geom.rotate_points(pts, -45, cent) #rotate points around center
+        img90 = draw_points(pts90, plot_centroid=True, padding=50)
+        show(img90)
+        pts90 = np.array(pts90).astype('float32')
+        pts90 += 30
+
+        #opencv matrix
+        Mcv = cv2.getRotationMatrix2D(tuple(cent), -45, 1)
+        Mcv = np.array([30,30]).reshape(2,1)
+        M = t.similiarity_matrices(pts, pts90)
+        pass
+
 
 
 if __name__ == '__main__':

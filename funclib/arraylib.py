@@ -51,6 +51,7 @@ def  hstackt(arrays):
     return out
 
 
+
 def check_array(a, b):
     '''(ndarray,ndarray)
     perform array checks raising error if problem
@@ -358,8 +359,6 @@ def distances(origs, dests):
     Create 2d array of distance between n-dimensional points
 
     origs is broadcasted to dests
-
-
     '''
     nd_o = makenp(origs)
     nd_d = makenp(dests)

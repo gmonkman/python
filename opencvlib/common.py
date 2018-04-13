@@ -20,6 +20,7 @@ from opencvlib import getimg as _getimg
 from funclib.baselib import tuple_add_elementwise as _tupadd
 import funclib.iolib as _iolib
 import opencvlib.info as _info
+from opencvlib.geometry import centroid
 
 IMAGE_EXTENSIONS_DOTTED = ['.bmp', '.jpg', '.jpeg',
                     '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
@@ -355,8 +356,8 @@ def chessboard(patch_sz=100, col_first_patch=(0, 0, 0), col_second_patch=(255, 2
     return board
 
 
-def draw_scale(img, x_break=50, y_break=50, tick_colour=(0, 0, 0), tick_length=10):
-    '''(ndarray, int, int, 3-tuple) -> ndarray
+def draw_scale(img, x_break=50, y_break=50, tick_colour=(0, 0, 0), tick_length=10, x_offset=0, y_offset=0):
+    '''(ndarray, int, int, 3-tuple, int, int) -> ndarray
     Draw scale on on image
 
     x_break:
@@ -365,30 +366,59 @@ def draw_scale(img, x_break=50, y_break=50, tick_colour=(0, 0, 0), tick_length=1
         y main increment (rows)
     tick_colour:
         tuple representing tick colour, e.g. (255, 0, 0) is blue
+    x_offset:
+        start drawing at x_offset
+    y_offset:
+        start drawing at y_offset
     Returns:
         the image with ticks
     '''
-    x = 0
-    y = 0
+    x = x_offset
+    y = y_offset
     label_pad = 4
     yy, xx = img.shape[:2]
-    while y < yy:
+    while y < yy + y_offset:
         pts = [[0, y], [tick_length, y]]
         img = draw_line(pts, img, tick_colour)
-        lbl = '%s' % y
+        lbl = '%s' % (y - y_offset)
         lbl_pt = (tick_length + label_pad, y)
         _cv2.putText(img, lbl, lbl_pt, _cv2.FONT_HERSHEY_PLAIN, 0.8, tick_colour)
         y += y_break
 
-    while x < xx:
+    while x < xx + x_offset:
         pts = [[x, yy], [x, yy - tick_length]]
         img = draw_line(pts, img, tick_colour)
-        lbl = '%s' % x
+        lbl = '%s' % (x - x_offset)
         lbl_pt = (x, yy - tick_length - label_pad)
         _cv2.putText(img, lbl, lbl_pt, _cv2.FONT_HERSHEY_PLAIN, 0.8, tick_colour)
         x += x_break
 
     return img
+
+
+def draw_grid(img, line_color=(0, 255, 0), thickness=1, type_=_cv2.LINE_AA, pxstep=50):
+    '''(ndarray, 3-tuple, int, int) -> void
+    draw gridlines on img
+    line_color:
+        BGR representation of colour
+    thickness:
+        line thickness
+    type:
+        8, 4 or CV_AA
+    pxstep:
+        grid line frequency in pixels
+    '''
+    x = pxstep
+    y = pxstep
+    while x < img.shape[1]:
+        _cv2.line(img, (x, 0), (x, img.shape[0]), color=line_color, lineType=type_, thickness=thickness)
+        x += pxstep
+
+    while y < img.shape[0]:
+        _cv2.line(img, (0, y), (img.shape[1], y), color=line_color, lineType=type_, thickness=thickness)
+        y += pxstep
+
+
 
 
 def draw_line(pts, img, line_color=(0, 0, 0), label=False, label_color=(0, 0, 0)):
@@ -418,7 +448,7 @@ def draw_line(pts, img, line_color=(0, 0, 0), label=False, label_color=(0, 0, 0)
     return img
 
 
-def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), show_labels=True, label_color=(0, 0, 0), padding=0, add_scale=True):
+def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), show_labels=True, label_color=(0, 0, 0), padding=0, add_scale=True,  radius=10, plot_centroid=False):
     '''(array, ndarray|str, int, int, bool, 3-tuple, bool, int) -> ndarray
     Show roi points largely for debugging purposes
 
@@ -446,6 +476,11 @@ def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0),
     Returns:
         The image (or blank canvas) with points plotted
     '''
+    if isinstance(pts, _np.ndarray):
+        pts = pts.squeeze()
+        pts = pts.squeeze()
+        pts = pts.squeeze()
+
     #get size of display frame
     pad = padding
     new_image = img is None
@@ -455,37 +490,51 @@ def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0),
         y = max(ys) + pad*2 if y is None or max(ys) < y else y
         x = int(x)
         y = int(y)
-        img = _np.ones((y, x, 3), dtype='uint8')*255
+        img_process = _np.ones((y, x, 3), dtype='uint8')*255
     else:
         img = _getimg(img)
+        img_process = _np.copy(img)
+
+    if plot_centroid:
+        pt_mean = centroid(pts, _np.int)
 
     #added padding, so have to adjust points slightly
     if pad > 0:
         pts_padded = [[pt[0] + pad, pt[1] + pad] for pt in pts]
+        if plot_centroid:
+            pt_mean = [pt_mean[0] + pad, pt_mean[1] + pad]
         #draw original boundaries first time
         if new_image:
-            _cv2.rectangle(img, (pad, pad), (img.shape[1] - pad, img.shape[0] - pad), (0, 0, 0))
+            _cv2.rectangle(img_process, (pad, pad), (img_process.shape[1] - pad, img_process.shape[0] - pad), (0, 0, 0))
     else:
         pts_padded = pts
 
+
     for i, pt in enumerate(pts_padded):
         centre = (int(pt[0]), int(pt[1]))
-        _cv2.circle(img, centre, 10, (255, 255, 255), -11)
-        _cv2.circle(img, centre, 11, (0, 0, 255), 1)
-        _cv2.ellipse(img, centre, (10, 10), 0, 0, 90, (0, 0, 255), -1)
-        _cv2.ellipse(img, centre, (10, 10), 0, 180, 270, (0, 0, 255), -1)
-        _cv2.circle(img, centre, 1, (0, 255, 0), 1)
+        _cv2.circle(img_process, centre, radius, (255, 255, 255), -11)
+        _cv2.circle(img_process, centre, int(radius*1.1), (0, 0, 255), 1)
+        _cv2.ellipse(img_process, centre, (radius, radius), 0, 0, 90, (0, 0, 255), -1)
+        _cv2.ellipse(img_process, centre, (radius, radius), 0, 180, 270, (0, 0, 255), -1)
+        _cv2.circle(img_process, centre, 1, (0, 255, 0), 1)
+
 
         if show_labels:
             lbl = '%s, %s' % (int(pts[i][0]), int(pts[i][1])) #use original point as label if we padded
-            _cv2.putText(img, lbl, (int(pt[0]) + 10, int(pt[1]) - 10), _cv2.FONT_HERSHEY_PLAIN, 0.8, label_color)
+            _cv2.putText(img_process, lbl, (int(pt[0]) + 10, int(pt[1]) - 10), _cv2.FONT_HERSHEY_PLAIN, 0.8, label_color)
+
+    if plot_centroid:
+        xx = (pt_mean[0] - radius, pt_mean[0] + radius)
+        yy = (pt_mean[1] - radius, pt_mean[1] + radius)
+        _cv2.line(img_process, (pt_mean[0], yy[0]), (pt_mean[0], yy[1]), (0, 255, 0))
+        _cv2.line(img_process, (xx[0], pt_mean[1]), (xx[1], pt_mean[1]), (0, 255, 0))
 
     if join:
         poly_pts = _np.array(pts_padded, dtype='int32')
         poly_pts = poly_pts.reshape((-1, 1, 2))
-        _cv2.polylines(img, [poly_pts], True, line_color)
+        _cv2.polylines(img_process, [poly_pts], True, line_color)
 
     if add_scale:
-        img = draw_scale(img)
+        img_process = draw_scale(img_process, y_offset=padding, x_offset=padding)
 
-    return img
+    return img_process

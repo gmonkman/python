@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\imgpipes\test_generators.py</StartupFile>
+    <StartupFile>test\test_transforms.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -75,6 +75,9 @@ average_resize -h mean "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/ba
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="imgpipes\voc_utils.py" />
+    <Compile Include="kabsch.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="learning\forest.py">
       <SubType>Code</SubType>
     </Compile>
@@ -116,6 +119,15 @@ average_resize -h mean "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/ba
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="script_transforms\average_resize.py" />
+    <Compile Include="script_transforms\homography.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="script_transforms\registration.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="script_transforms\registration_procrustes.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="script_transforms\view_gamma_cont.py" />
     <Compile Include="script_transforms\view_adapthist.py" />
     <Compile Include="script_transforms\view_unsharp_mask.py" />
@@ -146,6 +158,9 @@ average_resize -h mean "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/ba
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_fisheye.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_geometry.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_histo.py">

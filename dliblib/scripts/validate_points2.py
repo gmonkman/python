@@ -61,14 +61,14 @@ def main():
             lbl = int(vggReg.region_json_key) + 1 if vggReg.region_attr.get('pts', '') == '' else int(vggReg.region_attr['pts'])
             Pts[lbl-1] = [vggReg.x, vggReg.y]
 
-        train_pts[j, ...] = np.array(Pts)
+        train_pts[j, ...] = np.array(Pts) #this contains all the points
         train_distances[j, :, :] = distances(Pts, Pts).squeeze()
         train_angles[j, ...] = angles_between(Pts, Pts).squeeze()
         j += 1
 
     mean_distances = np.nanmean(train_distances, axis=0) #19x19 array of mean distances between points
     mean_angles = np.nanmean(train_angles, axis=0)
-
+    mean_points = np.nanmean(train_pts, axis=0)
 
     #region Load all data
     x = sum([1 for x in _vgg.imagesGenerator(skip_imghdr_check=True)])

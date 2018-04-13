@@ -163,7 +163,7 @@ def fix_keys(backup=True, show_progress=False, del_if_no_file=False):
     _prints('\n\nKey fixing complete.\n')
 
 
-def imagesGenerator(skip_imghdr_check=False, file_attr_match=None):
+def imagesGenerator(skip_imghdr_check=False, file_attr_match=None, json_file=None):
     '''(bool, dict)
     Generate VGG.Image class objects
     for every image in the vgg file
@@ -174,7 +174,7 @@ def imagesGenerator(skip_imghdr_check=False, file_attr_match=None):
         valid image.
     file_attr_match:
         Only yield images which match or partially match
-        this dictionary, e.g. filea_attr_match={'istrain':1}.
+        this dictionary, e.g. file_attr_match={'istrain':1}.
 
         If file_attrs_match is provided, then images with
         no file attributes will NOT be yielded.
@@ -188,6 +188,9 @@ def imagesGenerator(skip_imghdr_check=False, file_attr_match=None):
     Yields:
         VGG.Image class intances
     '''
+    if isinstance(json_file, str):
+        load_json(json_file)
+
     for img in JSON_FILE:
         pth = _get_file_parts2(_JSON_FILE_NAME)[0]
         img_pth = _path.join(pth, JSON_FILE[img]['filename'])
@@ -216,6 +219,43 @@ def imagesGenerator(skip_imghdr_check=False, file_attr_match=None):
         if isinstance(i, Image):
             yield i
 
+
+
+def roiGenerator(json_file=None, skip_imghdr_check=False, shape_type=None, file_attr_match=None, region_attr_match=None):
+    '''str, bool,  tuple|list|str|None, dict|None, dict|None -> str, 2-tuple, Class:Region
+    Simplified wrapper for generating regions.
+
+    Yields image filename, the image resolution (w, h) and the region class
+    representation of the roi.
+
+    json_file:
+        name of the vgg json file, if passed, this will load the pass file
+        otherwise the currently loaded file will be searched
+    skip_imghdr_check:
+        Do a simple file exists test, rather than advanced check of image file
+        validity, which can have false negatives
+    shape_type:
+        The type of shape, 'rect', 'circle', 'point', 'ellipse'.
+        Also accepts a list or tuple. If None, then all shapes yielded.
+    file_attr_match:
+        Only yield images which match or partially match
+        this dictionary, e.g. file_attr_match={'istrain':1}.
+
+        If file_attrs_match is provided, then images with
+        no file attributes will NOT be yielded.
+
+        NOTE: All dict values read will be a string
+    region_attr_match:
+        A dictionary which is matched against the region attributes
+        of the shape. If not a dictionary, then all shapes will
+        be yielded.
+        e.g. region_attr_match={'part':'head'}
+    '''
+    for Img in imagesGenerator(skip_imghdr_check=skip_imghdr_check, file_attr_match=file_attr_match, json_file=json_file):
+        assert isinstance(Img, Image)
+        for Reg in Img.roi_generator(shape_type=shape_type, region_attr_match=region_attr_match):
+            assert isinstance(Reg, Region)
+            yield Img.filename, Img.resolution, Reg
 
 
 class Image(object):
@@ -299,7 +339,7 @@ class Image(object):
         w = None
         try:
             w, h = _ImageInfo.getsize(self.filepath)
-        except Exception as e:
+        except Exception as _:
             pass
         return (w, h)
 
@@ -338,7 +378,7 @@ class Image(object):
 
 
     def roi_generator(self, shape_type=None, region_attr_match=None):
-        '''(tuple|list|str|None, dic, float) -> Class:Region
+        '''(tuple|list|str|None, dic) -> Class:Region
         Class region represents a shape and contains the
         shape attributes, e.g. points and shape type. It
         has no idea of a subject, where a subject represents
@@ -646,6 +686,7 @@ class Region(object):
         elif self.shape == 'rect':
             self.all_points = _roi.rect_as_points(self.y, self.x, self.w, self.h)
             self.area = _roi.poly_area(pts=self.all_points)
+            self.all_points_x, self.all_points_y = zip(*self.all_points)
         elif self.shape == 'circle':
             self.area = _pi * self.r ** 2
             self.bounding_rectangle_as_points = _roi.bounding_rect_of_ellipse(

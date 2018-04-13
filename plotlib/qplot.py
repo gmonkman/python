@@ -30,7 +30,7 @@ def histo(data, bins='auto', normed=True, show=True):
 
 
 def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_label_font_sz=8, xlim=None, ylim=None, show=True):
-    '''(list|tuple|ndarray, list|tuple|ndarray,
+    '''(list|tuple|ndarray, list|tuple|ndarray|None,
             list|tuple|ndarray, list|tuple|ndarray,
             2-tuple|None, 2-tuple|None, bool) - void
 
@@ -43,6 +43,7 @@ def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_lab
     y_data:
         an iterable of iterable data, or an iterable
         eg. [[1,2,4], [10,11,12]]
+
     data_labels:
         label for each data point
         eg. [['a','b','c'], ['x','y','z']]

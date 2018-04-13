@@ -54,6 +54,8 @@ class KeyBoardInput():
                 'return', 'backspace', 'escape',
                 'tab', 'space', 'unknowable', 'none'
         '''
+        if isinstance(waitkeyval, tuple):
+            waitkeyval = waitkeyval[0]
         if is_raw:
             i = waitkeyval & 255
         return KeyBoardInput._key_dic[i]
@@ -77,7 +79,14 @@ class KeyBoardInput():
         Example
         >>>checkwaitkey('k', imshow(img))
         >>>checkwaitkey(eSpecialKeys.return, imshow(img))
+        >>>checkwaitkey(eSpecialKeys.return, show(img))
         '''
+        if isinstance(waitkeyval, (tuple, dict, set)):
+            for x in waitkeyval:
+                if isinstance(waitkeyval, int):
+                    waitkeyval = x
+                    break
+
         special = [k for k in eSpecialKeys if k.value == waitkeyval]
         if special:
             return keyOrSpecial == special[0].name or keyOrSpecial == special[0]

@@ -3,9 +3,21 @@
 import math as _math
 
 import numpy as _np
+from numpy.random import uniform
 
 import funclib.baselib as _baselib
 import opencvlib.distance as _dist
+
+
+def get_rnd_pts(range_=(-50,50), n=10, dtype=_np.int):
+    '''(2-tuple, 2-tuple, int, class:numpy.dtype) -> ndarray
+    Returns an n x 2 ndarray of unique random points
+    '''
+    pts = []
+    if isinstance(dtype, _np.int):
+        range_ = (range[0], range[1] + 1)
+
+    return _np.reshape(uniform(range_[0], range_[1],  n*2), (n, 2)).astype(dtype)
 
 
 def triangle_pt(pt1, pt2, ret_max_y_pt=True):
@@ -144,6 +156,33 @@ def rotation_angle(pt1, pt2, as_radians=False):
     return rad if as_radians else _math.degrees(rad)
 
 
+def rotate_points(pts, angle, center=(0,0)):
+    '''(ndarray|list, float, 2-tuple|None) -> nx2-tuple
+    Rotates a point "angle" degree around center.
+    Negative angle is clockwise.
+
+    pts:
+        array like of len 2, eg [[1,2],[2,3], ...]
+    angle:
+        angle to rotate in degrees (e.g. -90)
+    center:
+        point around which to rotate, (x, y),
+        if center is None, rotate about the
+        center of the points
+
+    Example:
+    >>>rotate_points([[10,10],[20,20]], -45, center=(15,15))
+    [(15.0, 7.9289321881345245), (15.0, 22.071067811865476)]
+    '''
+    out = []
+    if not center:
+        center = _np.mean(pts, axis=0)
+
+    for pt in pts:
+        out = [rotate_point(pt, angle, center) for pt in pts]
+    return out
+
+
 def rotate_point(pt, angle, center=(0, 0)):
     '''(2-array, float, 2-tuple) -> 2-tuple
     Rotates a point "angle" degree around center.
@@ -164,3 +203,64 @@ def rotate_point(pt, angle, center=(0, 0)):
                  new_pt[0] * _math.sin(angle_rad) + new_pt[1] * _math.cos(angle_rad))
     # Reverse the shifting we have done
     return (new_pt[0] + center[0], new_pt[1] + center[1])
+
+
+def centroid(pts, dtype=_np.float):
+    '''(ndarray|list|tuple) -> 2-list
+    Get centroid of pts as 2-list
+
+    pts:
+        n x 2 list like
+
+    Example:
+    >>> centroid([[0,0],[10,10]])
+    [5.0, 5.0]
+    '''
+    ndpts = _np.asarray(pts)
+    mn = _np.mean(ndpts, axis=0)
+    return mn.astype(dtype).tolist()
+
+
+def valid_point_pairs(pts1, pts2):
+    '''Build matched array of points
+    Returns 2 arrays of points.
+
+    If no points found, returns [],[]
+
+    e.g.
+    >>>x, y = build_matched([[None, 1], [10,20]], [[1, 1], [1,2]])
+    >>>print(x)
+    [[10,20]]
+    >>>print(y)
+    [[1,2]]
+    '''
+    pt1_out = []
+    pt2_out = []
+    for i in range(min([len(pts1), len(pts2)])):
+        if not None in pts1[i] and not None in pts2[i]:
+            pt1_out.append(pts1[i])
+            pt2_out.append(pts2[i])
+    return pt1_out, pt2_out
+
+
+def points_rmsd(V, W):
+    '''(ndarray|list|tuple, ndarray|list|tuple) -> float
+    Calculates the Root mean square dev between
+    two sets of n-dimensional points.
+
+    V, M:
+        array like representations of n-D points.
+        Should ignore pairwise points where values are None
+        or np.nan
+    '''
+    D = len(V[0])
+    N = len(V)
+    rmsd = 0.0
+    for v, w in zip(V, W):
+        v = _np.array(v).astype(_np.float)
+        w = _np.array(w).astype(_np.float)
+        if True in _np.isnan(v) or True in _np.isnan(w):
+            continue
+        rmsd += sum([(v[i] - w[i]) ** 2.0 for i in range(D)])
+
+    return _np.sqrt(rmsd/N)

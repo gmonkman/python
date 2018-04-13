@@ -7,6 +7,9 @@ is saved to a different folder.
 The output height can be set to the maximum, mean or minimum
 of all the source images.
 
+The resolution can be fixed by specifying integers for -r and -c
+arguments.
+
 Example:
     average_resize.py -h mean "C:/images" "C:/images/resized"
 '''
@@ -44,6 +47,7 @@ def main():
     '''main'''
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
     cmdline.add_argument('-r', '--rows', help="Target height/rows of the image, valid values are an int, 'mean', 'max' or min'.", default='mean')
+    cmdline.add_argument('-c', '--cols', help="Target columns of the image, only valid if rows is an integer", default=0)
     cmdline.add_argument('source', help='Location of jpg images to resize.')
     cmdline.add_argument('output', help='Folder to copy resized images to.')
     args = cmdline.parse_args()
@@ -70,9 +74,6 @@ def main():
     zres = list(zip(*res))
     heights = zres[1]
     widths = zres[0]
-#    if min(heights) < 30 or min(widths) < 30:
- #       print('Found an image had height or width < 30 pixels.')
-  #      return
 
     minh = min(heights)
     minw = min(widths)
@@ -88,8 +89,15 @@ def main():
         targ_rows = min(heights)
     else:
         targ_rows = int(args.rows)
+        targ_cols = 0
+        if int(args.cols) != 0:
+            targ_cols = int(args.cols)
 
-    targ_width = int(targ_rows * (w/h))
+    if targ_cols > 0:
+        targ_width = targ_cols
+    else:
+        targ_width = int(targ_rows * (w/h))
+
     Gen = gen.FromPaths(src, '*.jpg')
     for img, fname, _ in Gen.generate():
         #img = transforms.histeq_color(img)

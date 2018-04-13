@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>roiGenerator</Title>
+      <Shortcut>roiGenerator</Shortcut>
+      <Description>Generate region classes from vgg json file</Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>SurroundsWithStatement</SnippetType>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[import opencvlib.imgpipes.vgg as vgg
+
+    for Img in vgg.imagesGenerator(json_file='myfile.json'):
+        assert isinstance(Img, vgg.Image)
+        for Reg in Img.roi_generator(shape_type='point'):
+            assert isinstance(Reg, vgg.Region)
+
+]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

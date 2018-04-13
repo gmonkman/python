@@ -21,7 +21,8 @@ import opencvlib.info as _info
 from opencvlib import transforms as _transforms
 from opencvlib.common import draw_str as _draw_str
 from opencvlib import getimg as _getimg
-
+from opencvlib.display_utils import KeyBoardInput, eSpecialKeys
+from opencvlib.common import draw_grid, draw_line, draw_points, draw_scale, draw_str #for convieniance
 __all__ = ['mosaic', 'pad_images', 'show', 'showarray']
 
 _SHOW_WIDTH = 800.
