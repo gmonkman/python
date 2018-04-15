@@ -19,7 +19,7 @@ from funclib.baselib import list_flatten
 from geometry import Point
 from plotlib import qplot
 
-LABELS = [str(x+1) for x in range(19)]
+LABELS = [str(x+1) for x in range(20)]
 
 
 

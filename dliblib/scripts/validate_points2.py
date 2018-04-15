@@ -8,10 +8,7 @@ import argparse
 from os import path as _path
 
 import numpy as np
-from sklearn import svm
-from sklearn.preprocessing import Imputer
-import sklearn.preprocessing as preproc
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.preprocessing import MaxAbsScaler
 import xlwings
 
 from funclib.iolib import PrintProgress as _PP
@@ -25,10 +22,12 @@ from funclib.arraylib import min_indices
 from funclib.baselib import list_flatten
 from funclib.iolib import writecsv
 from funclib.iolib import notepadpp_open_file
+from dliblib import VALID_LABELS
+from funclib.iolib import wait_key
 
-LABELS = [str(x+1) for x in range(19)]
-NEAREST = 5
+LABELS = [str(x+1) for x in range(20)]
 
+Scaler = MaxAbsScaler()
 
 def main():
     '''main
@@ -52,6 +51,7 @@ def main():
     train_pts[:] = np.nan
 
     j = 0
+    invalid_labels = []
     for vggImg in _vgg.imagesGenerator(skip_imghdr_check=True, file_attr_match={'is_train':'1'}):
         PP.increment()
         assert isinstance(vggImg, _vgg.Image)
@@ -59,6 +59,11 @@ def main():
         for vggReg in vggImg.roi_generator(shape_type='point'):
             assert isinstance(vggReg, _vgg.Region)
             lbl = int(vggReg.region_json_key) + 1 if vggReg.region_attr.get('pts', '') == '' else int(vggReg.region_attr['pts'])
+
+            if not lbl in range(1, 21):
+                invalid_labels.append('Image %s has invalid pts label %s.' % (vggImg.filename, lbl))
+                continue
+
             Pts[lbl-1] = [vggReg.x, vggReg.y]
 
         train_pts[j, ...] = np.array(Pts) #this contains all the points
@@ -66,9 +71,18 @@ def main():
         train_angles[j, ...] = angles_between(Pts, Pts).squeeze()
         j += 1
 
+    if invalid_labels:
+        print('\nInvalid Labels Found:')
+        print('\n'.join(invalid_labels))
+        _ = wait_key('Press any key to continue')
+        return
+
     mean_distances = np.nanmean(train_distances, axis=0) #19x19 array of mean distances between points
+    mean_distances_std = Scaler.fit_transform(mean_distances)
     mean_angles = np.nanmean(train_angles, axis=0)
     mean_points = np.nanmean(train_pts, axis=0)
+
+
 
     #region Load all data
     x = sum([1 for x in _vgg.imagesGenerator(skip_imghdr_check=True)])

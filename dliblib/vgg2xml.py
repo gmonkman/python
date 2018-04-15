@@ -22,7 +22,7 @@ import funclib.baselib as _baselib
 import opencvlib.roi as _roi
 
 SILENT = False
-VALID_LABELS = [str(lbl).zfill(2) for lbl in range(1, 20)]
+from dliblib import VALID_LABELS
 
 def _create_xml(fname):
     '''(str) -> void
