@@ -24,8 +24,6 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "pgnet", "..\pgnet\pgnet.pyp
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "dliblib", "..\dliblib\dliblib.pyproj", "{34014272-854C-4379-95C8-9DC9CA7B233A}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "geometry", "..\geometry\geometry.pyproj", "{D0E36231-F132-478A-8399-3E00DDF08AE0}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,8 +44,6 @@ Global
 		{52FB7047-B7AD-43D1-A402-BB033DB31901}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34014272-854C-4379-95C8-9DC9CA7B233A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{34014272-854C-4379-95C8-9DC9CA7B233A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D0E36231-F132-478A-8399-3E00DDF08AE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D0E36231-F132-478A-8399-3E00DDF08AE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

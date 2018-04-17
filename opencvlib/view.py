@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, reimported, superfluous-parens
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, reimported, superfluous-parens, unused-import
 
 '''
 This module contains some common routines used by other samples.
@@ -130,8 +130,8 @@ def show_all_channels(img):
     show(m)
 
 
-@_decs.decgetimg
-def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.CVColors.black, absolute=True, pixel_size=1., color_space=_color.eColorSpace.BGR, draw_str=''):
+#@_decs.decgetimg
+def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.CVColors.black, absolute=True, pixel_size=1., color_space=_color.eColorSpace.BGR, draw_str_=''):
     '''(str|ndarray|iterable, int, int)->int, str
     Show an image, passing in a path or ndarray
 
@@ -162,7 +162,7 @@ def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.C
         <space>=32
         n=110
     '''
-
+    img = _getimg(img)
     if isinstance(img, _np.ndarray):
         im = img
         if absolute:
@@ -192,7 +192,7 @@ def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.C
     if millisecs < 0:
         millisecs = 0
 
-    if draw_str != '':
+    if draw_str_ != '':
         _draw_str(im, 10, 10, draw_str, (0, 255, 255))
 
     _cv2.namedWindow(title, _cv2.WINDOW_NORMAL)

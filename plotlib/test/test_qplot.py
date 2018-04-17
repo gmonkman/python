@@ -20,13 +20,14 @@ class Test(unittest.TestCase):
     @unittest.skip('histo tested')
     def test_histo(self):
         '''test the histo function'''
-        qplot.histo(self.x_rnd, normed=True)     
+        qplot.histo(self.x_rnd, normed=True)
 
-
+    @unittest.skip('histo tested')
     def test_scatter(self):
         '''test scatter plot'''
-        qplot.scatter([self.x_rnd, self.x_rnd - 50], [self.y_rnd, self.y_rnd - 50], group_labels=('big', 'small'))
+        #qplot.scatter([self.x_rnd, self.x_rnd - 50], [self.y_rnd, self.y_rnd - 50], group_labels=('big', 'small'))
+        qplot.scatter([1,2,3,4,5,6,7,8,9,10],[1,2,3,4,5,6,7,8,9,10])
 
 if __name__ == '__main__':
     unittest.main()
-    
+

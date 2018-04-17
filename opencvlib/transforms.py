@@ -23,7 +23,7 @@ from opencvlib import getimg as _getimg
 from opencvlib import color as _color
 from opencvlib.color import BGR2HSV, BGR2RGB, HSVtoGrey, togreyscale
 import opencvlib.roi as _roi
-import opencvlib.geometry as _geom
+import opencvlib.geom as _geom
 
 
 
@@ -835,7 +835,7 @@ def similiarity_matrices(A, B, filter_invalid_pairs=True):
     assert len(A) == len(B)
 
 
-    N = A.shape[0]; # total points
+    N = A.shape[0] # total points
     A_ = _np.asarray(A).copy()
     B_ = _np.asarray(B).copy()
 
@@ -857,9 +857,9 @@ def similiarity_matrices(A, B, filter_invalid_pairs=True):
 
     if d:
         S[-1] = -S[-1]
-        V[:,-1] = -V[:,-1]
+        V[:, -1] = -V[:, -1]
     U = _np.dot(V, W).T
-    U[:,:-1] = _np.array([centroid_A - centroid_B]).reshape(2,1)
+    U[:, :-1] = _np.array([centroid_A - centroid_B]).reshape(2, 1)
     return U
 
 

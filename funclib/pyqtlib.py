@@ -3,9 +3,8 @@
 import sys as _sys
 from PyQt4.QtGui import QWidget as _QWidget
 from PyQt4.QtGui import QApplication as _QApplication
-from PyQt4.QtGui import _QMessageBox
+from PyQt4.QtGui import QMessageBox as _QMessageBox
 from PyQt4 import QtCore as _QtCore
-
 
 
 def question(title, msg, default_button=_QMessageBox.No, *flags):

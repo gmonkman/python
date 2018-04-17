@@ -324,10 +324,16 @@ def lists_remove_empty_pairs(list1, list2):
 
 def depth(l):
     '''(List|Tuple) -> int
-    Depth of a list or tuple
+    Depth of a list or tuple.
+    
+    Returns 0 of l is and empty list or
+    tuple.
     '''
     if isinstance(l, (list, tuple)):
-        d = lambda L: isinstance(L, (list, tuple)) and max(map(d, L)) + 1
+        if l:
+            d = lambda L: isinstance(L, (list, tuple)) and max(map(d, L)) + 1
+        else:
+            return 0
     else:
         s = 'Depth takes a list or a tuple but got a %s' % (type(l))
         raise ValueError(s)

@@ -1,4 +1,7 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import
+'''testing homography matching
+Didnt work great
+'''
 from os import path
 
 import cv2
@@ -33,7 +36,7 @@ def build_matched(pts1, pts2):
     return pt1_out, pt2_out
 
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     print('Press "q" to quit')
     pts_dest = np.loadtxt('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_grow/resized/vgg_landmarks_train_points.np')
 
@@ -62,7 +65,7 @@ if __name__ == '__main__' :
 
         h, status = cv2.findHomography(Pts, pts_dest_filtered, method=cv2.RANSAC, ransacReprojThreshold=5)
 
-        im_out = cv2.warpPerspective(im_src, h, (im_src.shape[1],im_src.shape[0]))
+        im_out = cv2.warpPerspective(im_src, h, (im_src.shape[1], im_src.shape[0]))
         #im_out_orig_points = draw_points(Pts, im_out, radius=RADIUS)
         im_out_mean_points = draw_points(pts_dest_filtered, im_out, radius=RADIUS)
 

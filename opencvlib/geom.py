@@ -9,15 +9,15 @@ import funclib.baselib as _baselib
 import opencvlib.distance as _dist
 
 
-def get_rnd_pts(range_=(-50,50), n=10, dtype=_np.int):
+def get_rnd_pts(range_=(-50, 50), n=10, dtype=_np.int):
     '''(2-tuple, 2-tuple, int, class:numpy.dtype) -> ndarray
     Returns an n x 2 ndarray of unique random points
     '''
-    pts = []
-    if isinstance(dtype, _np.int):
-        range_ = (range[0], range[1] + 1)
 
-    return _np.reshape(uniform(range_[0], range_[1],  n*2), (n, 2)).astype(dtype)
+    if isinstance(dtype, _np.int):
+        range_ = (range_[0], range_[1] + 1)
+
+    return _np.reshape(uniform(range_[0], range_[1], n*2), (n, 2)).astype(dtype)
 
 
 def triangle_pt(pt1, pt2, ret_max_y_pt=True):
@@ -156,7 +156,7 @@ def rotation_angle(pt1, pt2, as_radians=False):
     return rad if as_radians else _math.degrees(rad)
 
 
-def rotate_points(pts, angle, center=(0,0)):
+def rotate_points(pts, angle, center=(0, 0)):
     '''(ndarray|list, float, 2-tuple|None) -> nx2-tuple
     Rotates a point "angle" degree around center.
     Negative angle is clockwise.
@@ -178,7 +178,7 @@ def rotate_points(pts, angle, center=(0,0)):
     if not center:
         center = _np.mean(pts, axis=0)
 
-    for pt in pts:
+    for _ in pts:
         out = [rotate_point(pt, angle, center) for pt in pts]
     return out
 

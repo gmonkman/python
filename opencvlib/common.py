@@ -20,7 +20,7 @@ from opencvlib import getimg as _getimg
 from funclib.baselib import tuple_add_elementwise as _tupadd
 import funclib.iolib as _iolib
 import opencvlib.info as _info
-from opencvlib.geometry import centroid
+from opencvlib.geom import centroid
 
 IMAGE_EXTENSIONS_DOTTED = ['.bmp', '.jpg', '.jpeg',
                     '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
@@ -446,6 +446,16 @@ def draw_line(pts, img, line_color=(0, 0, 0), label=False, label_color=(0, 0, 0)
             lbl = '%s, %s' % (int(pts[i][0]), int(pts[i][1]))
             _cv2.putText(img, lbl, (int(pt[0]) + x_offset, int(pt[1]) + y_offset), _cv2.FONT_HERSHEY_PLAIN, 0.8, label_color)
     return img
+
+
+def draw_polygon(img, points, color=(0, 255,0), thickness=1):
+    '''(ndarray, tuple|list)
+    Join points
+    '''
+    #[10,5],[20,30],[70,20],[50,10]
+    points = np.array(points).astype('int32')
+    p = points.reshape(-1, 1, 2)
+    cv2.polylines(img, p, isClosed=True, color=color, thickness=thickness)
 
 
 def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), show_labels=True, label_color=(0, 0, 0), padding=0, add_scale=True,  radius=10, plot_centroid=False):

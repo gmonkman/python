@@ -1,3 +1,4 @@
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, no-self-use, unused-variable
 
 '''unit tests for features'''
 import unittest
@@ -14,8 +15,8 @@ from opencvlib.view import show
 from opencvlib.view import mosaic
 from opencvlib.common import draw_points
 from opencvlib.display_utils import KeyBoardInput as Keys
-import opencvlib.geometry as geom
-from opencvlib.common import draw_points
+import opencvlib.geom as geom
+
 
 _fShow = lambda pts: show(draw_points(pts))
 
@@ -113,7 +114,7 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled while debugging")
     def test_rigid_transform(self):
         '''test rigid transorm'''
-        pts = geom.get_rnd_pts((300,400), 4)
+        pts = geom.get_rnd_pts((300, 400), 4)
         img = draw_points(pts, plot_centroid=True, padding=50)
         show(img)
         pts = np.array(pts).astype('float32')
@@ -127,7 +128,7 @@ class Test(unittest.TestCase):
 
         #opencv matrix
         Mcv = cv2.getRotationMatrix2D(tuple(cent), -45, 1)
-        Mcv = np.array([30,30]).reshape(2,1)
+        Mcv = np.array([30, 30]).reshape(2, 1)
         M = t.similiarity_matrices(pts, pts90)
         pass
 

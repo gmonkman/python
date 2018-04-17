@@ -8,7 +8,7 @@ import os.path as _path
 import cv2
 
 import funclib.iolib as iolib
-import opencvlib.geometry as geom
+import opencvlib.geom as geom
 
 
 class Test(unittest.TestCase):
@@ -22,9 +22,10 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_points_rmsd(self):
-        x = geom.points_rmsd([[1, None],[2,10]], [[1, 1],[2,10]])
+        '''rmsd'''
+        x = geom.points_rmsd([[1, None], [2, 10]], [[1, 1], [2, 10]])
         self.assertEqual(x, 0)
-        x = geom.points_rmsd([[1, None],[2,10]], [[1, 1],[2,5]])
+        x = geom.points_rmsd([[1, None], [2, 10]], [[1, 1], [2, 5]])
         pass
 
 

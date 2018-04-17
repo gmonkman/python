@@ -5,15 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_transforms.py</StartupFile>
+    <StartupFile>scripts_vgg\fork_ratio.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/processors/undistorted"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -47,7 +46,11 @@ make_train.py -n 10 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/
 
 dump_digikam.py -a images -t fid_overlay "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/all"
 
-average_resize -h mean "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole/resized"</Environment>
+average_resize.py -h mean "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/roi_whole/resized"
+
+read_diagonals.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/Phase 03 - Novel Applications/Machine Vision/aruco_px_est_imgs" "aruco_stats.csv"
+
+fork_ratio.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/processors/undistorted"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -70,7 +73,7 @@ average_resize -h mean "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/ba
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="fiducial.py" />
-    <Compile Include="geometry.py" />
+    <Compile Include="geom.py" />
     <Compile Include="histo.py">
       <SubType>Code</SubType>
     </Compile>
@@ -97,12 +100,17 @@ average_resize -h mean "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/ba
     <Compile Include="scripts_tensorflow\make_negs.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts_vgg\point_distances.py" />
+    <Compile Include="scripts_vgg\fork_ratio.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts_vgg\img2roi.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_vgg\rotate.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="script_aruco\read_diagonals.py" />
     <Compile Include="script_aruco\aruco_in_vid.py">
       <SubType>Code</SubType>
     </Compile>
@@ -123,9 +131,6 @@ average_resize -h mean "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/ba
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="script_transforms\registration.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="script_transforms\registration_procrustes.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="script_transforms\view_gamma_cont.py" />

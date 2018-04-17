@@ -749,27 +749,17 @@ def main():
     '''
     # read generic database setting from inifile and set as globals
 
-    cmdline = _argparse.ArgumentParser(
-        description='Examples:\n'
-        'Undistort images in digikam database to c:/temp/pics\n'
-        'lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p DIGIKAM\n\n'
-        'Undistort images in a path and output to c:/temp/pics\n'
-        'lenscorrection.py -m undistort -c NEXTBASE512G -o C:/temp/pics -p c:/path/to/images/to/undistort \n\n'
-        'Undistort images using fisheye, in a path and output to c:/temp/pics\n'
-        'lenscorrection.py -m undistort_fisheye -c NEXTBASE512G -o C:/temp/pics -p c:/path/to/images/to/undistort \n\n'
-        'Calibrate lens using images in CALIBRATION_PATH\n'
-        'lenscorrection.py -m calibrate -c NEXTBASE512G\n\n'
-        'Calibrate lens using images in CALIBRATION_PATH. Saves vertex detection images to the debug folder\n'
-        'lenscorrection.py -m calibrate -c NEXTBASE512G -d\n'
-        'List existing camera calibration profiles\n'
-        'lenscorrection.py -m list\n')
-
+    cmdline = _argparse.ArgumentParser(description=__doc__)
 
     cmdline.add_argument(
         '-m',
         '--mode',
         action='store',
-        help='The mode, values are:\nundistort - undistorts images in path\nundistort_fisheye - undistorts images in path using fisheye lens profile\ncalibrate - create lens calibration values',
+        help='The mode, values are:\n'
+                'UNDISORT - undistorts images in path.  '
+                'UNDISTORY_FISHEYE - undistorts images in path using fisheye lens profile.  '
+                'CALIBRATE - create lens calibration values.  '
+                'PROFILES - show stored calibration profiles.',
         required=True)
     cmdline.add_argument(
         '-p',
@@ -799,6 +789,10 @@ def main():
     cmdargs = cmdline.parse_args()
 
     cmdargs.mode = cmdargs.mode.lower()
+    if cmdargs.mode == 'profiles':
+        list_profiles()
+        return
+
     if cmdargs.mode == 'undistort' and (
             cmdargs.path == '' or cmdargs.path is None):
         print('\nMode was undistort but no path argument was specified.')
