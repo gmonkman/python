@@ -134,7 +134,7 @@ def mtx2rvec(R):
     return axis * _np.arctan2(s, c)
 
 
-def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_cv2.FONT_HERSHEY_COMPLEX_SMALL, bottom_left_origin=False, box_background=None, box_pad=5):
+def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_cv2.FONT_HERSHEY_COMPLEX_SMALL, bottom_left_origin=False, box_background=None, box_pad=5, centre_box_at_xy=False):
     '''(byref:ndarray, int, int, str, 3:tuple, float, int, bool, 3-tuple|int|None) -> void
     Draw text on dst
 
@@ -152,7 +152,7 @@ def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_c
         x,y is XY, not CVXY
     box_background:
         color of box background in which to draw text,
-        e.g. (255, 255, 2550), otherwise no
+        e.g. (255, 255, 255), otherwise no
         background is used around text.
     '''
     if isinstance(box_background, int):
@@ -160,7 +160,7 @@ def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_c
 
     if dst is None:
         return None
-
+    x = int(x); y = int(y)
     thickness = int(thickness)
     pt, baseline = _cv2.getTextSize(s, fnt, scale, thickness)
     w, h = pt
@@ -181,7 +181,16 @@ def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_c
         _cv2.putText(box, s, textOrg, fnt,
                     scale, color, thickness=thickness, lineType=_cv2.LINE_AA)
 
-        dst[y: box.shape[0] + y, x: box.shape[1] + x] = box
+        if centre_box_at_xy:
+            yadj = int(box.shape[0] / 2)
+            xadj = int(box.shape[1] / 2)
+        else:
+            yadj = 0; xadj = 0
+
+        try:
+            dst[y - yadj: box.shape[0] + y - yadj, x - xadj: box.shape[1] + x - xadj] = box
+        except:
+            raise ValueError('Part of the text box would be printed outside the host image.')
     else:
         _cv2.putText(dst, s, (x, y), fnt,
                     scale, color, thickness=thickness, lineType=_cv2.LINE_AA, bottomLeftOrigin=bottom_left_origin)

@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import, unused-variable
 '''Takes an vgg file of point landmarks
 and tries to find outliers.
 
@@ -15,7 +15,7 @@ from funclib.iolib import PrintProgress as _PP
 import funclib.iolib as iolib
 from opencvlib.imgpipes import vgg as _vgg
 from opencvlib.imgpipes.generators import VGGROI
-from geometry import Point
+from sympy.geometry import Point2D
 from plotlib import qplot
 from funclib.arraylib import distances, angles_between
 from funclib.arraylib import min_indices
@@ -78,7 +78,7 @@ def main():
         return
 
     mean_distances = np.nanmean(train_distances, axis=0) #19x19 array of mean distances between points
-    mean_distances_std = Scaler.fit_transform(mean_distances)
+    mean_distances_std = Scaler.fit_transform(mean_distances) #Currently unused, but ths is the standardised mean distances between points
     mean_angles = np.nanmean(train_angles, axis=0)
     mean_points = np.nanmean(train_pts, axis=0)
 

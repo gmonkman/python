@@ -264,3 +264,16 @@ def points_rmsd(V, W):
         rmsd += sum([(v[i] - w[i]) ** 2.0 for i in range(D)])
 
     return _np.sqrt(rmsd/N)
+
+
+
+def order_points(p):
+    '''(list|tuple|ndarray) -> list
+    Sorts a list of points by their position
+    '''
+    if isinstance(p, (list, tuple, set)):
+        pts = _np.array(p)
+    pts = pts.tolist()
+    cent = (sum([p[0] for p in pts])/len(pts), sum([p[1] for p in pts])/len(pts))
+    pts.sort(key=lambda p: _math.atan2(p[1] - cent[1], p[0] - cent[0]))
+    return pts

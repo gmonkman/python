@@ -22,8 +22,7 @@ from opencvlib.common import draw_str
 from opencvlib.imgpipes.generators import FromPaths
 from funclib.iolib import get_file_parts2
 from plotlib import qplot
-from geometry import Segment
-from geometry.triangle import Triangle
+from sympy.geometry import Segment2D, Triangle
 from funclib import iolib
 from funclib.iolib import writecsv
 from funclib.iolib import folder_open
@@ -71,8 +70,7 @@ def main():
     for frame, fname, _ in FP.generate():
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         fpath, fname, _ = get_file_parts2(fname)
-        if fname=='591.jpg':
-            zz=10
+
         res = cv2.aruco.detectMarkers(frame, dictionary)
         #res[0]: Detected corners [0]=topleft [1]=topright [2]=bottomright [3]=bottomleft
         #res[1]: MarkerID
@@ -93,14 +91,14 @@ def main():
                     v = 25.
                     T = Triangle([0, 0], [25, 0], [25, 25])
                     vdiag = T.hypotenuse.length
-                elif lbl in [eUsedIDs.Sz30.value, eUsedIDs.Sz30_flip.value] :
+                elif lbl in [eUsedIDs.Sz30.value, eUsedIDs.Sz30_flip.value]:
                     v = 30.
                     T = Triangle([0, 0], [30, 0], [30, 30])
-                    vdiag = T.hypotenuse.length
+                    vdiag = max([s.length.evalf() for s in T.sides])
                 elif lbl == eUsedIDs.Sz50.value:
                     v = 50.
                     T = Triangle([0, 0], [50, 0], [50, 50])
-                    vdiag = T.hypotenuse.length
+                    vdiag = max([s.length.evalf() for s in T.sides])
                 else:
                     print('%s, marker detected but unknow. Was the image flipped' % fname)
                     lbl = lbl

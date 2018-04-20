@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_vgg\fork_ratio.py</StartupFile>
+    <StartupFile>scripts_vgg\point_distances_bass.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/processors/undistorted"</CommandLineArguments>
+    <CommandLineArguments>-p Charter -c GoPro "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/gopro_all_undistorted/rotated"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -50,7 +50,9 @@ average_resize.py -h mean "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images
 
 read_diagonals.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/Phase 03 - Novel Applications/Machine Vision/aruco_px_est_imgs" "aruco_stats.csv"
 
-fork_ratio.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/processors/undistorted"</Environment>
+fork_ratio.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/processors/undistorted"
+
+point_distances_bass.py -p Charter -c XP30 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -65,6 +67,9 @@ fork_ratio.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/proces
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="aruco.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="classifiers.py">
       <SubType>Code</SubType>
     </Compile>
@@ -100,7 +105,8 @@ fork_ratio.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/proces
     <Compile Include="scripts_tensorflow\make_negs.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="scripts_vgg\point_distances.py" />
+    <Compile Include="scripts_vgg\point_distances_bass.py" />
+    <Compile Include="scripts_vgg\point_distances_dab.py" />
     <Compile Include="scripts_vgg\fork_ratio.py">
       <SubType>Code</SubType>
     </Compile>
@@ -159,13 +165,13 @@ fork_ratio.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/proces
     <Compile Include="test\test_display_utils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="test\test_fiducial.py">
+    <Compile Include="test\test_aruco.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_fisheye.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="test\test_geometry.py">
+    <Compile Include="test\test_geom.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_histo.py">
@@ -366,6 +372,7 @@ fork_ratio.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/proces
     <Content Include="script_transforms\img\lena.jpg" />
     <Content Include="test\bin\images\box.png" />
     <Content Include="test\bin\images\box_in_scene.png" />
+    <Content Include="test\bin\images\fid_all.jpg" />
     <Content Include="test\bin\images\graf1.png" />
     <Content Include="test\bin\images\grass.jpg" />
     <Content Include="test\bin\images\lena.jpg" />

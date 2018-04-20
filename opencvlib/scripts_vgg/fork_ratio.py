@@ -45,7 +45,7 @@ def main():
     out_file = path.normpath(path.join(folder, CSVOUT))
 
     Pts = [] #store all the points
-    outdata = [['fname','pts_used', 'total_length_px', 'fork_length_px']]
+    outdata = [['fname', 'pts_used', 'total_length_px', 'fork_length_px']]
     print('\nProcessing ...')
 
     for Img in vgg.imagesGenerator(json_file=vgg_file):
@@ -54,7 +54,7 @@ def main():
         for vggReg in Img.roi_generator(shape_type='point'):
             assert isinstance(vggReg, vgg.Region)
             lbl = int(vggReg.region_json_key) + 1 if vggReg.region_attr.get('forkpts', '') == '' else int(vggReg.region_attr['forkpts'])
-            Pts[lbl - 1] =  Point2D(vggReg.x, vggReg.y)
+            Pts[lbl - 1] = Point2D(vggReg.x, vggReg.y)
 
         if not Pts or None in Pts[0:3]:
             continue
@@ -72,11 +72,10 @@ def main():
             fork_to_tip_len = abs((A.distance(C).evalf()**2 - A.distance(B).evalf()**2 - B.distance(C).evalf()**2) / abs(2*B.distance(C).evalf()))
         elif len(Pts) == 4:
             pts_used = 4
-            tail_tip_line = Line2D(C, D)
             fork_to_tip_len = abs(B.distance(A.midpoint(D)).evalf())
 
         total_length_px = fork_to_tip_len + fork_length_px
-        outdata.append([Img.filename, pts_used,  total_length_px, fork_length_px])
+        outdata.append([Img.filename, pts_used, total_length_px, fork_length_px])
         Pts = []
 
     iolib.writecsv(out_file, outdata, inner_as_rows=False)

@@ -1,4 +1,5 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+#pylint: skip-file
+
 '''
 Run shape predictor example.
 
@@ -46,6 +47,3 @@ for Img in vgg.imagesGenerator():
         i = draw_points(pts, i)
         if Key.check_pressed_key('q', show(i)):
             quit()
-
-
-
