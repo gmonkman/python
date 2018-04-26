@@ -69,7 +69,7 @@ def col_calculate_new(df, func, new_col_name, *args):
         return a*b
 
     func = f
-    col_calculate_new(df, f, 'product', 0, 1)
+    col_calculate_new(df, func, 'product', 0, 1)
 
     DF=
     a   b   product
@@ -83,7 +83,7 @@ def col_calculate_new(df, func, new_col_name, *args):
             (new_col_name))
     col_append(df, new_col_name)
 
-    #
+
     for i, row in df.iterrows():
         rowvals = [row[x] for x in args]
         v = func(*rowvals)

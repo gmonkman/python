@@ -80,7 +80,7 @@ class Test(unittest.TestCase):
         _wait_key()
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_undistort_GoProHero5PhotoMediumShore(self):
         '''undistort_GoProHero5PhotoMediumShore'''
         cam = _lc.get_camera('GoProHero5PhotoMedium')
@@ -219,7 +219,7 @@ class Test(unittest.TestCase):
 
 
 #region misc tests
-    @unittest.skip("Temporaily disabled while debugging")
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_list_profile_param(self):
         '''test'''
         res = _lc.list_profile_param('GoProHero5PhotoWide', 1440, 1080, 'D', printit=True)

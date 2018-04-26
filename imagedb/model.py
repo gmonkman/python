@@ -231,6 +231,12 @@ class SampleLength(_BASE):
     perspective_corrected_estimate_mm = Column(Integer, nullable=True)
     perspective_corrected_estimate_iter_mm = Column(Integer, nullable=True)
     sample = relationship('Sample', backref='sample_lengths')
+    unique_code = Column(
+        String(
+            50,
+            'Latin1_General_CI_AS'),
+        nullable=False,
+        server_default=text("('')"))
 
     def __repr__(self):
         return "<Sample_length(sample_lengthid=%i, estimate_mm=%i, ref_length_type='%s', ref_length_mm=%i, measured_resolution='%s', perspective_corrected_actual_mm=%i, lens_correction_mm=%i, perspective_corrected_estimate_iter_mm=%i)>" % (

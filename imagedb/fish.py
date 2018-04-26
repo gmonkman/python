@@ -52,7 +52,7 @@ class Fish(ABC):
 
 # define an array of functions which will accept other 'species' classes
 class FishActions(object):
-    '''polymorphic class functions for fish species, aubclassed from Fish'''
+    '''polymorphic class functions for fish species, subclassed from Fish'''
 
     def __init__(self, species):
         '''species is a fish class (polymorphic)
@@ -69,7 +69,7 @@ class FishActions(object):
         length = depth + c
         Return x,c
         '''
-        return self.species.get_max_depth(reverse)
+        return self.species.lalg_length_equals_depth(reverse)
 
     def function_over_interval(self):
         '''Given a function which represents the dorsal fish shape
@@ -81,7 +81,12 @@ class FishActions(object):
 
 
 class Bass(Fish):
-    '''bass'''
+    '''
+    Profile mean height is the mean height of the fish profile
+    calculated from a binary image of the fish profile in
+    scripts_misc/shape_area.py
+    '''
+    profile_mean_height = 0.598
 
     def __init__(self, length_tl=0):
         # keep python 2.7 compat, Python 3 only would be
@@ -96,6 +101,14 @@ class Bass(Fish):
         a, c = self.lalg_length_equals_depth(False)
 
         return self.length_tl * a + c
+
+
+    def function_over_interval(self):
+        '''estimate the total length based on the integral mid point depth
+        of the fish
+        '''
+        raise NotImplementedError('Not implemented')
+
 
     def lalg_length_equals_depth(self, reverse=False):
         '''get the parameters of the linear equation for the length-depth relationship
@@ -113,6 +126,8 @@ class Bass(Fish):
             c = np_array([34.3, 54.3])
         ret = linalg.solve(a, c)
         return (ret[0], ret[1])
+
+
 
 
 # region ENTRY

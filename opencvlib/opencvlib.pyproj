@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_vgg\point_distances_bass.py</StartupFile>
+    <StartupFile>scripts_vgg\aruco_size_px_bass.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-p Shore -c s5690 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\shore\s5690\rotated"</CommandLineArguments>
+    <CommandLineArguments>-c s5690 -p Shore "C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\shore\s5690\rotated"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -96,6 +96,9 @@ point_distances_bass.py -p Charter -c XP30 "C:/Users/Graham Monkman/OneDrive/Doc
     <Compile Include="player.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts_misc\shape_area.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts_segmentation\grabcut.py">
       <SubType>Code</SubType>
     </Compile>
@@ -105,6 +108,10 @@ point_distances_bass.py -p Charter -c XP30 "C:/Users/Graham Monkman/OneDrive/Doc
     <Compile Include="scripts_tensorflow\make_negs.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts_vgg\aruco_size_px_bass.py" />
+    <Compile Include="scripts_vgg\point_px_dab_processors.py" />
+    <Compile Include="scripts_vgg\point_px_bass_processors.py" />
+    <Compile Include="scripts_vgg\subject_distance.py" />
     <Compile Include="scripts_vgg\point_distances_bass.py" />
     <Compile Include="scripts_vgg\point_distances_dab.py" />
     <Compile Include="scripts_vgg\fork_ratio.py">
@@ -184,6 +191,9 @@ point_distances_bass.py -p Charter -c XP30 "C:/Users/Graham Monkman/OneDrive/Doc
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_matcher.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_perspective.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_player.py">
@@ -318,6 +328,7 @@ point_distances_bass.py -p Charter -c XP30 "C:/Users/Graham Monkman/OneDrive/Doc
     <Folder Include="imgpipes\" />
     <Folder Include="bin\" />
     <Folder Include="learning\" />
+    <Folder Include="scripts_misc\" />
     <Folder Include="script_augment\bin\" />
     <Folder Include="script_imagepipes\" />
     <Folder Include="script_augment\" />

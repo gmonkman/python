@@ -434,6 +434,7 @@ def list_profiles():
         res = db.list_existing()
     print('\n'.join(map(str, res)))
 
+
 def list_profile_param(camera, x, y, param, printit=True):
     '''(str, int, int, str, bool) -> value
     print a camera property

@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import, no-self-use
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import, no-self-use, unused-variable
 '''unit tests for features'''
 import unittest
 from inspect import getsourcefile as _getsourcefile
@@ -33,27 +33,29 @@ class Test(unittest.TestCase):
         for n in range(50):
             s = _path.join('C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/fudicial', '%s.jpg' % n)
             dummy = aruco.getmarker(n, 200, 20)
-            self.assertTrue(isinstance(dummy, NoneType.ndarray))
+            self.assertTrue(isinstance(dummy, np.ndarray))
 
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_Marker(self):
-        M = aruco.Marker([[0,0],[0,10],[10,10],[10,0]], aruco.eMarkerID.Sz25)
+        '''test'''
+        M = aruco.Marker([[0, 0], [0, 10], [10, 10], [10, 0]], aruco.eMarkerID.Sz25)
         self.assertEqual(M.diagonal_length_mm, aruco.DIAGONAL25mm)
-        M = aruco.Marker([[0,0],[0,10],[10,10],[10,0]], aruco.eMarkerID.Sz30)
+        M = aruco.Marker([[0, 0], [0, 10], [10, 10], [10, 0]], aruco.eMarkerID.Sz30)
         self.assertEqual(M.diagonal_length_mm, aruco.DIAGONAL30mm)
-        M = aruco.Marker([[0,0],[0,10],[10,10],[10,0]], aruco.eMarkerID.Sz50)
+        M = aruco.Marker([[0, 0], [0, 10], [10, 10], [10, 0]], aruco.eMarkerID.Sz50)
         self.assertEqual(M.diagonal_length_mm, aruco.DIAGONAL50mm)
 
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_Detect(self):
-        D = aruco.Detected(self.fidimg, expected=aruco.eMarkerID.Any_)
+        '''test'''
+        D = aruco.Detected(self.fidimg)
         markers = D.detect()
         img = D.image_with_detections
         show(img)
 
-        D = aruco.Detected(self.fidflipimg, expected=aruco.eMarkerID.Any_)
+        D = aruco.Detected(self.fidflipimg)
         markers = D.detect()
         img = D.image_with_detections
         show(img)

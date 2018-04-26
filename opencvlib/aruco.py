@@ -114,7 +114,7 @@ class Marker():
             return (a + b + c + d)/4
         return None
 
-    @property
+
     def px_length_mm(self, use_side=False):
         '''(bool) -> float
         Estimated pixel length in mm, i.e.
@@ -205,7 +205,7 @@ class Detected():
                 M = Marker([pts[0], pts[1], pts[2], pts[3]], markerid)
                 self.Markers.append(M)
 
-                s = '{0} mm. Px:{1:.2f} mm'.format(int(M.side_length_mm), M.px_length_mm)
+                s = '{0} mm. Px:{1:.2f} mm'.format(int(M.side_length_mm), M.px_length_mm())
                 _draw_str(self.image_with_detections, pts[0][0], pts[0][1], s, color=(0, 255, 0), scale=0.6)
                 _draw_str(self.image_with_detections, M.centroid[0], M.centroid[1], markerid.name, color=(255, 255, 255), scale=0.7, box_background=(0, 0, 0), centre_box_at_xy=True)
                 self.image_with_detections = _draw_points(pts, self.image_with_detections, join=True, line_color=(0, 255, 0), show_labels=False)

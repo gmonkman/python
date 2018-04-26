@@ -3,7 +3,7 @@
 '''My file input and output library, e.g. for _csv handling.
 Also for general IO to the console'''
 from __future__ import print_function as _print_function
-
+from warnings import warn as _warn
 
 import csv as _csv
 import glob as _glob
@@ -892,6 +892,10 @@ def print_progress(
         decimals    - Optional  : number of decimals in percent complete (Int)
         bar_length   - Optional  : character length of progbar (Int)
     """
+    if total == 0:
+        _warn('Total iterations was set to zero.')
+        return
+
     filled_length =  int(round(bar_length * iteration / float(total))) if total > 0 else 0
     if iteration / float(total) > 1:
         total = iteration

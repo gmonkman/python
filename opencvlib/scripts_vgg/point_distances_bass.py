@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import, unused-variable
 '''Estimate total distances between  paired points,
 optionally calculate pixel length per mm.
 
@@ -164,9 +164,6 @@ def main():
     errors = []
     for Img in vgg.imagesGenerator(skip_imghdr_check=True):
         PP.increment()
-        if Img.filename == 'r279_UND.jpg' or Img.filename == 'r298_UND.jpg' :
-            #These 2 have bigger estimaes than expected
-            xx = 10
         assert isinstance(Img, vgg.Image)
 
         img = getimg(Img.filepath)
@@ -248,7 +245,6 @@ def main():
     iolib.writecsv(out_file, outdata, inner_as_rows=False)
     iolib.folder_open(path.normpath(folder))
 
-    s = ''
     all_errs = []
     all_errs.extend(missing_points)
     all_errs.extend(multi_markers)
