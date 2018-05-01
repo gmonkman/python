@@ -78,9 +78,7 @@ def col_calculate_new(df, func, new_col_name, *args):
     '''
     assert isinstance(df, _pd.DataFrame)
     if new_col_name in df.columns:
-        raise BaseException(
-            'Column %s already exists in the dataframe.' %
-            (new_col_name))
+        raise BaseException('Column %s already exists in the dataframe.' % (new_col_name))
     col_append(df, new_col_name)
 
 

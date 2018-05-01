@@ -143,7 +143,7 @@ def main():
     print('Folder: %s\nCamera: "%s"\nPlatform: "%s"' % (args.folder, args.camera, args.platform))
     vgg.SILENT = True
     assert args.platform in BassSamples.platform, 'Invalid platform "%s"' % args.platform
-    assert args.camera in BassSamples.camera,  'Invalid camera "%s"' % args.camera
+    assert args.camera in BassSamples.camera, 'Invalid camera "%s"' % args.camera
 
     folder = path.normpath(args.folder)
     assert iolib.folder_exists(folder), 'Folder %s not found' % folder

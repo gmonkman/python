@@ -230,6 +230,7 @@ class SampleLength(_BASE):
     lens_correction_mm = Column(Integer, nullable=True)
     perspective_corrected_estimate_mm = Column(Integer, nullable=True)
     perspective_corrected_estimate_iter_mm = Column(Integer, nullable=True)
+
     sample = relationship('Sample', backref='sample_lengths')
     unique_code = Column(
         String(

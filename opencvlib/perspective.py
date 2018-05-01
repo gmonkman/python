@@ -47,7 +47,7 @@ def get_perspective_correction_iter_linear(coeff,
                                            bg_dist,
                                            length,
                                            last_length=0,
-                                           stop_below_proportion=0.01):
+                                           stop_below_proportion=0.01, profile_mean_height=1):
     '''(float, float, float, float,float)->float|None
     Return the length corrected for the depth of the object
     considering the backplane of the object to be the best
@@ -72,7 +72,7 @@ def get_perspective_correction_iter_linear(coeff,
     elif length == 0:
         return 0
     elif (last_length / length < stop_below_proportion) and last_length > 0:
-        return length
+        return length * profile_mean_height
 
     if last_length == 0:  # first call
         l = get_perspective_correction(bg_dist, object_depth, length) - length

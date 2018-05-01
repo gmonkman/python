@@ -30,12 +30,6 @@ class Fish(ABC):
         Return x,c
         '''
 
-    @abstractmethod
-    def function_over_interval(self):
-        '''estimate the total length based on the integral mid point depth
-        of the fish
-        '''
-
 
     @staticmethod
     def length_from_depth(measure, coeff, const):
@@ -71,13 +65,6 @@ class FishActions(object):
         '''
         return self.species.lalg_length_equals_depth(reverse)
 
-    def function_over_interval(self):
-        '''Given a function which represents the dorsal fish shape
-        return the function mean between the bounds x[0,1]
-        Each fish will have a different function is dictated by their different dorsal profile
-        The function will need to be determined empirically for each fish
-        '''
-        return self.species.function_over_interval()
 
 
 class Bass(Fish):
@@ -99,15 +86,10 @@ class Bass(Fish):
         REF: "Quality outline of European sea bass Dicentrarchus labrax reared in Italy: shelf life, edible yield, nutritional and dietetic traits"
         '''
         a, c = self.lalg_length_equals_depth(False)
-
+        if self.length_tl is None:
+            return None
         return self.length_tl * a + c
 
-
-    def function_over_interval(self):
-        '''estimate the total length based on the integral mid point depth
-        of the fish
-        '''
-        raise NotImplementedError('Not implemented')
 
 
     def lalg_length_equals_depth(self, reverse=False):
@@ -127,6 +109,50 @@ class Bass(Fish):
         ret = linalg.solve(a, c)
         return (ret[0], ret[1])
 
+
+class Dab(Fish):
+    '''
+    Profile mean height is the mean height of the fish profile
+    calculated from a binary image of the fish profile in
+    scripts_misc/shape_area.py
+    '''
+    #TODO Sort this for DAB
+    profile_mean_height = None
+
+    def __init__(self, length_tl=0):
+        # keep python 2.7 compat, Python 3 only would be
+        # super().__init__(length_tl)
+        super(Bass, self).__init__(length_tl)
+
+    def get_max_depth(self):
+        '''(float)->float
+        given a length in mm, get maximum fish depth in mm
+        REF: "Quality outline of European sea bass Dicentrarchus labrax reared in Italy: shelf life, edible yield, nutritional and dietetic traits"
+        '''
+        a, c = self.lalg_length_equals_depth(False)
+        if self.length_tl is None:
+            return None
+        return self.length_tl * a + c
+
+
+
+    def lalg_length_equals_depth(self, reverse=False):
+        '''get the parameters of the linear equation for the length-depth relationship
+        length = a*Depth + c
+        Return x,c
+        If reverse use:
+        depth = a*Length + c
+        '''
+        #TODO Sort this for DAB
+        if reverse:
+            # setup the matrix in the form ay + bx = c
+            a = np_array([[10, 34.3], [10, 54.3]])
+            c = np_array([280, 427.5])
+        else:
+            a = np_array([[280, 10], [427.5, 10]])
+            c = np_array([34.3, 54.3])
+        ret = linalg.solve(a, c)
+        return (ret[0], ret[1])
 
 
 
