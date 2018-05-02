@@ -3,6 +3,8 @@
 import pandas as _pd
 import numpy as _np
 
+from funclib.baselib import list_flatten as _list_flatten
+from funclib.iolib import wait_key
 # region Pandas
 
 
@@ -81,9 +83,10 @@ def col_calculate_new(df, func, new_col_name, *args):
         raise BaseException('Column %s already exists in the dataframe.' % (new_col_name))
     col_append(df, new_col_name)
 
-
+    args = list(args)
+    args = _list_flatten(args)
     for i, row in df.iterrows():
-        rowvals = [row[x] for x in args]
+        rowvals = [None if _np.isnan(row[x]) else row[x] for x in args]
         v = func(*rowvals)
         df.set_value(i, new_col_name, v)
 
@@ -113,7 +116,7 @@ def cols_get_indexes_from_names(df, *args):
 
 
 def readfld(v, default=None):
-    '''return default if v us a pandas null
+    '''return default if v is a pandas null
     '''
     return default if _pd.isnull(v) else v
 # endregion

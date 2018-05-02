@@ -46,8 +46,9 @@ def get_perspective_correction_iter_linear(coeff,
                                            const,
                                            bg_dist,
                                            length,
+                                           profile_mean_height=1,
                                            last_length=0,
-                                           stop_below_proportion=0.01, profile_mean_height=1):
+                                           stop_below_proportion=0.01):
     '''(float, float, float, float,float)->float|None
     Return the length corrected for the depth of the object
     considering the backplane of the object to be the best
@@ -62,17 +63,20 @@ def get_perspective_correction_iter_linear(coeff,
     calculated length to add is is less than last_length*stop_below_proportion
     we return the result and stop the iteration
     '''
+    if bg_dist == 0 or bg_dist is None or coeff == 0 or coeff is None or length is None:
+        return None
+
     if last_length == 0:
         object_depth = length * coeff + const
     else:
         object_depth = last_length * coeff + const
 
-    if object_depth == 0:
+    if object_depth <= 0:
         return length
     elif length == 0:
         return 0
     elif (last_length / length < stop_below_proportion) and last_length > 0:
-        return length * profile_mean_height
+        return length
 
     if last_length == 0:  # first call
         l = get_perspective_correction(bg_dist, object_depth, length) - length
@@ -82,11 +86,11 @@ def get_perspective_correction_iter_linear(coeff,
     if l is None:
         return None
 
-    return get_perspective_correction_iter_linear(coeff, const, bg_dist, length + l, l, stop_below_proportion)
+    return get_perspective_correction_iter_linear(coeff, const, bg_dist, length + (l * profile_mean_height), (l * profile_mean_height), stop_below_proportion)
 
 
 def subjdist_knowndist(Known, Unknown):
-    '''(Class:Measure, Class:Measure) -> float
+    '''(Class:Measure, Class:Measure) -> float|None
     Get subject-lens distance
     estimate from a photograph of known distance
     with fiducial marker of known length
@@ -94,12 +98,17 @@ def subjdist_knowndist(Known, Unknown):
     #https://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
     assert isinstance(Known, Measure)
     assert isinstance(Unknown, Measure)
+    x = [Known.marker_length_px, Known.lens_subj_dist, Known.marker_length_mm, Unknown.marker_length_mm, Unknown.marker_length_px]
+    if not all(x):
+        return None
+    if Known.marker_length_mm == 0 or Unknown.marker_length_px == 0:
+        return None
     F = Known.marker_length_px * Known.lens_subj_dist / Known.marker_length_mm
     return Unknown.marker_length_mm * F / Unknown.marker_length_px
 
 
 def subjdist_camera(Cam, Unknown):
-    '''(Class:Camera, Class:Measure) -> float
+    '''(Class:Camera, Class:Measure) -> float|None
 
     Estimate lens-subject distance from the camera properties
     and the known marker length in mm and measure marker pixel
@@ -114,5 +123,8 @@ def subjdist_camera(Cam, Unknown):
     '''
     assert isinstance(Cam, Camera)
     assert isinstance(Unknown, Measure)
+    x = [Cam.f, Unknown.marker_length_mm, Cam.px_x, Unknown.marker_length_px, Cam.x_mm]
+    if not all(x):
+        return None
 
     return (Cam.f * Unknown.marker_length_mm * Cam.px_x) / (Unknown.marker_length_px * Cam.x_mm)

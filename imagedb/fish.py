@@ -1,6 +1,6 @@
 '''stuff to do with the image database'''
 from numpy import array as np_array, linalg
-from scipy.integrate import quad
+
 
 from abc import ABC, abstractmethod
 
@@ -122,12 +122,12 @@ class Dab(Fish):
     def __init__(self, length_tl=0):
         # keep python 2.7 compat, Python 3 only would be
         # super().__init__(length_tl)
-        super(Bass, self).__init__(length_tl)
+        super(Dab, self).__init__(length_tl)
 
     def get_max_depth(self):
         '''(float)->float
         given a length in mm, get maximum fish depth in mm
-        REF: "Quality outline of European sea bass Dicentrarchus labrax reared in Italy: shelf life, edible yield, nutritional and dietetic traits"
+        REF:
         '''
         a, c = self.lalg_length_equals_depth(False)
         if self.length_tl is None:
