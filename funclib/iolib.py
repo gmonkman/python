@@ -637,8 +637,11 @@ def files_delete2(filenames):
     '''
     if isinstance(filenames, str):
         filenames = [filenames]
-    with _suppress(FileNotFoundError):
-        _ = [_os.remove(fname) for fname in filenames]
+
+    for fname in filenames:
+        fname = _os.path.normpath(fname)
+        if file_exists(fname):
+            _os.remove(fname)
 
 
 def files_delete(folder, delsubdirs=False):

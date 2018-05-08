@@ -118,11 +118,13 @@ def assign():
 
 def main():
     '''main entry'''
+    print('This script uses an pgnet.ini for its settings.\n')
     k = wait_key('\nPress "y" to distribute train files to test and eval folders.\n'
-                'Press any other key to continue to create csv image lists.')
+                'Press "q" to quit\nPress any other key to continue to create csv image lists.')
     if k == 'y':
         assign()
-
+    if k == 'q':
+        return
     gen_csv_file([_TRAIN_POS, _TRAIN_NEG], _CSV_TRAIN)
     gen_csv_file([_EVAL_POS, _EVAL_NEG], _CSV_EVAL)
     gen_csv_file([_TEST_POS, _TEST_NEG], _CSV_TEST, is_test=True)

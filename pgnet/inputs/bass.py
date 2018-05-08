@@ -23,13 +23,13 @@ import opencvlib.transforms as _transforms
 import pgnet.ini as _ini
 
 
-
-
 CLASSES = ['not_bass', 'bass']
 NUM_CLASSES = len(CLASSES)
 BACKGROUND_CLASS_ID = len(CLASSES)
-BATCH_SIZE = 100
-W_ORIG = 514; H_ORIG = 120; CH_ORIG = 3 #hardcoded for now
+
+W_ORIG = _ini.Cfg.tryread('images', 'WIDTH', error_on_read_fail=True)
+H_ORIG = _ini.Cfg.tryread('images', 'HEIGHT', error_on_read_fail=True)
+CH_ORIG = _ini.Cfg.tryread('images', 'CHANNELS', error_on_read_fail=True)
 W = 200; H = 200 #hardcoded for now
 
 #these will be an instance of class ImageFromPaths
@@ -96,7 +96,7 @@ class ImagesFromPaths():
         self.img_paths = []
         self.labels = []
         drop_candidates = []
-        print('\nChecking images in folder(s) %s' %  str(self._paths_with_images))
+        print('\nChecking resolutions of images in folder(s) %s' %  str(self._paths_with_images))
         pp = _PP(_filecnt(self._paths_with_images, wildcards='*.jpg', recurse=False))
 
         for i, pth in enumerate(self._paths_with_images):
@@ -227,8 +227,6 @@ def init_(batch_size=10, init=('DebugImages', 'BassTest', 'BassEval', 'BassTrain
         ['DebugImages', 'BassTest', 'BassEval', 'BassTrain']
     '''
     opts = ['DebugImages', 'BassTest', 'BassEval', 'BassTrain']
-    global BATCH_SIZE
-    BATCH_SIZE = batch_size
 
     if isinstance(init, str):
         init = [init]

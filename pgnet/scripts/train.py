@@ -1,6 +1,10 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-variable
 #Adapted from Paolo Galeone <nessuno@nerdz.eu>
-'''pgnet train'''
+'''
+pgnet train
+
+1) Consider clearing previous models by deleting everything in .\session
+'''
 import argparse
 import math
 import os
@@ -17,6 +21,7 @@ from pgnet import model
 from pgnet.inputs import bass
 import pgnet.ini as _ini
 from funclib.iolib import files_delete2
+import funclib.iolib as iolib
 
 
 # graph parameteres
@@ -50,6 +55,17 @@ STEPS_PER_EPOCH = 0 #number of steps in EPOCH
 TOTAL_STEPS = 0
 MAX_ITERATIONS = 0
 NUM_CLASSES = 2 #bass, not bass
+
+
+
+def reset():
+    '''delete graph summary and saved progress'''
+    if iolib.folder_exists(SESSION_DIR):
+        iolib.files_delete(SESSION_DIR)
+
+    s = path.normpath(path.join(SUMMARY_DIR, 'train'))
+    if iolib.folder_exists(s):
+        iolib.files_delete(s)
 
 
 
@@ -95,9 +111,11 @@ def img_get(filename, label):
 def log(args, msg):
     '''(argparse.parse, str) -> void
     '''
-    if args.log == 'yes':
+    s = args.log.lower()
+    if s in ['file', 'both']:
         Log.info(msg)
-    else:
+
+    if s in ['console', 'both']:
         print(msg)
 
 
@@ -118,6 +136,8 @@ def train(args):
     bass.init_(batch_size=BATCH_SIZE, init=['BassTest', 'BassTrain', 'BassEval'])
     set_params()
 
+    if args.reset:
+        reset()
 
     if not os.path.exists(MODEL_PATH):
         graph = tf.Graph()
@@ -169,7 +189,7 @@ def train(args):
             variables_to_save = _lstunq(variables_to_save) #fudge to remove dups
             saver = tf.train.Saver(variables_to_save)
 
-            with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
+            with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
                 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
 
                 def validate():
@@ -282,8 +302,8 @@ def train(args):
 
 if __name__ == "__main__":
     ARG_PARSER = argparse.ArgumentParser(description="Train the model")
-    ARG_PARSER.add_argument("--device", default="/cpu:0")
-    ARG_PARSER.add_argument("--log", default="no")
+    #ARG_PARSER.add_argument("--device", default="/cpu:0")
+    ARG_PARSER.add_argument("-l", "--log", help='Log to FILE, CONSOLE or BOTH', default="BOTH")
+    ARG_PARSER.add_argument("-r", "--reset", help='Reset, i.e. delete previous training and session summaries.', action='store_true')
     train(ARG_PARSER.parse_args())
-
     sys.exit()
