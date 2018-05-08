@@ -27,10 +27,7 @@ Examples:
 import argparse
 from os import path
 
-#import os
-#from contextlib import suppress
-from tqdm import tqdm
-
+from funclib.iolib import PrintProgress
 import funclib.iolib as iolib
 from opencvlib.imgpipes.generators import DigiKam
 from opencvlib.imgpipes.generators import DigikamSearchParams
@@ -74,9 +71,9 @@ def main():
     dkp = DigikamSearchParams(album_label=args.album, relative_path=args.album_path, search_type=search_type, **dic)
 
     dk = DigiKam(dkp)
-    #PP = iolib.PrintProgress(len(dk.image_list), init_msg='\nCopying files ...')
-    for fname in tqdm(dk.image_list, ascii=True):
-        #PP.increment()
+    PP = PrintProgress(len(dk.image_list), init_msg='\nCopying files ...')
+    for fname in dk.image_list:
+        PP.increment()
         _ = iolib.file_copy(fname, dest, rename=True, create_dest=True, dest_is_folder=True)
 
 

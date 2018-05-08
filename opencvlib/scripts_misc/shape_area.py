@@ -21,15 +21,17 @@ import statistics
 def main():
     '''main'''
     cmdline = argparse.ArgumentParser(description=__doc__)
+    cmdline.add_argument('-rt', help='Reverse and threshhold the image', action='store_true')
     cmdline.add_argument('imgfile', help='File with the image')
     args = cmdline.parse_args()
 
     img = getimg(args.imgfile)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img[img < 50] = 51
-    img[img > 51] = 0
-    img[img == 51] = 255
-    #now the fish profile is white on black
+    if args.rt:
+        #now the fish profile is white on black
+        img[img < 50] = 51
+        img[img > 51] = 0
+        img[img == 51] = 255
 
     assert isinstance(img, np.ndarray)
 

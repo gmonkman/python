@@ -49,7 +49,7 @@ def main():
     for img, fname, _ in FP.generate():
         PP.increment()
         _, fname, _ = get_file_parts2(fname)
-        key =  getkey(fname)
+        key = getkey(fname)
         outdata.append([key, img.shape[1], img.shape[0]])
 
 

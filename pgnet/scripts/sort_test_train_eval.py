@@ -17,7 +17,7 @@ import funclib.iolib as iolib
 import pgnet.ini as ini
 
 
-W = 514; H = 120
+W = 508; H = 121
 RATIO_TVT = (0.6, 0.2, 0.2) #order is train, validation, test
 assert sum(RATIO_TVT) == 1, 'RATIO_TVT must add up to 1'
 

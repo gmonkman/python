@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_misc\resolutions_to_csv.py</StartupFile>
+    <StartupFile>scripts_tensorflow\make_negs.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\shore\s5690\rotated"</CommandLineArguments>
+    <CommandLineArguments>-s -n 1650</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -52,7 +52,9 @@ read_diagonals.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/Phase 03 - Nov
 
 fork_ratio.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/processors/undistorted"
 
-point_distances_bass.py -p Charter -c XP30 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated"</Environment>
+point_distances_bass.py -p Charter -c XP30 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated"
+
+make_train_imgaug.py -n 10 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\positive", "C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\positive_aug"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

@@ -80,7 +80,7 @@ def main():
 
     h = sum(heights)/len(heights)
     w = sum(widths)/len(widths)
-
+    targ_cols = 0
     if args.rows == 'mean':
         targ_rows = int(sum(x/len(heights) for x in heights))
     elif args.rows == 'max':

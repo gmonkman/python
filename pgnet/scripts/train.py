@@ -171,8 +171,7 @@ def train(args):
 
             with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
                 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
-                #coord = tf.train.Coordinator()
-                #threads = tf.train.start_queue_runners(sess=sess, coord=coord).
+
                 def validate():
                     '''validation data'''
                     np_validation_imgs = validation_images_batch.eval()
