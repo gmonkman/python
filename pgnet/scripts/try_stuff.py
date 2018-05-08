@@ -104,12 +104,12 @@ def distort_image(image, input_width, input_height, output_side):
 def try_dataset(apply_distortion):
     bass.init_()
     ds_imglbl = tf.data.Dataset.from_tensor_slices((bass.BassTrain.img_paths, bass.BassTrain.labels))
-    ds_imglbl = ds_imglbl.map(image_get, apply_distortion)
     ds_imglbl = ds_imglbl.shuffle(buffer_size=100, reshuffle_each_iteration=True)
-    ds_imglbl = ds_imglbl.batch(3) #batch
+    ds_imglbl = ds_imglbl.batch(50) #batch
     ds_imglbl = ds_imglbl.repeat(1) #epochs
     iter_ = ds_imglbl.make_one_shot_iterator()
-
+    images_batch, labels_batch = iter_.get_next()
+    labels_batch = tf.cast(labels_batch, tf.int64)
     imgs, lbls = iter_.get_next()
 
 
@@ -117,10 +117,10 @@ def try_dataset(apply_distortion):
         sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
         for _ in range(100):
             x, y = sess.run([lbls, imgs])
-            z=10
+
 
 
 
 if __name__ == "__main__":
-    #try_dataset()
-    main()
+    try_dataset()
+    #main()

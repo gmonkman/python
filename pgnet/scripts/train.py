@@ -155,7 +155,7 @@ def train(args):
 
 
             with tf.variable_scope("validation_input"):
-                dsValidation = tf.data.Dataset.from_tensor_slices((bass.BassTrain.img_paths, bass.BassTrain.labels))
+                dsValidation = tf.data.Dataset.from_tensor_slices((bass.BassTest.img_paths, bass.BassTest.labels))
                 dsValidation = dsValidation.map(img_get)
                 dsValidation = dsValidation.shuffle(buffer_size=SHUFFLE_QUEUE_BUFFER_SIZE, reshuffle_each_iteration=True)
                 dsValidation = dsValidation.batch(BATCH_SIZE) #batch
@@ -239,7 +239,7 @@ def train(args):
                         remain_total_steps = STEPS_PER_EPOCH - step    +  (EPOCHS - current_epoch) * STEPS_PER_EPOCH
                         time_left_seconds = watch.remaining(remain_total_steps)
 
-                        txt_progress = '%s >> Step %s of %s in Epoch %s of %s' % (watch.pretty_now(), step, STEPS_PER_EPOCH, current_epoch, EPOCHS)
+                        txt_progress = '%s >> Step %s of %s in Epoch %s of %s' % (watch.pretty_now(), step % STEPS_PER_EPOCH, STEPS_PER_EPOCH, current_epoch, EPOCHS)
                         txt_step = 'A step takes %s' % watch.pretty_time(watch.event_rate_smoothed)
                         txt_epoch = 'An epoch is estimated to take %s' %  watch.pretty_time(watch.remaining(TOTAL_STEPS) / EPOCHS)
                         txt_time_left = 'Maximum time remaining is %s' % watch.pretty_time(time_left_seconds)
