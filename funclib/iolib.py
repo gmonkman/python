@@ -664,6 +664,28 @@ def files_delete(folder, delsubdirs=False):
             print(e)
 
 
+def get_file_name2(fld, ext, length=3):
+    '''(str, str, int)-> str
+    generate a random filename
+    ensuring it does not already exist in
+    folder fld.
+
+    Example:
+    >>>get_file_name2('C:\temp', '.txt', 4)
+    'C:/temp/ABeD.txt'
+    '''
+    n = 0
+    while True:
+        s = _os.path.normpath(_os.path.join(fld, '%s%s' % (_stringslib.rndstr(length), ext)))
+        if not file_exists(s):
+            break
+        n += 1
+        if n > 100:
+            raise StopIteration('Too many iterations creating unique filename')
+    return s
+
+
+
 def get_file_name(path='', prefix='', ext='.txt'):
     '''(str|None, str, str) -> str
     Returns a filename, based on a datetime stamp
@@ -843,7 +865,7 @@ def create_folder(folder_name):
     creates a folder
     '''
     if not _os.path.exists(folder_name):
-        _os.mkdir(folder_name)
+        _os.makedirs(folder_name)
 
 
 def pickleit(full_file_name, obj):

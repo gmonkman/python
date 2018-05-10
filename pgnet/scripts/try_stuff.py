@@ -1,124 +1,90 @@
 #pylint: skip-file
 
 '''mucking around with basic TF stuff'''
+import os
 import tensorflow as tf
-
 import pgnet.inputs.bass as bass
-#import numpy as np
+import numpy as np
+import funclib.iolib as iolib
+import funclib.stringslib as stringslib
 
 
+CURRENT_DIR = 'c:/temp/tf/'
+SESSION_DIR = os.path.normpath('c:/temp/tf/session')
+SUMMARY_DIR = os.path.normpath('c:/temp/tf/summary')
+MODEL_PATH = os.path.normpath('c:/temp/tf/model.pb')
 
 
-def img_std(image):
-    '''(tensor)-> tensor
-    Rescale image to float (-1 to 1)
-    '''
-    image = tf.image.per_image_standardization(image)
-    # rescale to [-1,1] instead of [0, 1)
-    return tf.multiply(tf.subtract(image, 0.5), 2)
-
-
-def resize_bl(image, side):
-    """Returns the image, resized with bilinear interpolation to: side x side x depth
-    Input:
-        image: 3d tensor width shape [side, side, depth]
-    """
-
-    return image
-
-
-def img_get(filename, label, apply_distortion):
+def img_get(filename, label):
+    '''(V:str, V:int64, PH:bool) -> V:ndarray, V:int64'''
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_image(image_string)
     image_decoded.set_shape([bass.H_ORIG, bass.W_ORIG, bass.CH_ORIG])
-
-
     #resize image
     image_rsz = tf.expand_dims(image_decoded, 0)
     image_rsz = tf.image.resize_bilinear(image_rsz, [bass.H, bass.W], align_corners=False) # now image is 4-D float32 tensor: [1, side, side, image.depth]
-    image_rsz = tf.image_rsz(image, [0])
-
-    if apply_distortion:
-        img_distorted = distort_image(image_rsz, bass.H_ORIG, bass.W_ORIG)
-    else:
-        img_distorted = image_rsz
-
-    img_standardized = img_std(img_distorted) #-1 to 1
+    image_rsz = tf.squeeze(image_rsz, [0])
+    img_standardized = img_std(image_rsz/255.0) #-1 to 1, not strictly a standardization
     return img_standardized, label
 
 
-def distort_image(image, input_width, input_height, output_side):
-    """Applies random distortion to the image.
-    The output image is output_side x output_side x 3
-    """
-
-    def random_crop_it():
-        """Random crops image, after resizing it to output_side +10 x output_side+10"""
-        resized_img = resize_bl(image, output_side + 10)
-        return tf.random_crop(resized_img, [output_side, output_side, 3])
-
-    def resize_it():
-        """Resize the image using resize_bl"""
-        return resize_bl(image, output_side)
-
-    # if input.width >= output.side + 10 and input.heigth >= output.side + 10
-    #   resize it to output.side + 10 x output.size + 10 and random crop it
-    # else resize it
-    increased_output_side = tf.constant(output_side + 10, dtype=tf.int64)
-    image = tf.cond(tf.logical_and(tf.greater_equal(input_width, increased_output_side), tf.greater_equal(input_height, increased_output_side)), random_crop_it, resize_it)
-    tf.cond
+def img_std(image):
+    '''(tensor) -> tensor
+    Rescale image to float (-1 to 1)
+    '''
+    return tf.multiply(tf.subtract(image, 0.5), 2)
 
 
-    # randomize the order of the random distortions
-    def fn1():
-        """Applies random brightness, saturation, hue, contrast"""
-        distorted_image = tf.image.random_brightness(
-            flipped_image, max_delta=32. / 255.)
-        distorted_image = tf.image.random_saturation(
-            distorted_image, lower=0.5, upper=1.5)
-        distorted_image = tf.image.random_hue(distorted_image, max_delta=0.2)
-        distorted_image = tf.image.random_contrast(
-            distorted_image, lower=0.5, upper=1.5)
-        return distorted_image
+def try_dataset():
+    graph = tf.Graph()
+    with graph.as_default():
+        labels_ = tf.placeholder(tf.int64, shape=[None], name="labels_")
 
-    def fn2():
-        """Applies random brightness, contrast, saturation, hue"""
-        distorted_image = tf.image.random_brightness(
-            flipped_image, max_delta=32. / 255.)
-        distorted_image = tf.image.random_contrast(
-            distorted_image, lower=0.5, upper=1.5)
-        distorted_image = tf.image.random_saturation(
-            distorted_image, lower=0.5, upper=1.5)
-        distorted_image = tf.image.random_hue(distorted_image, max_delta=0.2)
+        img_paths=[r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\train\bass\001.jpg',
+                   r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\train\bass\002.jpg',
+                   r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\train\bass\003.jpg',
+                   r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\train\bass\006.jpg',
+                   r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\train\bass\007.jpg',
+                   r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\train\bass\008.jpg',
+                   r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\train\bass\009.jpg',
+                   r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\train\bass\011.jpg',
+                   r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\train\bass\016.jpg',
+                   r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\train\bass\017.jpg',
+                   'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/train/not_bass/0019.jpg',
+                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/train/not_bass/0004.jpg',
+                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/train/not_bass/0005.jpg',
+                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/train/not_bass/0008.jpg',
+                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/train/not_bass/0009.jpg',
+                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/train/not_bass/0010.jpg',
+                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/train/not_bass/0011.jpg',
+                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/train/not_bass/0014.jpg',
+                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/train/not_bass/0017.jpg',
+                    'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/train/not_bass/0018.jpg'
+                   ]
 
-        return distorted_image
+        labels = [1]* 10
+        labels.extend([0] * 10)
 
-    p_order = tf.random_uniform(
-        shape=[], minval=0.0, maxval=1.0, dtype=tf.float32)
-    distorted_image = tf.cond(tf.less(p_order, 0.5), fn1, fn2)
-    distorted_image = tf.clip_by_value(distorted_image, 0.0, 1.0)
-    return distorted_image
+        with tf.variable_scope("train_input"): #open new context to share variables (layers)
+            dsTrain = tf.data.Dataset.from_tensor_slices((img_paths, labels))
+            dsTrain = dsTrain.map(img_get)
+            dsTrain = dsTrain.shuffle(buffer_size=1, reshuffle_each_iteration=True)
+            dsTrain = dsTrain.batch(1) #batch
+            dsTrain = dsTrain.repeat() #epochs
+            train_iter = dsTrain.make_one_shot_iterator()
+            train_images_batch, train_labels_batch = train_iter.get_next()
+            assert isinstance(train_images_batch, tf.Tensor)
+            train_labels_batch = tf.cast(train_labels_batch, tf.int64)
 
-
-
-def try_dataset(apply_distortion):
-    bass.init_()
-    ds_imglbl = tf.data.Dataset.from_tensor_slices((bass.BassTrain.img_paths, bass.BassTrain.labels))
-    ds_imglbl = ds_imglbl.shuffle(buffer_size=100, reshuffle_each_iteration=True)
-    ds_imglbl = ds_imglbl.batch(50) #batch
-    ds_imglbl = ds_imglbl.repeat(1) #epochs
-    iter_ = ds_imglbl.make_one_shot_iterator()
-    images_batch, labels_batch = iter_.get_next()
-    labels_batch = tf.cast(labels_batch, tf.int64)
-    imgs, lbls = iter_.get_next()
-
-
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
-        sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
-        for _ in range(100):
-            x, y = sess.run([lbls, imgs])
-
-
+        with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
+            writer = tf.summary.FileWriter(SUMMARY_DIR, graph)
+            sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
+            for n in range(20):
+                img = np.array(train_images_batch.eval())
+                lbl = np.array(train_labels_batch.eval())
+                img.dump('C:/temp/tf/input_as_np/img%s.np' % n)
+                lbl.dump('C:/temp/tf/input_as_np/lbl%s.np' % n)
+            writer.close()
 
 
 if __name__ == "__main__":

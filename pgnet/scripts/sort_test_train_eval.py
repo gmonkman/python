@@ -16,32 +16,31 @@ from funclib.iolib import wait_key
 import funclib.iolib as iolib
 import pgnet.ini as ini
 
-
-W = 508; H = 121
 RATIO_TVT = (0.6, 0.2, 0.2) #order is train, validation, test
 assert sum(RATIO_TVT) == 1, 'RATIO_TVT must add up to 1'
 
 
-_ALL_POS = ini.Cfg.tryread('sort_test_train_eval.py', 'ALL_POS', error_on_read_fail=True)
-_ALL_NEG = ini.Cfg.tryread('sort_test_train_eval.py', 'ALL_NEG', error_on_read_fail=True)
-_TRAIN_POS = ini.Cfg.tryread('sort_test_train_eval.py', 'TRAIN_POS', error_on_read_fail=True)
-_TRAIN_NEG = ini.Cfg.tryread('sort_test_train_eval.py', 'TRAIN_NEG', error_on_read_fail=True)
-_EVAL_POS = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_POS', error_on_read_fail=True)
-_EVAL_NEG = ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_NEG', error_on_read_fail=True)
-_TEST_POS = ini.Cfg.tryread('sort_test_train_eval.py', 'TEST_POS', error_on_read_fail=True)
-_TEST_NEG = ini.Cfg.tryread('sort_test_train_eval.py', 'TEST_NEG', error_on_read_fail=True)
+_ALL_POS = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'ALL_POS', error_on_read_fail=True))
+_ALL_NEG = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'ALL_NEG', error_on_read_fail=True))
+_TRAIN_POS = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'TRAIN_POS', error_on_read_fail=True))
+_TRAIN_NEG = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'TRAIN_NEG', error_on_read_fail=True))
+_EVAL_POS = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_POS', error_on_read_fail=True))
+_EVAL_NEG = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'EVAL_NEG', error_on_read_fail=True))
+_TEST_POS = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'TEST_POS', error_on_read_fail=True))
+_TEST_NEG = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'TEST_NEG', error_on_read_fail=True))
 
-_CSV_EVAL = ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_EVAL', error_on_read_fail=True)
-_CSV_TRAIN = ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_TRAIN', error_on_read_fail=True)
-_CSV_TEST = ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_TEST', error_on_read_fail=True)
-
+_CSV_EVAL = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_EVAL', error_on_read_fail=True))
+_CSV_TRAIN = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_TRAIN', error_on_read_fail=True))
+_CSV_TEST = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_TEST', error_on_read_fail=True))
+H = ini.Cfg.tryread('sort_test_train_eval.py', 'H', error_on_read_fail=True)
+W = ini.Cfg.tryread('sort_test_train_eval.py', 'W', error_on_read_fail=True)
 
 
 def chkexists(dirs):
     '''check output dirs exist'''
     for d in dirs:
         d = path.normpath(d)
-        assert path.isdir(d), '\nDir %s not found.' % d
+        iolib.create_folder(d)
 
 def chkempty(dirs):
     '''check output dirs are empty'''
@@ -118,7 +117,7 @@ def assign():
 
 def main():
     '''main entry'''
-    print('This script uses an pgnet.ini for its settings.\n')
+    print('This script uses pgnet.ini for its settings.\n')
     k = wait_key('\nPress "y" to distribute train files to test and eval folders.\n'
                 'Press "q" to quit\nPress any other key to continue to create csv image lists.')
     if k == 'y':

@@ -114,7 +114,7 @@ class ImagesFromPaths():
                         self.img_info_list.append([fname, lbl, h, w])
                     else:
                         print('Expected image res of (%s, %s), got (%s, %s)' % (W, H, w, h))
-        assert self.img_info_list, 'No jpg files found in %s' % str(self._paths_with_images)
+        assert self.img_info_list, 'No jpg files found in %s' % (str(self._paths_with_images))
 
         _shuffle(self.img_info_list)
         lsts = list(map(list, zip(*self.img_info_list))) #map as zip returns list of tuples, not lists
@@ -236,24 +236,24 @@ def init_(batch_size=10, init=('DebugImages', 'BassTest', 'BassEval', 'BassTrain
             raise ValueError('Invalid bass init_ option %s' % s)
 
     if 'BassTrain' in init:
-        pos = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'train_images_path'), 'bass'))
-        neg = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'train_images_path'), 'not_bass'))
+        pos = _path.normpath(_ini.Cfg.tryread('bass.py', 'train_images_path_pos', error_on_read_fail=True))
+        neg = _path.normpath(_ini.Cfg.tryread('bass.py', 'train_images_path_neg', error_on_read_fail=True))
         global BassTrain
         BassTrain = ImagesFromPaths([pos, neg], [1, 0], batch_size=batch_size)
 
     if 'BassEval' in init:
-        pos = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'eval_images_path'), 'bass'))
-        neg = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'eval_images_path'), 'not_bass'))
+        pos = _path.normpath(_ini.Cfg.tryread('bass.py', 'eval_images_path_pos', error_on_read_fail=True))
+        neg = _path.normpath(_ini.Cfg.tryread('bass.py', 'eval_images_path_neg', error_on_read_fail=True))
         global BassEval
         BassEval = ImagesFromPaths([pos, neg], [1, 0], batch_size=batch_size)
 
     if 'BassTest' in init:
-        pos = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'test_images_path'), 'bass'))
-        neg = _path.normpath(_path.join(_ini.Cfg.tryread('bass.py', 'test_images_path'), 'not_bass'))
+        pos = _path.normpath(_ini.Cfg.tryread('bass.py', 'test_images_path_pos', error_on_read_fail=True))
+        neg = _path.normpath(_ini.Cfg.tryread('bass.py', 'test_images_path_neg', error_on_read_fail=True))
         global BassTest
         BassTest = ImagesFromPaths([pos, neg], [1, 0], batch_size=batch_size)
 
     if 'DebugImages' in init:
-        pos = _path.normpath(_ini.Cfg.tryread('bass.py', 'debug_images_path'))
+        pos = _path.normpath(_ini.Cfg.tryread('bass.py', 'debug_images_path', error_on_read_fail=True))
         global DebugImages
         DebugImages = ImagesFromPaths([pos], [1])

@@ -462,6 +462,11 @@ def define(num_classes, train_phase):
     return is_training_, keep_prob_, images_, logits
 
 
+
+
+
+
+
 def export(num_classes, session_dir, input_checkpoint, model_abspath):
     """Export model defines the model in a new empty graph.
     Creates a saver for the model.

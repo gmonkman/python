@@ -2,6 +2,8 @@
 '''one off processing work
 Uses opencvlib.perspective.
 
+Run first with bass, then with dab. Should update records
+seperately, using the correct l-w relationships by species.
 '''
 import argparse
 
@@ -16,7 +18,7 @@ import fish
 import opencvlib.perspective as perspective
 from imagedb.model import SampleLength
 
-SPECIES = 'bass'
+SPECIES = 'bass' #actually set from a command line arg.
 PROFILE_FACTOR = 1 #profile factor set differently if it is bass rather than dab
 
 # region init db
@@ -94,7 +96,8 @@ class InitData(object):
             # fishactions is polymorphic taking multiple species classes
             act = fish.FishActions(bass)
         else:
-            pass
+            dab = fish.Dab(float(total_length))
+            act = fish.FishActions(dab)
         return act.get_max_depth()
 
 
@@ -220,7 +223,7 @@ class InitData(object):
             #sam_len.perspective_corrected_actual_mm = _read_range_int(tl_cor)
         COLCNT = 7
         rw_cnt = len(self.df_lengths.index) * COLCNT
-        PP = PrintProgress(rw_cnt, 'Writing data back to SQL Server')
+        PP = PrintProgress(rw_cnt, init_msg='Writing data back to SQL Server')
 
         est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'perspective_corrected_estimate_mm')
         for i, row in self.df_lengths.iterrows():
@@ -308,13 +311,19 @@ def main():
     global SPECIES
     SPECIES = args.species
     assert SPECIES in ['dab', 'bass'], 'Species should be "dab" or "bass"'
+    print('\nWorking on it....')
     cls = InitData()
+    print('Calculating fish widths....')
     cls._add_depths() #add depth estimates based on manual and estimated fish lengths
+    print('Calculatng lens-subj estimates....')
     cls._add_lens_subj_estimates() #add the lens-subject distance estimates from the two methods
+    print('Calculating l/w coefficients....')
     cls._add_linear() # add 2 cols - coeff,const to be used to calculate depth on the fly in get_perspective_correction_iter_linear
+    print('Calculating length with perspective adjustment....')
     cls.perspective_adjust()
+    print('Writing data to SQL Server....')
     cls.update_length()
-
+    print('Done')
 
 # This only executes if this script was the entry point
 if __name__ == '__main__':

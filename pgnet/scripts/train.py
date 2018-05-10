@@ -143,6 +143,9 @@ def train(args):
         graph = tf.Graph()
 
         with graph.as_default():
+            global_step = tf.Variable(0, trainable=False, name="global_step") # train global step
+            labels_ = tf.placeholder(tf.int64, shape=[None], name="labels_")
+
             with tf.variable_scope("train_input"): #open new context to share variables (layers)
                 dsTrain = tf.data.Dataset.from_tensor_slices((bass.BassTrain.img_paths, bass.BassTrain.labels))
                 dsTrain = dsTrain.map(img_get)
@@ -164,9 +167,6 @@ def train(args):
                 validation_images_batch, validation_labels_batch = validation_iter.get_next()
                 validation_labels_batch = tf.cast(validation_labels_batch, tf.int64)
 
-
-            global_step = tf.Variable(0, trainable=False, name="global_step") # train global step
-            labels_ = tf.placeholder(tf.int64, shape=[None], name="labels_") # model inputs, used in train and validation
             is_training_, keep_prob_, images_, logits = model.define(NUM_CLASSES, train_phase=True)
             loss_op = model.loss(logits, labels_)
             train_op = model.train(loss_op, global_step)
