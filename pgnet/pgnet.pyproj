@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{52fb7047-b7ad-43d1-a402-bb033db31901}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\try_stuff.py</StartupFile>
+    <StartupFile>scripts\train.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>
     </WorkingDirectory>
@@ -15,8 +15,7 @@
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
     <IsWindowsApplication>False</IsWindowsApplication>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>-r</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <Environment>test_localization_single_rf --image-path "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/roi/test/bass"</Environment>
   </PropertyGroup>

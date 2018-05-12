@@ -27,7 +27,7 @@ import funclib.iolib as iolib
 # graph parameteres
 CURRENT_DIR = path.normpath(os.path.dirname(os.path.abspath(__file__)))
 SESSION_DIR = path.normpath(CURRENT_DIR + "/session")
-SUMMARY_DIR = path.normpath(CURRENT_DIR + "/summary")
+SUMMARY_DIR = path.normpath(CURRENT_DIR + "/summary") #tensorboard
 MODEL_PATH = path.normpath(CURRENT_DIR + "/model.pb")
 
 if not os.path.exists(SESSION_DIR):
@@ -57,6 +57,16 @@ MAX_ITERATIONS = 0
 NUM_CLASSES = 2 #bass, not bass
 
 
+def save_np(a, var_name, epoch, step):
+    '''(ndarray, str, int, int) -> void
+    save numpy array to SUMMARY_DIR
+    '''
+    out = path.normpath(path.join(SUMMARY_DIR, var_name))
+    assert isinstance(a, np.ndarray)
+
+    s = 'E%s_S%s_%s.np' % (str(epoch).zfill(3), str(step).zfill(4), var_name)
+    a.dump(a)
+
 
 def reset():
     '''delete graph summary and saved progress'''
@@ -80,7 +90,7 @@ def set_params():
 
 
 def img_get(filename, label):
-    '''(V:str, V:int64, PH:bool) -> V:ndarray, V:int64
+    '''(V:str, V:int64, PH:bool) -> V:ndarray, V:int64, V:str
 
     Load image from filename, return corresponding label
     untouched. If placeholder apply_distortion_ is
@@ -92,6 +102,8 @@ def img_get(filename, label):
         a tensor of int64, label for filename
     apply_distortion_
         apply a distortion or not
+
+    returns the filename as well for debugging
     '''
     #TODO apply stanardiszation using the whole training set
     #https://stats.stackexchange.com/questions/322802/per-image-normalization-vs-overall-dataset-normalization
@@ -105,18 +117,24 @@ def img_get(filename, label):
     image_rsz = tf.image.resize_bilinear(image_rsz, [bass.H, bass.W], align_corners=False) # now image is 4-D float32 tensor: [1, side, side, image.depth]
     image_rsz = tf.squeeze(image_rsz, [0])
     img_standardized = img_std(image_rsz/255.0) #-1 to 1, not strictly a standardization
-    return img_standardized, label
+    return img_standardized, label, filename
 
 
 def log(args, msg):
     '''(argparse.parse, str) -> void
     '''
-    s = args.log.lower()
-    if s in ['file', 'both']:
-        Log.info(msg)
+    try:
+        s = args.log.lower()
+        if s in ['file', 'both']:
+            Log.info(msg)
 
-    if s in ['console', 'both']:
-        print(msg)
+        if s in ['console', 'both']:
+            print(msg)
+    except Exception as e:
+        try:
+            print('\nLog file failed to print.')
+        except Exception as e:
+            pass
 
 
 def img_std(image):
@@ -153,9 +171,11 @@ def train(args):
                 dsTrain = dsTrain.batch(BATCH_SIZE) #batch
                 dsTrain = dsTrain.repeat(EPOCHS) #epochs
                 train_iter = dsTrain.make_one_shot_iterator()
-                train_images_batch, train_labels_batch = train_iter.get_next()
+                train_images_batch, train_labels_batch, train_images_paths_batch = train_iter.get_next()
                 train_labels_batch = tf.cast(train_labels_batch, tf.int64)
-
+                train_labels_batch_text = tf.as_string(train_labels_batch)
+                debug_batch = tf.stack([train_images_paths_batch, train_labels_batch_text], axis=-1)
+                txtBatchInputs_op = tf.summary.text('batch_inputs', debug_batch)
 
             with tf.variable_scope("validation_input"):
                 dsValidation = tf.data.Dataset.from_tensor_slices((bass.BassTest.img_paths, bass.BassTest.labels))
@@ -164,21 +184,27 @@ def train(args):
                 dsValidation = dsValidation.batch(BATCH_SIZE) #batch
                 dsValidation = dsValidation.repeat(EPOCHS) #epochs
                 validation_iter = dsValidation.make_one_shot_iterator()
-                validation_images_batch, validation_labels_batch = validation_iter.get_next()
+                validation_images_batch, validation_labels_batch, validation_images_paths_batch = validation_iter.get_next()
                 validation_labels_batch = tf.cast(validation_labels_batch, tf.int64)
 
-            is_training_, keep_prob_, images_, logits = model.define(NUM_CLASSES, train_phase=True)
+            is_training_, keep_prob_, images_, logits = model.define(NUM_CLASSES, train_phase=True) #logits is batchsize x 1 x 1 x nr classes
             loss_op = model.loss(logits, labels_)
             train_op = model.train(loss_op, global_step)
 
-            summary_op = tf.summary.merge_all() # collect summaries for the previous defined variables
-
+            #TODO so here we can break down the session.runs to get to the values in these variables
             with tf.variable_scope("accuracy"):
-                reshaped_logits = tf.squeeze(logits, [1, 2])
-                predictions = tf.argmax(reshaped_logits, 1) #index with largest probablity
-                correct_predictions = tf.equal(labels_, predictions) #true if prediction was correct, else false, for each item in batch, returns [BATCH_SIZE] vector
-                accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32), name="accuracy") #proportion of correct predictions in the batch, ie 5 right of 10 would be 0.5
+                reshaped_logits = tf.squeeze(logits, [1, 2]) #expect this to be batchsize x class size
+                txtLogits = tf.Print(tf.as_string(reshaped_logits), [tf.as_string(reshaped_logits)], message='squeezed logits', name='p_logits')
+                txtLogits_op = tf.summary.text('logits', txtLogits)
 
+                predictions = tf.argmax(reshaped_logits, 1) #index with largest probablity: argmax([1,10,3,],[10,1,2]) == [1, 0], should look like [1,1,0,1 .. batch_size]
+                txtPredictions = tf.Print(tf.as_string(predictions), [tf.as_string(predictions)], message='predictions', name='txtPredictions')
+                txtPredictions_op = tf.summary.text('predictions', txtPredictions)
+
+                #true if prediction was correct, else false, for each item in batch, returns [BATCH_SIZE] vector
+                correct_predictions = tf.Print(tf.equal(labels_, predictions), [tf.equal(labels_, predictions)], message='correct_predictions', name='correct_predictions')
+
+                accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32), name="accuracy") #proportion of correct predictions in the batch, ie 5 right of 10 would be 0.5
                 # use a separate summary op for the accuracy (that's shared between test and validation
                 # attach a summary to the placeholder
                 train_accuracy_summary_op = tf.summary.scalar("train_accuracy", accuracy)
@@ -189,7 +215,9 @@ def train(args):
             variables_to_save = _lstunq(variables_to_save) #fudge to remove dups
             saver = tf.train.Saver(variables_to_save)
 
-            with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
+            summary_op = tf.summary.merge_all() # collect summaries for the previous defined variables
+
+            with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
                 sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
 
                 def validate():
@@ -231,10 +259,14 @@ def train(args):
                             log(args, s)
                             return 1
 
+                        #save_np(export_logits.eval(), 'logits', current_epoch, step % STEPS_PER_EPOCH)
+                        #save_np(predictions.eval(), 'predictions', current_epoch, step % STEPS_PER_EPOCH)
+
                         validation_accuracy, summary_line = validate()
                         summary_writer.add_summary(summary_line, global_step=gs_value)
                         train_accuracy, summary_line = sess.run([accuracy, train_accuracy_summary_op], feed_dict={images_:nd_train_imgs, labels_:nd_train_lbls, keep_prob_: 1.0, is_training_: False,})
                         summary_writer.add_summary(summary_line, global_step=gs_value)
+
                         watch.lap()
                         remain_total_steps = STEPS_PER_EPOCH - step    +  (EPOCHS - current_epoch) * STEPS_PER_EPOCH
                         time_left_seconds = watch.remaining(remain_total_steps)
@@ -284,7 +316,6 @@ def train(args):
 
                         if stop_training:
                             raise StopIteration
-
                 except (tf.errors.OutOfRangeError, StopIteration) as e:
                     #model.export(NUM_CLASSES, SESSION_DIR, "model-0", MODEL_PATH)
                     #this export creates a transferable file, known as a GraphDef, it wont generally be needed.

@@ -661,7 +661,7 @@ def files_delete(folder, delsubdirs=False):
                 if delsubdirs:
                     _shutil.rmtree(file_path)
         except Exception as e:
-            print(e)
+            print('Could not clear summary file(s). They are probably being used by tensorboard')
 
 
 def get_file_name2(fld, ext, length=3):

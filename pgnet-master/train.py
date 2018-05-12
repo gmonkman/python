@@ -85,20 +85,11 @@ def train(args):
                     csv_path=CURRENT_DIR)
 
             with tf.device(args.device):  #GPU
-                # train global step
-                global_step = tf.Variable(
-                    0, trainable=False, name="global_step")
-
-                # model inputs, used in train and validation
+                global_step = tf.Variable(0, trainable=False, name="global_step")
                 labels_ = tf.placeholder(tf.int64, shape=[None], name="labels_")
 
-                is_training_, keep_prob_, images_, logits = model.define(
-                    NUM_CLASSES, train_phase=True)
-
-                # loss op
+                is_training_, keep_prob_, images_, logits = model.define(NUM_CLASSES, train_phase=True)
                 loss_op = model.loss(logits, labels_)
-
-                # train op
                 train_op = model.train(loss_op, global_step)
 
             # collect summaries for the previous defined variables
@@ -107,23 +98,22 @@ def train(args):
             with tf.variable_scope("accuracy"):
                 # since pgnet if fully convolutional remove dimensions of size 1
                 reshaped_logits = tf.squeeze(logits, [1, 2])
+                txtLogits = tf.Print(tf.as_string(reshaped_logits), [tf.as_string(reshaped_logits)], message='squeezed logits', name='p_logits')
+                txtLogits_op = tf.summary.text('logits', txtLogits)
+                
                 predictions = tf.argmax(reshaped_logits, 1)
+                txtPredictions = tf.Print(tf.as_string(predictions), [tf.as_string(predictions)], message='predictions', name='txtPredictions')
+                txtPredictions_op = tf.summary.text('predictions', txtPredictions)
 
-                # correct predictions
-                # [BATCH_SIZE] vector
+                # correct predictions, [BATCH_SIZE] vector
                 correct_predictions = tf.equal(labels_, predictions)
-
-                accuracy = tf.reduce_mean(
-                    tf.cast(correct_predictions, tf.float32), name="accuracy")
+                accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32), name="accuracy")
 
                 # use a separate summary op for the accuracy (that's shared between test
                 # and validation)
-
                 # attach a summary to the placeholder
-                train_accuracy_summary_op = tf.summary.scalar("train_accuracy",
-                                                              accuracy)
-                validation_accuracy_summary_op = tf.summary.scalar(
-                    "validation_accuracy", accuracy)
+                train_accuracy_summary_op = tf.summary.scalar("train_accuracy",accuracy)
+                validation_accuracy_summary_op = tf.summary.scalar("validation_accuracy", accuracy)
 
             # create a saver: to store current computation and restore the graph
             # useful when the train step has been interrupeted
@@ -142,11 +132,9 @@ def train(args):
                         validation_accuracy, summary_line
                     """
                     # get validation inputs
-                    validation_images, validation_labels = sess.run(
-                        [validation_images_queue, validation_labels_queue])
+                    validation_images, validation_labels = sess.run([validation_images_queue, validation_labels_queue])
 
-                    validation_accuracy, summary_line = sess.run(
-                        [accuracy, validation_accuracy_summary_op],
+                    validation_accuracy, summary_line = sess.run([accuracy, validation_accuracy_summary_op],
                         feed_dict={images_: validation_images, labels_: validation_labels, keep_prob_: 1.0, is_training_: False,})
                     return validation_accuracy, summary_line
 
@@ -164,8 +152,7 @@ def train(args):
                 else:
                     print("[I] Unable to restore from checkpoint")
 
-                summary_writer = tf.summary.FileWriter(
-                    SUMMARY_DIR + "/train", graph=sess.graph)
+                summary_writer = tf.summary.FileWriter(SUMMARY_DIR + "/train", graph=sess.graph)
 
                 total_start = time.time()
                 current_epoch = 0
@@ -173,18 +160,11 @@ def train(args):
                 sum_validation_accuracy = 0.0
                 for step in range(MAX_ITERATIONS):
                     # get train inputs
-                    train_images, train_labels = sess.run(
-                        [train_images_queue, train_labels_queue])
-
+                    train_images, train_labels = sess.run([train_images_queue, train_labels_queue])
                     start = time.time()
                     # train, get loss value, get summaries
-                    _, loss_val, summary_line, gs_value = sess.run(
-                        [train_op, loss_op, summary_op, global_step],
-                        feed_dict={
-                            keep_prob_: 0.4,
-                            is_training_: True,
-                            images_: train_images,
-                            labels_: train_labels,
+                    _, loss_val, summary_line, gs_value = sess.run([train_op, loss_op, summary_op, global_step],
+                        feed_dict={keep_prob_: 0.4, is_training_: True, images_: train_images, labels_: train_labels,
                         })
                     duration = time.time() - start
 
