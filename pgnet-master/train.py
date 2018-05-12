@@ -92,15 +92,12 @@ def train(args):
                 loss_op = model.loss(logits, labels_)
                 train_op = model.train(loss_op, global_step)
 
-            # collect summaries for the previous defined variables
-            summary_op = tf.summary.merge_all()
-
             with tf.variable_scope("accuracy"):
                 # since pgnet if fully convolutional remove dimensions of size 1
                 reshaped_logits = tf.squeeze(logits, [1, 2])
                 txtLogits = tf.Print(tf.as_string(reshaped_logits), [tf.as_string(reshaped_logits)], message='squeezed logits', name='p_logits')
                 txtLogits_op = tf.summary.text('logits', txtLogits)
-                
+
                 predictions = tf.argmax(reshaped_logits, 1)
                 txtPredictions = tf.Print(tf.as_string(predictions), [tf.as_string(predictions)], message='predictions', name='txtPredictions')
                 txtPredictions_op = tf.summary.text('predictions', txtPredictions)
@@ -123,6 +120,9 @@ def train(args):
 
             # tensor flow operator to initialize all the variables in a session
             init_op = tf.global_variables_initializer()
+                        # collect summaries for the previous defined variables
+
+            summary_op = tf.summary.merge_all()
 
             with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
 

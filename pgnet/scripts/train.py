@@ -299,9 +299,10 @@ def train(args):
                             log(args, "Epoch {} finised. Mean validation accuracy: {}".format(current_epoch, mean_validation_accuracy))
 
                             if len(EPOCH_VALIDATION_ACCURACIES) > 1:
-                                if mean_validation_accuracy < sum(EPOCH_VALIDATION_ACCURACIES)/len(EPOCH_VALIDATION_ACCURACIES):
-                                    log(args, "Last epoch did not increase average validation accuracy. Stopping.")
-                                    stop_training = True
+                                if False:
+                                    if mean_validation_accuracy < sum(EPOCH_VALIDATION_ACCURACIES)/len(EPOCH_VALIDATION_ACCURACIES):
+                                        log(args, "Last epoch did not increase average validation accuracy. Stopping.")
+                                        stop_training = True
 
                             current_epoch += 1
                             sum_validation_accuracy = 0.0
