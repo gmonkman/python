@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{52fb7047-b7ad-43d1-a402-bb033db31901}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\train.py</StartupFile>
+    <StartupFile>scripts\sort_test_train_eval.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>
     </WorkingDirectory>

@@ -16,7 +16,7 @@ from funclib.iolib import wait_key
 import funclib.iolib as iolib
 import pgnet.ini as ini
 
-RATIO_TVT = (0.6, 0.2, 0.2) #order is train, validation, test
+RATIO_TVT = (0.8, 0.2, 0.0) #order is train, validation, test
 assert sum(RATIO_TVT) == 1, 'RATIO_TVT must add up to 1'
 
 
@@ -32,8 +32,8 @@ _TEST_NEG = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'TEST_NEG',
 _CSV_EVAL = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_EVAL', error_on_read_fail=True))
 _CSV_TRAIN = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_TRAIN', error_on_read_fail=True))
 _CSV_TEST = path.normpath(ini.Cfg.tryread('sort_test_train_eval.py', 'CSV_TEST', error_on_read_fail=True))
-H = ini.Cfg.tryread('sort_test_train_eval.py', 'H', error_on_read_fail=True)
-W = ini.Cfg.tryread('sort_test_train_eval.py', 'W', error_on_read_fail=True)
+H = ini.Cfg.tryread('sort_test_train_eval.py', 'H', error_on_read_fail=False)
+W = ini.Cfg.tryread('sort_test_train_eval.py', 'W', error_on_read_fail=False)
 
 
 def chkexists(dirs):

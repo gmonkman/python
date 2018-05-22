@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_tensorflow\make_negs.py</StartupFile>
-    <SearchPath>..\</SearchPath>
+    <StartupFile>scripts_tf\vgg2TFRecord.py</StartupFile>
+    <SearchPath>..\;..\models\research\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-s -n 1650</CommandLineArguments>
+    <CommandLineArguments>-b 50 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/eval" "C:/tf/data/eval.record" vgg_body.json</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -54,7 +54,9 @@ fork_ratio.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/proces
 
 point_distances_bass.py -p Charter -c XP30 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated"
 
-make_train_imgaug.py -n 10 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\positive", "C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\positive_aug"</Environment>
+make_train_imgaug.py -n 10 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\positive", "C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\positive_aug"
+
+vgg2TFRecord.py -d -b 2 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/train" "C:/tf/data/train.record" vgg_body.json</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -113,6 +115,9 @@ make_train_imgaug.py -n 10 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\image
     <Compile Include="scripts_tensorflow\make_negs.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts_tf\read_tfrecord.py" />
+    <Compile Include="scripts_tf\tf_obj_det.py" />
+    <Compile Include="scripts_tf\vgg2TFRecord.py" />
     <Compile Include="scripts_vgg\aruco_size_px_bass.py" />
     <Compile Include="scripts_vgg\point_px_dab_processors.py" />
     <Compile Include="scripts_vgg\point_px_bass_processors.py" />
@@ -142,6 +147,9 @@ make_train_imgaug.py -n 10 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\image
     <Compile Include="scripts_vgg\view_images_vgg.py" />
     <Compile Include="script_objdetect\by_segmentation_filtered.py" />
     <Compile Include="script_objdetect\by_segmentation.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="script_tensorflow\tf_obj_det.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="script_transforms\average_resize.py" />
@@ -333,6 +341,9 @@ make_train_imgaug.py -n 10 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\image
     <Folder Include="imgpipes\" />
     <Folder Include="bin\" />
     <Folder Include="learning\" />
+    <Folder Include="scripts_tf\" />
+    <Folder Include="scripts_tf\bin\" />
+    <Folder Include="script_tensorflow\" />
     <Folder Include="scripts_misc\" />
     <Folder Include="script_augment\bin\" />
     <Folder Include="script_imagepipes\" />
@@ -371,6 +382,12 @@ make_train_imgaug.py -n 10 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\image
     <Content Include="lenscorrection\undistort_hero5fov.bat" />
     <Content Include="make_model.bat" />
     <Content Include="requirements.txt" />
+    <Content Include="scripts_tf\bin\2ABwc.jpg" />
+    <Content Include="scripts_tf\bin\2mWnP.jpg" />
+    <Content Include="scripts_tf\bin\6SxXX.jpg" />
+    <Content Include="scripts_tf\bin\via_region_data.json" />
+    <Content Include="scripts_tf\cmd_make_train_eval.bat" />
+    <Content Include="scripts_tf\test_vgg2TFRecord.py.bat" />
     <Content Include="scripts_vgg\fixvgg.bat" />
     <Content Include="scripts_vgg\img2roi_.bat" />
     <Content Include="scripts_vgg\rotate.bat" />

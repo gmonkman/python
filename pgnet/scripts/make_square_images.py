@@ -41,6 +41,7 @@ def main():
     cmdline.add_argument('-n', '--nr', help='number of noise images and number of square images', default=400)
     cmdline.add_argument('squaredir', help='Destination for square containing images')
     cmdline.add_argument('noisedir', help='Destination image folder to create random noise images')
+    cmdline.add_argument('circledir', help='Destination image folder to create circle images')
     args = cmdline.parse_args()
 
     height = int(args.rows); width = int(args.columns); channels = int(args.depth); side = int(args.side); nr = int(args.nr)
@@ -49,7 +50,8 @@ def main():
 
     squaredir = path.normpath(args.squaredir)
     noisedir = path.normpath(args.noisedir)
-    assert noisedir != squaredir, 'noisedir and squaredir were the same'
+    circledir = path.normpath(args.circledir)
+    assert noisedir != squaredir != circledir, 'circledir, noisedir or squaredir were the same'
     chkempty(squaredir)
     chkempty(noisedir)
 
@@ -57,6 +59,8 @@ def main():
     for n in range(nr):
         PP.increment()
         square = np.ones((width, height, channels)) * 255
+        circle = square.copy()
+        circle = cv2.circle(circle, (100,100), 50, (0, 0, 255), -1)
         square[0:side, 0:side, ...] = int(np.random.uniform(0, 50))
         noise = np.random.uniform(0, 255, size=(height * width * channels)).reshape((height, width, channels))
 
@@ -66,13 +70,18 @@ def main():
                 break
 
         while True:
+            cirname = path.normpath(path.join(circledir, '%s%s' % (stringslib.rndstr(5), '.jpg')))
+            if not iolib.file_exists(cirname):
+                break
+
+        while True:
             nname = path.normpath(path.join(noisedir, '%s%s' % (stringslib.rndstr(5), '.jpg')))
             if not iolib.file_exists(nname):
                 break
 
         cv2.imwrite(sqname, square)
         cv2.imwrite(nname, noise)
-
+        cv2.imwrite(cirname, circle)
 
 
 

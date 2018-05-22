@@ -163,7 +163,7 @@ def fix_keys(backup=True, show_progress=False, del_if_no_file=False):
     _prints('\n\nKey fixing complete.\n')
 
 
-def imagesGenerator(skip_imghdr_check=False, file_attr_match=None, json_file=None):
+def imagesGenerator(skip_imghdr_check=False, file_attr_match=None, json_file=None, error_on_missing_image=False):
     '''(bool, dict)
     Generate VGG.Image class objects
     for every image in the vgg file
@@ -180,6 +180,11 @@ def imagesGenerator(skip_imghdr_check=False, file_attr_match=None, json_file=Non
         no file attributes will NOT be yielded.
 
         NOTE: All dict values read will be a string
+    json_file:
+        Open this json file, saves calling vgg.load_json first
+    error_on_missing_image:
+        Raise a FileNotFoundError if the JSON file references an
+        image which cannot be found.
 
     Comments:
         Use the skip_imghdr_check if valid
@@ -195,6 +200,9 @@ def imagesGenerator(skip_imghdr_check=False, file_attr_match=None, json_file=Non
         pth = _get_file_parts2(_JSON_FILE_NAME)[0]
         img_pth = _path.join(pth, JSON_FILE[img]['filename'])
 
+        if error_on_missing_image and not _file_exists(img_pth):
+            raise FileNotFoundError('Image file %s not found' % img_pth)
+
         doit = False
         if isinstance(file_attr_match, dict):
             file_attrs = JSON_FILE[img].get('file_attributes', '')
@@ -205,7 +213,7 @@ def imagesGenerator(skip_imghdr_check=False, file_attr_match=None, json_file=Non
                 doit = False #be explicit - if we have attrs, but no attrs defined we dont want it
         else:
             doit = True
-
+        i = None
         if doit:
             if skip_imghdr_check:
                 if _file_exists(img_pth):
@@ -213,8 +221,6 @@ def imagesGenerator(skip_imghdr_check=False, file_attr_match=None, json_file=Non
             else:
                 if _ImageInfo.is_image(img_pth):
                     i = Image(img_pth)
-        else:
-            i = None
 
         if isinstance(i, Image):
             yield i
@@ -255,7 +261,7 @@ def roiGenerator(json_file=None, skip_imghdr_check=False, shape_type=None, file_
         assert isinstance(Img, Image)
         for Reg in Img.roi_generator(shape_type=shape_type, region_attr_match=region_attr_match):
             assert isinstance(Reg, Region)
-            yield Img.filename, Img.resolution, Reg
+            yield Img.filepath, Img.resolution, Reg
 
 
 class Image(object):
