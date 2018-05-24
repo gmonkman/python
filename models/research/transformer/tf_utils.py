@@ -65,7 +65,7 @@ def conv2d(x, n_filters,
                 initializer=tf.truncated_normal_initializer(stddev=stddev))
             conv = conv + b
         return conv
-    
+
 def linear(x, n_units, scope=None, stddev=0.02,
            activation=lambda x: x):
     """Fully-connected network.
@@ -92,7 +92,7 @@ def linear(x, n_units, scope=None, stddev=0.02,
         matrix = tf.get_variable("Matrix", [shape[1], n_units], tf.float32,
                                  tf.random_normal_initializer(stddev=stddev))
         return activation(tf.matmul(x, matrix))
-    
+
 # %%
 def weight_variable(shape):
     '''Helper function to create a weight variable initialized with
@@ -118,7 +118,7 @@ def bias_variable(shape):
     initial = tf.random_normal(shape, mean=0.0, stddev=0.01)
     return tf.Variable(initial)
 
-# %% 
+# %%
 def dense_to_one_hot(labels, n_classes=2):
     """Convert class labels from scalars to one-hot vectors."""
     labels = np.array(labels)

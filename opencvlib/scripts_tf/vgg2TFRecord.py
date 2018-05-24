@@ -20,6 +20,7 @@ import argparse
 import os.path as path
 import os
 from math import ceil
+import io
 
 from PIL import Image
 import numpy as np
@@ -37,24 +38,84 @@ from opencvlib.view import show
 PP = iolib.PrintProgress()
 vgg.SILENT = True
 
+BAD_LIST = []
 
-def load_image(addr):
-    img = Image.open(addr)
-    return np.array(img).tostring()
+def image_is_invalid(imgpath):
+    '''(str) -> bool
+    Load an image and run some validation tests.
+    Append errors to global BAD_LIST.
+
+    Returns: True if image is invalid, else False
+    '''
+    global BAD_LIST
+
+    img = Image.open(imgpath)
+    invalid = False
+    errs = ['%s: ' % imgpath]
+    if img.format != 'JPEG':
+        invalid = True
+        errs.append('Format was %s. Expected jpeg' % img.format)
+
+    np_im = np.array(img)
+    if len(np_im.shape) != 3:
+        invalid = True
+        errs.append('Image had %s channels. Expected 3.' % len(np_im.shape))
+    else:
+       if np_im.shape[2] != 3:
+            invalid = True
+            errs.append('Image had %s channels. Expected 3.' % len(np_im.shape[2]))
+
+    if invalid:
+        errs.append('\n')
+        BAD_LIST.append(' | '.join(errs))
+
+    return invalid
 
 
-def _bytes_feature(value):
-    '''bytes feature'''
-    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+def create_tf_example(filename, xmin, xmax, ymin, ymax):
+    filename = path.normpath(filename)
+    with tf.gfile.GFile(filename, 'rb') as fid:
+        encoded_jpg = fid.read()
+    encoded_jpg_io = io.BytesIO(encoded_jpg)
+    image = Image.open(encoded_jpg_io)
+    width, height = image.size
+    _, fname, _ = iolib.get_file_parts2(filename)
+    filename = fname.encode('utf8')
+    image_format = b'jpg'
+    xmins = []
+    xmaxs = []
+    ymins = []
+    ymaxs = []
+    classes_text = []
+    classes = []
+
+    xmins.append(xmin / width)
+    xmaxs.append(xmax / width)
+    ymins.append(ymin / height)
+    ymaxs.append(ymax / height)
+    classes_text.append('bass'.encode('utf8'))
+    classes.append(1)#1 is the code for bass
+
+    tf_example = tf.train.Example(features=tf.train.Features(feature={
+        'image/height': dataset_util.int64_feature(height),
+        'image/width': dataset_util.int64_feature(width),
+        'image/filename': dataset_util.bytes_feature(filename),
+        'image/source_id': dataset_util.bytes_feature(filename),
+        'image/encoded': dataset_util.bytes_feature(encoded_jpg),
+        'image/format': dataset_util.bytes_feature(image_format),
+        'image/object/bbox/xmin': dataset_util.float_list_feature(xmins),
+        'image/object/bbox/xmax': dataset_util.float_list_feature(xmaxs),
+        'image/object/bbox/ymin': dataset_util.float_list_feature(ymins),
+        'image/object/bbox/ymax': dataset_util.float_list_feature(ymaxs),
+        'image/object/class/text': dataset_util.bytes_list_feature(classes_text),
+        'image/object/class/label': dataset_util.int64_list_feature(classes),
+    }))
+    return tf_example
+
 
 
 def main():
-    '''
-    Rotate images
-
-    Example:
-    view_images.py part:head "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler/bass-angler.json"
-    '''
+    '''entry'''
     cmdline = argparse.ArgumentParser(description=__doc__)
     cmdline.add_argument('-d', '--delete', action='store_true', help='Delete tfrecord .record file(s) from the output folder.')
     cmdline.add_argument('-b', '--batch_sz', help='Batch size.', default=1)
@@ -64,7 +125,7 @@ def main():
 
     args = cmdline.parse_args()
     batch_sz = int(args.batch_sz)
-    assert batch_sz > 0, 'Shard size cannot be 0 or less'
+    assert batch_sz > 0, 'Batch size cannot be 0 or less'
 
     src = path.normpath(args.source_folder)
     out = path.normpath(args.output_file)
@@ -79,6 +140,7 @@ def main():
 
     fld, _, _ = iolib.get_file_parts2(out)
     iolib.create_folder(fld)
+    errout = path.normpath(path.join(fld, 'bad_image_files.csv'))
 
     if iolib.file_exists(out):
         print('Output TFRecord %s already exists. Delete it manually.' % out)
@@ -93,10 +155,13 @@ def main():
     else:
         nr_parts = ceil(filecnt / batch_sz)
     first = True
-
+    has_errs = False
     for imgpath, res, Reg in vgg.roiGenerator(skip_imghdr_check=True, shape_type='rect'):
         assert isinstance(Reg, vgg.Region)
 
+        if image_is_invalid(imgpath):
+            PP.increment()
+            continue
 
         if nr_parts > 1:
             suffix = str(ceil(PP.iteration / batch_sz)).zfill(len(str(nr_parts)))
@@ -111,34 +176,7 @@ def main():
                 writer = tf.python_io.TFRecordWriter(batch_name)
                 first = False
         PP.increment()
-        dummy, filename, ext = iolib.get_file_parts2(imgpath)
-        encoded_image_data = load_image(imgpath)
-
-        width = res[0]
-        height = res[1]
-        image_format = b'jpg'
-        filename = filename.encode()
-        xmins = [Reg.x / float(width)]
-        xmaxs = [(Reg.x + Reg.w) / float(width)]
-        ymins = [Reg.y / float(height)]
-        ymaxs = [(Reg.y + Reg.h) / float(width)]
-        classes_text = [b'bass']
-        classes = [1]
-        tf_example = tf.train.Example(features=tf.train.Features(feature={
-            'image/height': dataset_util.int64_feature(height),
-            'image/width': dataset_util.int64_feature(width),
-            'image/filename': dataset_util.bytes_feature(filename),
-            'image/source_id': dataset_util.bytes_feature(filename),
-            'image/format': dataset_util.bytes_feature(image_format),
-            'image/channels': dataset_util.int64_feature(3),
-            'image/object/bbox/xmin': dataset_util.float_list_feature(xmins),
-            'image/object/bbox/xmax': dataset_util.float_list_feature(xmaxs),
-            'image/object/bbox/ymin': dataset_util.float_list_feature(ymins),
-            'image/object/bbox/ymax': dataset_util.float_list_feature(ymaxs),
-            'image/object/class/text': dataset_util.bytes_list_feature(classes_text),
-            'image/object/class/label': dataset_util.int64_list_feature(classes),
-            'image/encoded': _bytes_feature(encoded_image_data)
-        }))
+        tf_example = create_tf_example(imgpath, Reg.x, Reg.x + Reg.w, Reg.y, Reg.h)
         writer.write(tf_example.SerializeToString())
 
     try:
@@ -147,7 +185,8 @@ def main():
         pass
 
 
-
+    if has_errs:
+        iolib.writecsv(errout, BAD_LIST, inner_as_rows=False)
 
 if __name__ == "__main__":
     main()

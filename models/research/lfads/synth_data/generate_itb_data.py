@@ -59,30 +59,30 @@ FLAGS = flags.FLAGS
 
 
 class IntegrationToBoundModel:
-  def __init__(self, N):
-    scale = 0.8 / float(N**0.5)
-    self.N = N
-    self.Wh_nxn = tf.Variable(tf.random_normal([N, N], stddev=scale))
-    self.b_1xn = tf.Variable(tf.zeros([1, N]))
-    self.Bu_1xn = tf.Variable(tf.zeros([1, N]))
-    self.Wro_nxo = tf.Variable(tf.random_normal([N, 1], stddev=scale))
-    self.bro_o = tf.Variable(tf.zeros([1]))
+    def __init__(self, N):
+        scale = 0.8 / float(N**0.5)
+        self.N = N
+        self.Wh_nxn = tf.Variable(tf.random_normal([N, N], stddev=scale))
+        self.b_1xn = tf.Variable(tf.zeros([1, N]))
+        self.Bu_1xn = tf.Variable(tf.zeros([1, N]))
+        self.Wro_nxo = tf.Variable(tf.random_normal([N, 1], stddev=scale))
+        self.bro_o = tf.Variable(tf.zeros([1]))
 
-  def call(self, h_tm1_bxn, u_bx1):
-    act_t_bxn = tf.matmul(h_tm1_bxn, self.Wh_nxn) + self.b_1xn + u_bx1 * self.Bu_1xn
-    h_t_bxn = tf.nn.tanh(act_t_bxn)
-    z_t = tf.nn.xw_plus_b(h_t_bxn, self.Wro_nxo, self.bro_o)
-    return z_t, h_t_bxn
+    def call(self, h_tm1_bxn, u_bx1):
+        act_t_bxn = tf.matmul(h_tm1_bxn, self.Wh_nxn) + self.b_1xn + u_bx1 * self.Bu_1xn
+        h_t_bxn = tf.nn.tanh(act_t_bxn)
+        z_t = tf.nn.xw_plus_b(h_t_bxn, self.Wro_nxo, self.bro_o)
+        return z_t, h_t_bxn
 
 def get_data_batch(batch_size, T, rng, u_std):
-  u_bxt = rng.randn(batch_size, T) * u_std
-  running_sum_b = np.zeros([batch_size])
-  labels_bxt = np.zeros([batch_size, T])
-  for t in xrange(T):
-    running_sum_b += u_bxt[:, t]
-    labels_bxt[:, t] += running_sum_b
-  labels_bxt = np.clip(labels_bxt, -1, 1)
-  return u_bxt, labels_bxt
+    u_bxt = rng.randn(batch_size, T) * u_std
+    running_sum_b = np.zeros([batch_size])
+    labels_bxt = np.zeros([batch_size, T])
+    for t in xrange(T):
+        running_sum_b += u_bxt[:, t]
+        labels_bxt[:, t] += running_sum_b
+    labels_bxt = np.clip(labels_bxt, -1, 1)
+    return u_bxt, labels_bxt
 
 
 rng = np.random.RandomState(seed=FLAGS.synth_data_seed)
@@ -109,47 +109,47 @@ outputs_t = []
 states_t = []
 
 for inp in inputs_ph_t:
-  output, state = model.call(state, inp)
-  outputs_t.append(output)
-  states_t.append(state)
+    output, state = model.call(state, inp)
+    outputs_t.append(output)
+    states_t.append(state)
 
 with tf.Session() as sess:
-  # restore the latest model ckpt
-  if FLAGS.checkpoint_path == "SAMPLE_CHECKPOINT":
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    model_checkpoint_path = os.path.join(dir_path, "trained_itb/model-65000")
-  else:
-    model_checkpoint_path = FLAGS.checkpoint_path
-  try:
-    saver.restore(sess, model_checkpoint_path)
-    print ('Model restored from', model_checkpoint_path)
-  except:
-    assert False, ("No checkpoints to restore from, is the path %s correct?"
-                   %model_checkpoint_path)
+    # restore the latest model ckpt
+    if FLAGS.checkpoint_path == "SAMPLE_CHECKPOINT":
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        model_checkpoint_path = os.path.join(dir_path, "trained_itb/model-65000")
+    else:
+        model_checkpoint_path = FLAGS.checkpoint_path
+    try:
+        saver.restore(sess, model_checkpoint_path)
+        print ('Model restored from', model_checkpoint_path)
+    except:
+        assert False, ("No checkpoints to restore from, is the path %s correct?"
+                       %model_checkpoint_path)
 
-  # generate data for trials
-  data_e = []
-  u_e = []
-  outs_e = []
-  for c in range(C):
-    u_1xt, outs_1xt = get_data_batch(batch_size, ntimesteps, u_rng, FLAGS.u_std)
+    # generate data for trials
+    data_e = []
+    u_e = []
+    outs_e = []
+    for c in range(C):
+        u_1xt, outs_1xt = get_data_batch(batch_size, ntimesteps, u_rng, FLAGS.u_std)
 
-    feed_dict = {}
-    for t in xrange(ntimesteps):
-      feed_dict[inputs_ph_t[t]] = np.reshape(u_1xt[:,t], (batch_size,-1))
+        feed_dict = {}
+        for t in xrange(ntimesteps):
+            feed_dict[inputs_ph_t[t]] = np.reshape(u_1xt[:,t], (batch_size,-1))
 
-    states_t_bxn, outputs_t_bxn = sess.run([states_t, outputs_t],
-                                           feed_dict=feed_dict)
-    states_nxt = np.transpose(np.squeeze(np.asarray(states_t_bxn)))
-    outputs_t_bxn = np.squeeze(np.asarray(outputs_t_bxn))
-    r_sxt = np.dot(P_nxn, states_nxt)
+        states_t_bxn, outputs_t_bxn = sess.run([states_t, outputs_t],
+                                               feed_dict=feed_dict)
+        states_nxt = np.transpose(np.squeeze(np.asarray(states_t_bxn)))
+        outputs_t_bxn = np.squeeze(np.asarray(outputs_t_bxn))
+        r_sxt = np.dot(P_nxn, states_nxt)
 
-    for s in xrange(nreplications):
-      data_e.append(r_sxt)
-      u_e.append(u_1xt)
-      outs_e.append(outputs_t_bxn)
+        for s in xrange(nreplications):
+            data_e.append(r_sxt)
+            u_e.append(u_1xt)
+            outs_e.append(outputs_t_bxn)
 
-  truth_data_e = normalize_rates(data_e, E, N)
+    truth_data_e = normalize_rates(data_e, E, N)
 
 spiking_data_e = spikify_data(truth_data_e, rng, dt=FLAGS.dt,
                               max_firing_rate=FLAGS.max_firing_rate)

@@ -45,42 +45,42 @@ FLAGS = flags.FLAGS
 
 
 def main(unused_argv):
-  flags.mark_flag_as_required('model_dir')
-  flags.mark_flag_as_required('pipeline_config_path')
-  config = tf.estimator.RunConfig(model_dir=FLAGS.model_dir)
+    flags.mark_flag_as_required('model_dir')
+    flags.mark_flag_as_required('pipeline_config_path')
+    config = tf.estimator.RunConfig(model_dir=FLAGS.model_dir)
 
-  train_and_eval_dict = model_lib.create_estimator_and_inputs(
-      run_config=config,
-      hparams=model_hparams.create_hparams(FLAGS.hparams_overrides),
-      pipeline_config_path=FLAGS.pipeline_config_path,
-      train_steps=FLAGS.num_train_steps,
-      eval_steps=FLAGS.num_eval_steps)
-  estimator = train_and_eval_dict['estimator']
-  train_input_fn = train_and_eval_dict['train_input_fn']
-  eval_input_fn = train_and_eval_dict['eval_input_fn']
-  eval_on_train_input_fn = train_and_eval_dict['eval_on_train_input_fn']
-  predict_input_fn = train_and_eval_dict['predict_input_fn']
-  train_steps = train_and_eval_dict['train_steps']
-  eval_steps = train_and_eval_dict['eval_steps']
+    train_and_eval_dict = model_lib.create_estimator_and_inputs(
+        run_config=config,
+        hparams=model_hparams.create_hparams(FLAGS.hparams_overrides),
+        pipeline_config_path=FLAGS.pipeline_config_path,
+        train_steps=FLAGS.num_train_steps,
+        eval_steps=FLAGS.num_eval_steps)
+    estimator = train_and_eval_dict['estimator']
+    train_input_fn = train_and_eval_dict['train_input_fn']
+    eval_input_fn = train_and_eval_dict['eval_input_fn']
+    eval_on_train_input_fn = train_and_eval_dict['eval_on_train_input_fn']
+    predict_input_fn = train_and_eval_dict['predict_input_fn']
+    train_steps = train_and_eval_dict['train_steps']
+    eval_steps = train_and_eval_dict['eval_steps']
 
-  if FLAGS.checkpoint_dir:
-    estimator.evaluate(eval_input_fn,
-                       eval_steps,
-                       checkpoint_path=tf.train.latest_checkpoint(
-                           FLAGS.checkpoint_dir))
-  else:
-    train_spec, eval_specs = model_lib.create_train_and_eval_specs(
-        train_input_fn,
-        eval_input_fn,
-        eval_on_train_input_fn,
-        predict_input_fn,
-        train_steps,
-        eval_steps,
-        eval_on_train_data=False)
+    if FLAGS.checkpoint_dir:
+        estimator.evaluate(eval_input_fn,
+                           eval_steps,
+                           checkpoint_path=tf.train.latest_checkpoint(
+                               FLAGS.checkpoint_dir))
+    else:
+        train_spec, eval_specs = model_lib.create_train_and_eval_specs(
+            train_input_fn,
+            eval_input_fn,
+            eval_on_train_input_fn,
+            predict_input_fn,
+            train_steps,
+            eval_steps,
+            eval_on_train_data=False)
 
-    # Currently only a single Eval Spec is allowed.
-    tf.estimator.train_and_evaluate(estimator, train_spec, eval_specs[0])
+        # Currently only a single Eval Spec is allowed.
+        tf.estimator.train_and_evaluate(estimator, train_spec, eval_specs[0])
 
 
 if __name__ == '__main__':
-  tf.app.run()
+    tf.app.run()

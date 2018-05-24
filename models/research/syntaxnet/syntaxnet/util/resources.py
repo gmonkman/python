@@ -36,39 +36,37 @@ _ROOT_DIR = os.path.dirname(              # .../
 
 
 def GetSyntaxNetResourceAsFile(path):
-  """Returns a resource as an opened read-only file.
+    """Returns a resource as an opened read-only file.
 
-  Args:
-    path: Relative path to the resource, which must be a Bazel data dependency.
+    Args:
+      path: Relative path to the resource, which must be a Bazel data dependency.
 
-  Returns:
-    Opened read-only file pointing to resource data.
+    Returns:
+      Opened read-only file pointing to resource data.
 
-  Raises:
-    IOError: If the resource cannot be loaded.
-  """
-  path = os.path.join(_ROOT_DIR, path)
-  if os.path.isdir(path):
-    raise IOError('Resource "{}" is not a file'.format(path))
-  if not os.path.isfile(path):
-    raise IOError(
-        'Resource "{}" not found; is it a data dependency?'.format(path))
-  return open(path, 'rb')
+    Raises:
+      IOError: If the resource cannot be loaded.
+    """
+    path = os.path.join(_ROOT_DIR, path)
+    if os.path.isdir(path):
+        raise IOError('Resource "{}" is not a file'.format(path))
+    if not os.path.isfile(path):
+        raise IOError(
+            'Resource "{}" not found; is it a data dependency?'.format(path))
+    return open(path, 'rb')
 
 
 def GetSyntaxNetResource(path):
-  """Returns the content of a resource.
+    """Returns the content of a resource.
 
-  Args:
-    path: Relative path to the resource, which must be a Bazel data dependency.
+    Args:
+      path: Relative path to the resource, which must be a Bazel data dependency.
 
-  Returns:
-    Raw content of the resource.
+    Returns:
+      Raw content of the resource.
 
-  Raises:
-    IOError: If the resource cannot be loaded.
-  """
-  with GetSyntaxNetResourceAsFile(path) as resource_file:
-    return resource_file.read()
-
-
+    Raises:
+      IOError: If the resource cannot be loaded.
+    """
+    with GetSyntaxNetResourceAsFile(path) as resource_file:
+        return resource_file.read()

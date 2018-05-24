@@ -76,11 +76,11 @@ x0s = []
 condition_labels = []
 condition_number = 0
 for c in range(C):
-  x0 = FLAGS.x0_std * rng.randn(N, 1)
-  x0s.append(np.tile(x0, nreplications))
-  for ns in range(nreplications):
-    condition_labels.append(condition_number)
-  condition_number += 1
+    x0 = FLAGS.x0_std * rng.randn(N, 1)
+    x0s.append(np.tile(x0, nreplications))
+    for ns in range(nreplications):
+        condition_labels.append(condition_number)
+    condition_number += 1
 x0s = np.concatenate(x0s, axis=1)
 
 P_nxn = rng.randn(N, N) / np.sqrt(N)
@@ -98,12 +98,12 @@ spikes_b = spikify_data(rates_b, rng, rnn_b['dt'], rnn_b['max_firing_rate'])
 rates = []
 spikes = []
 for trial in xrange(E):
-  if rnn_to_use[trial] == 0:
-    rates.append(rates_a[trial])
-    spikes.append(spikes_a[trial])
-  else:
-    rates.append(rates_b[trial])
-    spikes.append(spikes_b[trial])
+    if rnn_to_use[trial] == 0:
+        rates.append(rates_a[trial])
+        spikes.append(spikes_a[trial])
+    else:
+        rates.append(rates_b[trial])
+        spikes.append(spikes_b[trial])
 
 # split into train and validation sets
 train_inds, valid_inds = get_train_n_valid_inds(E, train_percentage,

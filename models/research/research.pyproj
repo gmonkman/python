@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{2b860010-e6f3-42a4-92aa-a52738d7b289}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>object_detection\train.py</StartupFile>
+    <StartupFile>object_detection\dataset_tools\create_pet_tf_record.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -14,8 +14,10 @@
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <Environment>train.py --train_dir="C:/tf/models/train" --pipeline_config_path="C:/tf/models/model/pipeline.config"</Environment>
-    <CommandLineArguments>--train_dir="C:/tf/models/train" --pipeline_config_path="C:/tf/models/model/pipeline.config"</CommandLineArguments>
+    <Environment>train.py --train_dir="C:/tf/models/train" --pipeline_config_path="C:/tf/models/model/pipeline.config"
+
+create_pet_tf_record.py --data_dir="F:/vggpets" --ouputdir="F:/vggpets/tf" --label_map_path="C:/development/python/models/research/object_detection/data/pet_label_map.pbtxt"</Environment>
+    <CommandLineArguments>--data_dir="F:/vggpets" --output_dir="F:/vggpets/tf" --label_map_path="C:/development/python/models/research/object_detection/data/pet_label_map.pbtxt"</CommandLineArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />

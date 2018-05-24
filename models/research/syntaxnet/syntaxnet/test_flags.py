@@ -21,10 +21,10 @@ FLAGS = flags.FLAGS
 
 
 def temp_dir():
-  """Returns a temporary directory for tests."""
-  return getattr(FLAGS, 'test_tmpdir', tf.test.get_temp_dir())
+    """Returns a temporary directory for tests."""
+    return getattr(FLAGS, 'test_tmpdir', tf.test.get_temp_dir())
 
 
 def source_root():
-  """Returns the path to the root of the source directory tree for tests."""
-  return getattr(FLAGS, 'test_srcdir', '')
+    """Returns the path to the root of the source directory tree for tests."""
+    return getattr(FLAGS, 'test_srcdir', '')

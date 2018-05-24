@@ -24,41 +24,41 @@ import unittest_utils
 
 
 class UnittestUtilsTest(tf.test.TestCase):
-  def test_creates_an_image_of_specified_shape(self):
-    image, _ = unittest_utils.create_random_image('PNG', (10, 20, 3))
-    self.assertEqual(image.shape, (10, 20, 3))
+    def test_creates_an_image_of_specified_shape(self):
+        image, _ = unittest_utils.create_random_image('PNG', (10, 20, 3))
+        self.assertEqual(image.shape, (10, 20, 3))
 
-  def test_encoded_image_corresponds_to_numpy_array(self):
-    image, encoded = unittest_utils.create_random_image('PNG', (20, 10, 3))
-    pil_image = PILImage.open(StringIO.StringIO(encoded))
-    self.assertAllEqual(image, np.array(pil_image))
+    def test_encoded_image_corresponds_to_numpy_array(self):
+        image, encoded = unittest_utils.create_random_image('PNG', (20, 10, 3))
+        pil_image = PILImage.open(StringIO.StringIO(encoded))
+        self.assertAllEqual(image, np.array(pil_image))
 
-  def test_created_example_has_correct_values(self):
-    example_serialized = unittest_utils.create_serialized_example({
-        'labels': [1, 2, 3],
-        'data': ['FAKE']
-    })
-    example = tf.train.Example()
-    example.ParseFromString(example_serialized)
-    self.assertProtoEquals("""
-      features {
-        feature {
-          key: "labels"
-           value { int64_list {
-             value: 1
-             value: 2
-             value: 3
-           }}
-         }
-         feature {
-           key: "data"
-           value { bytes_list {
-             value: "FAKE"
-           }}
-         }
-      }
-    """, example)
+    def test_created_example_has_correct_values(self):
+        example_serialized = unittest_utils.create_serialized_example({
+            'labels': [1, 2, 3],
+            'data': ['FAKE']
+        })
+        example = tf.train.Example()
+        example.ParseFromString(example_serialized)
+        self.assertProtoEquals("""
+          features {
+            feature {
+              key: "labels"
+               value { int64_list {
+                 value: 1
+                 value: 2
+                 value: 3
+               }}
+             }
+             feature {
+               key: "data"
+               value { bytes_list {
+                 value: "FAKE"
+               }}
+             }
+          }
+        """, example)
 
 
 if __name__ == '__main__':
-  tf.test.main()
+    tf.test.main()

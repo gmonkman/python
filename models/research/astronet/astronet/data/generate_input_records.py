@@ -132,171 +132,171 @@ _ALLOWED_LABELS = {"PC", "AFP", "NTP"}
 
 
 def _set_float_feature(ex, name, value):
-  """Sets the value of a float feature in a tensorflow.train.Example proto."""
-  assert name not in ex.features.feature, "Duplicate feature: %s" % name
-  ex.features.feature[name].float_list.value.extend([float(v) for v in value])
+    """Sets the value of a float feature in a tensorflow.train.Example proto."""
+    assert name not in ex.features.feature, "Duplicate feature: %s" % name
+    ex.features.feature[name].float_list.value.extend([float(v) for v in value])
 
 
 def _set_bytes_feature(ex, name, value):
-  """Sets the value of a bytes feature in a tensorflow.train.Example proto."""
-  assert name not in ex.features.feature, "Duplicate feature: %s" % name
-  ex.features.feature[name].bytes_list.value.extend([
-      str(v).encode("latin-1") for v in value])
+    """Sets the value of a bytes feature in a tensorflow.train.Example proto."""
+    assert name not in ex.features.feature, "Duplicate feature: %s" % name
+    ex.features.feature[name].bytes_list.value.extend([
+        str(v).encode("latin-1") for v in value])
 
 
 def _set_int64_feature(ex, name, value):
-  """Sets the value of an int64 feature in a tensorflow.train.Example proto."""
-  assert name not in ex.features.feature, "Duplicate feature: %s" % name
-  ex.features.feature[name].int64_list.value.extend([int(v) for v in value])
+    """Sets the value of an int64 feature in a tensorflow.train.Example proto."""
+    assert name not in ex.features.feature, "Duplicate feature: %s" % name
+    ex.features.feature[name].int64_list.value.extend([int(v) for v in value])
 
 
 def _process_tce(tce):
-  """Processes the light curve for a Kepler TCE and returns an Example proto.
+    """Processes the light curve for a Kepler TCE and returns an Example proto.
 
-  Args:
-    tce: Row of the input TCE table.
+    Args:
+      tce: Row of the input TCE table.
 
-  Returns:
-    A tensorflow.train.Example proto containing TCE features.
+    Returns:
+      A tensorflow.train.Example proto containing TCE features.
 
-  Raises:
-    IOError: If the light curve files for this Kepler ID cannot be found.
-  """
-  # Read and process the light curve.
-  time, flux = preprocess.read_and_process_light_curve(tce.kepid,
-                                                       FLAGS.kepler_data_dir)
-  time, flux = preprocess.phase_fold_and_sort_light_curve(
-      time, flux, tce.tce_period, tce.tce_time0bk)
+    Raises:
+      IOError: If the light curve files for this Kepler ID cannot be found.
+    """
+    # Read and process the light curve.
+    time, flux = preprocess.read_and_process_light_curve(tce.kepid,
+                                                         FLAGS.kepler_data_dir)
+    time, flux = preprocess.phase_fold_and_sort_light_curve(
+        time, flux, tce.tce_period, tce.tce_time0bk)
 
-  # Generate the local and global views.
-  global_view = preprocess.global_view(time, flux, tce.tce_period)
-  local_view = preprocess.local_view(time, flux, tce.tce_period,
-                                     tce.tce_duration)
+    # Generate the local and global views.
+    global_view = preprocess.global_view(time, flux, tce.tce_period)
+    local_view = preprocess.local_view(time, flux, tce.tce_period,
+                                       tce.tce_duration)
 
-  # Make output proto.
-  ex = tf.train.Example()
+    # Make output proto.
+    ex = tf.train.Example()
 
-  # Set time series features.
-  _set_float_feature(ex, "global_view", global_view)
-  _set_float_feature(ex, "local_view", local_view)
+    # Set time series features.
+    _set_float_feature(ex, "global_view", global_view)
+    _set_float_feature(ex, "local_view", local_view)
 
-  # Set other columns.
-  for col_name, value in tce.items():
-    if np.issubdtype(type(value), np.integer):
-      _set_int64_feature(ex, col_name, [value])
-    else:
-      try:
-        _set_float_feature(ex, col_name, [float(value)])
-      except ValueError:
-        _set_bytes_feature(ex, col_name, [value])
+    # Set other columns.
+    for col_name, value in tce.items():
+        if np.issubdtype(type(value), np.integer):
+            _set_int64_feature(ex, col_name, [value])
+        else:
+            try:
+                _set_float_feature(ex, col_name, [float(value)])
+            except ValueError:
+                _set_bytes_feature(ex, col_name, [value])
 
-  return ex
+    return ex
 
 
 def _process_file_shard(tce_table, file_name):
-  """Processes a single file shard.
+    """Processes a single file shard.
 
-  Args:
-    tce_table: A Pandas DateFrame containing the TCEs in the shard.
-    file_name: The output TFRecord file.
-  """
-  process_name = multiprocessing.current_process().name
-  shard_name = os.path.basename(file_name)
-  shard_size = len(tce_table)
-  tf.logging.info("%s: Processing %d items in shard %s", process_name,
-                  shard_size, shard_name)
+    Args:
+      tce_table: A Pandas DateFrame containing the TCEs in the shard.
+      file_name: The output TFRecord file.
+    """
+    process_name = multiprocessing.current_process().name
+    shard_name = os.path.basename(file_name)
+    shard_size = len(tce_table)
+    tf.logging.info("%s: Processing %d items in shard %s", process_name,
+                    shard_size, shard_name)
 
-  with tf.python_io.TFRecordWriter(file_name) as writer:
-    num_processed = 0
-    for _, tce in tce_table.iterrows():
-      example = _process_tce(tce)
-      if example is not None:
-        writer.write(example.SerializeToString())
+    with tf.python_io.TFRecordWriter(file_name) as writer:
+        num_processed = 0
+        for _, tce in tce_table.iterrows():
+            example = _process_tce(tce)
+            if example is not None:
+                writer.write(example.SerializeToString())
 
-      num_processed += 1
-      if not num_processed % 10:
-        tf.logging.info("%s: Processed %d/%d items in shard %s", process_name,
-                        num_processed, shard_size, shard_name)
+            num_processed += 1
+            if not num_processed % 10:
+                tf.logging.info("%s: Processed %d/%d items in shard %s", process_name,
+                                num_processed, shard_size, shard_name)
 
-  tf.logging.info("%s: Wrote %d items in shard %s", process_name, shard_size,
-                  shard_name)
+    tf.logging.info("%s: Wrote %d items in shard %s", process_name, shard_size,
+                    shard_name)
 
 
 def main(argv):
-  del argv  # Unused.
+    del argv  # Unused.
 
-  # Make the output directory if it doesn't already exist.
-  tf.gfile.MakeDirs(FLAGS.output_dir)
+    # Make the output directory if it doesn't already exist.
+    tf.gfile.MakeDirs(FLAGS.output_dir)
 
-  # Read CSV file of Kepler KOIs.
-  tce_table = pd.read_csv(
-      FLAGS.input_tce_csv_file, index_col="rowid", comment="#")
-  tce_table["tce_duration"] /= 24  # Convert hours to days.
-  tf.logging.info("Read TCE CSV file with %d rows.", len(tce_table))
+    # Read CSV file of Kepler KOIs.
+    tce_table = pd.read_csv(
+        FLAGS.input_tce_csv_file, index_col="rowid", comment="#")
+    tce_table["tce_duration"] /= 24  # Convert hours to days.
+    tf.logging.info("Read TCE CSV file with %d rows.", len(tce_table))
 
-  # Filter TCE table to allowed labels.
-  allowed_tces = tce_table[_LABEL_COLUMN].apply(lambda l: l in _ALLOWED_LABELS)
-  tce_table = tce_table[allowed_tces]
-  num_tces = len(tce_table)
-  tf.logging.info("Filtered to %d TCEs with labels in %s.", num_tces,
-                  list(_ALLOWED_LABELS))
+    # Filter TCE table to allowed labels.
+    allowed_tces = tce_table[_LABEL_COLUMN].apply(lambda l: l in _ALLOWED_LABELS)
+    tce_table = tce_table[allowed_tces]
+    num_tces = len(tce_table)
+    tf.logging.info("Filtered to %d TCEs with labels in %s.", num_tces,
+                    list(_ALLOWED_LABELS))
 
-  # Randomly shuffle the TCE table.
-  np.random.seed(123)
-  tce_table = tce_table.iloc[np.random.permutation(num_tces)]
-  tf.logging.info("Randomly shuffled TCEs.")
+    # Randomly shuffle the TCE table.
+    np.random.seed(123)
+    tce_table = tce_table.iloc[np.random.permutation(num_tces)]
+    tf.logging.info("Randomly shuffled TCEs.")
 
-  # Partition the TCE table as follows:
-  #   train_tces = 80% of TCEs
-  #   val_tces = 10% of TCEs (for validation during training)
-  #   test_tces = 10% of TCEs (for final evaluation)
-  train_cutoff = int(0.80 * num_tces)
-  val_cutoff = int(0.90 * num_tces)
-  train_tces = tce_table[0:train_cutoff]
-  val_tces = tce_table[train_cutoff:val_cutoff]
-  test_tces = tce_table[val_cutoff:]
-  tf.logging.info(
-      "Partitioned %d TCEs into training (%d), validation (%d) and test (%d)",
-      num_tces, len(train_tces), len(val_tces), len(test_tces))
+    # Partition the TCE table as follows:
+    #   train_tces = 80% of TCEs
+    #   val_tces = 10% of TCEs (for validation during training)
+    #   test_tces = 10% of TCEs (for final evaluation)
+    train_cutoff = int(0.80 * num_tces)
+    val_cutoff = int(0.90 * num_tces)
+    train_tces = tce_table[0:train_cutoff]
+    val_tces = tce_table[train_cutoff:val_cutoff]
+    test_tces = tce_table[val_cutoff:]
+    tf.logging.info(
+        "Partitioned %d TCEs into training (%d), validation (%d) and test (%d)",
+        num_tces, len(train_tces), len(val_tces), len(test_tces))
 
-  # Further split training TCEs into file shards.
-  file_shards = []  # List of (tce_table_shard, file_name).
-  boundaries = np.linspace(0, len(train_tces),
-                           FLAGS.num_train_shards + 1).astype(np.int)
-  for i in range(FLAGS.num_train_shards):
-    start = boundaries[i]
-    end = boundaries[i + 1]
-    file_shards.append((train_tces[start:end], os.path.join(
-        FLAGS.output_dir, "train-%.5d-of-%.5d" % (i, FLAGS.num_train_shards))))
+    # Further split training TCEs into file shards.
+    file_shards = []  # List of (tce_table_shard, file_name).
+    boundaries = np.linspace(0, len(train_tces),
+                             FLAGS.num_train_shards + 1).astype(np.int)
+    for i in range(FLAGS.num_train_shards):
+        start = boundaries[i]
+        end = boundaries[i + 1]
+        file_shards.append((train_tces[start:end], os.path.join(
+            FLAGS.output_dir, "train-%.5d-of-%.5d" % (i, FLAGS.num_train_shards))))
 
-  # Validation and test sets each have a single shard.
-  file_shards.append((val_tces, os.path.join(FLAGS.output_dir,
-                                             "val-00000-of-00001")))
-  file_shards.append((test_tces, os.path.join(FLAGS.output_dir,
-                                              "test-00000-of-00001")))
-  num_file_shards = len(file_shards)
+    # Validation and test sets each have a single shard.
+    file_shards.append((val_tces, os.path.join(FLAGS.output_dir,
+                                               "val-00000-of-00001")))
+    file_shards.append((test_tces, os.path.join(FLAGS.output_dir,
+                                                "test-00000-of-00001")))
+    num_file_shards = len(file_shards)
 
-  # Launch subprocesses for the file shards.
-  num_processes = min(num_file_shards, FLAGS.num_worker_processes)
-  tf.logging.info("Launching %d subprocesses for %d total file shards",
-                  num_processes, num_file_shards)
+    # Launch subprocesses for the file shards.
+    num_processes = min(num_file_shards, FLAGS.num_worker_processes)
+    tf.logging.info("Launching %d subprocesses for %d total file shards",
+                    num_processes, num_file_shards)
 
-  pool = multiprocessing.Pool(processes=num_processes)
-  async_results = [
-      pool.apply_async(_process_file_shard, file_shard)
-      for file_shard in file_shards
-  ]
-  pool.close()
+    pool = multiprocessing.Pool(processes=num_processes)
+    async_results = [
+        pool.apply_async(_process_file_shard, file_shard)
+        for file_shard in file_shards
+    ]
+    pool.close()
 
-  # Instead of pool.join(), we call async_result.get() to ensure any exceptions
-  # raised by the worker processes are also raised here.
-  for async_result in async_results:
-    async_result.get()
+    # Instead of pool.join(), we call async_result.get() to ensure any exceptions
+    # raised by the worker processes are also raised here.
+    for async_result in async_results:
+        async_result.get()
 
-  tf.logging.info("Finished processing %d total file shards", num_file_shards)
+    tf.logging.info("Finished processing %d total file shards", num_file_shards)
 
 
 if __name__ == "__main__":
-  tf.logging.set_verbosity(tf.logging.INFO)
-  FLAGS, unparsed = parser.parse_known_args()
-  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+    tf.logging.set_verbosity(tf.logging.INFO)
+    FLAGS, unparsed = parser.parse_known_args()
+    tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)

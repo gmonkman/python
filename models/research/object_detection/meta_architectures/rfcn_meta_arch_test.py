@@ -24,42 +24,42 @@ from object_detection.meta_architectures import rfcn_meta_arch
 class RFCNMetaArchTest(
     faster_rcnn_meta_arch_test_lib.FasterRCNNMetaArchTestBase):
 
-  def _get_second_stage_box_predictor_text_proto(self):
-    box_predictor_text_proto = """
-      rfcn_box_predictor {
-        conv_hyperparams {
-          op: CONV
-          activation: NONE
-          regularizer {
-            l2_regularizer {
-              weight: 0.0005
+    def _get_second_stage_box_predictor_text_proto(self):
+        box_predictor_text_proto = """
+          rfcn_box_predictor {
+            conv_hyperparams {
+              op: CONV
+              activation: NONE
+              regularizer {
+                l2_regularizer {
+                  weight: 0.0005
+                }
+              }
+              initializer {
+                variance_scaling_initializer {
+                  factor: 1.0
+                  uniform: true
+                  mode: FAN_AVG
+                }
+              }
             }
           }
-          initializer {
-            variance_scaling_initializer {
-              factor: 1.0
-              uniform: true
-              mode: FAN_AVG
-            }
-          }
-        }
-      }
-    """
-    return box_predictor_text_proto
+        """
+        return box_predictor_text_proto
 
-  def _get_model(self, box_predictor, **common_kwargs):
-    return rfcn_meta_arch.RFCNMetaArch(
-        second_stage_rfcn_box_predictor=box_predictor, **common_kwargs)
+    def _get_model(self, box_predictor, **common_kwargs):
+        return rfcn_meta_arch.RFCNMetaArch(
+            second_stage_rfcn_box_predictor=box_predictor, **common_kwargs)
 
-  def _get_box_classifier_features_shape(self,
-                                         image_size,
-                                         batch_size,
-                                         max_num_proposals,
-                                         initial_crop_size,
-                                         maxpool_stride,
-                                         num_features):
-    return (batch_size, image_size, image_size, num_features)
+    def _get_box_classifier_features_shape(self,
+                                           image_size,
+                                           batch_size,
+                                           max_num_proposals,
+                                           initial_crop_size,
+                                           maxpool_stride,
+                                           num_features):
+        return (batch_size, image_size, image_size, num_features)
 
 
 if __name__ == '__main__':
-  tf.test.main()
+    tf.test.main()

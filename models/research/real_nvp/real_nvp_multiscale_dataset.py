@@ -1082,10 +1082,10 @@ class RealNVP(object):
             use_batch_norm=hps.use_batch_norm, weight_norm=True,
             train=True)
         if FLAGS.mode != "train":
-              z_out, log_diff = encoder(
-                  input_=logit_x_in, hps=hps, n_scale=hps.n_scale,
-                  use_batch_norm=hps.use_batch_norm, weight_norm=True,
-                  train=False)
+            z_out, log_diff = encoder(
+                input_=logit_x_in, hps=hps, n_scale=hps.n_scale,
+                use_batch_norm=hps.use_batch_norm, weight_norm=True,
+                train=False)
         final_shape = [image_size, image_size, 3]
         prior_ll = standard_normal_ll(z_out)
         prior_ll = tf.reduce_sum(prior_ll, [1, 2, 3])

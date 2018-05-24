@@ -88,4 +88,3 @@ class Autoencoder(object):
     def getBiases(self):
         raise NotImplementedError
         return self.sess.run(self.weights)
-

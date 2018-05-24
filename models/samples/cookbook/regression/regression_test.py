@@ -40,34 +40,34 @@ FOUR_LINES = "\n".join([
 mock = tf.test.mock
 
 def four_lines_dataframe():
-  text = StringIO(FOUR_LINES)
-  return pd.read_csv(text, names=automobile_data.COLUMN_TYPES.keys(),
-                     dtype=automobile_data.COLUMN_TYPES, na_values="?")
+    text = StringIO(FOUR_LINES)
+    return pd.read_csv(text, names=automobile_data.COLUMN_TYPES.keys(),
+                       dtype=automobile_data.COLUMN_TYPES, na_values="?")
 
 
 def four_lines_dataset(*args, **kwargs):
-  del args, kwargs
-  return tf.data.Dataset.from_tensor_slices(FOUR_LINES.split("\n"))
+    del args, kwargs
+    return tf.data.Dataset.from_tensor_slices(FOUR_LINES.split("\n"))
 
 
 class RegressionTest(tf.test.TestCase):
-  """Test the regression examples in this directory."""
+    """Test the regression examples in this directory."""
 
-  @mock.patch.dict(automobile_data.__dict__, {"raw_dataframe": four_lines_dataframe})
-  def test_linear_regression(self):
-    linear_regression.main([None, "--train_steps=1"])
+    @mock.patch.dict(automobile_data.__dict__, {"raw_dataframe": four_lines_dataframe})
+    def test_linear_regression(self):
+        linear_regression.main([None, "--train_steps=1"])
 
-  @mock.patch.dict(automobile_data.__dict__, {"raw_dataframe": four_lines_dataframe})
-  def test_linear_regression_categorical(self):
-    linear_regression_categorical.main([None, "--train_steps=1"])
+    @mock.patch.dict(automobile_data.__dict__, {"raw_dataframe": four_lines_dataframe})
+    def test_linear_regression_categorical(self):
+        linear_regression_categorical.main([None, "--train_steps=1"])
 
-  @mock.patch.dict(automobile_data.__dict__, {"raw_dataframe": four_lines_dataframe})
-  def test_dnn_regression(self):
-    dnn_regression.main([None, "--train_steps=1"])
+    @mock.patch.dict(automobile_data.__dict__, {"raw_dataframe": four_lines_dataframe})
+    def test_dnn_regression(self):
+        dnn_regression.main([None, "--train_steps=1"])
 
-  @mock.patch.dict(automobile_data.__dict__, {"raw_dataframe": four_lines_dataframe})
-  def test_custom_regression(self):
-    custom_regression.main([None, "--train_steps=1"])
+    @mock.patch.dict(automobile_data.__dict__, {"raw_dataframe": four_lines_dataframe})
+    def test_custom_regression(self):
+        custom_regression.main([None, "--train_steps=1"])
 
 if __name__ == "__main__":
-  tf.test.main()
+    tf.test.main()

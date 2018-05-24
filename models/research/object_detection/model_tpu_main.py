@@ -77,59 +77,59 @@ FLAGS = tf.flags.FLAGS
 
 
 def main(unused_argv):
-  flags.mark_flag_as_required('model_dir')
-  flags.mark_flag_as_required('pipeline_config_path')
+    flags.mark_flag_as_required('model_dir')
+    flags.mark_flag_as_required('pipeline_config_path')
 
-  tpu_cluster_resolver = (
-      tf.contrib.cluster_resolver.python.training.TPUClusterResolver(
-          tpu_names=[FLAGS.tpu_name],
-          zone=FLAGS.tpu_zone,
-          project=FLAGS.gcp_project))
-  tpu_grpc_url = tpu_cluster_resolver.get_master()
+    tpu_cluster_resolver = (
+        tf.contrib.cluster_resolver.python.training.TPUClusterResolver(
+            tpu_names=[FLAGS.tpu_name],
+            zone=FLAGS.tpu_zone,
+            project=FLAGS.gcp_project))
+    tpu_grpc_url = tpu_cluster_resolver.get_master()
 
-  config = tpu_config.RunConfig(
-      master=tpu_grpc_url,
-      evaluation_master=tpu_grpc_url,
-      model_dir=FLAGS.model_dir,
-      tpu_config=tpu_config.TPUConfig(
-          iterations_per_loop=FLAGS.iterations_per_loop,
-          num_shards=FLAGS.num_shards))
+    config = tpu_config.RunConfig(
+        master=tpu_grpc_url,
+        evaluation_master=tpu_grpc_url,
+        model_dir=FLAGS.model_dir,
+        tpu_config=tpu_config.TPUConfig(
+            iterations_per_loop=FLAGS.iterations_per_loop,
+            num_shards=FLAGS.num_shards))
 
-  kwargs = {}
-  if FLAGS.train_batch_size:
-    kwargs['batch_size'] = FLAGS.train_batch_size
+    kwargs = {}
+    if FLAGS.train_batch_size:
+        kwargs['batch_size'] = FLAGS.train_batch_size
 
-  train_and_eval_dict = model_lib.create_estimator_and_inputs(
-      run_config=config,
-      hparams=model_hparams.create_hparams(FLAGS.hparams_overrides),
-      pipeline_config_path=FLAGS.pipeline_config_path,
-      train_steps=FLAGS.num_train_steps,
-      eval_steps=FLAGS.num_eval_steps,
-      use_tpu_estimator=True,
-      use_tpu=FLAGS.use_tpu,
-      num_shards=FLAGS.num_shards,
-      **kwargs)
-  estimator = train_and_eval_dict['estimator']
-  train_input_fn = train_and_eval_dict['train_input_fn']
-  eval_input_fn = train_and_eval_dict['eval_input_fn']
-  eval_on_train_input_fn = train_and_eval_dict['eval_on_train_input_fn']
-  train_steps = train_and_eval_dict['train_steps']
-  eval_steps = train_and_eval_dict['eval_steps']
+    train_and_eval_dict = model_lib.create_estimator_and_inputs(
+        run_config=config,
+        hparams=model_hparams.create_hparams(FLAGS.hparams_overrides),
+        pipeline_config_path=FLAGS.pipeline_config_path,
+        train_steps=FLAGS.num_train_steps,
+        eval_steps=FLAGS.num_eval_steps,
+        use_tpu_estimator=True,
+        use_tpu=FLAGS.use_tpu,
+        num_shards=FLAGS.num_shards,
+        **kwargs)
+    estimator = train_and_eval_dict['estimator']
+    train_input_fn = train_and_eval_dict['train_input_fn']
+    eval_input_fn = train_and_eval_dict['eval_input_fn']
+    eval_on_train_input_fn = train_and_eval_dict['eval_on_train_input_fn']
+    train_steps = train_and_eval_dict['train_steps']
+    eval_steps = train_and_eval_dict['eval_steps']
 
-  if FLAGS.mode == 'train':
-    estimator.train(input_fn=train_input_fn, max_steps=train_steps)
+    if FLAGS.mode == 'train':
+        estimator.train(input_fn=train_input_fn, max_steps=train_steps)
 
-  # Continuously evaluating.
-  if FLAGS.mode == 'eval':
-    if FLAGS.eval_training_data:
-      name = 'training_data'
-      input_fn = eval_on_train_input_fn
-    else:
-      name = 'validation_data'
-      input_fn = eval_input_fn
-    model_lib.continuous_eval(estimator, FLAGS.model_dir, input_fn, eval_steps,
-                              train_steps, name)
+    # Continuously evaluating.
+    if FLAGS.mode == 'eval':
+        if FLAGS.eval_training_data:
+            name = 'training_data'
+            input_fn = eval_on_train_input_fn
+        else:
+            name = 'validation_data'
+            input_fn = eval_input_fn
+        model_lib.continuous_eval(estimator, FLAGS.model_dir, input_fn, eval_steps,
+                                  train_steps, name)
 
 
 if __name__ == '__main__':
-  tf.app.run()
+    tf.app.run()

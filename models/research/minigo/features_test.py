@@ -66,7 +66,7 @@ TEST_POSITION2 = go.Position(
 
 TEST_POSITION3 = go.Position(utils_test.BOARD_SIZE)
 for coord in ((0, 0), (0, 1), (0, 2), (0, 3), (1, 1)):
-  TEST_POSITION3.play_move(coord, mutate=True)
+    TEST_POSITION3.play_move(coord, mutate=True)
 # resulting position should look like this:
 # X.XO.....
 # .X.......
@@ -75,38 +75,38 @@ for coord in ((0, 0), (0, 1), (0, 2), (0, 3), (1, 1)):
 
 class TestFeatureExtraction(utils_test.MiniGoUnitTest):
 
-  def test_stone_features(self):
-    f = features.stone_features(utils_test.BOARD_SIZE, TEST_POSITION3)
-    self.assertEqual(TEST_POSITION3.to_play, go.WHITE)
-    self.assertEqual(f.shape, (9, 9, 16))
-    self.assertEqualNPArray(f[:, :, 0], utils_test.load_board('''
-      ...X.....
-      .........''' + EMPTY_ROW * 7))
+    def test_stone_features(self):
+        f = features.stone_features(utils_test.BOARD_SIZE, TEST_POSITION3)
+        self.assertEqual(TEST_POSITION3.to_play, go.WHITE)
+        self.assertEqual(f.shape, (9, 9, 16))
+        self.assertEqualNPArray(f[:, :, 0], utils_test.load_board('''
+          ...X.....
+          .........''' + EMPTY_ROW * 7))
 
-    self.assertEqualNPArray(f[:, :, 1], utils_test.load_board('''
-      X.X......
-      .X.......''' + EMPTY_ROW * 7))
+        self.assertEqualNPArray(f[:, :, 1], utils_test.load_board('''
+          X.X......
+          .X.......''' + EMPTY_ROW * 7))
 
-    self.assertEqualNPArray(f[:, :, 2], utils_test.load_board('''
-      .X.X.....
-      .........''' + EMPTY_ROW * 7))
+        self.assertEqualNPArray(f[:, :, 2], utils_test.load_board('''
+          .X.X.....
+          .........''' + EMPTY_ROW * 7))
 
-    self.assertEqualNPArray(f[:, :, 3], utils_test.load_board('''
-      X.X......
-      .........''' + EMPTY_ROW * 7))
+        self.assertEqualNPArray(f[:, :, 3], utils_test.load_board('''
+          X.X......
+          .........''' + EMPTY_ROW * 7))
 
-    self.assertEqualNPArray(f[:, :, 4], utils_test.load_board('''
-      .X.......
-      .........''' + EMPTY_ROW * 7))
+        self.assertEqualNPArray(f[:, :, 4], utils_test.load_board('''
+          .X.......
+          .........''' + EMPTY_ROW * 7))
 
-    self.assertEqualNPArray(f[:, :, 5], utils_test.load_board('''
-      X.X......
-      .........''' + EMPTY_ROW * 7))
+        self.assertEqualNPArray(f[:, :, 5], utils_test.load_board('''
+          X.X......
+          .........''' + EMPTY_ROW * 7))
 
-    for i in range(10, 16):
-      self.assertEqualNPArray(
-          f[:, :, i], np.zeros([utils_test.BOARD_SIZE, utils_test.BOARD_SIZE]))
+        for i in range(10, 16):
+            self.assertEqualNPArray(
+                f[:, :, i], np.zeros([utils_test.BOARD_SIZE, utils_test.BOARD_SIZE]))
 
 
 if __name__ == '__main__':
-  tf.test.main()
+    tf.test.main()

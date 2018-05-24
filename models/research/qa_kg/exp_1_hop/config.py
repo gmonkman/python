@@ -18,18 +18,18 @@ import os
 
 
 def str2bool(v):
-  return v.lower() in ('true', '1')
+    return v.lower() in ('true', '1')
 
 
 def add_argument_group(name):
-  arg = parser.add_argument_group(name)
-  arg_lists.append(arg)
-  return arg
+    arg = parser.add_argument_group(name)
+    arg_lists.append(arg)
+    return arg
 
 
 def get_config():
-  config, unparsed = parser.parse_known_args()
-  return config, unparsed
+    config, unparsed = parser.parse_known_args()
+    return config, unparsed
 
 
 arg_lists = []

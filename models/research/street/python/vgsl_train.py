@@ -43,13 +43,13 @@ FLAGS = flags.FLAGS
 
 
 def main(argv):
-  del argv
-  vgsl_model.Train(FLAGS.train_dir, FLAGS.model_str, FLAGS.train_data,
-                   FLAGS.max_steps, FLAGS.master, FLAGS.task, FLAGS.ps_tasks,
-                   FLAGS.initial_learning_rate, FLAGS.final_learning_rate,
-                   FLAGS.learning_rate_halflife, FLAGS.optimizer_type,
-                   FLAGS.num_preprocess_threads)
+    del argv
+    vgsl_model.Train(FLAGS.train_dir, FLAGS.model_str, FLAGS.train_data,
+                     FLAGS.max_steps, FLAGS.master, FLAGS.task, FLAGS.ps_tasks,
+                     FLAGS.initial_learning_rate, FLAGS.final_learning_rate,
+                     FLAGS.learning_rate_halflife, FLAGS.optimizer_type,
+                     FLAGS.num_preprocess_threads)
 
 
 if __name__ == '__main__':
-  app.run()
+    app.run()

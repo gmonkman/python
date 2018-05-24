@@ -34,26 +34,26 @@ FOUR_LINES = "\n".join([
     "2,177.30,66.30, 53.10,1",])
 
 def four_lines_data():
-  text = StringIO(FOUR_LINES)
+    text = StringIO(FOUR_LINES)
 
-  df = pd.read_csv(text, names=iris_data.CSV_COLUMN_NAMES)
+    df = pd.read_csv(text, names=iris_data.CSV_COLUMN_NAMES)
 
-  xy = (df, df.pop("Species"))
-  return xy, xy
+    xy = (df, df.pop("Species"))
+    return xy, xy
 
 
 class RegressionTest(tf.test.TestCase):
-  """Test the regression examples in this directory."""
+    """Test the regression examples in this directory."""
 
-  @tf.test.mock.patch.dict(premade_estimator.__dict__,
-                           {"load_data": four_lines_data})
-  def test_premade_estimator(self):
-    premade_estimator.main([None, "--train_steps=1"])
+    @tf.test.mock.patch.dict(premade_estimator.__dict__,
+                             {"load_data": four_lines_data})
+    def test_premade_estimator(self):
+        premade_estimator.main([None, "--train_steps=1"])
 
-  @tf.test.mock.patch.dict(custom_estimator.__dict__,
-                           {"load_data": four_lines_data})
-  def test_custom_estimator(self):
-    custom_estimator.main([None, "--train_steps=1"])
+    @tf.test.mock.patch.dict(custom_estimator.__dict__,
+                             {"load_data": four_lines_data})
+    def test_custom_estimator(self):
+        custom_estimator.main([None, "--train_steps=1"])
 
 if __name__ == "__main__":
-  tf.test.main()
+    tf.test.main()

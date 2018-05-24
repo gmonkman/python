@@ -84,16 +84,16 @@ SPEECH_DEFAULT_DATA_DIMENSION = 200
 
 
 def main(unused_argv):
-  tf.logging.set_verbosity(tf.logging.INFO)
-  if FLAGS.data_dimension is None:
-    if FLAGS.dataset_type == "pianoroll":
-      FLAGS.data_dimension = PIANOROLL_DEFAULT_DATA_DIMENSION
-    elif FLAGS.dataset_type == "speech":
-      FLAGS.data_dimension = SPEECH_DEFAULT_DATA_DIMENSION
-  if FLAGS.mode == "train":
-    runners.run_train(FLAGS)
-  elif FLAGS.mode == "eval":
-    runners.run_eval(FLAGS)
+    tf.logging.set_verbosity(tf.logging.INFO)
+    if FLAGS.data_dimension is None:
+        if FLAGS.dataset_type == "pianoroll":
+            FLAGS.data_dimension = PIANOROLL_DEFAULT_DATA_DIMENSION
+        elif FLAGS.dataset_type == "speech":
+            FLAGS.data_dimension = SPEECH_DEFAULT_DATA_DIMENSION
+    if FLAGS.mode == "train":
+        runners.run_train(FLAGS)
+    elif FLAGS.mode == "eval":
+        runners.run_eval(FLAGS)
 
 if __name__ == "__main__":
-  tf.app.run()
+    tf.app.run()

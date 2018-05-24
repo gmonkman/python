@@ -63,33 +63,33 @@ parser.add_argument(
 
 
 def main(_):
-  model_class = models.get_model_class(FLAGS.model)
+    model_class = models.get_model_class(FLAGS.model)
 
-  # Look up the model configuration.
-  assert (FLAGS.config_name is None) != (FLAGS.config_json is None), (
-      "Exactly one of --config_name or --config_json is required.")
-  config = (
-      models.get_model_config(FLAGS.model, FLAGS.config_name)
-      if FLAGS.config_name else config_util.parse_json(FLAGS.config_json))
+    # Look up the model configuration.
+    assert (FLAGS.config_name is None) != (FLAGS.config_json is None), (
+        "Exactly one of --config_name or --config_json is required.")
+    config = (
+        models.get_model_config(FLAGS.model, FLAGS.config_name)
+        if FLAGS.config_name else config_util.parse_json(FLAGS.config_json))
 
-  config = configdict.ConfigDict(config)
+    config = configdict.ConfigDict(config)
 
-  # Create the estimator.
-  estimator = estimator_util.create_estimator(
-      model_class, config.hparams, model_dir=FLAGS.model_dir)
+    # Create the estimator.
+    estimator = estimator_util.create_estimator(
+        model_class, config.hparams, model_dir=FLAGS.model_dir)
 
-  # Create an input function that reads the evaluation dataset.
-  input_fn = estimator_util.create_input_fn(
-      file_pattern=FLAGS.eval_files,
-      input_config=config.inputs,
-      mode=tf.estimator.ModeKeys.EVAL)
+    # Create an input function that reads the evaluation dataset.
+    input_fn = estimator_util.create_input_fn(
+        file_pattern=FLAGS.eval_files,
+        input_config=config.inputs,
+        mode=tf.estimator.ModeKeys.EVAL)
 
-  # Run evaluation. This will log the result to stderr and also write a summary
-  # file in the model_dir.
-  estimator_util.evaluate(estimator, input_fn, eval_name=FLAGS.eval_name)
+    # Run evaluation. This will log the result to stderr and also write a summary
+    # file in the model_dir.
+    estimator_util.evaluate(estimator, input_fn, eval_name=FLAGS.eval_name)
 
 
 if __name__ == "__main__":
-  tf.logging.set_verbosity(tf.logging.INFO)
-  FLAGS, unparsed = parser.parse_known_args()
-  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+    tf.logging.set_verbosity(tf.logging.INFO)
+    FLAGS, unparsed = parser.parse_known_args()
+    tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)

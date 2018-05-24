@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_tf\vgg2TFRecord.py</StartupFile>
+    <StartupFile>scripts_tf\create_bass_tf_record.py</StartupFile>
     <SearchPath>..\;..\models\research\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-b 50 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/eval" "C:/tf/data/eval.record" vgg_body.json</CommandLineArguments>
+    <CommandLineArguments>-d "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/train" "C:/tf/data/train/train.record" vgg_body.json</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -113,6 +113,10 @@ vgg2TFRecord.py -d -b 2 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/b
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_tensorflow\make_negs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripts_tf\create_bass_tf_record.py" />
+    <Compile Include="scripts_tf\fld2TFRecord.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_tf\read_tfrecord.py" />

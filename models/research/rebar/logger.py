@@ -20,11 +20,11 @@ from __future__ import division
 from __future__ import print_function
 
 class Logger:
-  def __init__(self):
-    pass
+    def __init__(self):
+        pass
 
-  def log(self, key, value):
-    pass
+    def log(self, key, value):
+        pass
 
-  def flush(self):
-    pass
+    def flush(self):
+        pass

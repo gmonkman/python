@@ -29,27 +29,27 @@ source_roots = ['dragnn', 'syntaxnet'] + (['tensorflow']
 
 
 def data_files():
-  """Return all non-Python files in the source directories."""
-  for root in source_roots:
-    for path, _, files in os.walk(root):
-      for filename in files:
-        if not (filename.endswith('.py') or filename.endswith('.pyc')):
-          yield os.path.join(path, filename)
+    """Return all non-Python files in the source directories."""
+    for root in source_roots:
+        for path, _, files in os.walk(root):
+            for filename in files:
+                if not (filename.endswith('.py') or filename.endswith('.pyc')):
+                    yield os.path.join(path, filename)
 
 
 class BinaryDistribution(setuptools.dist.Distribution):
-  """Copied from TensorFlow's setup script: sets has_ext_modules=True.
+    """Copied from TensorFlow's setup script: sets has_ext_modules=True.
 
-  Distributions of SyntaxNet include shared object files, which are not
-  cross-platform.
-  """
+    Distributions of SyntaxNet include shared object files, which are not
+    cross-platform.
+    """
 
-  def has_ext_modules(self):
-    return True
+    def has_ext_modules(self):
+        return True
 
 
 with open('MANIFEST.in', 'w') as f:
-  f.write(''.join('include {}\n'.format(filename) for filename in data_files()))
+    f.write(''.join('include {}\n'.format(filename) for filename in data_files()))
 
 setuptools.setup(
     name=('syntaxnet_with_tensorflow' if include_tensorflow else 'syntaxnet'),

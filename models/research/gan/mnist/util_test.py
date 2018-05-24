@@ -35,195 +35,195 @@ FAKE_DIGIT = [[0.778958797454834, 0.8792028427124023, 0.07099628448486328, 0.851
 
 
 def real_digit():
-  return tf.expand_dims(tf.expand_dims(REAL_DIGIT, 0), -1)
+    return tf.expand_dims(tf.expand_dims(REAL_DIGIT, 0), -1)
 
 
 def fake_digit():
-  return tf.expand_dims(tf.expand_dims(FAKE_DIGIT, 0), -1)
+    return tf.expand_dims(tf.expand_dims(FAKE_DIGIT, 0), -1)
 
 
 def one_hot_real():
-  return tf.constant(ONE_HOT)
+    return tf.constant(ONE_HOT)
 
 
 def one_hot1():
-  return tf.constant([[1.0] + [0.0] * 9])
+    return tf.constant([[1.0] + [0.0] * 9])
 
 
 class MnistScoreTest(tf.test.TestCase):
 
-  def test_any_batch_size(self):
-    inputs = tf.placeholder(tf.float32, shape=[None, 28, 28, 1])
-    mscore = util.mnist_score(inputs)
-    for batch_size in [4, 16, 30]:
-      with self.test_session() as sess:
-        sess.run(mscore, feed_dict={inputs: np.zeros([batch_size, 28, 28, 1])})
+    def test_any_batch_size(self):
+        inputs = tf.placeholder(tf.float32, shape=[None, 28, 28, 1])
+        mscore = util.mnist_score(inputs)
+        for batch_size in [4, 16, 30]:
+            with self.test_session() as sess:
+                sess.run(mscore, feed_dict={inputs: np.zeros([batch_size, 28, 28, 1])})
 
-  def test_deterministic(self):
-    m_score = util.mnist_score(real_digit())
-    with self.test_session():
-      m_score1 = m_score.eval()
-      m_score2 = m_score.eval()
-    self.assertEqual(m_score1, m_score2)
+    def test_deterministic(self):
+        m_score = util.mnist_score(real_digit())
+        with self.test_session():
+            m_score1 = m_score.eval()
+            m_score2 = m_score.eval()
+        self.assertEqual(m_score1, m_score2)
 
-    with self.test_session():
-      m_score3 = m_score.eval()
-    self.assertEqual(m_score1, m_score3)
+        with self.test_session():
+            m_score3 = m_score.eval()
+        self.assertEqual(m_score1, m_score3)
 
-  def test_single_example_correct(self):
-    real_score = util.mnist_score(real_digit())
-    fake_score = util.mnist_score(fake_digit())
-    with self.test_session():
-      self.assertNear(1.0, real_score.eval(), 1e-6)
-      self.assertNear(1.0, fake_score.eval(), 1e-6)
+    def test_single_example_correct(self):
+        real_score = util.mnist_score(real_digit())
+        fake_score = util.mnist_score(fake_digit())
+        with self.test_session():
+            self.assertNear(1.0, real_score.eval(), 1e-6)
+            self.assertNear(1.0, fake_score.eval(), 1e-6)
 
-  def test_minibatch_correct(self):
-    mscore = util.mnist_score(
-        tf.concat([real_digit(), real_digit(), fake_digit()], 0))
-    with self.test_session():
-      self.assertNear(1.612828, mscore.eval(), 1e-6)
+    def test_minibatch_correct(self):
+        mscore = util.mnist_score(
+            tf.concat([real_digit(), real_digit(), fake_digit()], 0))
+        with self.test_session():
+            self.assertNear(1.612828, mscore.eval(), 1e-6)
 
-  def test_batch_splitting_doesnt_change_value(self):
-    for num_batches in [1, 2, 4, 8]:
-      mscore = util.mnist_score(
-          tf.concat([real_digit()] * 4 + [fake_digit()] * 4, 0),
-          num_batches=num_batches)
-      with self.test_session():
-        self.assertNear(1.649209, mscore.eval(), 1e-6)
+    def test_batch_splitting_doesnt_change_value(self):
+        for num_batches in [1, 2, 4, 8]:
+            mscore = util.mnist_score(
+                tf.concat([real_digit()] * 4 + [fake_digit()] * 4, 0),
+                num_batches=num_batches)
+            with self.test_session():
+                self.assertNear(1.649209, mscore.eval(), 1e-6)
 
 
 class MnistFrechetDistanceTest(tf.test.TestCase):
 
-  def test_any_batch_size(self):
-    inputs = tf.placeholder(tf.float32, shape=[None, 28, 28, 1])
-    fdistance = util.mnist_frechet_distance(inputs, inputs)
-    for batch_size in [4, 16, 30]:
-      with self.test_session() as sess:
-        sess.run(fdistance,
-                 feed_dict={inputs: np.zeros([batch_size, 28, 28, 1])})
+    def test_any_batch_size(self):
+        inputs = tf.placeholder(tf.float32, shape=[None, 28, 28, 1])
+        fdistance = util.mnist_frechet_distance(inputs, inputs)
+        for batch_size in [4, 16, 30]:
+            with self.test_session() as sess:
+                sess.run(fdistance,
+                         feed_dict={inputs: np.zeros([batch_size, 28, 28, 1])})
 
-  def test_deterministic(self):
-    fdistance = util.mnist_frechet_distance(
-        tf.concat([real_digit()] * 2, 0),
-        tf.concat([fake_digit()] * 2, 0))
-    with self.test_session():
-      fdistance1 = fdistance.eval()
-      fdistance2 = fdistance.eval()
-    self.assertNear(fdistance1, fdistance2, 2e-1)
+    def test_deterministic(self):
+        fdistance = util.mnist_frechet_distance(
+            tf.concat([real_digit()] * 2, 0),
+            tf.concat([fake_digit()] * 2, 0))
+        with self.test_session():
+            fdistance1 = fdistance.eval()
+            fdistance2 = fdistance.eval()
+        self.assertNear(fdistance1, fdistance2, 2e-1)
 
-    with self.test_session():
-      fdistance3 = fdistance.eval()
-    self.assertNear(fdistance1, fdistance3, 2e-1)
+        with self.test_session():
+            fdistance3 = fdistance.eval()
+        self.assertNear(fdistance1, fdistance3, 2e-1)
 
-  def test_single_example_correct(self):
-    fdistance = util.mnist_frechet_distance(
-        tf.concat([real_digit()] * 2, 0),
-        tf.concat([real_digit()] * 2, 0))
-    with self.test_session():
-      self.assertNear(0.0, fdistance.eval(), 2e-1)
+    def test_single_example_correct(self):
+        fdistance = util.mnist_frechet_distance(
+            tf.concat([real_digit()] * 2, 0),
+            tf.concat([real_digit()] * 2, 0))
+        with self.test_session():
+            self.assertNear(0.0, fdistance.eval(), 2e-1)
 
-  def test_minibatch_correct(self):
-    fdistance = util.mnist_frechet_distance(
-        tf.concat([real_digit(), real_digit(), fake_digit()], 0),
-        tf.concat([real_digit(), fake_digit(), fake_digit()], 0))
-    with self.test_session():
-      self.assertNear(43.5, fdistance.eval(), 2e-1)
+    def test_minibatch_correct(self):
+        fdistance = util.mnist_frechet_distance(
+            tf.concat([real_digit(), real_digit(), fake_digit()], 0),
+            tf.concat([real_digit(), fake_digit(), fake_digit()], 0))
+        with self.test_session():
+            self.assertNear(43.5, fdistance.eval(), 2e-1)
 
-  def test_batch_splitting_doesnt_change_value(self):
-    for num_batches in [1, 2, 4, 8]:
-      fdistance = util.mnist_frechet_distance(
-          tf.concat([real_digit()] * 6 + [fake_digit()] * 2, 0),
-          tf.concat([real_digit()] * 2 + [fake_digit()] * 6, 0),
-          num_batches=num_batches)
-      with self.test_session():
-        self.assertNear(97.8, fdistance.eval(), 2e-1)
+    def test_batch_splitting_doesnt_change_value(self):
+        for num_batches in [1, 2, 4, 8]:
+            fdistance = util.mnist_frechet_distance(
+                tf.concat([real_digit()] * 6 + [fake_digit()] * 2, 0),
+                tf.concat([real_digit()] * 2 + [fake_digit()] * 6, 0),
+                num_batches=num_batches)
+            with self.test_session():
+                self.assertNear(97.8, fdistance.eval(), 2e-1)
 
 
 class MnistCrossEntropyTest(tf.test.TestCase):
 
-  def test_any_batch_size(self):
-    num_classes = 10
-    one_label = np.array([[1] + [0] * (num_classes - 1)])
-    inputs = tf.placeholder(tf.float32, shape=[None, 28, 28, 1])
-    one_hot_label = tf.placeholder(tf.int32, shape=[None, num_classes])
-    entropy = util.mnist_cross_entropy(inputs, one_hot_label)
-    for batch_size in [4, 16, 30]:
-      with self.test_session() as sess:
-        sess.run(entropy, feed_dict={
-            inputs: np.zeros([batch_size, 28, 28, 1]),
-            one_hot_label: np.concatenate([one_label] * batch_size)})
+    def test_any_batch_size(self):
+        num_classes = 10
+        one_label = np.array([[1] + [0] * (num_classes - 1)])
+        inputs = tf.placeholder(tf.float32, shape=[None, 28, 28, 1])
+        one_hot_label = tf.placeholder(tf.int32, shape=[None, num_classes])
+        entropy = util.mnist_cross_entropy(inputs, one_hot_label)
+        for batch_size in [4, 16, 30]:
+            with self.test_session() as sess:
+                sess.run(entropy, feed_dict={
+                    inputs: np.zeros([batch_size, 28, 28, 1]),
+                    one_hot_label: np.concatenate([one_label] * batch_size)})
 
-  def test_deterministic(self):
-    xent = util.mnist_cross_entropy(real_digit(), one_hot_real())
-    with self.test_session():
-      ent1 = xent.eval()
-      ent2 = xent.eval()
-    self.assertEqual(ent1, ent2)
+    def test_deterministic(self):
+        xent = util.mnist_cross_entropy(real_digit(), one_hot_real())
+        with self.test_session():
+            ent1 = xent.eval()
+            ent2 = xent.eval()
+        self.assertEqual(ent1, ent2)
 
-    with self.test_session():
-      ent3 = xent.eval()
-    self.assertEqual(ent1, ent3)
+        with self.test_session():
+            ent3 = xent.eval()
+        self.assertEqual(ent1, ent3)
 
-  def test_single_example_correct(self):
-    # The correct label should have low cross entropy.
-    correct_xent = util.mnist_cross_entropy(real_digit(), one_hot_real())
-    # The incorrect label should have high cross entropy.
-    wrong_xent = util.mnist_cross_entropy(real_digit(), one_hot1())
-    # A random digit should have medium cross entropy for any label.
-    fake_xent1 = util.mnist_cross_entropy(fake_digit(), one_hot_real())
-    fake_xent6 = util.mnist_cross_entropy(fake_digit(), one_hot1())
-    with self.test_session():
-      self.assertNear(0.00996, correct_xent.eval(), 1e-5)
-      self.assertNear(18.63073, wrong_xent.eval(), 1e-5)
-      self.assertNear(2.2, fake_xent1.eval(), 1e-1)
-      self.assertNear(2.2, fake_xent6.eval(), 1e-1)
+    def test_single_example_correct(self):
+        # The correct label should have low cross entropy.
+        correct_xent = util.mnist_cross_entropy(real_digit(), one_hot_real())
+        # The incorrect label should have high cross entropy.
+        wrong_xent = util.mnist_cross_entropy(real_digit(), one_hot1())
+        # A random digit should have medium cross entropy for any label.
+        fake_xent1 = util.mnist_cross_entropy(fake_digit(), one_hot_real())
+        fake_xent6 = util.mnist_cross_entropy(fake_digit(), one_hot1())
+        with self.test_session():
+            self.assertNear(0.00996, correct_xent.eval(), 1e-5)
+            self.assertNear(18.63073, wrong_xent.eval(), 1e-5)
+            self.assertNear(2.2, fake_xent1.eval(), 1e-1)
+            self.assertNear(2.2, fake_xent6.eval(), 1e-1)
 
-  def test_minibatch_correct(self):
-    # Reorded minibatches should have the same value.
-    xent1 = util.mnist_cross_entropy(
-        tf.concat([real_digit(), real_digit(), fake_digit()], 0),
-        tf.concat([one_hot_real(), one_hot1(), one_hot1()], 0))
-    xent2 = util.mnist_cross_entropy(
-        tf.concat([real_digit(), fake_digit(), real_digit()], 0),
-        tf.concat([one_hot_real(), one_hot1(), one_hot1()], 0))
-    with self.test_session():
-      self.assertNear(6.972539, xent1.eval(), 1e-5)
-      self.assertNear(xent1.eval(), xent2.eval(), 1e-5)
+    def test_minibatch_correct(self):
+        # Reorded minibatches should have the same value.
+        xent1 = util.mnist_cross_entropy(
+            tf.concat([real_digit(), real_digit(), fake_digit()], 0),
+            tf.concat([one_hot_real(), one_hot1(), one_hot1()], 0))
+        xent2 = util.mnist_cross_entropy(
+            tf.concat([real_digit(), fake_digit(), real_digit()], 0),
+            tf.concat([one_hot_real(), one_hot1(), one_hot1()], 0))
+        with self.test_session():
+            self.assertNear(6.972539, xent1.eval(), 1e-5)
+            self.assertNear(xent1.eval(), xent2.eval(), 1e-5)
 
 
 class GetNoiseTest(tf.test.TestCase):
 
-  def test_get_noise_categorical_syntax(self):
-    util.get_eval_noise_categorical(
-        noise_samples=4,
-        categorical_sample_points=np.arange(0, 10),
-        continuous_sample_points=np.linspace(-2.0, 2.0, 10),
-        unstructured_noise_dims=62,
-        continuous_noise_dims=2)
+    def test_get_noise_categorical_syntax(self):
+        util.get_eval_noise_categorical(
+            noise_samples=4,
+            categorical_sample_points=np.arange(0, 10),
+            continuous_sample_points=np.linspace(-2.0, 2.0, 10),
+            unstructured_noise_dims=62,
+            continuous_noise_dims=2)
 
-  def test_get_noise_continuous_dim1_syntax(self):
-    util.get_eval_noise_continuous_dim1(
-        noise_samples=4,
-        categorical_sample_points=np.arange(0, 10),
-        continuous_sample_points=np.linspace(-2.0, 2.0, 10),
-        unstructured_noise_dims=62,
-        continuous_noise_dims=2)
+    def test_get_noise_continuous_dim1_syntax(self):
+        util.get_eval_noise_continuous_dim1(
+            noise_samples=4,
+            categorical_sample_points=np.arange(0, 10),
+            continuous_sample_points=np.linspace(-2.0, 2.0, 10),
+            unstructured_noise_dims=62,
+            continuous_noise_dims=2)
 
-  def test_get_noise_continuous_dim2_syntax(self):
-    util.get_eval_noise_continuous_dim2(
-        noise_samples=4,
-        categorical_sample_points=np.arange(0, 10),
-        continuous_sample_points=np.linspace(-2.0, 2.0, 10),
-        unstructured_noise_dims=62,
-        continuous_noise_dims=2)
+    def test_get_noise_continuous_dim2_syntax(self):
+        util.get_eval_noise_continuous_dim2(
+            noise_samples=4,
+            categorical_sample_points=np.arange(0, 10),
+            continuous_sample_points=np.linspace(-2.0, 2.0, 10),
+            unstructured_noise_dims=62,
+            continuous_noise_dims=2)
 
-  def test_get_infogan_syntax(self):
-    util.get_infogan_noise(
-        batch_size=4,
-        categorical_dim=10,
-        structured_continuous_dim=3,
-        total_continuous_noise_dims=62)
+    def test_get_infogan_syntax(self):
+        util.get_infogan_noise(
+            batch_size=4,
+            categorical_dim=10,
+            structured_continuous_dim=3,
+            total_continuous_noise_dims=62)
 
 
 if __name__ == '__main__':
-  tf.test.main()
+    tf.test.main()
