@@ -5,6 +5,8 @@
 opencvlib/calibration
 opencvlib/movies
 pgnet/scripts/summary
+
+
 # User-specific files
 *.suo
 *.user
@@ -39,6 +41,8 @@ pgnet/scripts/summary
 *.pdf
 *.bak
 *.lnk
+*.vscode
+
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
