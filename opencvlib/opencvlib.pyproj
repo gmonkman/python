@@ -119,6 +119,9 @@ vgg2TFRecord.py -d -b 2 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/b
     <Compile Include="scripts_tf\fld2TFRecord.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts_tf\freeze_graph.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts_tf\read_tfrecord.py" />
     <Compile Include="scripts_tf\tf_obj_det.py" />
     <Compile Include="scripts_tf\vgg2TFRecord.py" />

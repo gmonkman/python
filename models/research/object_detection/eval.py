@@ -13,6 +13,10 @@
 # limitations under the License.
 # ==============================================================================
 
+#WINDOWS INSTALL
+#pip install Cython
+#pip install git+https://github.com/philferriere/cocoapi.git#egg=pycocotools^&subdirectory=PythonAPI
+
 r"""Evaluation executable for detection models.
 
 This executable is used to evaluate DetectionModels. There are two ways of

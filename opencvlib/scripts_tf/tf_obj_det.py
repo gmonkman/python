@@ -1,4 +1,6 @@
 #This was the jupyter notebook object_detection_tutorial.ipynb
+'''Detect bass in images.
+'''
 import numpy as np
 import os
 import six.moves.urllib as urllib
@@ -6,6 +8,7 @@ import sys
 import tarfile
 import tensorflow as tf
 import zipfile
+import os.path as path
 
 from collections import defaultdict
 from io import StringIO
@@ -121,7 +124,21 @@ def run_inference_for_single_image(image, graph):
   return output_dict
 
 
-for image_path in TEST_IMAGE_PATHS:
+
+
+  def main():
+    '''entry'''
+    cmdline = argparse.ArgumentParser(description=__doc__)
+    cmdline.add_argument('source_folder', help='The folder containing the images and vgg file')
+    cmdline.add_argument('vgg_file_name', help='The filename of the vgg file, must be in source folder')
+    cmdline.add_argument('graph_folder', help='Folder with the graph in it')
+    args = cmdline.parse_args()
+
+    source_folder = path.normpath(args.source_folder)
+    vgg_file_name = path.normpath(args.vgg_file_name)
+    graph_folder = path.normpath(args.graph_folder)
+
+    for image_path in TEST_IMAGE_PATHS:
   image = Image.open(image_path)
   # the array based representation of the image will be used later in order to prepare the
   # result image with boxes and labels on it.
