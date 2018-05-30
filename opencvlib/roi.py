@@ -284,6 +284,45 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointsFormat.XY):
         raise ValueError('Unknown output format specified for function argument e_out_format')
 
 
+def points_normalize(pts, h, w):
+    '''(2-list, int|float, int|float)->2-list
+    Normalize a list of pts
+    pts: A list of pts, i.e. [[0,0],[10,10]]
+    h: Image height (rows)
+    w: Image width (cols)
+
+    Returns:
+        list of coverted points
+    '''
+    pts_ = list(pts)
+    d = _baselib.depth(pts)
+    if d == 1:
+        pts_ = [pts]
+
+    assert d == 2, 'Depth of pts should be 1 or 2. Got %s' % d
+    out = [[pt[0]/w, pt[1]/h] for pt in pts]
+    return out
+
+def points_denormalize(pts, h, w, asint=True):
+    '''(2-list, int|float, int|float)->2-list
+    Denormalize a list of pts
+    pts: A list of pts, i.e. [[0,0],[10,10]]
+    h: Image height (rows)
+    w: Image width (cols)
+
+    Returns:
+        list of coverted points
+    '''
+    f = lambda x: int(round(x, 0)) if asint else x
+    pts_ = list(pts)
+    d = _baselib.depth(pts)
+    if d == 1:
+        pts_ = [pts]
+
+    assert d == 2, 'Depth of pts should be 1 or 2. Got %s' % d
+    out = [[f(pt[0] * w), f(pt[1] * h)] for pt in pts]
+    return out
+
 
 def sample_rect(img, w, h):
     '''(str|ndarray,int,int,int,int)->ndarray|None

@@ -462,7 +462,7 @@ def draw_polygon(img, points, color=(0, 255,0), thickness=1):
     Join points
     '''
     #[10,5],[20,30],[70,20],[50,10]
-    points = np.array(points).astype('int32')
+    points = _np.array(points).astype('int32')
     p = points.reshape(-1, 1, 2)
     cv2.polylines(img, p, isClosed=True, color=color, thickness=thickness)
 

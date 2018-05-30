@@ -16,7 +16,7 @@ def L2dist(p1, p2):
     '''
     if isinstance(p1, (list, tuple)):
         return _np.sqrt(_np.sum((_np.array(p1) - _np.array(p2))**2))
-    
+
     return _np.sqrt(_np.sum((p1 - p2)**2))
 
 
@@ -59,36 +59,70 @@ def furthestN_euclidean(point, points, nr=1):
     Given a point and an array of points
     return a list of lists of the index and distance of the nr most distant points from point.
     eg:
-    pt = [0,0]: pts=[[0,0], [1,1], [3,3]]
-    furthestN_euclidean(point, points, nr=2)
-    # [[2,9], [1,1.414]]
+    >>> pt = [0,0]; pts=[[0,0], [1,1], [3,3]]
+    >>> furthestN_euclidean(pt, pts, nr=2)
+    [[2,9], [1,1.414]]
 
     2 and 1 are the indices and 9 and 1.414 are the distances
+
+    This list is NOT ordered, i.e. the first in the list may not be the furthest,
+    unless ofcouse nr=1
     '''
-    ndpt = _np.array(point)
-    ndpts = _np.array(points)
+    assert len(points) >= nr, 'Points should be greater than or equal to nr'
+    diff = _np.array(pts).astype('float') - _np.array(pt).astype('float')
+    dist = diff*diff
+    dist = _np.sqrt(dist[0:, 0] + dist[0:, 1])
+    if len(points) == 1:
+        out = [[0, dist[0]]]
+    else:
+        ret = _np.argpartition(dist, -nr)[-nr:]
+        l_ind = ret.tolist()
+        l_dist = dist[l_ind].tolist()
+        out = [x for x in zip(l_ind, l_dist)]
+    return out
+
+
+def nearestN_euclidean(point, points, nr=1):
+    '''(ndarray|list|tuple|ndarray|list|tuple,int)->list [[int,float], ... ]
+    Given a point and an array of points
+    return a list of lists of the index and distance of the nr most distant points from point.
+    eg:
+    >>> pt = [0,0]; pts=[[0,0], [1,1], [3,3]]
+    >>> furthestN_euclidean(pt, pts, nr=2)
+    [[2,9], [1,1.414]]
+
+    2 and 1 are the indices and 9 and 1.414 are the distances
+
+    This list is NOT ordered, i.e. the first in the list may not be the nearest,
+    unless ofcouse nr=1
+    '''
+    assert len(points) >= nr, 'Points should be greater than or equal to nr'
+    ndpt = _np.array(point).astype('float')
+    ndpts = _np.array(points).astype('float')
     diff = ndpts - ndpt
     dist = diff*diff
     dist = _np.sqrt(dist[0:, 0] + dist[0:, 1])
-
-    ret = _np.argpartition(dist, nr)[:nr]
-    l_ind = ret.tolist()
-    l_dist = dist[l_ind].tolist()
-    out = [x for x in zip(l_ind, l_dist)]
+    if len(points) == 1:
+        out = [[0, dist[0]]]
+    else:
+        ret = _np.argpartition(dist, nr)[:nr]
+        l_ind = ret.tolist()
+        l_dist = dist[l_ind].tolist()
+        out = [x for x in zip(l_ind, l_dist)]
     return out
 
 
 def linear_distance_matrix(r, c):
     '''(int, int) -> ndarray
     Returns a distance matrix based on linear distance.
-    
+
     args
         r: row count
         c: column count
 
     Example:
     linear_distance_matrix(3,3)
-    
+
       0 1 2
     -------
     0|0 1 2

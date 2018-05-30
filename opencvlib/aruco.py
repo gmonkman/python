@@ -116,6 +116,7 @@ class Marker():
 
 
     def px_length_mm(self, use_side=False):
+        #DEVNOTE: This has to a method as it uses an argument.
         '''(bool) -> float
         Estimated pixel length in mm, i.e.
         the length of a pixel in mm.
