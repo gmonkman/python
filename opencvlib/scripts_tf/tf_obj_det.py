@@ -137,18 +137,17 @@ def main():
             errs.append(['No marker found for image %s' % imgname])
             continue
 
-
         length_est = abs((detection_pts[1][0] - detection_pts[0][0])) * marker.px_length_mm()
 
         img_with_groundtruth = common.draw_polygon(img, Reg.all_points, color=(0, 0, 0), thickness=2)
         img_with_detection = common.draw_polygon(img_with_groundtruth, detection_pts, color=(0, 255, 0), thickness=2)
-        s = 'Predction: %.3f' % score
-        common.draw_str(img_with_detection, s, x=20, y=20, color=(255, 255, 255), box_background=(0, 0, 0))
-        common.draw_str(img_with_detection, 'Detection', detection_pts[0][0], detection_points[0][1], color=(255, 255, 255), box_background=(0, 255, 0))
-        common.draw_str(img_with_detection, 'Groundtruth', Reg.all_points_x[0], Reg.all_points_y[2], color=(255, 255, 255), box_background=(0, 0, 0))
+        s = 'Prediction: %.3f' % score
+        common.draw_str(img_with_detection, x=25, y=25, s=s, color=(255, 255, 255), box_background=(0, 0, 0), scale=2, box_pad=10)
+        common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s='Detection', color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10)
+        common.draw_str(img_with_detection, Reg.all_points_x[0], Reg.all_points_y[2], s='Groundtruth', color=(255, 255, 255), box_background=(0, 0, 0), scale=1.5, box_pad=10)
 
         #vis_util.visualize_boxes_and_labels_on_image_array(img, output_dict['detection_boxes'], output_dict['detection_classes'], output_dict['detection_scores'], category_index, instance_masks=output_dict.get('detection_masks'), use_normalized_coordinates=True, line_thickness=8, max_boxes_to_draw=1) # Visualization of the results of a detection.
-        show(img)
+        show(img_with_detection)
         if args.x:
             detection_image_name = path.normpath(path.join(detections_folder, imgname))
             cv2.imwrite(detection_image_name, img_with_detection)

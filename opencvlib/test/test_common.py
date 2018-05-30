@@ -40,6 +40,19 @@ class Test(unittest.TestCase):
         _common.draw_str(img, 10, 10, 'This is some text', (0, 0, 0), scale=0.5, box_background=255)
         show(img)
 
+        img = np.copy(self.lena)
+        _common.draw_str(img, 10, 10, 'This is some text', (0, 0, 0), scale=0.5, box_background=(0, 255, 0))
+        show(img)
+
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_draw_polygon(self):
+        img = np.copy(self.lena)
+        imgout = _common.draw_polygon(img, [[10,10], [100, 10], [100, 100], [10, 100]], (0, 0, 0), thickness=3)
+        show([img, imgout])
+        pass
+
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

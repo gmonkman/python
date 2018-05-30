@@ -20,7 +20,8 @@ from opencvlib import getimg as _getimg
 from funclib.baselib import tuple_add_elementwise as _tupadd
 import funclib.iolib as _iolib
 import opencvlib.info as _info
-from opencvlib.geom import centroid
+from opencvlib.geom import centroid #leave as is
+from opencvlib.geom import order_points as _order_points
 
 IMAGE_EXTENSIONS_DOTTED = ['.bmp', '.jpg', '.jpeg',
                     '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
@@ -170,7 +171,7 @@ def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_c
         if len(dst.shape) == 2:
             box = _np.ones((pt[1] + box_pad*2, pt[0] + box_pad*2))*box_background[0]
         else:
-            box = _np.ones((pt[1] + box_pad*2, pt[0] + box_pad*2, 3))*box_background[0]
+            box = _np.ones((pt[1] + box_pad*2, pt[0] + box_pad*2, 3))*box_background
 
         textOrg = (int((box.shape[1] - w)/2), int((box.shape[0] + h)/2))
 
@@ -458,13 +459,16 @@ def draw_line(pts, img, line_color=(0, 0, 0), label=False, label_color=(0, 0, 0)
 
 
 def draw_polygon(img, points, color=(0, 255,0), thickness=1):
-    '''(ndarray, tuple|list)
-    Join points
+    '''(ndarray, tuple|list) -> ndarray
+    Draw a polygon
     '''
     #[10,5],[20,30],[70,20],[50,10]
-    points = _np.array(points).astype('int32')
-    p = points.reshape(-1, 1, 2)
-    cv2.polylines(img, p, isClosed=True, color=color, thickness=thickness)
+    assert isinstance(img, _np.ndarray)
+    cp = img.copy()
+    pts_cp = _order_points(points)
+    pts_cp = _np.array(points).astype('int32')
+    pts_cp = pts_cp.reshape((-1, 1, 2))
+    return _cv2.polylines(cp, [pts_cp], isClosed=True, color=color, thickness=thickness)
 
 
 def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), show_labels=True, label_color=(0, 0, 0), padding=0, add_scale=True,  radius=10, plot_centroid=False):

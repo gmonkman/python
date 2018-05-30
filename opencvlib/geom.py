@@ -269,7 +269,7 @@ def points_rmsd(V, W):
 
 def order_points(p):
     '''(list|tuple|ndarray) -> list
-    Sorts a list of points by their position
+    Sorts a list of points by their position.
     '''
     if isinstance(p, (list, tuple, set)):
         pts = _np.array(p)
