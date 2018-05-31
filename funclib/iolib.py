@@ -948,7 +948,7 @@ class PrintProgressFlash(object):
                 print msg to console
     '''
 
-    def __init__(self, ticks=60, msg='\n'):
+    def __init__(self, ticks=None, msg='\n'):
         '''init'''
         self.ticks = ticks
         print(msg)

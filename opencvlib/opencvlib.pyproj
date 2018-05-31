@@ -12,7 +12,7 @@
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-x "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/frozen_inference_graph.pb" "C:/tf/data/bass_label_map.pbtxt"</CommandLineArguments>
+    <CommandLineArguments>-x -p charter -c fujifilm "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/frozen_inference_graph.pb" "C:/tf/data/bass_label_map.pbtxt"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -58,7 +58,7 @@ make_train_imgaug.py -n 10 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\image
 
 vgg2TFRecord.py -d -b 2 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/train" "C:/tf/data/train.record" vgg_body.json
 
-tf_obj_det.py -x "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/frozen_inference_graph.pb" "C:/tf/data/bass_label_map.pbtxt"</Environment>
+tf_obj_det.py -x -p shore -camera fujifilm "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/frozen_inference_graph.pb" "C:/tf/data/bass_label_map.pbtxt"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
