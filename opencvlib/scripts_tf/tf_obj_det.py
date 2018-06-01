@@ -201,7 +201,6 @@ def main():
                 show(img_with_detection)
             detection_image_name = path.normpath(path.join(detections_folder, imgname))
             cv2.imwrite(detection_image_name, img_with_detection)
-        break
 
     #export any problems to a csv file
     if errs:
