@@ -127,6 +127,7 @@ def main():
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
     cmdline.add_argument('-x', help='Export detections as images to image subdir "detections"', action='store_true')
     cmdline.add_argument('-s', help='Show detections', action='store_true')
+    cmdline.add_argument('-v', '--verbosity', help='Set to DEBUG, INFO, WARN, ERROR, or FATAL', default='ERROR')
     cmdline.add_argument('vgg_file', help='The full vgg file name')
     cmdline.add_argument('pb_file', help='Folder with the graph in it')
     cmdline.add_argument('labels_file', help='The labels proto')
