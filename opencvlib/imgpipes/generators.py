@@ -418,6 +418,8 @@ class FromPaths(_Generator):
         Extensions should be dotted, an asterix is appended
         if none exists.
 
+    Yields: ndarray, str, dict   i.e. the image, image path, {}
+
     Example:
         fp = generators.FromPaths('C:/temp', wildcards='*.jpg',
                             transforms=Transforms, filters=Filters)

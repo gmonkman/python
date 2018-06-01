@@ -45,6 +45,7 @@ def run_inference_for_single_image(image, graph):
                 tensor_name = key + ':0'
                 if tensor_name in all_tensor_names:
                     tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
+
             if 'detection_masks' in tensor_dict:
                 # The following processing is only for single image
                 detection_boxes = tf.squeeze(tensor_dict['detection_boxes'], [0])
@@ -60,6 +61,8 @@ def run_inference_for_single_image(image, graph):
             image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
 
             output_dict = sess.run(tensor_dict, feed_dict={image_tensor: np.expand_dims(image, 0)})
+
+            # all outputs are float32 numpy arrays, so convert types as appropriate
             output_dict['num_detections'] = int(output_dict['num_detections'][0])
             output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint8)
             output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
@@ -146,7 +149,7 @@ def main():
 
     label_map = label_map_util.load_labelmap(labels_file)
     categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=1, use_display_name=True)
-    #category_index = label_map_util.create_category_index(categories)
+    category_index = label_map_util.create_category_index(categories)
 
 
     #results are normalized
@@ -197,10 +200,11 @@ def main():
             common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s='Detection', color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10)
             common.draw_str(img_with_detection, Reg.all_points_x[0], Reg.all_points_y[2], s='Groundtruth', color=(255, 255, 255), box_background=(0, 0, 0), scale=1.5, box_pad=10)
             #vis_util.visualize_boxes_and_labels_on_image_array(img, output_dict['detection_boxes'], output_dict['detection_classes'], output_dict['detection_scores'], category_index, instance_masks=output_dict.get('detection_masks'), use_normalized_coordinates=True, line_thickness=8, max_boxes_to_draw=1) # Visualization of the results of a detection.
-            if args.s:
-                show(img_with_detection)
             detection_image_name = path.normpath(path.join(detections_folder, imgname))
             cv2.imwrite(detection_image_name, img_with_detection)
+
+        if args.s:
+            show(img_with_detection)
 
     #export any problems to a csv file
     if errs:
