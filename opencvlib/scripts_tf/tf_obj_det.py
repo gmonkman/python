@@ -72,6 +72,27 @@ def run_inference_for_single_image(image, graph):
     return output_dict
 
 
+def get_log_level(level):
+    '''(str) -> int
+
+    Returns int from tf.logging
+    '''
+    r = tf.logging.INFO
+    if isinstance(level, str):
+        level = level.lower()
+        if level == "debug":
+            r = tf.logging.DEBUG
+        elif level == "info":
+            r = tf.logging.INFO
+        elif level == "warn":
+            r = tf.logging.WARN
+        elif level == "error":
+            r = tf.logging.ERROR
+        elif level == "fatal":
+            r = tf.logging.FATAL
+    return r
+
+
 def get_samplelengthid(platform, camera, filename):
     '''(str, str, str) -> int
     Get the sample_lengthid from textual key.
@@ -110,7 +131,7 @@ def main():
     cmdline.add_argument('pb_file', help='Folder with the graph in it')
     cmdline.add_argument('labels_file', help='The labels proto')
     args = cmdline.parse_args()
-
+    tf.logging.set_verbosity(get_log_level(args.verbosity))
     vgg_file = path.normpath(args.vgg_file)
     pb_file = path.normpath(args.pb_file)
     labels_file = path.normpath(args.labels_file)

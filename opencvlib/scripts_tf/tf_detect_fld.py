@@ -4,7 +4,7 @@
 '''Detect bass in images on the file system.
 
 Example:
-tf_detect_fld.py -x -s "C:\images" "C:/model/frozen_inference_graph.pb" "C:/label_map.pbtxt"
+tf_detect_fld.py -x -s -v INFO "C:\images" "C:/model/frozen_inference_graph.pb" "C:/label_map.pbtxt"
 '''
 import numpy as np
 import tensorflow as tf
@@ -67,17 +67,38 @@ def run_inference_for_single_image(image, graph):
     return output_dict
 
 
+def get_log_level(level):
+    '''(str) -> int
+
+    Returns int from tf.logging
+    '''
+    r = tf.logging.INFO
+    if isinstance(level, str):
+        level = level.lower()
+        if level == "debug":
+            r = tf.logging.DEBUG
+        elif level == "info":
+            r = tf.logging.INFO
+        elif level == "warn":
+            r = tf.logging.WARN
+        elif level == "error":
+            r = tf.logging.ERROR
+        elif level == "fatal":
+            r = tf.logging.FATAL
+    return r
+
 
 def main():
     '''entry'''
     cmdline = argparse.ArgumentParser(description=__doc__)
     cmdline.add_argument('-x', help='Export detections as images to image subdir "detections"', action='store_true')
     cmdline.add_argument('-s', help='Show detections', action='store_true')
+    cmdline.add_argument('-v', '--verbosity', help='Set to DEBUG, INFO, WARN, ERROR, or FATAL', default='ERROR')
     cmdline.add_argument('imgfolder', help='Folder with the images')
     cmdline.add_argument('pb_file', help='Folder with the graph in it')
     cmdline.add_argument('labels_file', help='The labels proto')
     args = cmdline.parse_args()
-
+    tf.logging.set_verbosity(get_log_level(args.verbosity))
     pb_file = path.normpath(args.pb_file)
     labels_file = path.normpath(args.labels_file)
     imgfolder = path.normpath(args.imgfolder)
