@@ -4,7 +4,7 @@ import unittest
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 
-
+import cv2
 import numpy as np
 
 from opencvlib.view import show
@@ -129,6 +129,75 @@ class Test(unittest.TestCase):
 
 
     #@unittest.skip("Temporaily disabled while debugging")
+    def test_VGGROI_growxy(self):
+        '''test the VGG ROI generator using grow x and y
+        '''
+        fp = _path.normpath(_path.join(self.test_images_path, 'vgg_box_at_edges.json'))
+        VGGROI = gnr.VGGROI(fp)
+        for img, pth, dic in VGGROI.generate():
+            pass
+            #show(img)
+
+        #attrs = {'shape': 'rect', 'id': '1'}
+        VGGROI = gnr.VGGROI(fp)
+
+        for img, pth, dic in VGGROI.generate(grow_roi_x=20, grow_roi_y=20):
+            img = cv2.imread(pth)
+            x = dic['region_attributes'].x
+            y = dic['region_attributes'].y
+            w = dic['region_attributes'].w
+            h = dic['region_attributes'].h
+            pts_orig = roi.points_convert([x, x + w, y, y + h], img.shape[1], img.shape[0], roi.ePointConversion.XYMinMaxtoCVXY, roi.ePointsFormat.XY)
+            img = common.draw_points(pts_orig, img, join=True, line_color=(0, 0, 0))
+            img = common.draw_points(dic['pts_grown_cvxy'], img, join=True, line_color=(255, 255, 255))
+            show(img, title='grow_x 1.2')
+
+        for img, pth, dic in VGGROI.generate(grow_roi_x=0.8):
+            img = cv2.imread(pth)
+            x = dic['region_attributes'].x
+            y = dic['region_attributes'].y
+            w = dic['region_attributes'].w
+            h = dic['region_attributes'].h
+            pts_orig = roi.points_convert([x, x + w, y, y + h], img.shape[1], img.shape[0], roi.ePointConversion.XYMinMaxtoCVXY, roi.ePointsFormat.XY)
+            img = common.draw_points(pts_orig, img, join=True, line_color=(0, 0, 0))
+            img = common.draw_points(dic['pts_grown_cvxy'], img, join=True, line_color=(255, 255, 255))
+            show(img, title='grow_x 0.8')
+
+        for img, pth, dic in VGGROI.generate(grow_roi_y=1.2):
+            img = cv2.imread(pth)
+            x = dic['region_attributes'].x
+            y = dic['region_attributes'].y
+            w = dic['region_attributes'].w
+            h = dic['region_attributes'].h
+            pts_orig = roi.points_convert([x, x + w, y, y + h], img.shape[1], img.shape[0], roi.ePointConversion.XYMinMaxtoCVXY, roi.ePointsFormat.XY)
+            img = common.draw_points(pts_orig, img, join=True, line_color=(0, 0, 0))
+            img = common.draw_points(dic['pts_grown_cvxy'], img, join=True, line_color=(255, 255, 255))
+            show(img, title='grow_y 1.2')
+
+        for img, pth, dic in VGGROI.generate(grow_roi_y=0.8):
+            img = cv2.imread(pth)
+            x = dic['region_attributes'].x
+            y = dic['region_attributes'].y
+            w = dic['region_attributes'].w
+            h = dic['region_attributes'].h
+            pts_orig = roi.points_convert([x, x + w, y, y + h], img.shape[1], img.shape[0], roi.ePointConversion.XYMinMaxtoCVXY, roi.ePointsFormat.XY)
+            img = common.draw_points(pts_orig, img, join=True, line_color=(0, 0, 0))
+            img = common.draw_points(dic['pts_grown_cvxy'], img, join=True, line_color=(255, 255, 255))
+            show(img, title='grow_y 0.8')
+
+        for img, pth, dic in VGGROI.generate(grow_roi_y=0.8, grow_roi_x=0.8):
+            img = cv2.imread(pth)
+            x = dic['region_attributes'].x
+            y = dic['region_attributes'].y
+            w = dic['region_attributes'].w
+            h = dic['region_attributes'].h
+            pts_orig = roi.points_convert([x, x + w, y, y + h], img.shape[1], img.shape[0], roi.ePointConversion.XYMinMaxtoCVXY, roi.ePointsFormat.XY)
+            img = common.draw_points(pts_orig, img, join=True, line_color=(0, 0, 0))
+            img = common.draw_points(dic['pts_grown_cvxy'], img, join=True, line_color=(255, 255, 255))
+            show(img, title='grow_x|grow_y 0.8')
+
+
+    @unittest.skip("Temporaily disabled while debugging")
     def test_VGGImages(self):
         '''test the VGGImages generator, which is a
         simple generator for all images in a set of

@@ -185,11 +185,18 @@ def main():
         imgpath = path.normpath(imgpath)
         imgfld, imgname, _ = iolib.get_file_parts2(imgpath)
         img = cv2.imread(imgpath)
+        if not isinstance(img, np.ndarray):
+            continue
 
         groundtruth_xmin = min(Reg.all_points_x) / w; groundtruth_xmax = max(Reg.all_points_x) / w
         groundtruth_ymin = min(Reg.all_points_y) / h; groundtruth_ymax = max(Reg.all_points_y) / h
 
-        output_dict = run_inference_for_single_image(img, detection_graph) # Actual detection.
+        try:
+            output_dict = run_inference_for_single_image(img, detection_graph) # Actual detection.
+        except Exception as e:
+            errs.append(['Tensorflow error on image %s. Error was %s' % (str(e), imgpath)])
+            continue
+
         ymin, xmin, ymax, xmax = output_dict['detection_boxes'][0].tolist() #[0.4146363139152527, 0.3671582341194153, 0.525425910949707, 0.770221471786499] ymin, xmin, ymax, xmax
         detection_pts = roi.points_denormalize([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], h, w, asint=True)
         score = float(output_dict['detection_scores'][0]) #0.99999

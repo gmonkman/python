@@ -23,7 +23,7 @@ from enum import Enum as _Enum
 from warnings import warn as _warn
 import logging as _logging
 from inspect import getsourcefile as _getsourcefile
-
+from warnings import warn
 
 import cv2 as _cv2
 import numpy as _np
@@ -732,8 +732,8 @@ class VGGROI(_Generator):
         super().__init__(*args, **kwargs)
 
 
-    def generate(self, shape_type='rect', region_attrs=None, path_only=False, outflag=_cv2.IMREAD_UNCHANGED, skip_imghdr_check=False, grow_roi_proportion=1, file_attr_match=None):
-        '''(str|list|None, dict, bool, cv2.imread option, bool, dict) -> ndarray|None, str, dict
+    def generate(self, shape_type='rect', region_attrs=None, path_only=False, outflag=_cv2.IMREAD_UNCHANGED, skip_imghdr_check=False, grow_roi_proportion=1, grow_roi_x=1, grow_roi_y=1, file_attr_match=None):
+        '''(str|list|None, dict, bool, cv2.imread option, bool, float, float, float, dict) -> ndarray|None, str, dict
         Yields the images with the bounding boxes and category name of all objects
         in the pascal voc images
 
@@ -756,21 +756,35 @@ class VGGROI(_Generator):
             The Python imghdr lib is used to check for an image, but this can
             be unreliable. simple_file_check will just check that the image
             exists.
-        grow_roi_percent:
+        grow_roi_proportion:
             increase or decreaese roi by this percentage of the
-            original roi.
+            original roi. Override grow_roi_x and grow_roi_y if
+           not 1.
+        grow_roi_x:
+            Increase or decrease roi width by this amount.
+        grow_roi_y:
+            Increase or decrease roi height by this amount.
         file_attr_match:
             If not None, only regions from images with the matching file attributes
             will be generated
 
         Yields:
-            image, path, region_attributes dict
+            image, path, {'region_attributes':reg, 'pts_cvxy':pts_cvxy}
         or
             None, path, region_attributes dict
 
+            Where region_attributes is the JOSN dict from the vgg file
+
         Notes:
             If yields a rectangle, the coordinates can be accessed from
-            the returned dict with dict.x, dict.y, dict.w, dict.h
+            the returned
+            dict['region_attributes'].x, .y, .w, .h
+
+            Resized coordinates can be accessed with:
+            dict['pts_grown_cvxy']
+
+            If path_only is True and the grow options are defined, no lower or upper
+            cap is set on points, i.e.they may lay outside the image.
          '''
         # TODO Support other 2D-shapes, currently only rects
         assert shape_type == 'rect', 'Only rectangles are supported'
@@ -782,20 +796,51 @@ class VGGROI(_Generator):
                     for reg in I.roi_generator(shape_type, self.region_attrs):
                         assert isinstance(reg, _vgg.Region)
                         if path_only:
-                            yield None, I.filepath, reg
+                            if grow_roi_proportion != 1 or grow_roi_x != 1 or grow_roi_y != 1:
+                                if grow_roi_proportion != 1:
+                                    if grow_roi_proportion > 1:
+                                        warn('grow_roi_proportion was > 1, but path_only was specified. Cannot apply ceiling and floor.')
+                                    pts = _roi.rect_as_points(reg.y, reg.x, reg.w, reg.h)
+                                    pts = _roi.roi_rescale(pts, grow_roi_proportion)
+                                else:
+                                    pts = _roi.rect_as_points(reg.y, reg.x, reg.w, reg.h)
+                                    if grow_roi_x > 1 or grow_roi_y > 1:
+                                        warn('grow_roi_x or grow_roi_y was > 1, but path_only was specified. Cannot apply ceiling and floor.')
+
+                                    if grow_roi_x != 1:
+                                        pts = _roi.roi_rescale2(pts, proportion_x=grow_roi_x)
+
+                                    if grow_roi_y != 1:
+                                        pts = _roi.roi_rescale2(pts, proportion_y=grow_roi_y)
+                                    pts_cvxy = list(pts) #make a copy
+                            else:
+                                pts_cvxy = _roi.rect_as_points(reg.y, reg.x, reg.w, reg.h)
+                            yield None, I.filepath, {'region_attributes':reg, 'pts_grown_cvxy':pts_cvxy}
                         else:
                             img = _cv2.imread(I.filepath, flags=outflag)
                             img = super().generate(img) #filter and transform with base class
                             if img is None:
                                 continue
-                            if grow_roi_proportion != 1:
-                                pts = _roi.rect_as_points(reg.y, reg.x, reg.w, reg.h)
-                                pts = _roi.roi_rescale(pts, grow_roi_proportion)
+
+                            if grow_roi_proportion != 1 or grow_roi_x != 1 or grow_roi_y != 1:
+                                if grow_roi_proportion != 1:
+                                    pts = _roi.rect_as_points(reg.y, reg.x, reg.w, reg.h)
+                                    pts = _roi.roi_rescale(pts, grow_roi_proportion, h=img.shape[0], w=img.shape[1])
+                                    pts_cvxy = list(pts)
+                                else:
+                                    pts = _roi.rect_as_points(reg.y, reg.x, reg.w, reg.h)
+                                    if grow_roi_x != 1:
+                                        pts = _roi.roi_rescale2(pts, proportion_x=grow_roi_x, h=img.shape[0], w=img.shape[1])
+
+                                    if grow_roi_y != 1:
+                                        pts = _roi.roi_rescale2(pts, proportion_y=grow_roi_y, h=img.shape[0], w=img.shape[1])
+                                    pts_cvxy = list(pts) #make a copy
                                 pts = _roi.rect_as_rchw(pts) #r,c,h,w
                                 img, _ = _roi.cropimg_xywh(img, pts[1], pts[0], pts[3], pts[2])
                             else:
+                                pts_cvxy = _roi.rect_as_points(reg.y, reg.x, reg.w, reg.h)
                                 img, _ = _roi.cropimg_xywh(img, reg.x, reg.y, reg.w, reg.h)
-                            yield img, I.filepath, reg
+                            yield img, I.filepath, {'region_attributes':reg, 'pts_grown_cvxy':pts_cvxy}
             except Exception as e:
                 _logging.exception(e)
                 if not self.silent:

@@ -10,7 +10,7 @@ Create a TFRecord file from images and their assigned roi. This saves the whole 
 
 
 Example:
-    create_bass_tf_record.py -d -b 20 "C:\candidate" "C:\candidate\test.record" vgg_body.json
+    create_bass_tf_record.py -d -b 20 "C:/candidate" "C:/candidate/test.record" vgg_body.json
 
 Comments:
     output_folder will be created if it doesn't exist

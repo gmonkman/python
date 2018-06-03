@@ -4,7 +4,7 @@
 '''Detect bass in images on the file system.
 
 Example:
-tf_detect_fld.py -x -s -v INFO "C:\images" "C:/model/frozen_inference_graph.pb" "C:/label_map.pbtxt"
+tf_detect_fld.py -x -s -v INFO "C:/images" "C:/model/frozen_inference_graph.pb" "C:/label_map.pbtxt"
 '''
 import numpy as np
 import tensorflow as tf
@@ -17,11 +17,11 @@ from object_detection.utils import ops as utils_ops
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
-from opencvlib import aruco
+
 from funclib import iolib
 from opencvlib.view import show
 from opencvlib.imgpipes.generators import FromPaths
-from opencvlib.distance import nearestN_euclidean
+
 from opencvlib import roi
 from opencvlib import common
 from opencvlib.transforms import rotate

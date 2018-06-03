@@ -471,7 +471,7 @@ def draw_polygon(img, points, color=(0, 255,0), thickness=1):
     return _cv2.polylines(cp, [pts_cp], isClosed=True, color=color, thickness=thickness)
 
 
-def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), show_labels=True, label_color=(0, 0, 0), padding=0, add_scale=True,  radius=10, plot_centroid=False):
+def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), thickness=1, show_labels=True, label_color=(0, 0, 0), padding=0, add_scale=True,  radius=6, plot_centroid=False):
     '''(array, ndarray|str, int, int, bool, 3-tuple, bool, int) -> ndarray
     Show roi points largely for debugging purposes
 
@@ -489,6 +489,8 @@ def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0),
         join the points with lines
     line_color:
         color of lines used if join=True
+    thickness:
+        thickness of line of joining dots
     show_labels:
         label points with their coordinates
     pad:
@@ -503,6 +505,7 @@ def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0),
         pts = pts.squeeze()
         pts = pts.squeeze()
         pts = pts.squeeze()
+        pts = pts.tolist()
 
     #get size of display frame
     pad = padding
@@ -553,9 +556,10 @@ def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0),
         _cv2.line(img_process, (xx[0], pt_mean[1]), (xx[1], pt_mean[1]), (0, 255, 0))
 
     if join:
+        pts_padded = _order_points(pts_padded)
         poly_pts = _np.array(pts_padded, dtype='int32')
         poly_pts = poly_pts.reshape((-1, 1, 2))
-        _cv2.polylines(img_process, [poly_pts], True, line_color)
+        _cv2.polylines(img_process, [poly_pts], True, line_color, thickness=thickness)
 
     if add_scale:
         img_process = draw_scale(img_process, y_offset=padding, x_offset=padding)

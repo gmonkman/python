@@ -28,6 +28,7 @@ FLAGS = flags.FLAGS
 
 # TO-DO replace this with label map
 def class_text_to_int(row_label):
+    '''class_text_to_int'''
     if row_label == 'raccoon':
         return 1
     else:
@@ -56,7 +57,7 @@ def create_tf_example(group, path):
     classes_text = []
     classes = []
 
-    for index, row in group.object.iterrows():
+    for _, row in group.object.iterrows():
         xmins.append(row['xmin'] / width)
         xmaxs.append(row['xmax'] / width)
         ymins.append(row['ymin'] / height)
@@ -82,6 +83,7 @@ def create_tf_example(group, path):
 
 
 def main(_):
+    '''main'''
     writer = tf.python_io.TFRecordWriter(FLAGS.output_path)
     path = os.path.join(os.getcwd(), 'images')
     examples = pd.read_csv(FLAGS.csv_input)

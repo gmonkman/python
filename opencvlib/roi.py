@@ -27,14 +27,16 @@ __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
 
 
 class ePointConversion(_enum):
-    '''Enumeration for point coversion between frames'''
+    '''Enumeration for point coversion between frames
+    XYMinMaxtoCVXY is [xmin,xmax,ymin,ymax] to [[x,y], ...]
+    '''
     XYtoRC = 0
     XYtoCVXY = 1
     RCtoXY = 2
     RCtoCVXY = 3
     CVXYtoXY = 4
     CVXYtoRC = 5
-    XYMinMaxtoCVXY = 6
+    XYMinMaxtoCVXY = 6 #[xmin,xmax,ymin,ymax]
     Unchanged = 99
 
 
@@ -46,14 +48,20 @@ class ePointsFormat(_enum):
         [[x1, y1], [x2, y2]]
     eForPolyLine:
         numpy array of shape (pts nr, 1, 2), used for plotting polylines
-    wXXXX_YYYY:
+    XXXX_YYYY:
         [[x1, x2, x3, x4], [y1, y2, y3, y4]]
     minMax:
         [xmin, xmax, ymin, ymax]
+    xywh:
+        [xmin, ymin, w, h]
+    rchw:
+        [ymin, xmin, h, w]
     '''
     XY = 0
     ForPolyLine = 1
     XXXX_YYYY = 2 #[[x1, x2, x3, x4], [y1, y2, y3, y4]]
+    XYWH= 3
+    RCHW = 4
 
 
 
@@ -280,6 +288,12 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointsFormat.XY):
         return out
     elif e_out_format == ePointsFormat.XXXX_YYYY:
         return zip(*out)
+    elif e_out_format == ePointsFormat.XYWH:
+        x, y = list(zip(*out))
+        return (min(x), min(y), max(x) - min(x), max(y) - min(y))
+    elif e_out_format == ePointsFormat.RCHW:
+        c, r = list(zip(*out))
+        return (min(r), min(c), max(r) - min(r), max(c) - min(c))
     else:
         raise ValueError('Unknown output format specified for function argument e_out_format')
 
@@ -302,6 +316,7 @@ def points_normalize(pts, h, w):
     assert d == 2, 'Depth of pts should be 1 or 2. Got %s' % d
     out = [[pt[0]/w, pt[1]/h] for pt in pts]
     return out
+
 
 def points_denormalize(pts, h, w, asint=True):
     '''(2-list, int|float, int|float)->2-list
@@ -490,23 +505,60 @@ def get_image_from_mask(img, mask):
     return bitwise
 
 
-def roi_rescale(roi_pts, proportion=1):
-    '''(ndarray|list|tuple, float) -> ndarray
+def roi_rescale(roi_pts, proportion=1.0, h=None, w=None):
+    '''(ndarray|list|tuple, float, int|None, int|None) -> ndarray
     Grow or shrink an roi around the centre of
     the roi. CVXY is implied.
 
     roi_pts:
         Array of points [[0,0], [10,10] ....]
+    h, w:
+        Cap for the width and height, i.e. the roi will be set to h or w
+        if it would h or w after rescaling. Lower cap of 0 is also applied.
 
     Returns:
         Array of rescaled points, eg.
         [[0,0], [10,10] ....]
     '''
     centre = centroid(roi_pts)
-    getx = lambda x: proportion * x + (1 - proportion) * centre[0]
-    gety = lambda y: proportion * y + (1 - proportion) * centre[1]
-    pts = [[int(getx(x)), int(gety(y))] for x, y in roi_pts]
+    pts = [[_get_limited_val(x, proportion, centre[0], w), _get_limited_val(y, proportion, centre[1], h)] for x, y in roi_pts]
     return pts
+
+
+def _get_limited_val(v, proportion, centre, limit):
+    '''(int|float, float, int|float, int|float|none) -> int
+    getval, limted by 0 and limit
+    '''
+    g = lambda x: proportion * x + (1 - proportion) * centre
+    out = int(g(v))
+    if limit:
+        if out < 0:
+            return 0
+        if out > limit:
+            return limit
+    return out
+
+
+def roi_rescale2(roi_pts, proportion_x=1.0, proportion_y=1.0, h=None, w=None):
+    '''(ndarray|list|tuple, float, float, int|None, int|None) -> ndarray
+    Grow or shrink an roi around the centre of
+    the roi. CVXY is implied.
+
+    roi_pts:
+        Array of points [[0,0], [10,10] ....]
+    proportion_x, proportion_y:
+        Proportion to grow width and height
+    h, w:
+        Cap for the width and height, i.e. the roi will be set to h or w
+        if it would h or w after rescaling. Lower cap of 0 is also applied.
+    Returns:
+        Array of rescaled points, eg.
+        [[0,0], [10,10] ....]
+    '''
+    centre = centroid(roi_pts)
+    pts = [[_get_limited_val(x, proportion_x, centre[0], w), _get_limited_val(y, proportion_y, centre[1], h)] for x, y in roi_pts]
+    return pts
+
 
 
 def roi_resize(roi_pts, current, target):

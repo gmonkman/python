@@ -91,6 +91,8 @@ def main():
     PP = iolib.PrintProgress(n * nr_files, init_msg='Creating negatves in %s' % _OUT)
 
     for _, fname, reg_attr in Gen.generate(path_only=True):
+        reg_attr = reg_attr['region_attributes']
+        #TODO Debug - make sure reg_attr.x etc valid
         x, y, w, h = (reg_attr.x, reg_attr.y, reg_attr.w, reg_attr.h)
         #img = transforms.resize(img, width=WIDTH, height=HEIGHT)
         img = cv2.imread(fname)

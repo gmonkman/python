@@ -10,7 +10,7 @@ Create a TFRecord file from images and their assigned roi. This saves the whole 
 
 
 Example:
-    vgg2TFRecord.py -d -b 20 "C:\candidate" "C:\candidate\test.record" vgg_body.json
+    vgg2TFRecord.py -d -b 20 "C:/candidate" "C:/candidate/test.record" vgg_body.json
 
 Comments:
     output_folder will be created if it doesn't exist
@@ -25,6 +25,7 @@ import io
 from PIL import Image
 import numpy as np
 import tensorflow as tf
+import cv2
 
 from object_detection.utils import dataset_util
 import funclib.iolib as iolib
@@ -34,6 +35,7 @@ import opencvlib.imgpipes.vgg as vgg
 from opencvlib.imgpipes.generators import VGGROI
 import opencvlib.transforms as transforms
 from opencvlib.view import show
+from opencvlib import common
 
 PP = iolib.PrintProgress()
 vgg.SILENT = True
@@ -61,7 +63,7 @@ def image_is_invalid(imgpath):
         invalid = True
         errs.append('Image had %s channels. Expected 3.' % len(np_im.shape))
     else:
-       if np_im.shape[2] != 3:
+        if np_im.shape[2] != 3:
             invalid = True
             errs.append('Image had %s channels. Expected 3.' % len(np_im.shape[2]))
 
@@ -73,6 +75,7 @@ def image_is_invalid(imgpath):
 
 
 def create_tf_example(filename, xmin, xmax, ymin, ymax):
+    '''create'''
     filename = path.normpath(filename)
     with tf.gfile.GFile(filename, 'rb') as fid:
         encoded_jpg = fid.read()
@@ -118,6 +121,8 @@ def main():
     '''entry'''
     cmdline = argparse.ArgumentParser(description=__doc__)
     cmdline.add_argument('-d', '--delete', action='store_true', help='Delete tfrecord .record file(s) from the output folder.')
+    cmdline.add_argument('-x', '--addx', default='1.0', type=float, help='Grow roi width by this proportion.')
+    cmdline.add_argument('-y', '--addy', default='1.0', type=float, help='Grow roi height by this proportion.')
     cmdline.add_argument('-b', '--batch_sz', help='Batch size.', default=1)
     cmdline.add_argument('source_folder', help='The folder containing the images and vgg file')
     cmdline.add_argument('output_file', help='The TFRecord file to create')
@@ -135,8 +140,6 @@ def main():
             iolib.files_delete2(f)
 
     vgg_file = path.normpath(src + '/' + args.vgg_file_name)
-    vgg.load_json(vgg_file)
-    print('Loaded vgg file %s' % vgg_file)
 
     fld, _, _ = iolib.get_file_parts2(out)
     iolib.create_folder(fld)
@@ -146,7 +149,8 @@ def main():
         print('Output TFRecord %s already exists. Delete it manually.' % out)
         return
 
-    filecnt = sum(1 for x in vgg.roiGenerator(skip_imghdr_check=True, shape_type='rect'))
+    Gen = VGGROI(vgg_file)
+    filecnt = sum([1 for x in Gen.generate(path_only=True)])
     PP.max = filecnt
 
     if batch_sz <= 1:
@@ -156,12 +160,23 @@ def main():
         nr_parts = ceil(filecnt / batch_sz)
     first = True
     has_errs = False
-    for imgpath, res, Reg in vgg.roiGenerator(skip_imghdr_check=True, shape_type='rect'):
-        assert isinstance(Reg, vgg.Region)
 
+    for _, imgpath, dic in Gen.generate(grow_roi_x=args.addx, grow_roi_y=args.addy, path_only=False): #path_only has to be false so grow_roi gets capped
         if image_is_invalid(imgpath):
             PP.increment()
             continue
+        img = cv2.imread(imgpath)
+        ptsx, ptsy = list(zip(*dic['pts_grown_cvxy']))
+        x = dic['region_attributes'].x
+        y = dic['region_attributes'].y
+        w = dic['region_attributes'].w
+        h = dic['region_attributes'].h
+
+        pts_orig = roi.points_convert([x, x + w, y, y + h], img.shape[1], img.shape[0], roi.ePointConversion.XYMinMaxtoCVXY, roi.ePointsFormat.XY)
+        #img = common.draw_points(pts_orig, img, join=True, line_color=(0, 0, 0), thickness=2)
+        #img = common.draw_points(dic['pts_grown_cvxy'], img, join=True, line_color=(255, 255, 255), thickness=2)
+        #title = 'grow_x %.2f grow_y %.2f' % (args.addx, args.addy)
+        #show(img, title=title)
 
         if nr_parts > 1:
             suffix = str(ceil(PP.iteration / batch_sz)).zfill(len(str(nr_parts)))
@@ -176,12 +191,13 @@ def main():
                 writer = tf.python_io.TFRecordWriter(batch_name)
                 first = False
         PP.increment()
-        tf_example = create_tf_example(imgpath, Reg.x, Reg.x + Reg.w, Reg.y, Reg.h)
+
+        tf_example = create_tf_example(imgpath, min(ptsx), max(ptsx), min(ptsy), max(ptsy))
         writer.write(tf_example.SerializeToString())
 
     try:
         writer.close()
-    except Exception as e:
+    except Exception as _:
         pass
 
 
