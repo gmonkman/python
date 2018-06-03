@@ -119,7 +119,6 @@ tf_detect_fld.py -x -s "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/ba
     <Compile Include="scripts_tf\make_negs.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="scripts_tf\create_bass_tf_record.py" />
     <Compile Include="scripts_tf\fld2TFRecord.py">
       <SubType>Code</SubType>
     </Compile>
