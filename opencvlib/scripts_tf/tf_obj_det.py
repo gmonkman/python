@@ -245,10 +245,14 @@ def main():
 
     if results:
         resfile = path.normpath(path.join(imgfld, 'detection.csv'))
+        print('resfile was %s' % resfile)
         try:
+            print('Exporting results. There were %s records in results' % len(results))
             iolib.writecsv(resfile, results, inner_as_rows=False)
         except Exception as _:
             pass
+    else:
+        print('results dic was empty'
 
 if __name__ == "__main__":
     main()

@@ -82,6 +82,9 @@ tf_detect_fld.py -x -s "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/ba
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="common.py" />
+    <Compile Include="detect_utils.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="display_utils.py">
       <SubType>Code</SubType>
     </Compile>
