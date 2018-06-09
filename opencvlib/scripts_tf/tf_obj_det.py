@@ -252,7 +252,7 @@ def main():
         except Exception as _:
             pass
     else:
-        print('results dic was empty'
+        print('results dic was empty')
 
 if __name__ == "__main__":
     main()
