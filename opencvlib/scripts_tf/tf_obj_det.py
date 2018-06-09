@@ -175,7 +175,7 @@ def main():
 
 
     #results are normalized
-    results = [['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'accuracy']]
+    results = [['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'accuracy', 'length_est']]
     errs = []
     PP = iolib.PrintProgress(i, init_msg='\nRunning detections ...')
     for imgpath, res, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
@@ -245,9 +245,9 @@ def main():
 
     if results:
         resfile = path.normpath(path.join(imgfld, 'detection.csv'))
-        print('resfile was %s' % resfile)
+        #print('resfile was %s' % resfile)
         try:
-            print('Exporting results. There were %s records in results' % len(results))
+           #print('Exporting results. There were %s records in results' % len(results))
             iolib.writecsv(resfile, results, inner_as_rows=False)
         except Exception as _:
             pass
