@@ -11,6 +11,8 @@ from enum import Enum as _enum
 import cv2 as _cv2
 import numpy as _np
 from numpy import ma as _ma
+from sympy import geometry as _geometry
+
 
 import opencvlib as _opencvlib
 import opencvlib.info as _info
@@ -839,3 +841,73 @@ def nms_rects(detections, threshold=.5):
             new_detections.append(detection)
             del detections[index]
     return new_detections
+
+
+def iou(pts_gt, pts):
+    '''(list, list) -> float
+
+    pts_gr, pts:
+        list of points, e.g. [[1,0],[0,1], [0,0],[1,1]]
+    Return the intersection over union score
+
+    Example:
+    >>>iou([[1,0],[0,1], [0,0],[1,1]], [[0.5,0],[0,0.5], [0,0],[0.5,0.5]])
+    0.25
+
+    Notes:
+        Orders the points prior to calculating
+    '''
+    pts_gt_ = _geom.order_points(pts_gt)
+    pts_ = _geom.order_points(pts)
+
+    x, y = zip(*pts_gt)
+    gt_xmax = max(x)
+    gt_xmin = min(x)
+    gt_ymax = max(y)
+    gt_ymin = min(y)
+
+    x, y = zip(*pts)
+    xmax = max(x)
+    xmin = min(x)
+    ymax = max(y)
+    ymin = min(y)
+
+    dx = min(gt_xmax, xmax) - max(gt_xmin, xmin)
+    dy = min(gt_ymax, ymax) - max(gt_ymin, ymin)
+
+    overlap = 0
+    if (dx>=0) and (dy>=0):
+        overlap = dx*dy
+    total_area = ((xmax - xmin) * (ymax - ymin)) + ((gt_xmax - gt_xmin) * (gt_ymax - gt_ymin))
+    union_area = total_area - overlap
+    return overlap / union_area
+
+
+def iou2(gt_xmin, gt_xmax, gt_ymin, gt_ymax, xmin, xmax, ymin, ymax):
+    '''(float, float, float, float, float, float, float, float) -> float
+
+    Args:
+        coordinate min and maxes
+
+    Returns the intersection over union score
+
+    Example:
+    >>>iou([[1,0],[0,1], [0,0],[1,1]], [[0.5,0],[0,0.5], [0,0],[0.5,0.5]])
+    0.25
+
+    Notes:
+        Orders the points prior to calculating
+    '''
+
+    if None in [gt_xmin, gt_xmax, gt_ymin, gt_ymax, xmin, xmax, ymin, ymax]:
+        return None
+
+    dx = min(gt_xmax, xmax) - max(gt_xmin, xmin)
+    dy = min(gt_ymax, ymax) - max(gt_ymin, ymin)
+
+    overlap = 0
+    if (dx>=0) and (dy>=0):
+        overlap = dx*dy
+    total_area = ((xmax - xmin) * (ymax - ymin)) + ((gt_xmax - gt_xmin) * (gt_ymax - gt_ymin))
+    union_area = total_area - overlap
+    return overlap / union_area

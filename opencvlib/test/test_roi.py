@@ -87,7 +87,7 @@ class Test(unittest.TestCase):
         show(img)
 
 
-    #@unittest.skip("Temporaily disabled test_showarray")
+    @unittest.skip("Temporaily disabled test_showarray")
     def test_quad(self):
         '''test quadrilateral manip'''
         quad = [[300, 300], [400, 310], [410, 450], [310, 460]]
@@ -105,9 +105,26 @@ class Test(unittest.TestCase):
         img_rotated_points = np.ones([*img_rotated.shape])*255
         img_rotated_points = common.draw_points(Q.rotated_to_x, img_rotated_points, join=True, line_color=(0, 0, 0))
         img_rotated_points = common.draw_points(Q.bounding_rectangle, img_rotated_points, join=True, line_color=(255, 0, 0))
-
-
         show(mosaic([img, img_rotated, img_rotated_points]))
+
+
+    @unittest.skip("Temporaily disabled test_showarray")
+    def test_iou(self):
+        '''test quadrilateral manip'''
+        pts = [[0.0, 0.0], [0.5, 0.0], [0.5, 0.5], [0.0, 0.5]]
+        pts_gt = [[1, 0], [0, 1], [0, 0], [1, 1]]
+        a = roi.iou(pts, pts_gt)
+        self.assertEqual(a, 0.25)
+        z=10
+
+    #@unittest.skip("Temporaily disabled test_showarray")
+    def test_iou(self):
+        '''test quadrilateral manip'''
+        nas = [0.263571990558615,	0.790715971675845,	0.435483870967741,	0.6,	0.265444666147232,	0.784790337085723,	0.432113647460937,	0.600508213043212]
+        a = roi.iou2(*nas)
+        self.assertEqual(a, 0.9628434335096393)
+
+
 
 
 if __name__ == '__main__':

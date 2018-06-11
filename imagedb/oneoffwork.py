@@ -4,7 +4,20 @@ Uses opencvlib.perspective.
 
 Run first with bass, then with dab. Should update records
 seperately, using the correct l-w relationships by species.
+
+
+Example:
+oneoffwork.py -s bass
 '''
+#If calculating a new field do this
+#Add it to excel sheet (this is currently the master dataset)
+#use excel to create the database and add the data
+#Alter the sql select here to include calculation fields
+#Calculate the column you want
+#Recreate the model in imagedb by running C:\development\python\imagedb\generate_model.cmd
+#Rename the generated model, to model.py
+#Ammend method write_sql to write the calculated column to the sql database
+
 import argparse
 
 import pandas as pd
@@ -17,6 +30,7 @@ from funclib.iolib import PrintProgress
 import fish
 import opencvlib.perspective as perspective
 from imagedb.model import SampleLength
+from opencvlib.roi import iou2
 
 SPECIES = 'bass' #actually set from a command line arg.
 PROFILE_FACTOR = 1 #profile factor set differently if it is bass rather than dab
@@ -48,6 +62,15 @@ class InitData(object):
             ",sample_length.ref_length_mm" \
             ",sample_length.ref_length_px" \
             ",sample_length.sample_lengthid" \
+            ",sample_length.nas_groundtruth_xmin" \
+            ",sample_length.nas_groundtruth_xmax" \
+            ",sample_length.nas_groundtruth_ymin" \
+            ",sample_length.nas_groundtruth_ymax" \
+            ",sample_length.nas_xmin" \
+            ",sample_length.nas_xmax" \
+            ",sample_length.nas_ymin" \
+            ",sample_length.nas_ymax" \
+            ",sample_length.mv_nas_lens_correction_mm" \
             ",sample.unique_code" \
             ",sample.tl_mm" \
             ",sample.board_board_length_mm + housing_mount.subject_to_lens_conversion_mm as lens_subject_distance" \
@@ -69,11 +92,13 @@ class InitData(object):
             " inner join camera on camera.cameraid=sample.cameraid" \
             " left join housing_mount on housing_mount.housing_mountid=sample.housing_mountid"
 
-        where = " where "
+        where = " where"
         if SPECIES == 'bass':
             where += " sample.species='bass'"
         else:
             where += " sample.species='dab'"
+        #where += " and not nas_xmin is null"
+
         sql += where
 
             #WHERE = " sample.species='bass' and sample_header.sample_headerid <= 3"
@@ -99,6 +124,14 @@ class InitData(object):
             dab = fish.Dab(float(total_length))
             act = fish.FishActions(dab)
         return act.get_max_depth()
+
+
+    def calc_iou(self):
+        '''calculate the ious
+        '''
+        assert isinstance(self.df_lengths, pd.DataFrame)
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_groundtruth_xmin', 'nas_groundtruth_xmax', 'nas_groundtruth_ymin', 'nas_groundtruth_ymax', 'nas_xmin', 'nas_xmax', 'nas_ymin', 'nas_ymax')
+        pdl.col_calculate_new(self.df_lengths, iou2, 'nas_iou', *colinds)
 
 
     def perspective_adjust(self):
@@ -135,6 +168,12 @@ class InitData(object):
         #based on triangles estimate of subj-lens distance using a calibration shot
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'lens_correction_mm', 'profile_factor')
         pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'persp_corr_iter_profile_tridist_mm', *colinds)
+
+        #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the nas_rcnn estimated length
+        #based on triangles estimate of subj-lens distance using a calibration shot
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'mv_nas_lens_correction_mm', 'profile_factor')
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'nas_persp_corr_iter_profile_tridist_mm', *colinds)
+
 
 
     def _add_lens_subj_estimates(self):
@@ -212,7 +251,7 @@ class InitData(object):
         pdl.col_calculate_new(self.df_lengths, InitData._get_fish_depth, 'fish_depth_from_estimate', colinds)
 
 
-    def update_length(self):
+    def write_to_sql(self):
         '''updates the corrected records to sql'''
         # first do
         #tl_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'tl_corrected_mm')
@@ -221,11 +260,11 @@ class InitData(object):
           #  sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
            # assert isinstance(sam_len, SampleLength)
             #sam_len.perspective_corrected_actual_mm = _read_range_int(tl_cor)
-        COLCNT = 7
+        COLCNT = 8
         rw_cnt = len(self.df_lengths.index) * COLCNT
         PP = PrintProgress(rw_cnt, init_msg='Writing data back to SQL Server')
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'perspective_corrected_estimate_mm')
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'perspective_corrected_estimate_mm') #1
         for i, row in self.df_lengths.iterrows():
             PP.increment()
             tl_cor = row[est_cor_ind]
@@ -233,7 +272,7 @@ class InitData(object):
             assert isinstance(sam_len, SampleLength)
             sam_len.perspective_corrected_estimate_mm = _read_range_int(tl_cor)
 #todo check why null
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'perspective_corrected_estimate_iter_mm')
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'perspective_corrected_estimate_iter_mm') #2
         for i, row in self.df_lengths.iterrows():
             PP.increment()
             tl_cor = row[est_cor_ind]
@@ -241,7 +280,7 @@ class InitData(object):
             assert isinstance(sam_len, SampleLength)
             sam_len.perspective_corrected_estimate_iter_mm = _read_range_int(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_mm')
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_mm') #3
         for i, row in self.df_lengths.iterrows():
             PP.increment()
             tl_cor = row[est_cor_ind]
@@ -249,7 +288,7 @@ class InitData(object):
             assert isinstance(sam_len, SampleLength)
             sam_len.persp_corr_iter_profile_mm = _read_range_int(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_camdist_mm')
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_camdist_mm') #4
         for i, row in self.df_lengths.iterrows():
             PP.increment()
             tl_cor = row[est_cor_ind]
@@ -257,7 +296,7 @@ class InitData(object):
             assert isinstance(sam_len, SampleLength)
             sam_len.persp_corr_iter_profile_camdist_mm = _read_range_int(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_tridist_mm')
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_tridist_mm') #5
         for i, row in self.df_lengths.iterrows():
             PP.increment()
             tl_cor = row[est_cor_ind]
@@ -265,7 +304,7 @@ class InitData(object):
             assert isinstance(sam_len, SampleLength)
             sam_len.persp_corr_iter_profile_tridist_mm = _read_range_int(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'lens_subj_camprop_est')
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'lens_subj_camprop_est') #6
         for i, row in self.df_lengths.iterrows():
             PP.increment()
             tl_cor = row[est_cor_ind]
@@ -273,13 +312,29 @@ class InitData(object):
             assert isinstance(sam_len, SampleLength)
             sam_len.lens_subj_camprop_est = _read_range_int(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'lens_subj_triangle_est')
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'lens_subj_triangle_est') #7
         for i, row in self.df_lengths.iterrows():
             PP.increment()
             tl_cor = row[est_cor_ind]
             sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
             assert isinstance(sam_len, SampleLength)
             sam_len.lens_subj_triangle_est = _read_range_int(tl_cor)
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_iou') #8
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.nas_iou = _read_range_float(tl_cor)
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_persp_corr_iter_profile_tridist_mm') #9
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.nas_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
 
 
 def _read_range_int(v):
@@ -321,8 +376,10 @@ def main():
     cls._add_linear() # add 2 cols - coeff,const to be used to calculate depth on the fly in get_perspective_correction_iter_linear
     print('Calculating length with perspective adjustment....')
     cls.perspective_adjust()
+    print('Calculating intersection of unions')
+    cls.calc_iou()
     print('Writing data to SQL Server....')
-    cls.update_length()
+    cls.write_to_sql()
     print('Done')
 
 # This only executes if this script was the entry point

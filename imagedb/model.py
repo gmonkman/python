@@ -111,6 +111,7 @@ class SampleLength(Base):
     lens_subj_triangle_est = Column(Float(53))
     measured_resolution = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     lens_correction_mm = Column(Float(53), nullable=False, server_default=text("((0))"))
+    mv_nas_lens_correction_mm = Column(Float(53))
     perspective_corrected_estimate_mm = Column(Float(53))
     perspective_corrected_estimate_iter_mm = Column(Float(53))
     persp_corr_iter_profile_mm = Column(Float(53))
@@ -119,6 +120,19 @@ class SampleLength(Base):
     unique_code = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     species = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     comment = Column(Text(2147483647, 'Latin1_General_CI_AS'))
+    w = Column(Integer)
+    h = Column(Integer)
+    nas_groundtruth_xmin = Column(Float(53))
+    nas_groundtruth_xmax = Column(Float(53))
+    nas_groundtruth_ymin = Column(Float(53))
+    nas_groundtruth_ymax = Column(Float(53))
+    nas_xmin = Column(Float(53))
+    nas_xmax = Column(Float(53))
+    nas_ymin = Column(Float(53))
+    nas_ymax = Column(Float(53))
+    nas_accuracy = Column(Float(53))
+    nas_iou = Column(Float(53))
+    nas_persp_corr_iter_profile_tridist_mm = Column(Integer)
 
     sample = relationship('Sample')
 
@@ -144,6 +158,31 @@ t_v_lengths = Table(
 
 t_v_lengths_bass = Table(
     'v_lengths_bass', metadata,
+    Column('sampleid', Integer, nullable=False),
+    Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('tl_mm', Integer, nullable=False),
+    Column('lens_subject_distance', Integer),
+    Column('laser_sans_corr', Integer),
+    Column('bg_sans_corr', Integer),
+    Column('fg_sans_corr', Integer),
+    Column('laser_lens_corr', Float(53)),
+    Column('bg_lens_corr', Float(53)),
+    Column('fg_lens_corr', Float(53)),
+    Column('laser_all_cor_estimate_depth', Float(53)),
+    Column('fg_all_cor_estimate_depth', Float(53)),
+    Column('laser_perspective_corrected_estimate_iter_mm', Float(53)),
+    Column('fg_perspective_corrected_estimate_iter_mm', Float(53)),
+    Column('laser_persp_corr_iter_profile_mm', Float(53)),
+    Column('fg_persp_corr_iter_profile_mm', Float(53)),
+    Column('laser_persp_corr_iter_profile_camdist_mm', Float(53)),
+    Column('fg_persp_corr_iter_profile_camdist_mm', Float(53)),
+    Column('laser_persp_corr_iter_profile_tridist_mm', Float(53)),
+    Column('fg_persp_corr_iter_profile_tridist_mm', Float(53))
+)
+
+
+t_v_lengths_dab = Table(
+    'v_lengths_dab', metadata,
     Column('sampleid', Integer, nullable=False),
     Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
     Column('tl_mm', Integer, nullable=False),
