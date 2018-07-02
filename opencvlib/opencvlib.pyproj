@@ -5,15 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_roi.py</StartupFile>
+    <StartupFile>scripts_tf\vgg2TFRecord.py</StartupFile>
     <SearchPath>..\;..\models\research\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>-x 1.015 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\shore\fujifilm\rotated" "C:\tf\tf\bass\tfrecords\shore_xp30_x1.015.record" vgg_body-caudal.json</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -400,6 +399,7 @@ tf_detect_fld.py -x -s "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/ba
     <Content Include="scripts_tf\bin\2mWnP.jpg" />
     <Content Include="scripts_tf\bin\6SxXX.jpg" />
     <Content Include="scripts_tf\bin\via_region_data.json" />
+    <Content Include="scripts_tf\cmd_make_fiducial_tfrecords.bat" />
     <Content Include="scripts_tf\cmd_make_train_eval.bat" />
     <Content Include="scripts_tf\test_vgg2TFRecord.py.bat" />
     <Content Include="scripts_vgg\fixvgg.bat" />

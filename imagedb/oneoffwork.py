@@ -62,15 +62,25 @@ class InitData(object):
             ",sample_length.ref_length_mm" \
             ",sample_length.ref_length_px" \
             ",sample_length.sample_lengthid" \
-            ",sample_length.nas_groundtruth_xmin" \
-            ",sample_length.nas_groundtruth_xmax" \
-            ",sample_length.nas_groundtruth_ymin" \
-            ",sample_length.nas_groundtruth_ymax" \
+            ",sample_length.groundtruth_xmin" \
+            ",sample_length.groundtruth_xmax" \
+            ",sample_length.groundtruth_ymin" \
+            ",sample_length.groundtruth_ymax" \
             ",sample_length.nas_xmin" \
             ",sample_length.nas_xmax" \
             ",sample_length.nas_ymin" \
             ",sample_length.nas_ymax" \
+            ",sample_length.ssd_xmin" \
+            ",sample_length.ssd_xmax" \
+            ",sample_length.ssd_ymin" \
+            ",sample_length.ssd_ymax" \
+            ",sample_length.res_xmin" \
+            ",sample_length.res_xmax" \
+            ",sample_length.res_ymin" \
+            ",sample_length.res_ymax" \
             ",sample_length.mv_nas_lens_correction_mm" \
+            ",sample_length.mv_ssd_lens_correction_mm" \
+            ",sample_length.mv_res_lens_correction_mm" \
             ",sample.unique_code" \
             ",sample.tl_mm" \
             ",sample.board_board_length_mm + housing_mount.subject_to_lens_conversion_mm as lens_subject_distance" \
@@ -130,8 +140,18 @@ class InitData(object):
         '''calculate the ious
         '''
         assert isinstance(self.df_lengths, pd.DataFrame)
-        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_groundtruth_xmin', 'nas_groundtruth_xmax', 'nas_groundtruth_ymin', 'nas_groundtruth_ymax', 'nas_xmin', 'nas_xmax', 'nas_ymin', 'nas_ymax')
+
+        #for the nas rcnn detections
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'nas_xmin', 'nas_xmax', 'nas_ymin', 'nas_ymax')
         pdl.col_calculate_new(self.df_lengths, iou2, 'nas_iou', *colinds)
+
+        #for the ssd rcnn detections
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'ssd_xmin', 'ssd_xmax', 'ssd_ymin', 'ssd_ymax')
+        pdl.col_calculate_new(self.df_lengths, iou2, 'ssd_iou', *colinds)
+
+        #for the resnet rcnn detections
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'res_xmin', 'res_xmax', 'res_ymin', 'res_ymax')
+        pdl.col_calculate_new(self.df_lengths, iou2, 'res_iou', *colinds)
 
 
     def perspective_adjust(self):
@@ -173,6 +193,16 @@ class InitData(object):
         #based on triangles estimate of subj-lens distance using a calibration shot
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'mv_nas_lens_correction_mm', 'profile_factor')
         pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'nas_persp_corr_iter_profile_tridist_mm', *colinds)
+
+        #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the ssd_rcnn estimated length
+        #based on triangles estimate of subj-lens distance using a calibration shot
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'mv_ssd_lens_correction_mm', 'profile_factor')
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'ssd_persp_corr_iter_profile_tridist_mm', *colinds)
+
+        #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the res_rcnn estimated length
+        #based on triangles estimate of subj-lens distance using a calibration shot
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'mv_res_lens_correction_mm', 'profile_factor')
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'res_persp_corr_iter_profile_tridist_mm', *colinds)
 
 
 
@@ -253,14 +283,7 @@ class InitData(object):
 
     def write_to_sql(self):
         '''updates the corrected records to sql'''
-        # first do
-        #tl_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'tl_corrected_mm')
-        #for i, row in self.df_lengths.iterrows():
-         #   tl_cor = row[tl_cor_ind]
-          #  sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-           # assert isinstance(sam_len, SampleLength)
-            #sam_len.perspective_corrected_actual_mm = _read_range_int(tl_cor)
-        COLCNT = 8
+        COLCNT = 13
         rw_cnt = len(self.df_lengths.index) * COLCNT
         PP = PrintProgress(rw_cnt, init_msg='Writing data back to SQL Server')
 
@@ -335,6 +358,38 @@ class InitData(object):
             sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
             assert isinstance(sam_len, SampleLength)
             sam_len.nas_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_iou') #10
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.ssd_iou = _read_range_float(tl_cor)
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_persp_corr_iter_profile_tridist_mm') #11
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.ssd_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_iou') #12
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.res_iou = _read_range_float(tl_cor)
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_persp_corr_iter_profile_tridist_mm') #13
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.res_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
 
 
 def _read_range_int(v):

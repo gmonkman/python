@@ -86,7 +86,15 @@ def col_calculate_new(df, func, new_col_name, *args):
     args = list(args)
     args = _list_flatten(args)
     for i, row in df.iterrows():
-        rowvals = [None if _np.isnan(row[x]) else row[x] for x in args]
+        rowvals = []
+        for x in args:
+            if row[x] is None:
+                vv = None
+            elif _np.isnan(row[x]):
+                vv = None
+            else:
+                vv = row[x]
+            rowvals.append(vv)
         v = func(*rowvals)
         df.set_value(i, new_col_name, v)
 

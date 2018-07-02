@@ -36,7 +36,7 @@ def calc_distances():
         df['id'] = _np.hstack(g_df.this.expanding().count())
 
         #cumulative frequency from frequency
-        
+
         #df['propdist'] = g_df.cumdist/g_df.sumdist
         #df['cumdist'] = _np.hstack(g_df.dist.expanding(1).sum())
         #df['sumdist'] = g_df.frequency.transform(lambda x:(x.sum()))
@@ -61,7 +61,7 @@ def calc_distances():
         df_all['expected'] = df['sumfreq']*(1/len(df_all))
 
         return df, df_all
-    
+
     def save():
         '''save to excel'''
         wb = _xw.Book()
@@ -85,12 +85,12 @@ def calc_distances():
         #ws.range('A1').value = fmmcrisp
         #ws.range('N1').value = fmmcrisp_all
         ws.range('A1').value = fmmcrisp_sigma
-        
+
         ws = wb.sheets.add('info')
         ws.range('A1').value = 'data is IQR frequences in variable _MATRICES, generated from the focalpermute.mediandistance.py\n' \
                                 'The processed data as it appears in this spreadsheet was created by focalpermute.iqr_graph_distance.py'
         wb.save(_OUTFILE)
-    
+
     def get_for_plot(df, df_all, step):
         '''pandas.dataframe, pandas.dataframe -> pandas.dataframe
         Get and format the data for plotting
@@ -129,7 +129,7 @@ def calc_distances():
     pamfuzzy_sigma = get_for_plot(pamfuzzy, pamfuzzy_all, 5)
 
     save()
-    
+
 
 if __name__ == "__main__":
     calc_distances()

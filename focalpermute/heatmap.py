@@ -36,9 +36,9 @@ class EnumData(Enum):
 #region Global declarations
 _RESULTS_PATH = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/My Papers/WalesRSA-MSP/matplotlib'
 
-_KEEP = {'crispDirected_crispMine':'Crisp vs crisp', 
-         'focalDirected_focalMine':'Focal vs focal', 
-         'crispDirected_focalMine':'Crisp dir. vs focal this', 
+_KEEP = {'crispDirected_crispMine':'Crisp vs crisp',
+         'focalDirected_focalMine':'Focal vs focal',
+         'crispDirected_focalMine':'Crisp dir. vs focal this',
          'focalDirected_crispMine':'Focal dir. vs crisp this'}
 #endregion
 
@@ -55,7 +55,7 @@ def _get_fmm_data():
     for d in results['fmm_freq']:
         if d in _KEEP.keys(): #filter out selfies
             fmm_freq = pd.concat([fmm_freq, results['fmm_freq'][d]])
-    
+
     for d in _KEEP:
         qry = {d:_KEEP[d]}
         fmm_freq['group'].replace(qry, inplace=True)
@@ -71,7 +71,7 @@ def _get_pam_data():
     for d in results['pam_freq']:
         if d in _KEEP.keys(): #filter out selfies
             pam_freq = pd.concat([pam_freq, results['pam_freq'][d]])
-    
+
     for d in _KEEP: #change labels to be heatmap title friendly
         qry = {d:_KEEP[d]}
         pam_freq['group'].replace(qry, inplace=True)
@@ -121,7 +121,7 @@ def plot(edata=EnumData.fmm):
     s = 'fmm_median_heatmap.tif' if edata == EnumData.fmm else 'pam_median_heatmap.tif'
     save_plot(s)
     #plt.show()
-    
+
 
 
 
