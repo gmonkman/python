@@ -28,10 +28,12 @@ def main():
     img = getimg(args.imgfile)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if args.rt:
-        #now the fish profile is white on black
+        #correction for some dark grey artifacts in image after
+        #binarizing the image
         img[img < 50] = 51
         img[img > 51] = 0
         img[img == 51] = 255
+        #now the fish profile is white on black
 
     assert isinstance(img, np.ndarray)
 
