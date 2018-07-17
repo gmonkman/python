@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_tf\vgg2TFRecord.py</StartupFile>
+    <StartupFile>scripts_vgg\oneoff_rms.py</StartupFile>
     <SearchPath>..\;..\models\research\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-x 1.015 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\shore\fujifilm\rotated" "C:\tf\tf\bass\tfrecords\shore_xp30_x1.015.record" vgg_body-caudal.json</CommandLineArguments>
+    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/calibration/rms"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -30,10 +30,10 @@ by_segmentation.by "C:/Development/python/opencvlib/script_objdetect/lobster" -s
 
 lenscorrection.py -m calibrate -c NEXTBASE512G -d
 lenscorrection.py -m list
-lenscorrection.py -m undistort -c GoProHero5 -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/shore/GOPROH~2/UNDIST~1 -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/shore/GOPROH~2
-lenscorrection.py -m undistort -c NEXTBASE512G -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1
-lenscorrection.py -m undistort -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2
-lenscorrection.py -m undistort_fisheye -c GoProHero5PhotoWide -o C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted_fisheye -p C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2
+lenscorrection.py -m undistort -c GoProHero5 -o "C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/shore/GOPROH~2/UNDIST~1" -p "C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/shore/GOPROH~2"
+lenscorrection.py -m undistort -c NEXTBASE512G -o "C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1/undistorted" -p "C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/PROCES~1"
+lenscorrection.py -m undistort -c GoProHero5PhotoWide -o "C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted" -p "C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2"
+lenscorrection.py -m undistort_fisheye -c GoProHero5PhotoWide -o "C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2/undistorted_fisheye" -p "C:/Users/GRAHAM~1/OneDrive/DOCUME~1/PHD/images/bass/fiducial/charter/GOPROH~2"
 
 rotate.py "c:/temp/fix-fid-sh-gopro" "C:/temp/fix-fid-sh-gopro/rotated" vgg_rotations.json
 rotate.py -u "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/rotated_skipped" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/all" "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/rotated" vgg_rotations.json
@@ -136,6 +136,7 @@ tf_detect_fld.py -x -s "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/ba
     <Compile Include="scripts_tf\tf_obj_det.py" />
     <Compile Include="scripts_tf\vgg2TFRecord.py" />
     <Compile Include="scripts_vgg\aruco_size_px_bass.py" />
+    <Compile Include="scripts_vgg\oneoff_rms.py" />
     <Compile Include="scripts_vgg\point_px_dab_processors.py" />
     <Compile Include="scripts_vgg\point_px_bass_processors.py" />
     <Compile Include="scripts_vgg\subject_distance.py" />

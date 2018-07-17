@@ -363,6 +363,7 @@ def chessboard(patch_sz=100, col_first_patch=(0, 0, 0), col_second_patch=(255, 2
             board[j:j+patch_sz, i:i+patch_sz, :2] = color[1]
             board[j:j+patch_sz, i:i+patch_sz, :3] = color[2]
             color = col_second_patch if color==col_first_patch else col_first_patch
+    board = _cv2.rotate(board, _cv2.ROTATE_90_CLOCKWISE) #hack coz got r and c crossed
     return board
 
 

@@ -24,16 +24,16 @@ class Test(unittest.TestCase):
         self.lena = _getimg(lpath)
 
 
-    @unittest.skip("Temporaily disabled while debugging")
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_chessboard(self):
         '''test making a chessboard'''
-        img = _common.chessboard(100, (0, 0, 0), (255, 255, 255), cols=10, rows=14)
+        img = _common.chessboard(100, (0, 0, 0), (255, 255, 255), rows=5, cols=10)
         _cv2.imwrite(r'c:\temp\chequer_50x67.jpg', img)
         show(img)
         iolib.folder_open(r'c:\temp')
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_draw_str(self):
         '''test drawing text'''
         img = np.copy(self.lena)

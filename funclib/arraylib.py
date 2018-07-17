@@ -356,9 +356,26 @@ def makenp(in_):
 
 def distances(origs, dests):
     '''(ndarray|list|tuple, ndarray|list|tuple) -> ndarray
-    Create 2d array of distance between n-dimensional points
+    Create 2d array of distance between n-dimensional points, i.e.
+    creates an n x m matrix of distances between each point rathern
+    than a pairwise set of distances.
 
     origs is broadcasted to dests
+
+    Format for points is:
+    [[0,0]] - a single 2D point at the origin
+    [[0,0,0]] - a single 3D point at the origin
+
+    Examples:
+    >>>a=np.array([[0,0,0]])
+    >>>b=np.array([[1,1,1],[2,2,2]])
+    >>>arraylib.distances(a,b)
+    array([[1.73205081, 3.46410162]])
+
+    >>>a=np.array([[0,0,0],[0,0,0]])
+    >>>b=np.array([[1,1,1],[2,2,2]])
+    >>>arraylib.distances(a,b)
+    array([[1.73205081, 3.46410162], [1.73205081, 3.46410162]])
     '''
     nd_o = makenp(origs)
     nd_d = makenp(dests)
