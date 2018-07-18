@@ -13,6 +13,7 @@ import pandas as _pd
 import numpy as _np
 import scipy as _scipy
 import scipy.stats as _stats
+import statsmodels.api as sm
 
 
 # mine
@@ -488,3 +489,21 @@ def make_pdf(dist, params, size=10000):
     pdf = _pd.Series(y, x)
 
     return pdf
+
+
+def linreg(X, Y):
+    '''(ndarray|list, ndarray|list -> statsmodel.model)
+
+    Pass in two 1D numpy arrays or lists, returns an
+    instance of statsmodel.model
+
+    X, Y: Independent and independent 1d array of values
+
+    Example
+    >>>X = np.arange(10)
+    >>>Y = X*2
+    >>>model = linreg(X, Y)
+    '''
+    X = sm.add_constant(X)
+    model = sm.OLS(Y, X).fit()
+    return model
