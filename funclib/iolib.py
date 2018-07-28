@@ -664,6 +664,11 @@ def files_delete(folder, delsubdirs=False):
             print('Could not clear summary file(s). They are probably being used by tensorboard')
 
 
+def get_temp_fname(suffix='', prefix=''):
+    '''get a temp filename'''
+    return _tempfile.mktemp(suffix, prefix)
+
+
 def get_file_name2(fld, ext, length=3):
     '''(str, str, int)-> str
     generate a random filename

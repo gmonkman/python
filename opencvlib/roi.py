@@ -18,6 +18,7 @@ import opencvlib as _opencvlib
 import opencvlib.info as _info
 import opencvlib.distance as _dist
 import opencvlib.geom as _geom
+from opencvlib.geom import flip_points #as we may expect to find flip_points here
 import funclib.baselib as _baselib
 from funclib.arraylib import np_round_extreme as _rnd
 from opencvlib import getimg as _getimg

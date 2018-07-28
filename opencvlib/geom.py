@@ -205,6 +205,45 @@ def rotate_point(pt, angle, center=(0, 0)):
     return (new_pt[0] + center[0], new_pt[1] + center[1])
 
 
+def flip_points(pts, h, w, hflip=True):
+    '''(n,2-ndarray, float, float, bool) -> 2-tuple
+    Flip a point horizontally or vertcally
+
+    pts:
+        array like of len 2, eg [[1,2],[2,3], ...]
+    h,w:
+        Image height and width in pixels
+    hflip:
+        Flip horizontally, otherwise vertically
+    '''
+    out = []
+    assert isinstance(h, (float, int))
+    assert isinstance(w, (float, int))
+    assert h > 0, 'Image height must be > 0'
+    assert w > 0, 'Image width must be > 0'
+
+    for _ in pts:
+        out = [flip_point(pt, h, w, hflip) for pt in pts]
+    return out
+
+
+def flip_point(pt, h, w, hflip=True):
+    '''(2-array, float, float, bool) -> 2-tuple
+    Flip a point horizontally or vertcally
+
+    pt:
+        array like of len 2, eg [1,2]
+    h,w:
+        Image height and width in pixels
+    hflip:
+        Flip horizontally, otherwise vertically
+    '''
+    if hflip:
+        return (w - pt[0], pt[1])
+    else:
+        return (pt[0], h - pt[1])
+
+
 def centroid(pts, dtype=_np.float):
     '''(ndarray|list|tuple) -> 2-list
     Get centroid of pts as 2-list

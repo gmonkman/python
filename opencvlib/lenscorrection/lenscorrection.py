@@ -43,7 +43,7 @@ from contextlib import contextmanager as _contextmanager
 # region 3rd party imports
 import cv2 as _cv2
 
-import fuckit as _fuckit
+import contextlib as _contextlib
 import numpy as _np
 # endregion
 
@@ -317,7 +317,7 @@ class Calibration(object):
                     else:
                         self.messages.append(
                             'Chessboard vertices not found in %s. The file was deleted.' % (fn))
-                        with _fuckit:
+                        with _contextlib.suppress(FileNotFoundError):
                             _os.remove(fn)
                             print(self.messages[-1])
 
@@ -373,7 +373,7 @@ class Calibration(object):
                     lst = _np.squeeze(lst[[n], ...], 0)
                     img_points_fisheye = [x  for x in lst] #rebuild as list of numpy arrays
 
-                    with _fuckit:
+                    with _contextlib.suppress(FileNotFoundError):
                         _os.remove(image_paths_ok[ind])
                         if not _iolib.file_exists(image_paths_ok[ind]):
                             deleted_images.append(image_paths_ok[ind])
@@ -714,7 +714,7 @@ def undistort(
 
                         _cv2.imwrite(outfile, img)
                         success += 1
-                        with _fuckit:
+                        with _contextlib.suppress(Exception):
                             _iolib.write_to_eof(
                                 logfilename,
                                 'Success:%s\n' %
@@ -727,7 +727,7 @@ def undistort(
                     logfilename, 'Failed:%s, Exception:%s\n' %
                     (fil, Exception.message))
             finally:
-                with _fuckit:
+                with _contextlib.suppress(Exception):
                     _iolib.print_progress(
                         cnt, len(newlist), '%i of %i [Successes: %i]' %
                         (cnt, len(newlist), success), bar_length=30)

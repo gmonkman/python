@@ -4,7 +4,7 @@ Create a TFRecord file from images and their assigned roi. This saves the whole 
 
     -d: Delete all .record files in the output folder first
     -b: batch size, create multiple .record files with a size specified with the -b argument
-
+    -f: Will also add horizontally flipped images and flipped points
     Positional args:
         source_folder, output_folder, vgg_file_name
 
@@ -77,6 +77,7 @@ def image_is_invalid(imgpath):
 def create_tf_example(filename, xmin, xmax, ymin, ymax):
     '''create'''
     filename = path.normpath(filename)
+
     with tf.gfile.GFile(filename, 'rb') as fid:
         encoded_jpg = fid.read()
     encoded_jpg_io = io.BytesIO(encoded_jpg)
@@ -123,6 +124,7 @@ def main():
     cmdline.add_argument('-d', '--delete', action='store_true', help='Delete tfrecord .record file(s) from the output folder.')
     cmdline.add_argument('-x', '--addx', default='1.0', type=float, help='Grow roi width by this proportion.')
     cmdline.add_argument('-y', '--addy', default='1.0', type=float, help='Grow roi height by this proportion.')
+    cmdline.add_argument('-f', '--flip', action='store_true', help='Also add flipped images.')
     cmdline.add_argument('-b', '--batch_sz', help='Batch size.', default=1)
     cmdline.add_argument('source_folder', help='The folder containing the images and vgg file')
     cmdline.add_argument('output_file', help='The TFRecord file to create')
@@ -160,19 +162,22 @@ def main():
         nr_parts = ceil(filecnt / batch_sz)
     first = True
     has_errs = False
-
     for _, imgpath, dic in Gen.generate(grow_roi_x=args.addx, grow_roi_y=args.addy, path_only=False): #path_only has to be false so grow_roi gets capped
         if image_is_invalid(imgpath):
             PP.increment()
             continue
         img = cv2.imread(imgpath)
         ptsx, ptsy = list(zip(*dic['pts_grown_cvxy']))
-        x = dic['region_attributes'].x
-        y = dic['region_attributes'].y
-        w = dic['region_attributes'].w
-        h = dic['region_attributes'].h
 
-        pts_orig = roi.points_convert([x, x + w, y, y + h], img.shape[1], img.shape[0], roi.ePointConversion.XYMinMaxtoCVXY, roi.ePointsFormat.XY)
+        pts_flipped = roi.flip_points(dic['pts_grown_cvxy'], img.shape[0], img.shape[1], hflip=True)
+        ptsx_flipped, ptsy_flipped = list(zip(*pts_flipped))
+
+        #DEBUG STUFF
+        #x = dic['region_attributes'].x
+        #y = dic['region_attributes'].y
+        #w = dic['region_attributes'].w
+        #h = dic['region_attributes'].h
+        #pts_orig = roi.points_convert([x, x + w, y, y + h], img.shape[1], img.shape[0], roi.ePointConversion.XYMinMaxtoCVXY, roi.ePointsFormat.XY)
         #img = common.draw_points(pts_orig, img, join=True, line_color=(0, 0, 0), thickness=2)
         #img = common.draw_points(dic['pts_grown_cvxy'], img, join=True, line_color=(255, 255, 255), thickness=2)
         #title = 'grow_x %.2f grow_y %.2f' % (args.addx, args.addy)
@@ -194,6 +199,18 @@ def main():
 
         tf_example = create_tf_example(imgpath, min(ptsx), max(ptsx), min(ptsy), max(ptsy))
         writer.write(tf_example.SerializeToString())
+        #hackey, flip image, save to temp folder, stick it in the tfrecord, then delete the image
+        if args.flip:
+            tmp = iolib.get_temp_fname(suffix='.jpg')
+            imgflip = cv2.flip(img, flipCode=1) #x axis flip
+            cv2.imwrite(tmp, imgflip)
+            tf_example = create_tf_example(tmp, min(ptsx_flipped), max(ptsx_flipped), min(ptsy_flipped), max(ptsy_flipped))
+            writer.write(tf_example.SerializeToString())
+            try:
+                iolib.files_delete2(tmp)
+            except Exception as _:
+                pass
+
 
     try:
         writer.close()

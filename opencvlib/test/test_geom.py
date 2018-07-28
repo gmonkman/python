@@ -9,6 +9,8 @@ import cv2
 
 import funclib.iolib as iolib
 import opencvlib.geom as geom
+from opencvlib.view import show
+from opencvlib.common import draw_points
 
 
 class Test(unittest.TestCase):
@@ -19,8 +21,13 @@ class Test(unittest.TestCase):
         '''
         self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
         self.modpath = _path.normpath(self.pth)
+        self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
+        self.I = cv2.imread(self.imgpath)
 
-    #@unittest.skip("Temporaily disabled while debugging")
+
+
+
+    @unittest.skip("Temporaily disabled while debugging")
     def test_points_rmsd(self):
         '''rmsd'''
         x = geom.points_rmsd([[1, None], [2, 10]], [[1, 1], [2, 10]])
@@ -28,6 +35,19 @@ class Test(unittest.TestCase):
         x = geom.points_rmsd([[1, None], [2, 10]], [[1, 1], [2, 5]])
         pass
 
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_flip_points(self):
+        pts = [[50, 50], [100, 50], [100, 100], [50, 100]]
+        pts_flip_h = geom.flip_points(pts, self.I.shape[0], self.I.shape[1], hflip=True)
+        pts_flip_v = geom.flip_points(pts, self.I.shape[0], self.I.shape[1], hflip=False)
+
+        img = draw_points(pts, self.I)
+        img_h = draw_points(pts_flip_h, img)
+        img_v = draw_points(pts_flip_v, img)
+
+        show(img_h)
+        show(img_v)
 
 
 
