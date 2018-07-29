@@ -1,6 +1,8 @@
 #This was the jupyter notebook object_detection_tutorial.ipynb
 # When come to export to the spreadsheet
 #check this script, point_px_bass_processors.py
+
+#tf_obj_det.py is used for my detection at the moment
 '''Detect bass in images on the file system.
 
 Example:

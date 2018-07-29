@@ -5,15 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_geom.py</StartupFile>
+    <StartupFile>scripts_tf\tf_obj_det.py</StartupFile>
     <SearchPath>..\;..\models\research\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>-x -f -p charter -c fujifilm "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -61,7 +60,7 @@ vgg2TFRecord.py -d -x 1.015 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/imag
 
 tf_obj_det.py -x -p shore -camera fujifilm "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/frozen_inference_graph.pb" "C:/tf/data/bass_label_map.pbtxt"
 
-tf_detect_fld.py -x -s "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/undistorted" "C:/tf/pretrained/bass/frozen_inference_graph.pb" "C:/tf/data/bass_label_map.pbtxt"</Environment>
+tf_detect_fld.py -x -s -f -p charter -c fujifilm "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

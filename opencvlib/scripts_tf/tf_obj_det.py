@@ -1,6 +1,8 @@
 #This was the jupyter notebook object_detection_tutorial.ipynb
 # When come to export to the spreadsheet
 #check this script, point_px_bass_processors.py
+#THIS IS THE ONE I ACTUALLY USE TO DO THE DETECTIONS
+
 '''Detect bass in images.
 
 Example:
@@ -18,7 +20,7 @@ import cv2
 
 from object_detection.utils import ops as utils_ops
 from object_detection.utils import label_map_util
-from object_detection.utils import visualization_utils as vis_util
+#from object_detection.utils import visualization_utils as vis_util
 
 from opencvlib import aruco
 from funclib import iolib
@@ -120,11 +122,88 @@ def get_samplelengthid(platform, camera, filename):
     return int(sample_lengthids[ind])
 
 
+def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_graph, results, errs, transform='None'):
+    '''(str, str, int, n-list, n-list, tf.Graph, list, list, str) -> n,2-list|None
+
+    Get the detection stats as a list to write to a file.
+
+    results, errs: status lists, ByRef
+    transform: string indicating any transform to the image, eg. "hflip", "none"
+    Returns:
+        detection points on success, else None
+    '''
+    h = img.shape[0]; w = img.shape[1]
+    _, imgname, _ = iolib.get_file_parts2(imgpath)
+    groundtruth_xmin = min(all_points_x) / w; groundtruth_xmax = max(all_points_x) / w
+    groundtruth_ymin = min(all_points_y) / h; groundtruth_ymax = max(all_points_y) / h
+
+    try:
+        output_dict = run_inference_for_single_image(img, detection_graph) # Actual detection.
+    except Exception as e:
+        errs.append(['Tensorflow error on image %s. Error was %s' % (str(e), imgname)])
+        return None
+
+    ymin, xmin, ymax, xmax = output_dict['detection_boxes'][0].tolist() #[0.4146363139152527, 0.3671582341194153, 0.525425910949707, 0.770221471786499] ymin, xmin, ymax, xmax
+    detection_pts = roi.points_denormalize([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], h, w, asint=True)
+    score = float(output_dict['detection_scores'][0]) #0.99999
+    detection_box_centroid = roi.centroid(detection_pts)
+
+    #get marker
+    D = aruco.Detected(img)
+    D.detect()
+    marker_centroids = []
+    #we my have many markers
+    if D.Markers:
+        for M in D.Markers:
+            assert isinstance(M, aruco.Marker)
+            marker_centroids.append(M.centroid)
+        ind, _ = nearestN_euclidean(detection_box_centroid, marker_centroids)[0]
+        marker = D.Markers[ind]
+        assert isinstance(marker, aruco.Marker)
+    else:
+        errs.append(['No marker found for image %s' % imgname])
+        return None
+
+    length_est = abs((detection_pts[1][0] - detection_pts[0][0])) * marker.px_length_mm()
+    results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score, length_est, transform])
+
+    return detection_pts
+
+
+def get_detection(img, groundtruth_pts, detection_pts, fname, show_):
+    '''(ndarray, n2-list, str, bool) -> void
+    Save the detection to an image and optionally show it.
+
+    img: ndarray image
+    groundtruth_pts: n2-list of points, region.all_points is in the correct format
+    fname: the filename to save the detections as
+    show_: show the image
+    '''
+    img_with_groundtruth = common.draw_polygon(img, groundtruth_pts, color=(0, 0, 0), thickness=2)
+    img_with_detection = common.draw_polygon(img_with_groundtruth, detection_pts, color=(0, 255, 0), thickness=2)
+    gt_all_x, gt_all_y = list(zip(*groundtruth_pts))
+
+    #s = 'Prediction: %.3f' % score
+    #common.draw_str(img_with_detection, x=25, y=25, s=s, color=(255, 255, 255), box_background=(0, 0, 0), scale=2, box_pad=10)
+    try: #this can fail if not enough room to draw the detection box, but isn't critical
+        common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s='Detection', color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10) #top left
+        common.draw_str(img_with_detection, min(gt_all_x), max(gt_all_y), s='Groundtruth', color=(255, 255, 255), box_background=(0, 0, 0), scale=1.5, box_pad=10) #bottom left
+    except Exception as _:
+        pass
+    cv2.imwrite(fname, img_with_detection)
+
+    if show_:
+        show(img_with_detection)
+
+
+
 def main():
     '''entry'''
     cmdline = argparse.ArgumentParser(description=__doc__)
     cmdline.add_argument('-p', '--platform', help='"charter" or "shore"')
+    cmdline.add_argument('-f', '--flip', action='store_true', help='also detect on the horizontally flipped image')
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
+    #You could also try on rotated images
     cmdline.add_argument('-x', help='Export detections as images to image subdir "detections"', action='store_true')
     cmdline.add_argument('-s', help='Show detections', action='store_true')
     cmdline.add_argument('-v', '--verbosity', help='Set to DEBUG, INFO, WARN, ERROR, or FATAL', default='ERROR')
@@ -150,14 +229,18 @@ def main():
         return
     iolib.create_folder(detections_folder)
 
+    #Check all images in the vgg file (with groundtruths) have a valid bass uniquecode and a vgg record
     i = 0
     PP = iolib.PrintProgressFlash(ticks=None, msg='\nRunning prechecks ... ')
-    for imgpath, res, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
+    for imgpath, _, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
         PP.update()
         i += 1
         imgpath = path.normpath(imgpath)
         imgfld, imgname, _ = iolib.get_file_parts2(imgpath)
-        sample_lengthid = get_samplelengthid(args.platform, args.camera, imgname)
+        try:
+            sample_lengthid = get_samplelengthid(args.platform, args.camera, imgname)
+        except ValueError as _:
+            raise Exception('Could not get the sample length from the image name. First Check the inifile settings.')
         assert sample_lengthid in list(range(212, 525)), 'sample_lengthid %s was invalid' % sample_lengthid #hardcoded ids
 
     #load graph
@@ -169,72 +252,53 @@ def main():
             od_graph_def.ParseFromString(serialized_graph)
             tf.import_graph_def(od_graph_def, name='')
 
-    label_map = label_map_util.load_labelmap(labels_file)
-    categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=1, use_display_name=True)
-    category_index = label_map_util.create_category_index(categories)
+    #label_map = label_map_util.load_labelmap(labels_file)
+    #categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=1, use_display_name=True)
+    #category_index = label_map_util.create_category_index(categories)
 
     #results are normalized
-    results = [['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'accuracy', 'length_est']]
+    results = [['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'accuracy', 'length_est', 'transform']]
     errs = []
     PP = iolib.PrintProgress(i, init_msg='\nRunning detections ...')
-    for imgpath, res, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
+    for imgpath, _, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
         assert isinstance(Reg, vgg.Region)
 
         PP.increment()
-        w = res[0]; h = res[1]
+
         imgpath = path.normpath(imgpath)
         imgfld, imgname, _ = iolib.get_file_parts2(imgpath)
+        sample_lengthid = get_samplelengthid(args.platform, args.camera, imgname) #dont need to check this, we did it before in the pretest
         img = cv2.imread(imgpath)
+
         if not isinstance(img, np.ndarray):
             continue
-        sample_lengthid = get_samplelengthid(args.platform, args.camera, imgname)
-        groundtruth_xmin = min(Reg.all_points_x) / w; groundtruth_xmax = max(Reg.all_points_x) / w
-        groundtruth_ymin = min(Reg.all_points_y) / h; groundtruth_ymax = max(Reg.all_points_y) / h
 
-        try:
-            output_dict = run_inference_for_single_image(img, detection_graph) # Actual detection.
-        except Exception as e:
-            errs.append(['Tensorflow error on image %s. Error was %s' % (str(e), imgpath)])
+        #detect as is
+        detection_pts = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, 'None')
+        if not detection_pts:
             continue
-
-        ymin, xmin, ymax, xmax = output_dict['detection_boxes'][0].tolist() #[0.4146363139152527, 0.3671582341194153, 0.525425910949707, 0.770221471786499] ymin, xmin, ymax, xmax
-        detection_pts = roi.points_denormalize([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], h, w, asint=True)
-        score = float(output_dict['detection_scores'][0]) #0.99999
-        detection_box_centroid = roi.centroid(detection_pts)
-
-        #get marker
-        D = aruco.Detected(img)
-        D.detect()
-        marker_centroids = []
-        #we my have many markers
-        if D.Markers:
-            for M in D.Markers:
-                assert isinstance(M, aruco.Marker)
-                marker_centroids.append(M.centroid)
-            ind, _ = nearestN_euclidean(detection_box_centroid, marker_centroids)[0]
-            marker = D.Markers[ind]
-            assert isinstance(marker, aruco.Marker)
-        else:
-            errs.append(['No marker found for image %s' % imgname])
-            continue
-
-        length_est = abs((detection_pts[1][0] - detection_pts[0][0])) * marker.px_length_mm()
-        results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score, length_est])
 
         if args.x:
-            img_with_groundtruth = common.draw_polygon(img, Reg.all_points, color=(0, 0, 0), thickness=2)
-            img_with_detection = common.draw_polygon(img_with_groundtruth, detection_pts, color=(0, 255, 0), thickness=2)
-            s = 'Prediction: %.3f' % score
-            common.draw_str(img_with_detection, x=25, y=25, s=s, color=(255, 255, 255), box_background=(0, 0, 0), scale=2, box_pad=10)
-            common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s='Detection', color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10)
-            common.draw_str(img_with_detection, Reg.all_points_x[0], Reg.all_points_y[2], s='Groundtruth', color=(255, 255, 255), box_background=(0, 0, 0), scale=1.5, box_pad=10)
-            #vis_util.visualize_boxes_and_labels_on_image_array(img, output_dict['detection_boxes'], output_dict['detection_classes'], output_dict['detection_scores'], category_index, instance_masks=output_dict.get('detection_masks'), use_normalized_coordinates=True, line_thickness=8, max_boxes_to_draw=1) # Visualization of the results of a detection.
+            #Save and optionally show the detection
             detection_image_name = path.normpath(path.join(detections_folder, imgname))
-            cv2.imwrite(detection_image_name, img_with_detection)
+            get_detection(img, Reg.all_points, detection_pts, detection_image_name, args.s)
 
-        if args.s:
-            show(img_with_detection)
+        #detect when flipped
+        if args.flip:
+            img_hflip = cv2.flip(img, 1)
+            pts_flip = roi.flip_points(Reg.all_points, img.shape[0], img.shape[1], hflip=True)
+            pts_flip_x, pts_flip_y = list(zip(*pts_flip))
+            detection_pts = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, 'hflip')
+            all_points_flip = roi.flip_points(Reg.all_points, img_hflip.shape[0], img_hflip.shape[1], hflip=True)
+            if not detection_pts:
+                continue
+            if  args.x:
+                #Save and optionally show the detection
+                detection_image_name = path.normpath(path.join(detections_folder, 'flip_' + imgname))
+                get_detection(img_hflip, all_points_flip, detection_pts, detection_image_name, args.s)
 
+        #Getting size
+        #https://math.stackexchange.com/questions/1628657/dimensions-of-a-rectangle-containing-a-rotated-rectangle
     #export any problems to a csv file
     if errs:
         errfile = path.normpath(path.join(imgfld, 'detection_errs.csv'))
