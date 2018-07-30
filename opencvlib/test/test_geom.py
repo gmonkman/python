@@ -38,6 +38,7 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_flip_points(self):
+        '''test'''
         pts = [[50, 50], [100, 50], [100, 100], [50, 100]]
         pts_flip_h = geom.flip_points(pts, self.I.shape[0], self.I.shape[1], hflip=True)
         pts_flip_v = geom.flip_points(pts, self.I.shape[0], self.I.shape[1], hflip=False)

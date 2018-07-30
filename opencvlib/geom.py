@@ -8,6 +8,9 @@ from numpy.random import uniform
 import funclib.baselib as _baselib
 import opencvlib.distance as _dist
 
+RADIANS45 = 0.7853981633974483
+RADIANS90 = 1.5707963267948966
+RADIANS60 = 1.0471975511965976
 
 def get_rnd_pts(range_=(-50, 50), n=10, dtype=_np.int):
     '''(2-tuple, 2-tuple, int, class:numpy.dtype) -> ndarray
@@ -101,7 +104,7 @@ def angle_min_rotation_to_x(angle, as_degrees=True):
 
 
 
-def length_petween_pts(pts, closed=False):
+def length_between_pts(pts, closed=False):
     '''(array, bool) -> float
     Length of lines defined by points
 
@@ -109,6 +112,10 @@ def length_petween_pts(pts, closed=False):
         iterable, in format [[1,2], [3,4], ...]
     closed:
         include length between first and last point
+
+    Example:
+    >>> length_between_pts([[0,0],[1,1]])
+    1.4142135623730951
     '''
     l = 0
 
@@ -116,10 +123,36 @@ def length_petween_pts(pts, closed=False):
         return 0
 
     for i in range(0, len(pts) - 1):
-        l += _dist.L1dist(pts[i], pts[i+1])
+        l += _dist.L2dist(pts[i], pts[i+1])
 
     if closed:
         l += _dist.L2dist(pts[0], pts[-1])
+    return l
+
+
+def length_between_all_pts(pts):
+    '''(array, bool) -> list
+    Return all lengths between points in
+    the order they appear
+
+    pts:
+        iterable, in format [[1,2], [3,4], ...]
+
+    Example:
+    >>> length_between_pts([[0,0],[1,1]])
+    1.4142135623730951, 1.4142135623730951
+    '''
+    l = []
+
+    if len(pts) <= 1:
+        return 0
+
+    for i in range(0, len(pts) - 1):
+        l.append(_dist.L2dist(pts[i], pts[i+1]))
+
+
+        l.append(_dist.L2dist(pts[0], pts[-1]))
+
     return l
 
 
@@ -316,3 +349,12 @@ def order_points(p):
     cent = (sum([p[0] for p in pts])/len(pts), sum([p[1] for p in pts])/len(pts))
     pts.sort(key=lambda p: _math.atan2(p[1] - cent[1], p[0] - cent[0]))
     return pts
+
+
+def inner_rect_side_length(ab_ratio, A, B):
+    '''(float, float, float) -> float, float, float
+    Rotate a rectangle of known side ratio,
+    draw a bounding rectangle around it.
+    Get an estimate of the inner rectangle sides from the sides of
+    the bounding rectangle and the known ratio.
+    '''

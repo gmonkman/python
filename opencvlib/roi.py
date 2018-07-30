@@ -723,9 +723,11 @@ def rect_as_rchw(pts):
 
 # DEBUG bounding_rect_of_poly
 def bounding_rect_of_poly(points, as_points=True):
-    '''(list|ndarray)->list
+    '''(list|ndarray)->n-list
     Return points of a bounding rectangle in opencv point format if
-    as_points=True.
+    as_points=True. Returns integer list.
+
+    Use bounding_rect_of_poly2 if want floats.
 
     If as_points is false, returns as a tuple (x,y,w,h)
 
@@ -746,6 +748,32 @@ def bounding_rect_of_poly(points, as_points=True):
 
     return (x, y, w, h)
 
+# DEBUG bounding_rect_of_poly
+def bounding_rect_of_poly2(points, as_points=True, round_=False):
+    '''(list|ndarray, bool, bool)->list
+    Return points of a bounding rectangle in opencv point format if
+    as_points=True.
+
+    Note opencv points have origin in top left
+
+    as_points: if false, returns as a tuple (x,y,w,h), else [[0,0], ...]
+    round_: rounds points, else returns as float
+    '''
+    pts_x, pts_y = list(zip(*points))
+
+    if round_:
+        pts_x = [int(x) for x in pts_x]
+        pts_y = [int(y) for y in pts_y]
+
+    y = min(pts_y)
+    x = min(pts_x)
+    h = max(pts_y) - min(pts_y)
+    w = max(pts_x) - min(pts_x)
+
+    if as_points:
+        return rect_as_points(y, x, w, h)
+
+    return (x, y, w, h)
 
 # DEBUG bounding_rect_of_ellipse
 def bounding_rect_of_ellipse(centre_point, rx, ry):

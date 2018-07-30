@@ -122,7 +122,7 @@ def get_samplelengthid(platform, camera, filename):
     return int(sample_lengthids[ind])
 
 
-def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_graph, results, errs, transform='None'):
+def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_graph, results, errs, platform, camera, transform='None', rotation=0):
     '''(str, str, int, n-list, n-list, tf.Graph, list, list, str) -> n,2-list|None
 
     Get the detection stats as a list to write to a file.
@@ -164,8 +164,10 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
         errs.append(['No marker found for image %s' % imgname])
         return None
 
+    length_est_rotation_adjust = length_est
+
     length_est = abs((detection_pts[1][0] - detection_pts[0][0])) * marker.px_length_mm()
-    results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score, length_est, transform])
+    results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score, length_est, length_est_rotation_adjust, platform, camera, transform, rotation])
 
     return detection_pts
 
@@ -203,6 +205,7 @@ def main():
     cmdline.add_argument('-p', '--platform', help='"charter" or "shore"')
     cmdline.add_argument('-f', '--flip', action='store_true', help='also detect on the horizontally flipped image')
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
+    cmdline.add_argument('-r', '--rotate', type=int, help='Do detections over a range of rotations', default=0)
     #You could also try on rotated images
     cmdline.add_argument('-x', help='Export detections as images to image subdir "detections"', action='store_true')
     cmdline.add_argument('-s', help='Show detections', action='store_true')
@@ -257,7 +260,7 @@ def main():
     #category_index = label_map_util.create_category_index(categories)
 
     #results are normalized
-    results = [['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'accuracy', 'length_est', 'transform']]
+    results = [['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'accuracy', 'length_est', 'length_est_rotation_adjust', 'platform', 'camera', 'transform', 'rotation']]
     errs = []
     PP = iolib.PrintProgress(i, init_msg='\nRunning detections ...')
     for imgpath, _, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
@@ -274,7 +277,7 @@ def main():
             continue
 
         #detect as is
-        detection_pts = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, 'None')
+        detection_pts = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, args.platform, args.camera, 'None', 0)
         if not detection_pts:
             continue
 
@@ -288,7 +291,7 @@ def main():
             img_hflip = cv2.flip(img, 1)
             pts_flip = roi.flip_points(Reg.all_points, img.shape[0], img.shape[1], hflip=True)
             pts_flip_x, pts_flip_y = list(zip(*pts_flip))
-            detection_pts = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, 'hflip')
+            detection_pts = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, args.platform, args.camera, 'hflip', 0)
             all_points_flip = roi.flip_points(Reg.all_points, img_hflip.shape[0], img_hflip.shape[1], hflip=True)
             if not detection_pts:
                 continue
@@ -296,6 +299,9 @@ def main():
                 #Save and optionally show the detection
                 detection_image_name = path.normpath(path.join(detections_folder, 'flip_' + imgname))
                 get_detection(img_hflip, all_points_flip, detection_pts, detection_image_name, args.s)
+
+        #if args.rotate > 0:
+
 
         #Getting size
         #https://math.stackexchange.com/questions/1628657/dimensions-of-a-rectangle-containing-a-rotated-rectangle

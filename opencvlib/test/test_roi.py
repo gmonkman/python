@@ -13,6 +13,7 @@ from opencvlib.roi import ePointConversion as eCvt
 from opencvlib.view import show
 from opencvlib.view import mosaic
 from opencvlib.transforms import rotate
+import opencvlib.geom as geom
 import opencvlib.common as common
 
 class Test(unittest.TestCase):
@@ -117,13 +118,20 @@ class Test(unittest.TestCase):
         self.assertEqual(a, 0.25)
         z=10
 
-    #@unittest.skip("Temporaily disabled test_showarray")
+    @unittest.skip("Temporaily disabled test_showarray")
     def test_iou(self):
         '''test quadrilateral manip'''
         nas = [0.263571990558615,	0.790715971675845,	0.435483870967741,	0.6,	0.265444666147232,	0.784790337085723,	0.432113647460937,	0.600508213043212]
         a = roi.iou2(*nas)
         self.assertEqual(a, 0.9628434335096393)
 
+
+    #@unittest.skip("Temporaily disabled test_showarray")
+    def test_bounding_rect_of_poly(self):
+        sq = [[0,0],[10,10],[0,10],[10,0]]
+        sq45 = geom.rotate_points(sq, -45, None)
+        sq45_bound = roi.bounding_rect_of_poly(sq45, round=False)
+        pass
 
 
 

@@ -47,6 +47,7 @@ class Test(unittest.TestCase):
 
     @unittest.skip("Temporaily disabled while debugging")
     def test_draw_polygon(self):
+        '''test'''
         img = np.copy(self.lena)
         imgout = _common.draw_polygon(img, [[10, 10], [100, 10], [100, 100], [10, 100]], (0, 0, 0), thickness=3)
         show([img, imgout])
