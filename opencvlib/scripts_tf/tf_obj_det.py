@@ -16,7 +16,7 @@ import tensorflow as tf
 import os.path as path
 import argparse
 import random
-
+from warnings import warn
 import cv2
 
 from object_detection.utils import ops as utils_ops
@@ -35,6 +35,7 @@ from opencvlib import geom
 
 VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
 VALID_PLATFORMS = ['shore', 'charter']
+DEVICE = '/cpu:0'
 
 #this is calculated in scripts_vgg\calc_lw.py
 BASS_LENGTH_DEPTH_RATIO = 4.319593022146387
@@ -44,38 +45,39 @@ def run_inference_for_single_image(image, graph):
     '''
     with graph.as_default():
         with tf.Session() as sess:
-            # Get handles to input and output tensors
-            ops = tf.get_default_graph().get_operations()
-            all_tensor_names = {output.name for op in ops for output in op.outputs}
-            tensor_dict = {}
-            for key in ['num_detections', 'detection_boxes', 'detection_scores', 'detection_classes', 'detection_masks']:
-                tensor_name = key + ':0'
-                if tensor_name in all_tensor_names:
-                    tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
+            with tf.device(DEVICE):
+                # Get handles to input and output tensors
+                ops = tf.get_default_graph().get_operations()
+                all_tensor_names = {output.name for op in ops for output in op.outputs}
+                tensor_dict = {}
+                for key in ['num_detections', 'detection_boxes', 'detection_scores', 'detection_classes', 'detection_masks']:
+                    tensor_name = key + ':0'
+                    if tensor_name in all_tensor_names:
+                        tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
 
-            if 'detection_masks' in tensor_dict:
-                # The following processing is only for single image
-                detection_boxes = tf.squeeze(tensor_dict['detection_boxes'], [0])
-                detection_masks = tf.squeeze(tensor_dict['detection_masks'], [0])
-                # Reframe is required to translate mask from box coordinates to image coordinates and fit the image size.
-                real_num_detection = tf.cast(tensor_dict['num_detections'][0], tf.int32)
-                detection_boxes = tf.slice(detection_boxes, [0, 0], [real_num_detection, -1])
-                detection_masks = tf.slice(detection_masks, [0, 0, 0], [real_num_detection, -1, -1])
-                detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(detection_masks, detection_boxes, image.shape[0], image.shape[1])
-                detection_masks_reframed = tf.cast(tf.greater(detection_masks_reframed, 0.5), tf.uint8)
-                # Follow the convention by adding back the batch dimension
-                tensor_dict['detection_masks'] = tf.expand_dims(detection_masks_reframed, 0)
-            image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
+                if 'detection_masks' in tensor_dict:
+                    # The following processing is only for single image
+                    detection_boxes = tf.squeeze(tensor_dict['detection_boxes'], [0])
+                    detection_masks = tf.squeeze(tensor_dict['detection_masks'], [0])
+                    # Reframe is required to translate mask from box coordinates to image coordinates and fit the image size.
+                    real_num_detection = tf.cast(tensor_dict['num_detections'][0], tf.int32)
+                    detection_boxes = tf.slice(detection_boxes, [0, 0], [real_num_detection, -1])
+                    detection_masks = tf.slice(detection_masks, [0, 0, 0], [real_num_detection, -1, -1])
+                    detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(detection_masks, detection_boxes, image.shape[0], image.shape[1])
+                    detection_masks_reframed = tf.cast(tf.greater(detection_masks_reframed, 0.5), tf.uint8)
+                    # Follow the convention by adding back the batch dimension
+                    tensor_dict['detection_masks'] = tf.expand_dims(detection_masks_reframed, 0)
+                image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
 
-            output_dict = sess.run(tensor_dict, feed_dict={image_tensor: np.expand_dims(image, 0)})
+                output_dict = sess.run(tensor_dict, feed_dict={image_tensor: np.expand_dims(image, 0)})
 
-            # all outputs are float32 numpy arrays, so convert types as appropriate
-            output_dict['num_detections'] = int(output_dict['num_detections'][0])
-            output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint8)
-            output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
-            output_dict['detection_scores'] = output_dict['detection_scores'][0]
-            if 'detection_masks' in output_dict:
-                output_dict['detection_masks'] = output_dict['detection_masks'][0]
+                # all outputs are float32 numpy arrays, so convert types as appropriate
+                output_dict['num_detections'] = int(output_dict['num_detections'][0])
+                output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint8)
+                output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
+                output_dict['detection_scores'] = output_dict['detection_scores'][0]
+                if 'detection_masks' in output_dict:
+                    output_dict['detection_masks'] = output_dict['detection_masks'][0]
     return output_dict
 
 
@@ -127,7 +129,7 @@ def get_samplelengthid(platform, camera, filename):
     return int(sample_lengthids[ind])
 
 
-def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_graph, results, errs, platform, camera, transform='None', rotation=0):
+def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_graph, results, errs, network, platform, camera, transform='None', rotation=0):
     '''(str, str, int, n-list, n-list, tf.Graph, list, list, str) -> n,2-list|None
 
     Get the detection stats as a list to write to a file.
@@ -176,7 +178,7 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
     else:
         length_est_rotation_adjust = length_est
 
-    results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score, length_est, length_est_rotation_adjust, platform, camera, transform, rotation])
+    results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score, length_est, length_est_rotation_adjust, network, platform, camera, transform, rotation])
     return detection_pts
 
 
@@ -215,6 +217,8 @@ def main():
     cmdline.add_argument('-f', '--flip', action='store_true', help='also detect on the horizontally flipped image')
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
     cmdline.add_argument('-r', '--rotate', type=int, help='Do detections over a range of rotations', default=0)
+    cmdline.add_argument('-d', '--device', type=str, help='Tensorflow device to run on', default='/cpu:0')
+    cmdline.add_argument('-o', '--detections_folder', type=str, help='Folder in which detections are created, uses root of vgg_file', default='detections')
     #You could also try on rotated images
     cmdline.add_argument('-x', '--export_every', type=int, default=0, help='Export  every [x] images to image subdir "detections"')
     cmdline.add_argument('-s', help='Show detections', action='store_true')
@@ -228,6 +232,22 @@ def main():
     pb_file = path.normpath(args.pb_file)
     labels_file = path.normpath(args.labels_file)
 
+    if 'ssd' in pb_file:
+        network = 'ssd'
+    elif 'nas' in pb_file:
+        network = 'nas'
+    elif 'res' in pb_file:
+        network = 'res'
+    else:
+        raise ValueError('pb_file did not contain "ssd" or "nas" or "res", could not assign network')
+
+    global DEVICE
+    if args.device in ['/gpu:0', '/gpu:1', '/gpu:2', '/gpu:3', '/cpu:0', '/cpu:1', '/cpu:2', '/cpu:3', '/cpu:4', '/cpu:5', '/cpu:6', '/cpu:7', '/cpu:8']:
+        DEVICE = args.device
+    else:
+        warn('Device %s not recognised. Defaulting to "/cpu:0"' % args.device)
+        DEVICE = '/cpu:0'
+
     assert iolib.file_exists(vgg_file), 'vgg file %s not found' % vgg_file
     assert iolib.file_exists(pb_file), 'pb file %s not found' % pb_file
     assert iolib.file_exists(labels_file), 'Labels file %s not found' % labels_file
@@ -235,11 +255,9 @@ def main():
     assert args.camera in VALID_CAMERAS, 'Camera must be in %s' % str(VALID_CAMERAS)
 
     fld, _, _ = iolib.get_file_parts2(vgg_file)
-    detections_folder = path.normpath(path.join(fld, 'detections'))
-    if iolib.folder_has_files(detections_folder):
-        print('Detection folder %s must be empty. Clear it manually.' % detections_folder)
-        return
+    detections_folder = path.normpath(path.join(fld, args.detections_folder))
     iolib.create_folder(detections_folder)
+    iolib.files_delete(detections_folder)
 
     #Check all images in the vgg file (with groundtruths) have a valid bass uniquecode and a vgg record
     i = 0
@@ -269,7 +287,7 @@ def main():
     #category_index = label_map_util.create_category_index(categories)
 
     #results are normalized
-    results = [['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'accuracy', 'length_est', 'length_est_rotation_adjust', 'platform', 'camera', 'transform', 'rotation']]
+    results = [['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'accuracy', 'length_est', 'length_est_rotation_adjust', 'network', 'platform', 'camera', 'transform', 'rotation']]
     errs = []
 
     if args.rotate > 0:
@@ -293,7 +311,7 @@ def main():
             continue
 
         #detect as is
-        detection_pts = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, args.platform, args.camera, 'None', 0)
+        detection_pts = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, network, args.platform, args.camera, 'None', 0)
         if not detection_pts:
             continue
 
@@ -307,7 +325,7 @@ def main():
             img_hflip = cv2.flip(img, 1)
             pts_flip = roi.flip_points(Reg.all_points, img.shape[0], img.shape[1], hflip=True)
             pts_flip_x, pts_flip_y = list(zip(*pts_flip))
-            detection_pts = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, args.platform, args.camera, 'hflip', 0)
+            detection_pts = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, network, args.platform, args.camera, 'hflip', 0)
             all_points_flip = roi.flip_points(Reg.all_points, img_hflip.shape[0], img_hflip.shape[1], hflip=True)
             if not detection_pts:
                 continue
@@ -325,7 +343,7 @@ def main():
                 pts_bound = geom.bounding_rect_of_poly2(pts_rot) #this is the bounding polygon
                 pts_rot_x, pts_rot_y = list(zip(*pts_bound))
                 xform = 'r_%s' % angle
-                detection_pts = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, args.platform, args.camera, xform, angle)
+                detection_pts = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, network, args.platform, args.camera, xform, angle)
                 if not detection_pts:
                     continue
 
@@ -339,14 +357,14 @@ def main():
 
     #export any problems to a csv file
     if errs:
-        errfile = path.normpath(path.join(imgfld, 'detection_errs.csv'))
+        errfile = path.normpath(path.join(detections_folder, 'detection_errs.csv'))
         try:
             iolib.writecsv(errfile, errs, inner_as_rows=False)
         except Exception as _:
             pass
 
     if results:
-        resfile = path.normpath(path.join(imgfld, 'detection.csv'))
+        resfile = path.normpath(path.join(detections_folder, 'detection.csv'))
         #print('resfile was %s' % resfile)
         try:
            #print('Exporting results. There were %s records in results' % len(results))
