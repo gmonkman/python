@@ -4,6 +4,7 @@ import math as _math
 
 import numpy as _np
 from numpy.random import uniform
+from scipy.optimize import fsolve as _fsolve
 
 import funclib.baselib as _baselib
 import opencvlib.distance as _dist
@@ -150,8 +151,7 @@ def length_between_all_pts(pts):
     for i in range(0, len(pts) - 1):
         l.append(_dist.L2dist(pts[i], pts[i+1]))
 
-
-        l.append(_dist.L2dist(pts[0], pts[-1]))
+    l.append(_dist.L2dist(pts[0], pts[-1]))
 
     return l
 
@@ -189,8 +189,8 @@ def rotation_angle(pt1, pt2, as_radians=False):
     return rad if as_radians else _math.degrees(rad)
 
 
-def rotate_points(pts, angle, center=(0, 0)):
-    '''(ndarray|list, float, 2-tuple|None) -> nx2-tuple
+def rotate_points(pts, angle, center=(0, 0), translate=(0, 0)):
+    '''(ndarray|list, float, 2-tuple|None, 2-tuple) -> nx2-tuple
     Rotates a point "angle" degree around center.
     Negative angle is clockwise.
 
@@ -202,7 +202,14 @@ def rotate_points(pts, angle, center=(0, 0)):
         point around which to rotate, (x, y),
         if center is None, rotate about the
         center of the points
-
+    translate:
+        Add a translation, this is useful if an image
+        has been rotated without croping. In this case
+        we add a positive y and x translation of
+        translate = (
+                    (img_rotated.shape[0] - img_orig.shape[0])/2,
+                    (img_rotated.shape[1] - img_orig.shape[1])/2
+                    )
     Example:
     >>>rotate_points([[10,10],[20,20]], -45, center=(15,15))
     [(15.0, 7.9289321881345245), (15.0, 22.071067811865476)]
@@ -212,11 +219,13 @@ def rotate_points(pts, angle, center=(0, 0)):
         center = _np.mean(pts, axis=0)
 
     for _ in pts:
-        out = [rotate_point(pt, angle, center) for pt in pts]
+        out = [rotate_point(pt, angle, center, translate) for pt in pts]
+
+
     return out
 
 
-def rotate_point(pt, angle, center=(0, 0)):
+def rotate_point(pt, angle, center=(0, 0), translate=(0, 0)):
     '''(2-array, float, 2-tuple) -> 2-tuple
     Rotates a point "angle" degree around center.
     Negative angle is clockwise.
@@ -227,6 +236,14 @@ def rotate_point(pt, angle, center=(0, 0)):
         angle to rotate in degrees (e.g. -90)
     center:
         point around which to rotate, (x, y)
+    translate:
+        Add a translation, this is useful if an image
+        has been rotated without croping. In this case
+        we add a positive y and x translation of
+        translate = (
+                    (img_rotated.shape[0] - img_orig.shape[0])/2,
+                    (img_rotated.shape[1] - img_orig.shape[1])/2
+                    )
     '''
     angle = -1*angle #the angle as passed will be negative for clockwise, but this routine uses positive for clockwise - make it behave the same
     angle_rad = _math.radians(angle % 360)
@@ -235,7 +252,7 @@ def rotate_point(pt, angle, center=(0, 0)):
     new_pt = (new_pt[0] * _math.cos(angle_rad) - new_pt[1] * _math.sin(angle_rad),
                  new_pt[0] * _math.sin(angle_rad) + new_pt[1] * _math.cos(angle_rad))
     # Reverse the shifting we have done
-    return (new_pt[0] + center[0], new_pt[1] + center[1])
+    return (new_pt[0] + center[0] + translate[0], new_pt[1] + center[1] + translate[1])
 
 
 def flip_points(pts, h, w, hflip=True):
@@ -273,8 +290,8 @@ def flip_point(pt, h, w, hflip=True):
     '''
     if hflip:
         return (w - pt[0], pt[1])
-    else:
-        return (pt[0], h - pt[1])
+
+    return (pt[0], h - pt[1])
 
 
 def centroid(pts, dtype=_np.float):
@@ -294,20 +311,26 @@ def centroid(pts, dtype=_np.float):
 
 
 def valid_point_pairs(pts1, pts2):
-    '''Build matched array of points
-    Returns 2 arrays of points.
+    '''(n,2-list, n,2-list) -> n,2-list, n,2-list
+    Build matched array of points
+
+    Returns 2 arrays of points from pts1, pts2
+    where neither point contains None.
+
+    i.e. it filters out points which are invalid
+    returning only those points which are pairwise
+    valid.
 
     If no points found, returns [],[]
 
+    pts1, pts2: n,2-list of points
+
     e.g.
-    >>>x, y = build_matched([[None, 1], [10,20]], [[1, 1], [1,2]])
-    >>>print(x)
-    [[10,20]]
-    >>>print(y)
-    [[1,2]]
+    >>>pts1, pts2 = build_matched([[None, 1], [10,20]], [[1, 1], [1,2]])
+    >>>print(pts1, pts2)
+    [[10,20]], [[1,2]]
     '''
-    pt1_out = []
-    pt2_out = []
+    pt1_out = []; pt2_out = []
     for i in range(min([len(pts1), len(pts2)])):
         if not None in pts1[i] and not None in pts2[i]:
             pt1_out.append(pts1[i])
@@ -351,10 +374,144 @@ def order_points(p):
     return pts
 
 
-def inner_rect_side_length(ab_ratio, A, B):
-    '''(float, float, float) -> float, float, float
-    Rotate a rectangle of known side ratio,
-    draw a bounding rectangle around it.
-    Get an estimate of the inner rectangle sides from the sides of
-    the bounding rectangle and the known ratio.
+def rect_side_lengths(pts):
+    '''(n,2-list) -> 2-list
+    Get side lengths of rectangle
+
+    pts: list of points [[0,0],[10,10],[10,0],[0,10]]
+
+    Returns: shortest side, lonest side
+
+    Example:
+    >>> rect_side_lengths([[0,0],[10,10],[10,0],[0,10]])
+    14.142135623730951, 14.142135623730951
     '''
+    assert len(pts) == 4, 'Rectangle must have 4 points, got %s' % len(pts)
+    ls = length_between_all_pts(pts)
+    #this is necessary because if points are in wrong order, can get diagonal
+    ls.sort()
+    ls = list(set(ls))
+    return ls[0], ls[1]
+
+
+def bound_poly_rect_side_length(pts, angle, radians=False, centre=None):
+    '''(n,2-list, float, 2-tuple|None, bool) -> 2n-list, float, float
+
+    Rotate a polygon, then get the points and
+    side lengths of the bounding rectangle.
+    Also orders the returned points.
+
+    pts: n2-list, [[0,0], [10,10], ...]
+    angle: angle to rotate
+    radians: if true, angle is assumed to be radians, else degrees
+    centre: rotate around this centre, if none, rotation is around
+            the polygon centre
+
+    Returns: points, short length, long length
+    '''
+    if radians:
+        angle = _math.degrees(angle)
+    sqrot = rotate_points(pts, angle, None)
+    sqbnd = order_points(bounding_rect_of_poly2(sqrot))
+    sq_b, sq_a = rect_side_lengths(sqbnd)
+    return sqbnd, sq_b, sq_a
+
+
+def bounding_rect_of_poly2(points, as_points=True, round_=False):
+    '''(list|ndarray, bool, bool)->list
+    Return points of a bounding rectangle in opencv point format if
+    as_points=True.
+
+    Note opencv points have origin in top left
+
+    as_points: if false, returns as a tuple (x,y,w,h), else [[0,0], ...]
+    round_: rounds points, else returns as float
+    '''
+    pts_x, pts_y = list(zip(*points))
+
+    if round_:
+        pts_x = [int(x) for x in pts_x]
+        pts_y = [int(y) for y in pts_y]
+
+    y = min(pts_y)
+    x = min(pts_x)
+    h = max(pts_y) - min(pts_y)
+    w = max(pts_x) - min(pts_x)
+
+    if as_points:
+        return rect_as_points(y, x, w, h)
+
+    return (x, y, w, h)
+
+
+def rect_as_points(rw, col, w, h):
+    '''(int,int,int,int)->list
+    Given a rectangle specified by the top left point
+    and width and height, convert to a list of points
+
+    rw:
+        the y coordinate, origin at the top of the image
+    col:
+        the x coordinate
+    w:
+        width of rectangle in pixels
+    h:
+        height of rectangle in pixels
+
+    returns:
+        Points in CVXY format [[x,y], [x+w, y], [x+w, y+h]
+
+    Note:
+        The order is top left, top right, bottom right, bottom left.
+        This order allows lines to be drawn to connect the points
+        to draw as a rectangle.
+    '''
+    return [(col, rw), (col + w, rw), (col + w, rw + h), (col, rw + h)]
+
+
+def rect_inner_side_length(pts_outer, ratio, as_radians=True):
+    '''(n,2-list, float, bool) -> float, float, float
+
+    Given an outer bounding rectangle, estimate the
+    sides and rotation angle of the inner bounding rectangle
+    given the predicted ratio of the inner bounding sides.
+
+    pts: n,2-list of points
+    ratio: the ratio of the long side/short side (i.e. ratio > 1)
+    as_radians: return predicted rotation as radians, else degrees
+
+    Returns: short length, long length, rotation angle in radians
+
+    Notes:
+        the rotaation angle may be 90 - angle
+
+    Example:
+    >>>rect_inner_side_length([[0,12.5],[5,12.5],[5,0],[0,0]], 2.5)
+    4.999999999919968, 1.5184364491905264
+    '''
+    assert len(pts_outer) == 4, 'pts_outer should have 4 points, found %s' % len(pts_outer)
+    A, B = rect_side_lengths(pts_outer)
+    short_side, theta = _fsolve(_inner_box_b, (float(min(A, B)), 0.), args=(A, B, ratio)) #, diag=(1, 0.1), maxfev=100000
+    ab_ratio = ratio if ratio > 1 else 1 / ratio
+    long_side = float(short_side)*ab_ratio
+    theta = theta if as_radians else _math.degrees(theta)
+    return short_side, long_side, theta
+
+
+def _inner_box_b(b_theta, *args):
+    '''(2-tuple, 3-tuple) -> float, float
+    Get width and angle of rotation
+    of inner rect from known outer
+    rect width and height
+
+    b_theta: 2-tuple, (starting values we are solving for, i.e. height and theta)
+    args: 3-tuple, (W,H, wh_ratio): Width, height of detection box and the ideal ratio of a detection)
+
+    Returns:
+        predicted width and the rotation
+    '''
+    A, B, ab_ratio = args
+    b, theta = b_theta
+    xx = b * _math.sin(theta) + ab_ratio * b * _math.cos(theta) - A
+    yy = ab_ratio * b * _math.sin(theta) + b * _math.cos(theta) - B
+    return (xx, yy)

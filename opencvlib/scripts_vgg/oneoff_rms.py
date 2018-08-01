@@ -68,8 +68,6 @@ def main():
     vgg_file_undistorted = path.normpath(path.join(folder, VGGFILE_UNDISTORTED))
     print('Opened vgg file %s' % vgg_file_undistorted)
 
-    out_file = path.normpath(path.join(folder, CSVOUT))
-
     D = np.zeros(COLS_DIS*ROWS_DIS*2).reshape(ROWS_DIS, COLS_DIS, 2)
     U = np.zeros(COLS_UND*ROWS_UND*2).reshape(ROWS_UND, COLS_UND, 2)
 
@@ -89,10 +87,10 @@ def main():
 
 
     x_resids = []
-    for row in D[:,:,0].T:
+    for row in D[:, :, 0].T:
         resids = get_resids(row)
         x_resids.append(resids)
-    x_resids  = np.array(x_resids)
+    x_resids = np.array(x_resids)
 
     #get each column of points and run a regression to find the x residuals
     y_resids = []
@@ -110,10 +108,9 @@ def main():
 
 
     #Now the undistorted points
-    undistorted_pts = []
     vgg.load_json(vgg_file_undistorted)
     PP = PrintProgress(sum([1 for x in vgg.imagesGenerator()]), init_msg='\nProcessing distorted points...')
-    n_und = 0
+
     for Img in vgg.imagesGenerator():
         PP.increment()
         assert isinstance(Img, vgg.Image)
@@ -127,10 +124,10 @@ def main():
 
     #get each row of points and calculate the risiduals from a null model of y=0
     x_resids = []
-    for row in U[:,:,0].T:
+    for row in U[:, :, 0].T:
         resids = get_resids(row)
         x_resids.append(resids)
-    x_resids  = np.array(x_resids)
+    x_resids = np.array(x_resids)
 
     #get each column of points and run a regression to find the x residuals
     y_resids = []

@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from PIL import Image
 from object_detection.utils import dataset_util
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 
 flags = tf.app.flags
 flags.DEFINE_string('csv_input', '', 'Path to the CSV input')
@@ -31,17 +31,18 @@ def class_text_to_int(row_label):
     '''class_text_to_int'''
     if row_label == 'raccoon':
         return 1
-    else:
-        None
+    return None
 
 
 def split(df, group):
+    '''split'''
     data = namedtuple('data', ['filename', 'object'])
     gb = df.groupby(group)
     return [data(filename, gb.get_group(x)) for filename, x in zip(gb.groups.keys(), gb.groups)]
 
 
 def create_tf_example(group, path):
+    '''create'''
     with tf.gfile.GFile(os.path.join(path, '{}'.format(group.filename)), 'rb') as fid:
         encoded_jpg = fid.read()
     encoded_jpg_io = io.BytesIO(encoded_jpg)

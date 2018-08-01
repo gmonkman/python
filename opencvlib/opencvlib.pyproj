@@ -5,15 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_roi.py</StartupFile>
+    <StartupFile>scripts_tf\tf_obj_det.py</StartupFile>
     <SearchPath>..\;..\models\research\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>-r 20 -x 10 -f -p charter -c fujifilm "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -59,9 +58,9 @@ make_train_imgaug.py -n 10 "C:\Users\Graham Monkman\OneDrive\Documents\PHD\image
 
 vgg2TFRecord.py -d -x 1.015 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/candidate/train" "C:\tf\bass\faster_rcnn_resnet101\run2\tfrecords\train.record" vgg_body.json
 
-tf_obj_det.py -x -p shore -camera fujifilm "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/frozen_inference_graph.pb" "C:/tf/data/bass_label_map.pbtxt"
+tf_obj_det.py -r 20 -x 10 -f -p charter -c fujifilm "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"
 
-tf_detect_fld.py -x -s -f -p charter -c fujifilm "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"</Environment>
+tf_detect_fld.py -r 20 -x -f -p shore -c fujifilm "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -83,9 +82,6 @@ tf_detect_fld.py -x -s -f -p charter -c fujifilm "C:/Users/Graham Monkman/OneDri
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="common.py" />
-    <Compile Include="detect_utils.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="display_utils.py">
       <SubType>Code</SubType>
     </Compile>
@@ -137,6 +133,7 @@ tf_detect_fld.py -x -s -f -p charter -c fujifilm "C:/Users/Graham Monkman/OneDri
     <Compile Include="scripts_tf\tf_obj_det.py" />
     <Compile Include="scripts_tf\vgg2TFRecord.py" />
     <Compile Include="scripts_vgg\aruco_size_px_bass.py" />
+    <Compile Include="scripts_vgg\calc_lw.py" />
     <Compile Include="scripts_vgg\oneoff_rms.py" />
     <Compile Include="scripts_vgg\point_px_dab_processors.py" />
     <Compile Include="scripts_vgg\point_px_bass_processors.py" />

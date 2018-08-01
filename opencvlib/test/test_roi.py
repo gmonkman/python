@@ -116,10 +116,10 @@ class Test(unittest.TestCase):
         pts_gt = [[1, 0], [0, 1], [0, 0], [1, 1]]
         a = roi.iou(pts, pts_gt)
         self.assertEqual(a, 0.25)
-        z=10
+        z = 10
 
     @unittest.skip("Temporaily disabled test_showarray")
-    def test_iou(self):
+    def test_iou2(self):
         '''test quadrilateral manip'''
         nas = [0.263571990558615,	0.790715971675845,	0.435483870967741,	0.6,	0.265444666147232,	0.784790337085723,	0.432113647460937,	0.600508213043212]
         a = roi.iou2(*nas)
@@ -128,9 +128,10 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("Temporaily disabled test_showarray")
     def test_bounding_rect_of_poly(self):
-        sq = [[0,0],[10,10],[0,10],[10,0]]
+        '''test br'''
+        sq = [[0, 0], [10, 10], [0, 10], [10, 0]]
         sq45 = geom.rotate_points(sq, -45, None)
-        sq45_bound = roi.bounding_rect_of_poly(sq45, round=False)
+        sq45_bound = roi.bounding_rect_of_poly(sq45)
         pass
 
 

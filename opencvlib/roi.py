@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled,
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, unused-import
 # no-self-use, unused-argument
 '''related to getting regions of interest
 from an image.
@@ -11,17 +11,21 @@ from enum import Enum as _enum
 import cv2 as _cv2
 import numpy as _np
 from numpy import ma as _ma
-from sympy import geometry as _geometry
-
 
 import opencvlib as _opencvlib
 import opencvlib.info as _info
 import opencvlib.distance as _dist
 import opencvlib.geom as _geom
-from opencvlib.geom import flip_points #as we may expect to find flip_points here
+
 import funclib.baselib as _baselib
 from funclib.arraylib import np_round_extreme as _rnd
 from opencvlib import getimg as _getimg
+
+#as we may expect to find these here as well
+from opencvlib.geom import bounding_rect_of_poly2, rect_as_points, flip_points
+
+
+
 
 
 __all__ = ['bounding_rect_of_ellipse', 'bounding_rect_of_poly', 'poly_area',
@@ -63,7 +67,7 @@ class ePointsFormat(_enum):
     XY = 0
     ForPolyLine = 1
     XXXX_YYYY = 2 #[[x1, x2, x3, x4], [y1, y2, y3, y4]]
-    XYWH= 3
+    XYWH = 3
     RCHW = 4
 
 
@@ -315,9 +319,9 @@ def points_normalize(pts, h, w):
     d = _baselib.depth(pts)
     if d == 1:
         pts_ = [pts]
-
+    d = _baselib.depth(pts_)
     assert d == 2, 'Depth of pts should be 1 or 2. Got %s' % d
-    out = [[pt[0]/w, pt[1]/h] for pt in pts]
+    out = [[pt[0]/w, pt[1]/h] for pt in pts_]
     return out
 
 
@@ -336,9 +340,9 @@ def points_denormalize(pts, h, w, asint=True):
     d = _baselib.depth(pts)
     if d == 1:
         pts_ = [pts]
-
+    d = _baselib.depth(pts_)
     assert d == 2, 'Depth of pts should be 1 or 2. Got %s' % d
-    out = [[f(pt[0] * w), f(pt[1] * h)] for pt in pts]
+    out = [[f(pt[0] * w), f(pt[1] * h)] for pt in pts_]
     return out
 
 
@@ -665,31 +669,6 @@ def to_rect(a):
     return _np.array(a, _np.float64).reshape(2, 2)
 
 
-def rect_as_points(rw, col, w, h):
-    '''(int,int,int,int)->list
-    Given a rectangle specified by the top left point
-    and width and height, convert to a list of points
-
-    rw:
-        the y coordinate, origin at the top of the image
-    col:
-        the x coordinate
-    w:
-        width of rectangle in pixels
-    h:
-        height of rectangle in pixels
-
-    returns:
-        Points in CVXY format [[x,y], [x+w, y], [x+w, y+h]
-
-    Note:
-        The order is top left, top right, bottom right, bottom left.
-        This order allows lines to be drawn to connect the points
-        to draw as a rectangle.
-    '''
-    return [(col, rw), (col + w, rw), (col + w, rw + h), (col, rw + h)]
-
-
 def rect_as_rchw(pts):
     '''(ndarray|list|tuple)-> int, int, int, int
     Take points in CVXY format, and return rectangle defined
@@ -748,32 +727,7 @@ def bounding_rect_of_poly(points, as_points=True):
 
     return (x, y, w, h)
 
-# DEBUG bounding_rect_of_poly
-def bounding_rect_of_poly2(points, as_points=True, round_=False):
-    '''(list|ndarray, bool, bool)->list
-    Return points of a bounding rectangle in opencv point format if
-    as_points=True.
 
-    Note opencv points have origin in top left
-
-    as_points: if false, returns as a tuple (x,y,w,h), else [[0,0], ...]
-    round_: rounds points, else returns as float
-    '''
-    pts_x, pts_y = list(zip(*points))
-
-    if round_:
-        pts_x = [int(x) for x in pts_x]
-        pts_y = [int(y) for y in pts_y]
-
-    y = min(pts_y)
-    x = min(pts_x)
-    h = max(pts_y) - min(pts_y)
-    w = max(pts_x) - min(pts_x)
-
-    if as_points:
-        return rect_as_points(y, x, w, h)
-
-    return (x, y, w, h)
 
 # DEBUG bounding_rect_of_ellipse
 def bounding_rect_of_ellipse(centre_point, rx, ry):
@@ -889,13 +843,13 @@ def iou(pts_gt, pts):
     pts_gt_ = _geom.order_points(pts_gt)
     pts_ = _geom.order_points(pts)
 
-    x, y = zip(*pts_gt)
+    x, y = zip(*pts_gt_)
     gt_xmax = max(x)
     gt_xmin = min(x)
     gt_ymax = max(y)
     gt_ymin = min(y)
 
-    x, y = zip(*pts)
+    x, y = zip(*pts_)
     xmax = max(x)
     xmin = min(x)
     ymax = max(y)
@@ -905,7 +859,7 @@ def iou(pts_gt, pts):
     dy = min(gt_ymax, ymax) - max(gt_ymin, ymin)
 
     overlap = 0
-    if (dx>=0) and (dy>=0):
+    if (dx >= 0) and (dy >= 0):
         overlap = dx*dy
     total_area = ((xmax - xmin) * (ymax - ymin)) + ((gt_xmax - gt_xmin) * (gt_ymax - gt_ymin))
     union_area = total_area - overlap
@@ -935,7 +889,7 @@ def iou2(gt_xmin, gt_xmax, gt_ymin, gt_ymax, xmin, xmax, ymin, ymax):
     dy = min(gt_ymax, ymax) - max(gt_ymin, ymin)
 
     overlap = 0
-    if (dx>=0) and (dy>=0):
+    if (dx >= 0) and (dy >= 0):
         overlap = dx*dy
     total_area = ((xmax - xmin) * (ymax - ymin)) + ((gt_xmax - gt_xmin) * (gt_ymax - gt_ymin))
     union_area = total_area - overlap

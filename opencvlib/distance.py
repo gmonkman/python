@@ -54,6 +54,7 @@ def nearN_euclidean(point, points, nr=1):
     out = [x for x in zip(l_ind, l_dist)]
     return out
 
+
 def furthestN_euclidean(point, points, nr=1):
     '''(ndarray|list|tuple|ndarray|list|tuple,int)->list [[int,float], ... ]
     Given a point and an array of points
@@ -69,7 +70,10 @@ def furthestN_euclidean(point, points, nr=1):
     unless ofcouse nr=1
     '''
     assert len(points) >= nr, 'Points should be greater than or equal to nr'
-    diff = _np.array(pts).astype('float') - _np.array(pt).astype('float')
+    ndpt = _np.array(point).astype('float')
+    ndpts = _np.array(points).astype('float')
+
+    diff = ndpt - ndpts
     dist = diff*diff
     dist = _np.sqrt(dist[0:, 0] + dist[0:, 1])
     if len(points) == 1:

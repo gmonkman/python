@@ -15,11 +15,12 @@ import numpy as np
 import tensorflow as tf
 import os.path as path
 import argparse
+import random
 
 import cv2
 
 from object_detection.utils import ops as utils_ops
-from object_detection.utils import label_map_util
+#from object_detection.utils import label_map_util
 #from object_detection.utils import visualization_utils as vis_util
 
 from opencvlib import aruco
@@ -29,10 +30,14 @@ from opencvlib.imgpipes import vgg
 from opencvlib.distance import nearestN_euclidean
 from opencvlib import roi
 from opencvlib import common
+from opencvlib import transforms
+from opencvlib import geom
 
 VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
 VALID_PLATFORMS = ['shore', 'charter']
 
+#this is calculated in scripts_vgg\calc_lw.py
+BASS_LENGTH_DEPTH_RATIO = 4.319593022146387
 
 def run_inference_for_single_image(image, graph):
     '''(ndarray, tensorflow.graph)
@@ -164,15 +169,18 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
         errs.append(['No marker found for image %s' % imgname])
         return None
 
-    length_est_rotation_adjust = length_est
-
     length_est = abs((detection_pts[1][0] - detection_pts[0][0])) * marker.px_length_mm()
-    results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score, length_est, length_est_rotation_adjust, platform, camera, transform, rotation])
+    if rotation != 0:
+        a, b, _ = geom.rect_inner_side_length(detection_pts, BASS_LENGTH_DEPTH_RATIO)
+        length_est_rotation_adjust = max(a, b) * marker.px_length_mm()
+    else:
+        length_est_rotation_adjust = length_est
 
+    results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score, length_est, length_est_rotation_adjust, platform, camera, transform, rotation])
     return detection_pts
 
 
-def get_detection(img, groundtruth_pts, detection_pts, fname, show_):
+def write_image(img, groundtruth_pts, detection_pts, fname, show_, detection_label='Detection', groundtruth_label='Groundtruth'):
     '''(ndarray, n2-list, str, bool) -> void
     Save the detection to an image and optionally show it.
 
@@ -185,11 +193,12 @@ def get_detection(img, groundtruth_pts, detection_pts, fname, show_):
     img_with_detection = common.draw_polygon(img_with_groundtruth, detection_pts, color=(0, 255, 0), thickness=2)
     gt_all_x, gt_all_y = list(zip(*groundtruth_pts))
 
+
     #s = 'Prediction: %.3f' % score
     #common.draw_str(img_with_detection, x=25, y=25, s=s, color=(255, 255, 255), box_background=(0, 0, 0), scale=2, box_pad=10)
     try: #this can fail if not enough room to draw the detection box, but isn't critical
-        common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s='Detection', color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10) #top left
-        common.draw_str(img_with_detection, min(gt_all_x), max(gt_all_y), s='Groundtruth', color=(255, 255, 255), box_background=(0, 0, 0), scale=1.5, box_pad=10) #bottom left
+        common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s=detection_label, color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10) #top left
+        common.draw_str(img_with_detection, min(gt_all_x), max(gt_all_y), s=groundtruth_label, color=(255, 255, 255), box_background=(0, 0, 0), scale=1.5, box_pad=10) #bottom left
     except Exception as _:
         pass
     cv2.imwrite(fname, img_with_detection)
@@ -207,7 +216,7 @@ def main():
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
     cmdline.add_argument('-r', '--rotate', type=int, help='Do detections over a range of rotations', default=0)
     #You could also try on rotated images
-    cmdline.add_argument('-x', help='Export detections as images to image subdir "detections"', action='store_true')
+    cmdline.add_argument('-x', '--export_every', type=int, default=0, help='Export  every [x] images to image subdir "detections"')
     cmdline.add_argument('-s', help='Show detections', action='store_true')
     cmdline.add_argument('-v', '--verbosity', help='Set to DEBUG, INFO, WARN, ERROR, or FATAL', default='ERROR')
     cmdline.add_argument('vgg_file', help='The full vgg file name')
@@ -242,7 +251,7 @@ def main():
         imgfld, imgname, _ = iolib.get_file_parts2(imgpath)
         try:
             sample_lengthid = get_samplelengthid(args.platform, args.camera, imgname)
-        except ValueError as _:
+        except ValueError as dummy:
             raise Exception('Could not get the sample length from the image name. First Check the inifile settings.')
         assert sample_lengthid in list(range(212, 525)), 'sample_lengthid %s was invalid' % sample_lengthid #hardcoded ids
 
@@ -262,7 +271,14 @@ def main():
     #results are normalized
     results = [['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'accuracy', 'length_est', 'length_est_rotation_adjust', 'platform', 'camera', 'transform', 'rotation']]
     errs = []
+
+    if args.rotate > 0:
+        angles = list(range(-1 * args.rotate, args.rotate + 1, 1))
+        angles.remove(0)
+        i += i * len(angles)
+
     PP = iolib.PrintProgress(i, init_msg='\nRunning detections ...')
+
     for imgpath, _, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
         assert isinstance(Reg, vgg.Region)
 
@@ -281,10 +297,10 @@ def main():
         if not detection_pts:
             continue
 
-        if args.x:
+        if args.export_every >= 1:
             #Save and optionally show the detection
             detection_image_name = path.normpath(path.join(detections_folder, imgname))
-            get_detection(img, Reg.all_points, detection_pts, detection_image_name, args.s)
+            write_image(img, Reg.all_points, detection_pts, detection_image_name, args.s)
 
         #detect when flipped
         if args.flip:
@@ -295,16 +311,32 @@ def main():
             all_points_flip = roi.flip_points(Reg.all_points, img_hflip.shape[0], img_hflip.shape[1], hflip=True)
             if not detection_pts:
                 continue
-            if  args.x:
+
+            if args.export_every:
                 #Save and optionally show the detection
                 detection_image_name = path.normpath(path.join(detections_folder, 'flip_' + imgname))
-                get_detection(img_hflip, all_points_flip, detection_pts, detection_image_name, args.s)
+                write_image(img_hflip, all_points_flip, detection_pts, detection_image_name, args.s)
 
-        #if args.rotate > 0:
+        if args.rotate > 0:
+            for angle in angles:
+                PP.increment()
+                img_rot, trans = transforms.rotate2(img, angle)
+                pts_rot = geom.rotate_points(Reg.all_points, angle, (int(img.shape[1]/2), int(img.shape[0]/2)), translate=trans)
+                pts_bound = geom.bounding_rect_of_poly2(pts_rot) #this is the bounding polygon
+                pts_rot_x, pts_rot_y = list(zip(*pts_bound))
+                xform = 'r_%s' % angle
+                detection_pts = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, args.platform, args.camera, xform, angle)
+                if not detection_pts:
+                    continue
+
+                if  args.export_every > 0:
+                    #Save and optionally show the detection
+                    if random.randint(1, args.export_every) == 1:
+                        detection_image_name = path.normpath(path.join(detections_folder, xform + '_' + imgname))
+                        write_image(img_rot, pts_bound, detection_pts, detection_image_name, args.s, groundtruth_label='Bounding Rotated Groundtruth')
 
 
-        #Getting size
-        #https://math.stackexchange.com/questions/1628657/dimensions-of-a-rectangle-containing-a-rotated-rectangle
+
     #export any problems to a csv file
     if errs:
         errfile = path.normpath(path.join(imgfld, 'detection_errs.csv'))

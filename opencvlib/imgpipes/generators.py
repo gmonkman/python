@@ -23,7 +23,6 @@ from enum import Enum as _Enum
 from warnings import warn as _warn
 import logging as _logging
 from inspect import getsourcefile as _getsourcefile
-from warnings import warn
 
 import cv2 as _cv2
 import numpy as _np
@@ -799,13 +798,13 @@ class VGGROI(_Generator):
                             if grow_roi_proportion != 1 or grow_roi_x != 1 or grow_roi_y != 1:
                                 if grow_roi_proportion != 1:
                                     if grow_roi_proportion > 1:
-                                        warn('grow_roi_proportion was > 1, but path_only was specified. Cannot apply ceiling and floor.')
+                                        _warn('grow_roi_proportion was > 1, but path_only was specified. Cannot apply ceiling and floor.')
                                     pts = _roi.rect_as_points(reg.y, reg.x, reg.w, reg.h)
                                     pts = _roi.roi_rescale(pts, grow_roi_proportion)
                                 else:
                                     pts = _roi.rect_as_points(reg.y, reg.x, reg.w, reg.h)
                                     if grow_roi_x > 1 or grow_roi_y > 1:
-                                        warn('grow_roi_x or grow_roi_y was > 1, but path_only was specified. Cannot apply ceiling and floor.')
+                                        _warn('grow_roi_x or grow_roi_y was > 1, but path_only was specified. Cannot apply ceiling and floor.')
 
                                     if grow_roi_x != 1:
                                         pts = _roi.roi_rescale2(pts, proportion_x=grow_roi_x)

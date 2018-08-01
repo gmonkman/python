@@ -208,7 +208,7 @@ def main():
             writer.write(tf_example.SerializeToString())
             try:
                 iolib.files_delete2(tmp)
-            except Exception as _:
+            except Exception as dummy:
                 pass
 
 

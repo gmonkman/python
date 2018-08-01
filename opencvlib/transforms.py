@@ -621,6 +621,53 @@ def rotate(image, angle, no_crop=True):
     return _cv2.warpAffine(img, M, (w, h))
 
 
+def rotate2(image, angle, no_crop=True):
+    '''(str|ndarray, float, bool) -> ndarray, list
+    Rotate an image through 'angle' degrees.
+
+    The x-y translation represents the translation
+    of each point in the opencv frame due to the
+    change in image size. The xy translation can
+    be passed to geom.rotate_points if rotate2
+    occured with no_crop=True.
+
+    image:
+        the image as a path or ndarray
+    angle:
+        angle, positive for anticlockwise, negative for clockwise
+    no_crop:
+        if true, the image will not be cropped
+
+    Returns:
+        rotated image, x-y translation
+    '''
+    img = _getimg(image)
+    (h, w) = img.shape[:2]
+    (cX, cY) = (w // 2, h // 2)
+
+    M = _cv2.getRotationMatrix2D((cX, cY), angle, 1.0)
+
+    if no_crop:
+        cos = _np.abs(M[0, 0])
+        sin = _np.abs(M[0, 1])
+
+        # compute the new bounding dimensions of the image
+        nW = int((h * sin) + (w * cos))
+        nH = int((h * cos) + (w * sin))
+
+        xtrans = (nW / 2) - cX
+        ytrans = (nH / 2) - cY
+        # adjust the rotation matrix to take into account translation
+        M[0, 2] += xtrans
+        M[1, 2] += ytrans
+
+        img_rot = _cv2.warpAffine(img, M, (nW, nH))
+        return img_rot, (xtrans, ytrans)
+
+    img_rot = _cv2.warpAffine(img, M, (w, h))
+    return img_rot, (0, 0)
+
+
 def gamma(img, gamma_=1.0):
     '''(str|ndarray, float) -> ndarray
     Adjust gamma of an image
