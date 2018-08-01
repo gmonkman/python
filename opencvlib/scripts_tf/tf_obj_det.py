@@ -14,6 +14,7 @@ tf_obj_det.py -x -p shore -c fujifilm /
 import numpy as np
 import tensorflow as tf
 import os.path as path
+import os
 import argparse
 import random
 from warnings import warn
@@ -35,49 +36,50 @@ from opencvlib import geom
 
 VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
 VALID_PLATFORMS = ['shore', 'charter']
-DEVICE = '/cpu:0'
+DEVICE = '/device:CPU:0'
 
 #this is calculated in scripts_vgg\calc_lw.py
 BASS_LENGTH_DEPTH_RATIO = 4.319593022146387
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
 def run_inference_for_single_image(image, graph):
     '''(ndarray, tensorflow.graph)
     '''
-    with graph.as_default():
-        with tf.Session() as sess:
-            with tf.device(DEVICE):
-                # Get handles to input and output tensors
-                ops = tf.get_default_graph().get_operations()
-                all_tensor_names = {output.name for op in ops for output in op.outputs}
-                tensor_dict = {}
-                for key in ['num_detections', 'detection_boxes', 'detection_scores', 'detection_classes', 'detection_masks']:
-                    tensor_name = key + ':0'
-                    if tensor_name in all_tensor_names:
-                        tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
+    with graph.device(DEVICE):
+        with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)) as sess:
+            # Get handles to input and output tensors
+            ops = tf.get_default_graph().get_operations()
+            all_tensor_names = {output.name for op in ops for output in op.outputs}
+            tensor_dict = {}
+            for key in ['num_detections', 'detection_boxes', 'detection_scores', 'detection_classes', 'detection_masks']:
+                tensor_name = key + ':0'
+                if tensor_name in all_tensor_names:
+                    tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
 
-                if 'detection_masks' in tensor_dict:
-                    # The following processing is only for single image
-                    detection_boxes = tf.squeeze(tensor_dict['detection_boxes'], [0])
-                    detection_masks = tf.squeeze(tensor_dict['detection_masks'], [0])
-                    # Reframe is required to translate mask from box coordinates to image coordinates and fit the image size.
-                    real_num_detection = tf.cast(tensor_dict['num_detections'][0], tf.int32)
-                    detection_boxes = tf.slice(detection_boxes, [0, 0], [real_num_detection, -1])
-                    detection_masks = tf.slice(detection_masks, [0, 0, 0], [real_num_detection, -1, -1])
-                    detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(detection_masks, detection_boxes, image.shape[0], image.shape[1])
-                    detection_masks_reframed = tf.cast(tf.greater(detection_masks_reframed, 0.5), tf.uint8)
-                    # Follow the convention by adding back the batch dimension
-                    tensor_dict['detection_masks'] = tf.expand_dims(detection_masks_reframed, 0)
-                image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
+            if 'detection_masks' in tensor_dict:
+                # The following processing is only for single image
+                detection_boxes = tf.squeeze(tensor_dict['detection_boxes'], [0])
+                detection_masks = tf.squeeze(tensor_dict['detection_masks'], [0])
+                # Reframe is required to translate mask from box coordinates to image coordinates and fit the image size.
+                real_num_detection = tf.cast(tensor_dict['num_detections'][0], tf.int32)
+                detection_boxes = tf.slice(detection_boxes, [0, 0], [real_num_detection, -1])
+                detection_masks = tf.slice(detection_masks, [0, 0, 0], [real_num_detection, -1, -1])
+                detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(detection_masks, detection_boxes, image.shape[0], image.shape[1])
+                detection_masks_reframed = tf.cast(tf.greater(detection_masks_reframed, 0.5), tf.uint8)
+                # Follow the convention by adding back the batch dimension
+                tensor_dict['detection_masks'] = tf.expand_dims(detection_masks_reframed, 0)
+            image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
 
-                output_dict = sess.run(tensor_dict, feed_dict={image_tensor: np.expand_dims(image, 0)})
+            output_dict = sess.run(tensor_dict, feed_dict={image_tensor: np.expand_dims(image, 0)})
 
-                # all outputs are float32 numpy arrays, so convert types as appropriate
-                output_dict['num_detections'] = int(output_dict['num_detections'][0])
-                output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint8)
-                output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
-                output_dict['detection_scores'] = output_dict['detection_scores'][0]
-                if 'detection_masks' in output_dict:
-                    output_dict['detection_masks'] = output_dict['detection_masks'][0]
+            # all outputs are float32 numpy arrays, so convert types as appropriate
+            output_dict['num_detections'] = int(output_dict['num_detections'][0])
+            output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint8)
+            output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
+            output_dict['detection_scores'] = output_dict['detection_scores'][0]
+            if 'detection_masks' in output_dict:
+                output_dict['detection_masks'] = output_dict['detection_masks'][0]
     return output_dict
 
 
@@ -217,7 +219,7 @@ def main():
     cmdline.add_argument('-f', '--flip', action='store_true', help='also detect on the horizontally flipped image')
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
     cmdline.add_argument('-r', '--rotate', type=int, help='Do detections over a range of rotations', default=0)
-    cmdline.add_argument('-d', '--device', type=str, help='Tensorflow device to run on', default='/cpu:0')
+    cmdline.add_argument('-d', '--device', type=str, help='Tensorflow device to run on', default='/device:CPU:0')
     cmdline.add_argument('-o', '--detections_folder', type=str, help='Folder in which detections are created, uses root of vgg_file', default='detections')
     #You could also try on rotated images
     cmdline.add_argument('-x', '--export_every', type=int, default=0, help='Export  every [x] images to image subdir "detections"')
@@ -242,11 +244,11 @@ def main():
         raise ValueError('pb_file did not contain "ssd" or "nas" or "res", could not assign network')
 
     global DEVICE
-    if args.device in ['/gpu:0', '/gpu:1', '/gpu:2', '/gpu:3', '/cpu:0', '/cpu:1', '/cpu:2', '/cpu:3', '/cpu:4', '/cpu:5', '/cpu:6', '/cpu:7', '/cpu:8']:
+    if args.device in ["/device:GPU:0", "/device:GPU:1", "/device:GPU:2", "/device:GPU:3", "/device:CPU:0", "/device:CPU:1", "/device:CPU:2", "/device:CPU:3", "/device:CPU:4", "/device:CPU:5", "/device:CPU:6", "/device:CPU:7", "/device:CPU:8"]:
         DEVICE = args.device
     else:
-        warn('Device %s not recognised. Defaulting to "/cpu:0"' % args.device)
-        DEVICE = '/cpu:0'
+        warn('Device %s not recognised. Defaulting to "/device:CPU:0"' % args.device)
+        DEVICE = "/device:CPU:0"
 
     assert iolib.file_exists(vgg_file), 'vgg file %s not found' % vgg_file
     assert iolib.file_exists(pb_file), 'pb file %s not found' % pb_file
@@ -272,10 +274,10 @@ def main():
         except ValueError as dummy:
             raise Exception('Could not get the sample length from the image name. First Check the inifile settings.')
         assert sample_lengthid in list(range(212, 525)), 'sample_lengthid %s was invalid' % sample_lengthid #hardcoded ids
-
+    print('Loading tensorflow graph...')
     #load graph
     detection_graph = tf.Graph()
-    with detection_graph.as_default():
+    with detection_graph.device(DEVICE):
         od_graph_def = tf.GraphDef()
         with tf.gfile.GFile(pb_file, 'rb') as fid:
             serialized_graph = fid.read()
