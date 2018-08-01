@@ -297,7 +297,7 @@ def main():
         if not detection_pts:
             continue
 
-        if args.export_every >= 1:
+        if args.export_every > 0:
             #Save and optionally show the detection
             detection_image_name = path.normpath(path.join(detections_folder, imgname))
             write_image(img, Reg.all_points, detection_pts, detection_image_name, args.s)
@@ -312,7 +312,7 @@ def main():
             if not detection_pts:
                 continue
 
-            if args.export_every:
+            if args.export_every > 0:
                 #Save and optionally show the detection
                 detection_image_name = path.normpath(path.join(detections_folder, 'flip_' + imgname))
                 write_image(img_hflip, all_points_flip, detection_pts, detection_image_name, args.s)
