@@ -12,7 +12,7 @@
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-x 10 -f -p charter -c fujifilm -f -d /device:CPU:0 -o detection_ssdlite_mobilenet_v2_run2 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"</CommandLineArguments>
+    <CommandLineArguments>-r 30 -x 10 -f -p charter -c fujifilm -f -d /device:CPU:0 -o detection_ssdlite_mobilenet_v2_run2 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
