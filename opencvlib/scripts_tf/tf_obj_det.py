@@ -36,7 +36,9 @@ from opencvlib import geom
 
 VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
 VALID_PLATFORMS = ['shore', 'charter']
-DEVICE = '/device:CPU:0'
+
+DEVICES = ["/device:GPU:0", "/device:GPU:1", "/device:GPU:2", "/device:GPU:3", "/device:CPU:0", "/device:CPU:1", "/device:CPU:2", "/device:CPU:3", "/device:CPU:4", "/device:CPU:5", "/device:CPU:6", "/device:CPU:7", "/device:CPU:8"]
+DEVICE = "/device:CPU:0"
 
 #this is calculated in scripts_vgg\calc_lw.py
 BASS_LENGTH_DEPTH_RATIO = 4.319593022146387
@@ -248,11 +250,8 @@ def main():
         raise ValueError('pb_file did not contain "ssd" or "nas" or "res", could not assign network')
 
     global DEVICE
-    devices = ["/device:GPU:0", "/device:GPU:1", "/device:GPU:2", "/device:GPU:3", "/device:CPU:0", "/device:CPU:1", "/device:CPU:2", "/device:CPU:3", "/device:CPU:4", "/device:CPU:5", "/device:CPU:6", "/device:CPU:7", "/device:CPU:8"]
-    devices = [s.upper() for s in devices]
-    if args.device.upper() in devices:
-        DEVICE = args.device
-    else:
+    DEVICE = args.device.upper()
+    if not DEVICE in DEVICES:
         s = 'Device %s not recognised. Defaulting to "/device:CPU:0"' % args.device
         warn(s)
         DEVICE = "/device:CPU:0"
@@ -260,7 +259,7 @@ def main():
     #TODO this is a hack
     if 'CPU' in DEVICE:
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1' #stop use of GPU
-        print('GPU was hidden on user request')
+        print('\nGPU was hidden on user request')
     else:
         os.environ['CUDA_VISIBLE_DEVICES'] = '0' #enable GPU
         print('GPU unmasked on user request')
