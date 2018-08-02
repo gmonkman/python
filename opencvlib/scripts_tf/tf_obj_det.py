@@ -41,7 +41,7 @@ DEVICE = '/device:CPU:0'
 #this is calculated in scripts_vgg\calc_lw.py
 BASS_LENGTH_DEPTH_RATIO = 4.319593022146387
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 def run_inference_for_single_image(image, graph):
     '''(ndarray, tensorflow.graph)
@@ -244,10 +244,13 @@ def main():
         raise ValueError('pb_file did not contain "ssd" or "nas" or "res", could not assign network')
 
     global DEVICE
-    if args.device in ["/device:GPU:0", "/device:GPU:1", "/device:GPU:2", "/device:GPU:3", "/device:CPU:0", "/device:CPU:1", "/device:CPU:2", "/device:CPU:3", "/device:CPU:4", "/device:CPU:5", "/device:CPU:6", "/device:CPU:7", "/device:CPU:8"]:
+    devices = ["/device:GPU:0", "/device:GPU:1", "/device:GPU:2", "/device:GPU:3", "/device:CPU:0", "/device:CPU:1", "/device:CPU:2", "/device:CPU:3", "/device:CPU:4", "/device:CPU:5", "/device:CPU:6", "/device:CPU:7", "/device:CPU:8"]
+    devices = [s.upper() for s in devices]
+    if args.device.upper() in devices:
         DEVICE = args.device
     else:
-        warn('Device %s not recognised. Defaulting to "/device:CPU:0"' % args.device)
+        s = 'Device %s not recognised. Defaulting to "/device:CPU:0"' % args.device
+        warn(s)
         DEVICE = "/device:CPU:0"
 
     assert iolib.file_exists(vgg_file), 'vgg file %s not found' % vgg_file
@@ -313,7 +316,13 @@ def main():
             continue
 
         #detect as is
-        detection_pts = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, network, args.platform, args.camera, 'None', 0)
+        detection_pts = None
+        try:
+            detection_pts = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, network, args.platform, args.camera, 'None', 0)
+        except Exception as e:
+            s = '%s:   %s'  % (imgname, str(e))
+            errs.append(s)
+
         if not detection_pts:
             continue
 
@@ -327,11 +336,16 @@ def main():
             img_hflip = cv2.flip(img, 1)
             pts_flip = roi.flip_points(Reg.all_points, img.shape[0], img.shape[1], hflip=True)
             pts_flip_x, pts_flip_y = list(zip(*pts_flip))
-            detection_pts = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, network, args.platform, args.camera, 'hflip', 0)
-            all_points_flip = roi.flip_points(Reg.all_points, img_hflip.shape[0], img_hflip.shape[1], hflip=True)
+            detection_pts = None
+            try:
+                detection_pts = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, network, args.platform, args.camera, 'hflip', 0)
+            except Exception as e:
+                s = '%s:   %s'  % (imgname, str(e))
+                errs.append(s)
+
             if not detection_pts:
                 continue
-
+            all_points_flip = roi.flip_points(Reg.all_points, img_hflip.shape[0], img_hflip.shape[1], hflip=True)
             if args.export_every > 0:
                 #Save and optionally show the detection
                 detection_image_name = path.normpath(path.join(detections_folder, 'flip_' + imgname))
@@ -345,7 +359,13 @@ def main():
                 pts_bound = geom.bounding_rect_of_poly2(pts_rot) #this is the bounding polygon
                 pts_rot_x, pts_rot_y = list(zip(*pts_bound))
                 xform = 'r_%s' % angle
-                detection_pts = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, network, args.platform, args.camera, xform, angle)
+                detection_pts = None
+                try:
+                    detection_pts = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, network, args.platform, args.camera, xform, angle)
+                except Exception as e:
+                    s = '%s:   %s'  % (imgname, str(e))
+                    errs.append(s)
+
                 if not detection_pts:
                     continue
 
