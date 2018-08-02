@@ -41,7 +41,11 @@ DEVICE = '/device:CPU:0'
 #this is calculated in scripts_vgg\calc_lw.py
 BASS_LENGTH_DEPTH_RATIO = 4.319593022146387
 
-#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+#os.environ['CUDA_VISIBLE_DEVICES'] = '-1' #stop use of GPU
+#os.environ['CUDA_VISIBLE_DEVICES'] = '-1' #stop use of GPU
+#TF_CPP_MIN_LOG_LEVEL Defaults to 0 i.e. show all logs
+#1 filter INFO logs; 2 filter <= WARNING; 3 filter <= ERROR
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def run_inference_for_single_image(image, graph):
     '''(ndarray, tensorflow.graph)
@@ -252,6 +256,14 @@ def main():
         s = 'Device %s not recognised. Defaulting to "/device:CPU:0"' % args.device
         warn(s)
         DEVICE = "/device:CPU:0"
+
+    #TODO this is a hack
+    if 'CPU' in DEVICE:
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1' #stop use of GPU
+        print('GPU was hidden on user request')
+    else:
+        os.environ['CUDA_VISIBLE_DEVICES'] = '0' #enable GPU
+        print('GPU unmasked on user request')
 
     assert iolib.file_exists(vgg_file), 'vgg file %s not found' % vgg_file
     assert iolib.file_exists(pb_file), 'pb file %s not found' % pb_file
