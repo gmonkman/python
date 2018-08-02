@@ -37,8 +37,8 @@ from opencvlib import geom
 VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
 VALID_PLATFORMS = ['shore', 'charter']
 
-DEVICES = ["/device:GPU:0", "/device:GPU:1", "/device:GPU:2", "/device:GPU:3", "/device:CPU:0", "/device:CPU:1", "/device:CPU:2", "/device:CPU:3", "/device:CPU:4", "/device:CPU:5", "/device:CPU:6", "/device:CPU:7", "/device:CPU:8"]
-DEVICE = "/device:CPU:0"
+DEVICES = ["/DEVICE:GPU:0", "/DEVICE:GPU:1", "/DEVICE:GPU:2", "/DEVICE:GPU:3", "/DEVICE:CPU:0", "/DEVICE:CPU:1", "/DEVICE:CPU:2", "/DEVICE:CPU:3", "/DEVICE:CPU:4", "/DEVICE:CPU:5", "/DEVICE:CPU:6", "/DEVICE:CPU:7", "/DEVICE:CPU:8"]
+DEVICE = "/DEVICE:CPU:0"
 
 #this is calculated in scripts_vgg\calc_lw.py
 BASS_LENGTH_DEPTH_RATIO = 4.319593022146387
@@ -225,7 +225,7 @@ def main():
     cmdline.add_argument('-f', '--flip', action='store_true', help='also detect on the horizontally flipped image')
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
     cmdline.add_argument('-r', '--rotate', type=int, help='Do detections over a range of rotations', default=0)
-    cmdline.add_argument('-d', '--device', type=str, help='Tensorflow device to run on', default='/device:CPU:0')
+    cmdline.add_argument('-d', '--device', type=str, help='Tensorflow device to run on', default='/DEVICE:CPU:0')
     cmdline.add_argument('-o', '--detections_folder', type=str, help='Folder in which detections are created, uses root of vgg_file', default='detections')
     #You could also try on rotated images
     cmdline.add_argument('-x', '--export_every', type=int, default=0, help='Export  every [x] images to image subdir "detections"')
@@ -252,9 +252,9 @@ def main():
     global DEVICE
     DEVICE = args.device.upper()
     if not DEVICE in DEVICES:
-        s = 'Device %s not recognised. Defaulting to "/device:CPU:0"' % args.device
+        s = 'Device %s not recognised. Defaulting to "/DEVICE:CPU:0"' % args.device
         warn(s)
-        DEVICE = "/device:CPU:0"
+        DEVICE = "/DEVICE:CPU:0"
 
     #TODO this is a hack
     if 'CPU' in DEVICE:
