@@ -423,4 +423,4 @@ if __name__ == "__main__":
     avg_det_time = -1
     if DETECT_TIMES_SECONDS:
         avg_det_time = sum(DETECT_TIMES_SECONDS)/len(DETECT_TIMES_SECONDS)
-    print('\nAverage TF Detection Time: %.2f' % avg_det_time)
+    print('\nAverage TF Detection Time: %.2f    n=%s' % (avg_det_time, len(DETECT_TIMES_SECONDS)))
