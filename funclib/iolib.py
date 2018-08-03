@@ -995,13 +995,13 @@ class PrintProgress(object):
         self.bar_length = bar_length
         self.iteration = 1
 
-    def increment(self, step=1):
+    def increment(self, step=1, suffix=''):
         '''(int) -> void
         advance the counter step ticks.
         1 will usually make sense!'''
         print_progress(
             self.iteration, self.max, prefix='%i of %i' %
-            (self.iteration, self.max), bar_length=self.bar_length)
+            (self.iteration, self.max), bar_length=self.bar_length, suffix=suffix)
         self.iteration += step
 
     def reset(self, max=None):

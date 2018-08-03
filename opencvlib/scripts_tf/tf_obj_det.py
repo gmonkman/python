@@ -285,6 +285,7 @@ def main():
     #Check all images in the vgg file (with groundtruths) have a valid bass uniquecode and a vgg record
     i = 0
     PP = iolib.PrintProgressFlash(ticks=None, msg='\nRunning prechecks ... ')
+
     for imgpath, _, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
         PP.update()
         i += 1
@@ -323,8 +324,9 @@ def main():
 
     for imgpath, _, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
         assert isinstance(Reg, vgg.Region)
-
-        PP.increment()
+        sw.lap()
+        suffix_ = sw.pretty_time(sw.remaining(PP.max - PP.iteration))
+        PP.increment(suffix=' %s           ' % suffix_)
 
         imgpath = path.normpath(imgpath)
         imgfld, imgname, _ = iolib.get_file_parts2(imgpath)
@@ -414,13 +416,14 @@ def main():
             pass
     else:
         print('results dic was empty')
-
+    print('\nCompleted %s %s %s' % (args.camera, args.platform, network))
+    avg_det_time = -1
+    if DETECT_TIMES_SECONDS:
+        avg_det_time = sum(DETECT_TIMES_SECONDS)/len(DETECT_TIMES_SECONDS)
+    print('\nAverage TF Detection Time: %.2f secs    n=%s' % (avg_det_time, len(DETECT_TIMES_SECONDS)))
 
 
 
 if __name__ == "__main__":
     main()
-    avg_det_time = -1
-    if DETECT_TIMES_SECONDS:
-        avg_det_time = sum(DETECT_TIMES_SECONDS)/len(DETECT_TIMES_SECONDS)
-    print('\nAverage TF Detection Time: %.2f    n=%s' % (avg_det_time, len(DETECT_TIMES_SECONDS)))
+
