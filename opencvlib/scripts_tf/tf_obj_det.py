@@ -18,6 +18,7 @@ import os
 import argparse
 import random
 from warnings import warn
+from timeit import default_timer as timer
 import cv2
 
 from object_detection.utils import ops as utils_ops
@@ -33,7 +34,9 @@ from opencvlib import roi
 from opencvlib import common
 from opencvlib import transforms
 from opencvlib import geom
+from funclib import stopwatch
 
+DETECT_TIMES_SECONDS = []
 VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
 VALID_PLATFORMS = ['shore', 'charter']
 
@@ -153,7 +156,11 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
     groundtruth_ymin = min(all_points_y) / h; groundtruth_ymax = max(all_points_y) / h
 
     try:
+        start = timer()
         output_dict = run_inference_for_single_image(img, detection_graph) # Actual detection.
+        global DETECT_TIMES_SECONDS
+        DETECT_TIMES_SECONDS.append(timer() - start)
+
     except Exception as e:
         errs.append(['Tensorflow error on image %s. Error was %s' % (str(e), imgname)])
         return None
@@ -312,6 +319,7 @@ def main():
         i += i * len(angles)
 
     PP = iolib.PrintProgress(i, init_msg='\nRunning detections ...')
+    sw = stopwatch.StopWatch(qsize=5, event_name='DetectionOnly')
 
     for imgpath, _, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
         assert isinstance(Reg, vgg.Region)
@@ -407,5 +415,12 @@ def main():
     else:
         print('results dic was empty')
 
+
+
+
 if __name__ == "__main__":
     main()
+    avg_det_time = -1
+    if DETECT_TIMES_SECONDS:
+        avg_det_time = sum(DETECT_TIMES_SECONDS)/len(DETECT_TIMES_SECONDS)
+    print('\nAverage TF Detection Time: %.2f' % avg_det_time)

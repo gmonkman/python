@@ -73,16 +73,23 @@ class _StopWatchInterval():
 
 class StopWatch():
     '''
-    Provides access to timed metrics
-    using a stopwatch like operation
-    and access to a queue of lapped times.
+    Provides access to timed metrics using a
+    stopwatch like operation and access to a
+    queue of lapped times. All times are seconds.
 
     Provides smoothed estimates.
 
-    lap:
-            snapshot the time
+    Doesn't start until lap is used.
 
-    All times are seconds.
+    lap:snapshot the time
+
+    Example:
+    >>>sw=stopwatch.StopWatch()
+    >>>print(sw.event_rate)
+    0
+    >>>sw.lap()
+    >>>print(sw.event_rate)
+    0.0123
     '''
     def __init__(self, qsize=5, event_name=''):
         self.qsize = qsize
