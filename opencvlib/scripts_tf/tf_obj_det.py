@@ -40,6 +40,8 @@ DETECT_TIMES_SECONDS = []
 VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
 VALID_PLATFORMS = ['shore', 'charter']
 
+RESULTS_HEADER = ['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'score', 'length_est', 'length_est_rotation_adjust1', 'length_est_rotation_adjust2', 'network', 'platform', 'camera', 'transform', 'rotation']
+
 DEVICES = ["/GPU:0", "/GPU:1", "/GPU:2", "/GPU:3", "/CPU:0", "/CPU:1", "/CPU:2", "/CPU:3", "/CPU:4", "/CPU:5", "/CPU:6", "/CPU:7", "/CPU:8"]
 DEVICE = "/CPU:0"
 SCORE = 0.5 #bad detections
@@ -165,11 +167,15 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
 
     except Exception as e:
         errs.append(['Tensorflow error on image %s. Error was %s' % (str(e), imgname)])
-        results.append([sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', 'TENSORFLOW ERROR', '', '', network, platform, camera, transform, rotation])
+        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', 'TENSORFLOW ERROR', '', '', '', network, platform, camera, transform, rotation]
+        assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
+        results.append(r)
         return None
     score_ = float(output_dict['detection_scores'][0]) #0.99999
     if score_ < SCORE:
-        results.append([sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', score_, '', '', network, platform, camera, transform, rotation])
+        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', score_, '', '', '', network, platform, camera, transform, rotation]
+        assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
+        results.append(r)
         return None
 
     ymin, xmin, ymax, xmax = output_dict['detection_boxes'][0].tolist() #[0.4146363139152527, 0.3671582341194153, 0.525425910949707, 0.770221471786499] ymin, xmin, ymax, xmax
@@ -191,12 +197,14 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
     else:
         s = 'No marker found for image %s' % imgname
         errs.append([s])
-        results.append([sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', s, '', '', network, platform, s, s, rotation])
+        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', s, '', '', '', network, platform, s, s, rotation]
+        assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
+        results.append(r)
         return None
 
     length_est = abs((detection_pts[1][0] - detection_pts[0][0])) * marker.px_length_mm()
     if rotation != 0:
-        a, b, _ = geom.rect_inner_side_length(detection_pts, BASS_LENGTH_DEPTH_RATIO)
+        a, b, _ = geom.rect_inner_side_length(detection_pts, BASS_LENGTH_DEPTH_RATIO) #See scripts_vgg/calc_lw.py
         length_est_rotation_adjust1 = max(a, b) * marker.px_length_mm()
 
         a, b, _ = geom.rect_inner_side_length2(detection_pts, BASS_LENGTH_DEPTH_RATIO)
@@ -205,7 +213,9 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
         length_est_rotation_adjust1 = length_est
         length_est_rotation_adjust2 = length_est
 
-    results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score_, length_est, length_est_rotation_adjust1, length_est_rotation_adjust2, network, platform, camera, transform, rotation])
+    r = [sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score_, length_est, length_est_rotation_adjust1, length_est_rotation_adjust2, network, platform, camera, transform, rotation]
+    assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
+    results.append(r)
     return detection_pts
 
 
@@ -323,7 +333,7 @@ def main():
     #category_index = label_map_util.create_category_index(categories)
 
     #results are normalized
-    results = [['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'accuracy', 'length_est', 'length_est_rotation_adjust', 'network', 'platform', 'camera', 'transform', 'rotation']]
+    results = [RESULTS_HEADER]
     errs = []
 
     if args.rotate > 0:

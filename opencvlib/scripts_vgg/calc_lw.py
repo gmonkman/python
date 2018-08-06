@@ -8,6 +8,7 @@ from shutil import copyfile
 import numpy as np
 import statsmodels.api as sm
 
+from funclib.statslib import stddev
 import opencvlib.imgpipes.vgg as vgg
 from funclib.iolib import PrintProgress
 from opencvlib import geom
@@ -39,7 +40,7 @@ def main():
                 sides = geom.rect_side_lengths(Reg.all_points)
                 ratios.append(max(sides)/min(sides))
     print('\n')
-    print(sum(ratios)/len(ratios))
+    print('mean: %0.3f,   SD: %0.3f ' % (sum(ratios)/len(ratios), stddev(ratios)))
 
 
 
