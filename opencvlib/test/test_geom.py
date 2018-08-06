@@ -4,8 +4,10 @@
 import unittest
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
+from math import sin, cos, tan, radians, degrees
 
 import cv2
+import numpy as np
 
 import funclib.iolib as iolib
 import opencvlib.geom as geom
@@ -23,6 +25,8 @@ class Test(unittest.TestCase):
         self.modpath = _path.normpath(self.pth)
         self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
         self.I = cv2.imread(self.imgpath)
+        self.Patch = np.array(np.ones((750,1400,3))) * 255
+
 
 
 
@@ -36,7 +40,7 @@ class Test(unittest.TestCase):
         pass
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_flip_points(self):
         '''test'''
         pts = [[50, 50], [100, 50], [100, 100], [50, 100]]
@@ -49,6 +53,44 @@ class Test(unittest.TestCase):
 
         show(img_h)
         show(img_v)
+
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_bound_poly_rect_side_length2(self):
+        '''test'''
+        angle = 10
+        I = np.array(np.ones((750,1400,3))) * 255
+        pts = [[1200, 450], [1200, 200], [200, 450], [200, 200]]
+        I = draw_points(pts, I)
+        pts_rotated, A, B = geom.bound_poly_rect_side_length2(pts, angle)
+        I = draw_points(pts_rotated, I)
+        print(pts_rotated, A, B)
+        show(I)
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_rect_inner_side_length2(self):
+        pts = [[1200, 450], [1200, 200], [200, 450], [200, 200]]
+        angle = 10
+        ratio = (1200 - 200) / (450 - 200)
+
+        pts_rotated = geom.rotate_points(pts, angle, center=None)
+
+        #pts_bound is the corolloray of a rotated detection
+        pts_bound, B, A = geom.bound_poly_rect_side_length2(pts, angle)
+
+        #check looks ok
+        self.Patch = draw_points(pts, self.Patch, join=True, line_color=(0,0,0))
+        self.Patch = draw_points(pts_bound, self.Patch, join=True, line_color=(0,255,0))
+        self.Patch = draw_points(pts_rotated, self.Patch, join=True, line_color=(255, 0, 0))
+        #show(self.Patch)
+
+        b, a, theta = geom.rect_inner_side_length2(pts_bound, ratio)
+        print(b, a, degrees(theta))
+        self.assertAlmostEqual(b, 250, 4)
+        self.assertAlmostEqual(a, 1000, 4)
+        self.assertAlmostEqual(theta,  radians(10), 4)
+
 
 
 

@@ -430,8 +430,6 @@ def draw_grid(img, line_color=(0, 255, 0), thickness=1, type_=_cv2.LINE_AA, pxst
         y += pxstep
 
 
-
-
 def draw_line(pts, img, line_color=(0, 0, 0), label=False, label_color=(0, 0, 0)):
     '''(ndarray, 3-tuple, bool, 3-tuple) -> ndarray
     Plots a line, defined by a two points.

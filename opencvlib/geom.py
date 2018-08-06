@@ -389,8 +389,8 @@ def rect_side_lengths(pts):
     assert len(pts) == 4, 'Rectangle must have 4 points, got %s' % len(pts)
     ls = length_between_all_pts(pts)
     #this is necessary because if points are in wrong order, can get diagonal
-    ls.sort()
     ls = list(set(ls))
+    ls.sort()
     return ls[0], ls[1]
 
 
@@ -415,6 +415,44 @@ def bound_poly_rect_side_length(pts, angle, radians=False, centre=None):
     sqbnd = order_points(bounding_rect_of_poly2(sqrot))
     sq_b, sq_a = rect_side_lengths(sqbnd)
     return sqbnd, sq_b, sq_a
+
+
+def bound_poly_rect_side_length2(pts, angle, radians=False, centre=None):
+    '''(n,2-list, float, 2-tuple|None, bool) -> 2n-list, float, float
+
+    Rotate a polygon, then get the points and
+    side lengths of the bounding rectangle for the
+    second model of rotation of boundng box detection.
+
+    Also orders the returned points.
+
+    pts: n2-list, [[0,0], [10,10], ...]
+    angle: angle to rotate
+    radians: if true, angle is assumed to be radians, else degrees
+    centre: rotate around this centre, if none, rotation is around
+            the polygon centre
+
+    Returns: points, short length, long length
+
+    Example:
+    >>>print(bound_poly_rect_side_length2([[0, 0], [0, 5], [20, 5], [20, 0]], 10))
+    [[0.4341204441673252, -1.6985011591998234], [20.130275504411486, -1.6985011591998234], [20.130275504411486, 6.698501159199823], [0.4341204441673252, 6.698501159199823]], 8.397002318399647, 19.69615506024416
+    '''
+    if radians:
+        angle = _math.degrees(angle)
+    sqrot = rotate_points(pts, angle, None)
+    xs, ys = list(zip(*sqrot))
+    xs = list(xs); ys = list(ys)
+
+    xs.sort(); ys.sort()
+
+    h = max(ys) - min(ys)
+    x_gap = (xs[-1] - xs[-2]) / 2
+    w = xs[-1] - xs[0] - (2 * x_gap)
+
+    pts_out = rect_as_points(ys[0], xs[0] + x_gap, w, h)
+    sqbnd = order_points(pts_out)
+    return sqbnd, min([h, w]), max([h, w])
 
 
 def bounding_rect_of_poly2(points, as_points=True, round_=False):
@@ -498,6 +536,36 @@ def rect_inner_side_length(pts_outer, ratio, as_radians=True):
     return short_side, long_side, theta
 
 
+def rect_inner_side_length2(pts_outer, ratio, as_radians=True):
+    '''(n,2-list, float, bool) -> float, float, float
+    Second rotation model to estimate rectangle side lengths
+    from outer bounding  rectangle.
+
+    Given an outer bounding rectangle, estimate the
+    sides and rotation angle of the inner bounding rectangle
+    given the predicted ratio of the inner bounding sides.
+
+    pts: n,2-list of points
+    ratio: the ratio of the long side/short side (i.e. ratio > 1)
+    as_radians: return predicted rotation as radians, else degrees
+
+    Returns: short length, long length, rotation angle in radians
+
+    Notes:
+        the rotaation angle may be 90 - angle
+
+    Example:
+    >>>rect_inner_side_length2([[0,12.5],[5,12.5],[5,0],[0,0]], 2.5)
+    '''
+    assert len(pts_outer) == 4, 'pts_outer should have 4 points, found %s' % len(pts_outer)
+    A, B = rect_side_lengths(pts_outer)
+    short_side, theta = _fsolve(_inner_box_b2, (float(min(A, B)), 0.0001), args=(B, A, ratio)) #, diag=(1, 0.1), maxfev=100000
+    ab_ratio = ratio if ratio > 1 else 1 / ratio
+    long_side = float(short_side)*ab_ratio
+    theta = theta if as_radians else _math.degrees(theta)
+    return short_side, long_side, theta
+
+
 def _inner_box_b(b_theta, *args):
     '''(2-tuple, 3-tuple) -> float, float
     Get width and angle of rotation
@@ -514,4 +582,28 @@ def _inner_box_b(b_theta, *args):
     b, theta = b_theta
     xx = b * _math.sin(theta) + ab_ratio * b * _math.cos(theta) - A
     yy = ab_ratio * b * _math.sin(theta) + b * _math.cos(theta) - B
+    return (xx, yy)
+
+
+def _inner_box_b2(b_theta, *args):
+    '''(2-tuple, 3-tuple) -> float, float
+    Get width and angle of rotation
+     of inner rect from known outer
+   rect width and height
+
+    b_theta: 2-tuple, (starting values we are solving for, i.e. shortest side and theta)
+    args: 3-tuple, (W, H, ab_ratio):
+        Width, height of detection box and the
+        ratio of the long side to the short side
+        of an ideal detection.
+
+    Returns:
+        predicted width and the rotation
+    '''
+    A, B, ab_ratio = args
+    b, theta = b_theta
+
+
+    xx = (b * ab_ratio * _math.cos(theta)) - A
+    yy = (b * _math.cos(theta)) + (b * ab_ratio * _math.sin(theta))  - B
     return (xx, yy)

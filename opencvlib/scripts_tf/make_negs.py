@@ -42,7 +42,7 @@ _FOLDERS = ['C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial
             'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/gopro_all_undistorted',
             'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/s5690/undistorted']
 
-_OUT = r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\negative'
+_OUT = r'C:\Users\Graham Monkman\OneDrive\Documents\PHD\images\bass\fiducial\train\negs_tf'
 
 
 
@@ -65,30 +65,30 @@ def main():
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
 
     #named: eg script.py -part head
-    cmdline.add_argument('-n', '--number', help='The number of images to produce. If not provided will sample 10 from every image found.', default=0)
+    cmdline.add_argument('-n', '--number', help='The number of images to produce per image', type=int, default=1)
+    cmdline.add_argument('-m', '--max', help='The maximum number of negatives to produce. If 0, will generate number*images negatives.', type=int, default=0)
     cmdline.add_argument('-s', '--skip_file_check', help='Do not halt if output folder has files.', action='store_true')
+
     args = cmdline.parse_args()
-    n_target = int(args.number)
+    assert args.max > 0, 'max should be > 0'
+    assert args.number > 0, 'number should be > 0'
 
     nr_files = iolib.file_count(_FOLDERS, '*.jpg', False)
     if nr_files == 0:
         print('\nSource folders appear to be empty or invalid.')
         return
 
+    max_ = nr_files * args.number if args.max == 0 else args.max
+
     if not args.skip_file_check:
         if not chkdir(_OUT):
             return
-
-    if args.number == 0:
-        n = 10
-
     skipped = 0; processed = 0
-
-    h_neg = 121; w_neg = 508 #size of bass train imgs
+    h_neg = 600; w_neg = 800 #size of bass train imgs
     negs = 0
+
     Gen = gen.VGGROI(_FILES)
-    n = int(round(n_target / nr_files, 0))
-    PP = iolib.PrintProgress(n * nr_files, init_msg='Creating negatves in %s' % _OUT)
+    PP = iolib.PrintProgress(max_, init_msg='Creating negatves in %s' % _OUT)
 
     for _, fname, reg_attr in Gen.generate(path_only=True):
         reg_attr = reg_attr['region_attributes']
@@ -112,7 +112,7 @@ def main():
         #stack into single image then sample from it
         sample_space = vstackt([top, bottom, left_right])
 
-        for _ in range(n):
+        for _ in range(args.number):
             PP.increment()
             i = roi.sample_rect(sample_space, w_neg, h_neg)
             if isinstance(i, np.ndarray) and i.shape == (h_neg, w_neg, 3):
@@ -127,10 +127,10 @@ def main():
                         raise StopIteration('To many iterations to create unique filename.')
                 cv2.imwrite(s, i)
                 negs += 1
-            if negs >= n_target:
+            if negs >= max_:
                 break
         processed += 1
-        if negs >= n_target:
+        if negs >= max_:
             break
 
     print('Create %s negatives from %s images.\n' % (negs, processed))

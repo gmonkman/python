@@ -42,6 +42,8 @@ VALID_PLATFORMS = ['shore', 'charter']
 
 DEVICES = ["/GPU:0", "/GPU:1", "/GPU:2", "/GPU:3", "/CPU:0", "/CPU:1", "/CPU:2", "/CPU:3", "/CPU:4", "/CPU:5", "/CPU:6", "/CPU:7", "/CPU:8"]
 DEVICE = "/CPU:0"
+SCORE = 0.5 #bad detections
+
 
 #this is calculated in scripts_vgg\calc_lw.py
 BASS_LENGTH_DEPTH_RATIO = 4.319593022146387
@@ -163,11 +165,15 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
 
     except Exception as e:
         errs.append(['Tensorflow error on image %s. Error was %s' % (str(e), imgname)])
+        results.append([sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', 'TENSORFLOW ERROR', '', '', network, platform, camera, transform, rotation])
+        return None
+    score_ = float(output_dict['detection_scores'][0]) #0.99999
+    if score_ < SCORE:
+        results.append([sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', score_, '', '', network, platform, camera, transform, rotation])
         return None
 
     ymin, xmin, ymax, xmax = output_dict['detection_boxes'][0].tolist() #[0.4146363139152527, 0.3671582341194153, 0.525425910949707, 0.770221471786499] ymin, xmin, ymax, xmax
     detection_pts = roi.points_denormalize([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], h, w, asint=True)
-    score = float(output_dict['detection_scores'][0]) #0.99999
     detection_box_centroid = roi.centroid(detection_pts)
 
     #get marker
@@ -183,17 +189,23 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
         marker = D.Markers[ind]
         assert isinstance(marker, aruco.Marker)
     else:
-        errs.append(['No marker found for image %s' % imgname])
+        s = 'No marker found for image %s' % imgname
+        errs.append([s])
+        results.append([sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', s, '', '', network, platform, s, s, rotation])
         return None
 
     length_est = abs((detection_pts[1][0] - detection_pts[0][0])) * marker.px_length_mm()
     if rotation != 0:
         a, b, _ = geom.rect_inner_side_length(detection_pts, BASS_LENGTH_DEPTH_RATIO)
-        length_est_rotation_adjust = max(a, b) * marker.px_length_mm()
-    else:
-        length_est_rotation_adjust = length_est
+        length_est_rotation_adjust1 = max(a, b) * marker.px_length_mm()
 
-    results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score, length_est, length_est_rotation_adjust, network, platform, camera, transform, rotation])
+        a, b, _ = geom.rect_inner_side_length2(detection_pts, BASS_LENGTH_DEPTH_RATIO)
+        length_est_rotation_adjust2 = max(a, b) * marker.px_length_mm()
+    else:
+        length_est_rotation_adjust1 = length_est
+        length_est_rotation_adjust2 = length_est
+
+    results.append([sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score_, length_est, length_est_rotation_adjust1, length_est_rotation_adjust2, network, platform, camera, transform, rotation])
     return detection_pts
 
 
@@ -290,7 +302,7 @@ def main():
         PP.update()
         i += 1
         imgpath = path.normpath(imgpath)
-        imgfld, imgname, _ = iolib.get_file_parts2(imgpath)
+        _, imgname, _ = iolib.get_file_parts2(imgpath)
         try:
             sample_lengthid = get_samplelengthid(args.platform, args.camera, imgname)
         except ValueError as dummy:
@@ -319,14 +331,14 @@ def main():
         angles.remove(0)
         i += i * len(angles)
 
-    PP = iolib.PrintProgress(i, init_msg='\nRunning detections ...')
+    PP = iolib.PrintProgress(i, init_msg='\nRunning detections ...', bar_length=20)
     sw = stopwatch.StopWatch(qsize=5, event_name='DetectionOnly')
 
     for imgpath, _, Reg in vgg.roiGenerator(vgg_file, skip_imghdr_check=False, shape_type='rect'):
         assert isinstance(Reg, vgg.Region)
         sw.lap()
         suffix_ = sw.pretty_time(sw.remaining(PP.max - PP.iteration))
-        PP.increment(suffix=' %s           ' % suffix_)
+        PP.increment(suffix=' %s         ' % suffix_)
 
         imgpath = path.normpath(imgpath)
         imgfld, imgname, _ = iolib.get_file_parts2(imgpath)
@@ -374,6 +386,8 @@ def main():
 
         if args.rotate > 0:
             for angle in angles:
+                sw.lap()
+                suffix_ = sw.pretty_time(sw.remaining(PP.max - PP.iteration))
                 PP.increment()
                 img_rot, trans = transforms.rotate2(img, angle)
                 pts_rot = geom.rotate_points(Reg.all_points, angle, (int(img.shape[1]/2), int(img.shape[0]/2)), translate=trans)
@@ -426,4 +440,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

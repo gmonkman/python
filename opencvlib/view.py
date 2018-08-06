@@ -204,6 +204,14 @@ def show(img, title='img', max_width=_SHOW_WIDTH, waitsecs=0, pad_color=_color.C
     return key, title
 
 
+def img_make(h=1024, w=768, depth=3, colour=255):
+    '''(int, int, int, int) -> ndarray
+    make an image of uniform colour
+    '''
+    shape = (h, w, depth)
+    return np.array(np.ones(shape) * colour)
+
+
 @_decs.decgetimg
 def mosaic(imgs, cols=None, pad=True, pad_color=_color.CVColors.black):
     '''(list|tuple, int|None, bool) -> ndarray

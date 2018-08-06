@@ -1,3 +1,5 @@
+#pylint: skip-file
+
 import sys
 from tensorflow.python.client import device_lib
 

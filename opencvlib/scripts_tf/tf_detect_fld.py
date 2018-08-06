@@ -6,7 +6,7 @@
 '''Detect bass in images on the file system.
 
 Example:
-tf_detect_fld.py -x -s -v INFO "C:/images" "C:/model/frozen_inference_graph.pb" "C:/label_map.pbtxt"
+tf_detect_fld.py -x -s -v INFO "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/negs_tf" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"
 '''
 import numpy as np
 import tensorflow as tf
@@ -25,6 +25,7 @@ from opencvlib.imgpipes.generators import FromPaths
 from opencvlib import roi
 from opencvlib import common
 
+SCORE = []
 
 
 def run_inference_for_single_image(image, graph):
@@ -131,7 +132,7 @@ def main():
     FP = FromPaths(imgfolder, wildcards='*.jpg')
     i = sum([1 for x in FP.generate(pathonly=True)])
     PP = iolib.PrintProgress(i, init_msg='\nRunning detections ...')
-
+    global SCORE
     for  img, imgfile, _ in FP.generate():
         assert isinstance(img, np.ndarray)
         PP.increment()
@@ -141,20 +142,28 @@ def main():
         output_dict = run_inference_for_single_image(img, detection_graph) # Actual detection.
         ymin, xmin, ymax, xmax = output_dict['detection_boxes'][0].tolist() #[0.4146363139152527, 0.3671582341194153, 0.525425910949707, 0.770221471786499] ymin, xmin, ymax, xmax
         detection_pts = roi.points_denormalize([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], h, w, asint=True)
-        score = float(output_dict['detection_scores'][0]) #0.99999
-        if score > 0:
+        score_ = float(output_dict['detection_scores'][0]) #0.99999
+        if score_ > 0.5:
+            SCORE.append([score_])
             if args.x:
                 img_with_detection = common.draw_polygon(img, detection_pts, color=(0, 255, 0), thickness=2)
                 s = 'Prediction: %.3f' % score
-                common.draw_str(img_with_detection, x=25, y=25, s=s, color=(255, 255, 255), box_background=(0, 0, 0), scale=2, box_pad=10)
-                common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s='Detection', color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10)
+                try:
+                    common.draw_str(img_with_detection, x=25, y=25, s=s, color=(255, 255, 255), box_background=(0, 0, 0), scale=2, box_pad=10)
+                    common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s='Detection', color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10)
+                except:
+                    pass
                 detection_image_name = path.normpath(path.join(detections_folder, iolib.get_file_parts2(imgfile)[1]))
                 cv2.imwrite(detection_image_name, img_with_detection)
 
             if args.s:
                 show(img_with_detection)
         else:
+            SCORE.append([score_])
             print('No bass detected in %s' % iolib.get_file_parts2(imgfile)[1])
+    resfile = path.join(detections_folder, 'scores.csv')
+    iolib.writecsv(resfile, SCORE, ['score'], inner_as_rows=False)
+
 
 if __name__ == "__main__":
     main()
