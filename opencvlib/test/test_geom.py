@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import, no-self-use
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import, no-self-use, unused-variable
 
 '''unit tests for features'''
 import unittest
@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
         self.modpath = _path.normpath(self.pth)
         self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
         self.I = cv2.imread(self.imgpath)
-        self.Patch = np.array(np.ones((750,1400,3))) * 255
+        self.Patch = np.array(np.ones((750, 1400, 3))) * 255
 
 
 
@@ -59,7 +59,7 @@ class Test(unittest.TestCase):
     def test_bound_poly_rect_side_length2(self):
         '''test'''
         angle = 10
-        I = np.array(np.ones((750,1400,3))) * 255
+        I = np.array(np.ones((750, 1400, 3))) * 255
         pts = [[1200, 450], [1200, 200], [200, 450], [200, 200]]
         I = draw_points(pts, I)
         pts_rotated, A, B = geom.bound_poly_rect_side_length2(pts, angle)
@@ -70,6 +70,7 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_rect_inner_side_length2(self):
+        '''test'''
         pts = [[1200, 450], [1200, 200], [200, 450], [200, 200]]
         angle = 10
         ratio = (1200 - 200) / (450 - 200)
@@ -80,8 +81,8 @@ class Test(unittest.TestCase):
         pts_bound, B, A = geom.bound_poly_rect_side_length2(pts, angle)
 
         #check looks ok
-        self.Patch = draw_points(pts, self.Patch, join=True, line_color=(0,0,0))
-        self.Patch = draw_points(pts_bound, self.Patch, join=True, line_color=(0,255,0))
+        self.Patch = draw_points(pts, self.Patch, join=True, line_color=(0, 0, 0))
+        self.Patch = draw_points(pts_bound, self.Patch, join=True, line_color=(0, 255, 0))
         self.Patch = draw_points(pts_rotated, self.Patch, join=True, line_color=(255, 0, 0))
         #show(self.Patch)
 

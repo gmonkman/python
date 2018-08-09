@@ -194,10 +194,8 @@ def rotate_points(pts, angle, center=(0, 0), translate=(0, 0)):
     Rotates a point "angle" degree around center.
     Negative angle is clockwise.
 
-    pts:
-        array like of len 2, eg [[1,2],[2,3], ...]
-    angle:
-        angle to rotate in degrees (e.g. -90)
+    pts: array like of len 2, eg [[1,2],[2,3], ...]
+    angle: angle to rotate in degrees (e.g. -90)
     center:
         point around which to rotate, (x, y),
         if center is None, rotate about the
@@ -217,11 +215,7 @@ def rotate_points(pts, angle, center=(0, 0), translate=(0, 0)):
     out = []
     if not center:
         center = _np.mean(pts, axis=0)
-
-    for _ in pts:
-        out = [rotate_point(pt, angle, center, translate) for pt in pts]
-
-
+    out = [rotate_point(pt, angle, center, translate) for pt in pts]
     return out
 
 
@@ -255,6 +249,45 @@ def rotate_point(pt, angle, center=(0, 0), translate=(0, 0)):
     return (new_pt[0] + center[0] + translate[0], new_pt[1] + center[1] + translate[1])
 
 
+def rescale_points(pts, downsample, as_int=False):
+    '''(n,2-list, float) -> n,2-list
+    Calulates coordinates of points in a notional image
+    where that image has been downsampled by factor downsample
+
+    pt: array like of len 2, eg [1,2]
+    downsample: downsample factor, new image size will be imagesize/downsample
+                hence downsample=2 will 1/2 the length and width
+
+    Example:
+    >>> rescale_points([[10,10],[50,50],[100,100]],2)
+    [(5.0, 5.0), (25.0, 25.0), (50.0, 50.0)]
+    '''
+    out = []
+    out = [rescale_point(pt, downsample, as_int) for pt in pts]
+    return out
+
+
+def rescale_point(pt, downsample, as_int=False):
+    '''(2-array, float) -> 2-tuple
+    Calulates coordinate of a point in a notional image
+    where that image has been downsampled by factor downsample.
+
+    pt: array like of len 2, eg [1,2]
+    downsample: downsample factor, new image size will be imagesize/downsample
+                hence downsample=2 will 1/2 the length and width
+    as_int: return as integer, else float
+
+    Example:
+    >>>rescale_point((100,100),2.222,True)
+    (45, 45)
+    '''
+    f = 1 / downsample
+    pt_ = (f*pt[0], f*pt[1])
+    if as_int:
+        pt_ = (int(f*pt[0]), int(f*pt[1]))
+    return pt_
+
+
 def flip_points(pts, h, w, hflip=True):
     '''(n,2-ndarray, float, float, bool) -> 2-tuple
     Flip a point horizontally or vertcally
@@ -272,8 +305,7 @@ def flip_points(pts, h, w, hflip=True):
     assert h > 0, 'Image height must be > 0'
     assert w > 0, 'Image width must be > 0'
 
-    for _ in pts:
-        out = [flip_point(pt, h, w, hflip) for pt in pts]
+    out = [flip_point(pt, h, w, hflip) for pt in pts]
     return out
 
 

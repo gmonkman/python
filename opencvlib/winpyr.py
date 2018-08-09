@@ -1,18 +1,14 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled,
-# no-self-use, unused-argument
 '''sliding windows and pyramids'''
-# DEBUG Module requires debugging
-#import numpy as np
-
-# this decorators handles func taking an image (ndarray) or imagepath as
-# the first arg
 
 import opencvlib.transforms as _transforms
-import opencvlib.decs as _decs
+import opencvlib.geom as _geom
+from opencvlib.common import _getimg
+
 
 #from skimage.transform import _transforms.resize
 
-@_decs.decgetimg
+
 def slide_win_abs(image, win_sz, step_sz, discard_partial=True):
     # http://www.pyimagesearch.com/2015/03/23/sliding-windows-for-object-detection-with-python-and-opencv/
     '''(str|ndarray, (int,int), int)-> yield (int, int, ndarray)
@@ -33,6 +29,7 @@ def slide_win_abs(image, win_sz, step_sz, discard_partial=True):
     * y is the top-left y co-ordinate
     * im_window is the sliding window image
     '''
+    image = _getimg(image)
     for y in range(0, image.shape[0], step_sz[1]):
         for x in range(0, image.shape[1], step_sz[0]):
             window = image[y:y + win_sz[1], x:x + win_sz[0]]
@@ -43,20 +40,27 @@ def slide_win_abs(image, win_sz, step_sz, discard_partial=True):
                 yield (x, y, window)
 
 
-# DEBUG debug decorator used for pyramid
-@_decs.decgetimg
-def pyramid(image, scale=1.5, min_pyr_sz=(30, 30)):
-    '''(ndarray|str, float, (int,int))->yield ndarray
+def pyramid(image, scale=1.5, min_pyr_sz=(50, 50), yield_original=True):
+    '''(ndarray|str, float, (int,int), bool)->ndarray, floatt
     Yields suceesively downsampled images (ndarrays)
     until the minsize in either width or height is reached.
+
+    image:image or path to image
+    scale:downsampling factor - width = width/1.5
+    min_py_sz:  stop yielding when last image resolute below this tuple (X,Y)
+    yield_original: yield the unresized image if true, else yields first resized.
+
+    Yields: downsampled image, the downsample amount
     '''
+    image = _getimg(image)
     #Note that
     # yield the original image
-    yield image
+    downsample = 1
+    if yield_original:
+        yield image, downsample
 
-    # keep looping over the pyramid
     while True:
-        # compute the new dimensions of the image and _transforms.resize it
+        downsample = 1 / scale
         w = int(image.shape[1] / scale)
         image = _transforms.resize(image, width=w)
 
@@ -66,10 +70,50 @@ def pyramid(image, scale=1.5, min_pyr_sz=(30, 30)):
             break
 
         # yield the next image in the pyramid
-        yield image
+        yield image, downsample
 
 
-@_decs.decgetimg
+
+def pyramid_pts(image, pts, scale=1.5, min_pyr_sz=(50, 50), yield_original=True):
+    '''(ndarray|str, n,2-list, float, (int,int), bool)->ndarray, floatt
+    Yields suceesively downsampled images (ndarrays)
+    until the minsize in either width or height is reached.
+
+    Also takes points and rescales them according to scale
+
+    image:image or path to image
+    pts:    points defining an roi to be scaled appropropriately, format is CVXY
+            [[1,1],[10,10] ... ]
+    scale:downsampling factor - width = width/1.5
+    min_py_sz:  stop yielding when last image resolute below this tuple (X,Y)
+    yield_original: yield the unresized image if true, else yields first resized.
+
+    Yields: downsampled image, the downsample amount
+    '''
+    pts_scaled = list(pts)
+    image = _getimg(image)
+    #Note that
+    # yield the original image
+    downsample = 1
+    if yield_original:
+        yield image, pts_scaled, downsample
+
+    while True:
+        downsample = downsample / scale
+        pts_scaled = _geom.rescale_points(pts_scaled, scale)
+        w = int(image.shape[1] / scale)
+        image = _transforms.resize(image, width=w)
+
+        # if the resized image does not meet the supplied minimum
+        # size, then stop constructing the pyramid
+        if image.shape[0] < min_pyr_sz[1] or image.shape[1] < min_pyr_sz[0]:
+            break
+
+        # yield the next image in the pyramid
+        yield image, pts_scaled, downsample
+
+
+
 def pyrwin(image, scale=1.5, min_pyr_size=(100, 100), win_func=slide_win_abs, **win_func_args):
     '''(str|ndarray, float, (int,int), bool, function, function kwargs)->yield (int, int, ndarray)
     combines pyramid and a sliding window function (win_func) to yield window regions
@@ -81,6 +125,7 @@ def pyrwin(image, scale=1.5, min_pyr_size=(100, 100), win_func=slide_win_abs, **
     Supported windows functions:
     slide_win_abs(image, win_sz, step_sz)
     '''
+    image = _getimg(image)
     for resized in pyramid(image, scale=scale, min_pyr_sz=min_pyr_size):  # loop over the image pyramid
             # loop over the sliding window for each layer of the pyramid
         for x, y, window in win_func(resized, **win_func_args):

@@ -209,7 +209,7 @@ def img_make(h=1024, w=768, depth=3, colour=255):
     make an image of uniform colour
     '''
     shape = (h, w, depth)
-    return np.array(np.ones(shape) * colour)
+    return _np.array(_np.ones(shape) * colour)
 
 
 @_decs.decgetimg

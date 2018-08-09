@@ -147,7 +147,7 @@ def main():
             SCORE.append([score_])
             if args.x:
                 img_with_detection = common.draw_polygon(img, detection_pts, color=(0, 255, 0), thickness=2)
-                s = 'Prediction: %.3f' % score
+                s = 'Prediction: %.3f' % score_
                 try:
                     common.draw_str(img_with_detection, x=25, y=25, s=s, color=(255, 255, 255), box_background=(0, 0, 0), scale=2, box_pad=10)
                     common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s='Detection', color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10)

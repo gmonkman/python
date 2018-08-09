@@ -34,6 +34,8 @@ from opencvlib import roi
 from opencvlib import common
 from opencvlib import transforms
 from opencvlib import geom
+from opencvlib import winpyr
+
 from funclib import stopwatch
 from funclib.statslib import stddev
 
@@ -255,6 +257,7 @@ def main():
     cmdline.add_argument('-f', '--flip', action='store_true', help='also detect on the horizontally flipped image')
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
     cmdline.add_argument('-r', '--rotate', type=int, help='Do detections over a range of rotations', default=0)
+    cmdline.add_argument('-v', '--pyramid_scale', type=float, help='Do detections over a range of downscaling, defaults to no downscaling', default=0)
     cmdline.add_argument('-d', '--device', type=str, help='Tensorflow device to run on', default='/GPU:0')
     cmdline.add_argument('-o', '--detections_folder', type=str, help='Folder in which detections are created, uses root of vgg_file', default='detections')
     #You could also try on rotated images
@@ -352,7 +355,7 @@ def main():
         PP.increment(suffix=' %s         ' % suffix_)
 
         imgpath = path.normpath(imgpath)
-        imgfld, imgname, _ = iolib.get_file_parts2(imgpath)
+        _, imgname, _ = iolib.get_file_parts2(imgpath)
         sample_lengthid = get_samplelengthid(args.platform, args.camera, imgname) #dont need to check this, we did it before in the pretest
         img = cv2.imread(imgpath)
 
@@ -422,6 +425,25 @@ def main():
                         write_image(img_rot, pts_bound, detection_pts, detection_image_name, args.s, groundtruth_label='Bounding Rotated Groundtruth')
 
 
+        if args.pyramid_scale > 0:
+            for img_scaled, pts_, scale in winpyr.pyramid_pts(self.I, pts, yield_original=False):
+                scale_str = '%0.5f
+                xform = 'r_%s' % angle
+                detection_pts = None
+                try:
+                    detection_pts = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, network, args.platform, args.camera, xform, angle)
+                except Exception as e:
+                    s = '%s:   %s'  % (imgname, str(e))
+                    errs.append(s)
+
+                if not detection_pts:
+                    continue
+
+                if  args.export_every > 0:
+                    #Save and optionally show the detection
+                    if random.randint(1, args.export_every) == 1:
+                        detection_image_name = path.normpath(path.join(detections_folder, xform + '_' + imgname))
+                        write_image(img_rot, pts_bound, detection_pts, detection_image_name, args.s, groundtruth_label='Bounding Rotated Groundtruth')
 
     #export any problems to a csv file
     if errs:
@@ -446,7 +468,7 @@ def main():
     if DETECT_TIMES_SECONDS:
         avg_det_time = sum(DETECT_TIMES_SECONDS)/len(DETECT_TIMES_SECONDS)
         std_det_time = stddev(DETECT_TIMES_SECONDS)
-        det_time=[['time_secs', 'sd', 'n', 'total_run_time_secs']]
+        det_time = [['time_secs', 'sd', 'n', 'total_run_time_secs']]
         fname = path.normpath(path.join(detections_folder, 'detect_time.csv'))
         det_time.append([avg_det_time, std_det_time, len(DETECT_TIMES_SECONDS), sw.run_time])
         iolib.writecsv(fname, det_time, inner_as_rows=False)
