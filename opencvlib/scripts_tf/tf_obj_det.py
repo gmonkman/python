@@ -35,6 +35,7 @@ from opencvlib import common
 from opencvlib import transforms
 from opencvlib import geom
 from funclib import stopwatch
+from funclib.statslib import stddev
 
 DETECT_TIMES_SECONDS = []
 VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
@@ -398,7 +399,7 @@ def main():
             for angle in angles:
                 sw.lap()
                 suffix_ = sw.pretty_time(sw.remaining(PP.max - PP.iteration))
-                PP.increment()
+                PP.increment(suffix=' %s         ' % suffix_)
                 img_rot, trans = transforms.rotate2(img, angle)
                 pts_rot = geom.rotate_points(Reg.all_points, angle, (int(img.shape[1]/2), int(img.shape[0]/2)), translate=trans)
                 pts_bound = geom.bounding_rect_of_poly2(pts_rot) #this is the bounding polygon
@@ -444,7 +445,12 @@ def main():
     avg_det_time = -1
     if DETECT_TIMES_SECONDS:
         avg_det_time = sum(DETECT_TIMES_SECONDS)/len(DETECT_TIMES_SECONDS)
-    print('\nAverage TF Detection Time: %.2f secs    n=%s' % (avg_det_time, len(DETECT_TIMES_SECONDS)))
+        std_det_time = stddev(DETECT_TIMES_SECONDS)
+        det_time=[['time_secs', 'sd', 'n', 'total_run_time_secs']]
+        fname = path.normpath(path.join(detections_folder, 'detect_time.csv'))
+        det_time.append([avg_det_time, std_det_time, len(DETECT_TIMES_SECONDS), sw.run_time])
+        iolib.writecsv(fname, det_time, inner_as_rows=False)
+        print('Saved average detect times')
 
 
 
