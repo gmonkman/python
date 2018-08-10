@@ -8,7 +8,7 @@ This module contains some common routines used by other opencv demos.
 # Python 2/3 compatibility
 import sys as _sys
 from functools import reduce as _reduce
-
+from warnings import warn as _warn
 import numpy as _np
 import cv2 as _cv2
 
@@ -188,10 +188,12 @@ def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_c
         else:
             yadj = 0; xadj = 0
 
-        try:
-            dst[y - yadj: box.shape[0] + y - yadj, x - xadj: box.shape[1] + x - xadj] = box
-        except:
-            raise ValueError('Part of the text box would be printed outside the host image.')
+        yy = box.shape[0] + y - yadj
+        xx = box.shape[1] + x - xadj
+        if yy <= box.shape[0] and xx <= box.shape[1]:
+            dst[y - yadj: yy, x - xadj: xx] = box
+        else:
+            _warn('Text box in draw_str too big for the image.')
     else:
         _cv2.putText(dst, s, (x, y), fnt,
                     scale, color, thickness=thickness, lineType=_cv2.LINE_AA, bottomLeftOrigin=bottom_left_origin)

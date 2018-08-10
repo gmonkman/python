@@ -151,7 +151,7 @@ def main():
                 try:
                     common.draw_str(img_with_detection, x=25, y=25, s=s, color=(255, 255, 255), box_background=(0, 0, 0), scale=2, box_pad=10)
                     common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s='Detection', color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10)
-                except:
+                except Exception as dummy:
                     pass
                 detection_image_name = path.normpath(path.join(detections_folder, iolib.get_file_parts2(imgfile)[1]))
                 cv2.imwrite(detection_image_name, img_with_detection)

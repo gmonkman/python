@@ -43,7 +43,7 @@ DETECT_TIMES_SECONDS = []
 VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
 VALID_PLATFORMS = ['shore', 'charter']
 
-RESULTS_HEADER = ['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'score', 'length_est', 'length_est_rotation_adjust1', 'length_est_rotation_adjust2', 'network', 'platform', 'camera', 'transform', 'rotation']
+RESULTS_HEADER = ['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'score', 'length_est', 'length_est_rotation_adjust1', 'length_est_rotation_adjust2', 'network', 'platform', 'camera', 'transform', 'rotation', 'scale', 'status']
 
 DEVICES = ["/GPU:0", "/GPU:1", "/GPU:2", "/GPU:3", "/CPU:0", "/CPU:1", "/CPU:2", "/CPU:3", "/CPU:4", "/CPU:5", "/CPU:6", "/CPU:7", "/CPU:8"]
 DEVICE = "/CPU:0"
@@ -147,15 +147,17 @@ def get_samplelengthid(platform, camera, filename):
     return int(sample_lengthids[ind])
 
 
-def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_graph, results, errs, network, platform, camera, transform='None', rotation=0):
-    '''(str, str, int, n-list, n-list, tf.Graph, list, list, str) -> n,2-list|None
+def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_graph, results, errs, network, platform, camera, transform='None', rotation=0, scale=0):
+    '''(str, str, int, n-list, n-list, tf.Graph, list, list, str) -> n,2-list|None, float|None
 
     Get the detection stats as a list to write to a file.
 
     results, errs: status lists, ByRef
     transform: string indicating any transform to the image, eg. "hflip", "none"
     Returns:
-        detection points on success, else None
+        detection points on success else None, length estimate or None
+
+    The length estimate is None if the ArUco marker was not detected
     '''
     h = img.shape[0]; w = img.shape[1]
     _, imgname, _ = iolib.get_file_parts2(imgpath)
@@ -170,16 +172,16 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
 
     except Exception as e:
         errs.append(['Tensorflow error on image %s. Error was %s' % (str(e), imgname)])
-        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', 'TENSORFLOW ERROR', '', '', '', network, platform, camera, transform, rotation]
+        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', 'TENSORFLOW ERROR', '', '', '', network, platform, camera, transform, rotation, scale, 'TF raised error']
         assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
         results.append(r)
-        return None
+        return None, None
     score_ = float(output_dict['detection_scores'][0]) #0.99999
     if score_ < SCORE:
-        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', score_, '', '', '', network, platform, camera, transform, rotation]
+        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', score_, '', '', '', network, platform, camera, transform, rotation, scale, 'Detection score below threshhold']
         assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
         results.append(r)
-        return None
+        return None, None
 
     ymin, xmin, ymax, xmax = output_dict['detection_boxes'][0].tolist() #[0.4146363139152527, 0.3671582341194153, 0.525425910949707, 0.770221471786499] ymin, xmin, ymax, xmax
     detection_pts = roi.points_denormalize([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], h, w, asint=True)
@@ -200,10 +202,10 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
     else:
         s = 'No marker found for image %s' % imgname
         errs.append([s])
-        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', s, '', '', '', network, platform, s, s, rotation]
+        r = [sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score_, '', '', '', network, platform, camera, transform, rotation, scale, 'Marker not detected']
         assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
         results.append(r)
-        return None
+        return detection_pts, None
 
     length_est = abs((detection_pts[1][0] - detection_pts[0][0])) * marker.px_length_mm()
     if rotation != 0:
@@ -216,10 +218,10 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
         length_est_rotation_adjust1 = length_est
         length_est_rotation_adjust2 = length_est
 
-    r = [sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score_, length_est, length_est_rotation_adjust1, length_est_rotation_adjust2, network, platform, camera, transform, rotation]
+    r = [sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score_, length_est, length_est_rotation_adjust1, length_est_rotation_adjust2, network, platform, camera, transform, rotation, scale, 'Success']
     assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
     results.append(r)
-    return detection_pts
+    return detection_pts, length_est
 
 
 def write_image(img, groundtruth_pts, detection_pts, fname, show_, detection_label='Detection', groundtruth_label='Groundtruth'):
@@ -255,9 +257,10 @@ def main():
     cmdline = argparse.ArgumentParser(description=__doc__)
     cmdline.add_argument('-p', '--platform', help='"charter" or "shore"')
     cmdline.add_argument('-f', '--flip', action='store_true', help='also detect on the horizontally flipped image')
+    cmdline.add_argument('-k', '--kill', action='store_true', help='Kill, i.e. delete all files in detection folder first.')
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
     cmdline.add_argument('-r', '--rotate', type=int, help='Do detections over a range of rotations', default=0)
-    cmdline.add_argument('-v', '--pyramid_scale', type=float, help='Do detections over a range of downscaling, defaults to no downscaling', default=0)
+    cmdline.add_argument('-y', '--pyramid_scale', type=float, help='Do detections over a range of downscaling, defaults to no downscaling', default=0)
     cmdline.add_argument('-d', '--device', type=str, help='Tensorflow device to run on', default='/GPU:0')
     cmdline.add_argument('-o', '--detections_folder', type=str, help='Folder in which detections are created, uses root of vgg_file', default='detections')
     #You could also try on rotated images
@@ -289,7 +292,6 @@ def main():
         warn(s)
         DEVICE = "/CPU:0"
 
-    #TODO this is a hack
     if 'CPU' in DEVICE:
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1' #stop use of GPU
         print('\nGPU was hidden on user request')
@@ -306,7 +308,9 @@ def main():
     fld, _, _ = iolib.get_file_parts2(vgg_file)
     detections_folder = path.normpath(path.join(fld, args.detections_folder))
     iolib.create_folder(detections_folder)
-    iolib.files_delete(detections_folder)
+    if args.kill:
+        print('Clearing detections folder...')
+        iolib.files_delete(detections_folder)
 
     #Check all images in the vgg file (with groundtruths) have a valid bass uniquecode and a vgg record
     i = 0
@@ -365,7 +369,7 @@ def main():
         #detect as is
         detection_pts = None
         try:
-            detection_pts = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, network, args.platform, args.camera, 'None', 0)
+            detection_pts, length = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, network, args.platform, args.camera, 'None', 0, 0)
         except Exception as e:
             s = '%s:   %s'  % (imgname, str(e))
             errs.append(s)
@@ -385,7 +389,7 @@ def main():
             pts_flip_x, pts_flip_y = list(zip(*pts_flip))
             detection_pts = None
             try:
-                detection_pts = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, network, args.platform, args.camera, 'hflip', 0)
+                detection_pts, length = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, network, args.platform, args.camera, 'hflip', 0, 0)
             except Exception as e:
                 s = '%s:   %s'  % (imgname, str(e))
                 errs.append(s)
@@ -410,7 +414,7 @@ def main():
                 xform = 'r_%s' % angle
                 detection_pts = None
                 try:
-                    detection_pts = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, network, args.platform, args.camera, xform, angle)
+                    detection_pts, length = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, network, args.platform, args.camera, xform, angle, 0)
                 except Exception as e:
                     s = '%s:   %s'  % (imgname, str(e))
                     errs.append(s)
@@ -426,12 +430,13 @@ def main():
 
 
         if args.pyramid_scale > 0:
-            for img_scaled, pts_, scale in winpyr.pyramid_pts(self.I, pts, yield_original=False):
-                scale_str = '%0.5f
-                xform = 'r_%s' % angle
+            for img_scaled, pts_, scale in winpyr.pyramid_pts(img, Reg.all_points, args.pyramid_scale, yield_original=False):
+                scale_str = '%0.3f' % scale
+                xform = 'scale_%s' % scale_str
                 detection_pts = None
+                pts_scale_x, pts_scale_y = list(zip(*pts_))
                 try:
-                    detection_pts = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, network, args.platform, args.camera, xform, angle)
+                    detection_pts, length = detect(img_scaled, imgpath, sample_lengthid, pts_scale_x, pts_scale_y, detection_graph, results, errs, network, args.platform, args.camera, xform, 0, scale)
                 except Exception as e:
                     s = '%s:   %s'  % (imgname, str(e))
                     errs.append(s)
@@ -442,8 +447,13 @@ def main():
                 if  args.export_every > 0:
                     #Save and optionally show the detection
                     if random.randint(1, args.export_every) == 1:
-                        detection_image_name = path.normpath(path.join(detections_folder, xform + '_' + imgname))
-                        write_image(img_rot, pts_bound, detection_pts, detection_image_name, args.s, groundtruth_label='Bounding Rotated Groundtruth')
+                        if length is None:
+                            s = xform + '_NOMARKER_' + imgname
+                        else:
+                            s = xform + '_' + imgname
+
+                        detection_image_name = path.normpath(path.join(detections_folder, s))
+                        write_image(img_scaled, pts_, detection_pts, detection_image_name, args.s)
 
     #export any problems to a csv file
     if errs:
@@ -454,8 +464,13 @@ def main():
             pass
 
     if results:
-        resfile = path.normpath(path.join(detections_folder, 'detection.csv'))
-        #print('resfile was %s' % resfile)
+        s = 'detection'
+        if args.pyramid_scale > 0:
+            s = '%s_pyr' % s
+        if args.rotate > 0:
+            s = '%s_rot' % s
+        s = '%s.csv' % s
+        resfile = path.normpath(path.join(detections_folder, s))
         try:
            #print('Exporting results. There were %s records in results' % len(results))
             iolib.writecsv(resfile, results, inner_as_rows=False)
@@ -463,8 +478,11 @@ def main():
             pass
     else:
         print('results dic was empty')
+
     print('\nCompleted %s %s %s' % (args.camera, args.platform, network))
+
     avg_det_time = -1
+
     if DETECT_TIMES_SECONDS:
         avg_det_time = sum(DETECT_TIMES_SECONDS)/len(DETECT_TIMES_SECONDS)
         std_det_time = stddev(DETECT_TIMES_SECONDS)
