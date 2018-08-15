@@ -1,4 +1,5 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import
+'''graphs'''
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -29,7 +30,7 @@ def make_graph_dis_undis(csv, out):
         xlim = (210, 630);ylim = (-150, 70)
         g.set(xlim=xlim, ylim=ylim, xticks=[250, 350, 450, 550], yticks=[-100, -50, 0, 50])
     else: #dab
-        xlim=(90, 300); ylim=(-60, 20)
+        xlim = (90, 300); ylim = (-60, 20)
         g.set(xlim=xlim, ylim=ylim)
     ymid = (ylim[0] + ylim[1]) /2
 
@@ -37,8 +38,8 @@ def make_graph_dis_undis(csv, out):
     #g.fig.subplots_adjust(wspace=0.2, hspace=0.4)
 
     #coords are rc
-    ax00  = g.facet_axis(0, 0); ax01  = g.facet_axis(0, 1); ax02  = g.facet_axis(0, 2)
-    ax10  = g.facet_axis(1, 0); ax11  = g.facet_axis(1, 1); ax12  = g.facet_axis(1, 2)
+    ax00 = g.facet_axis(0, 0); ax01 = g.facet_axis(0, 1); ax02 = g.facet_axis(0, 2)
+    ax10 = g.facet_axis(1, 0); ax11 = g.facet_axis(1, 1); ax12 = g.facet_axis(1, 2)
     facets = [ax00, ax01, ax02, ax10, ax11, ax12]
     ax10.set_title(''); ax11.set_title(''); ax12.set_title('')
 
@@ -68,9 +69,9 @@ def make_graph_dis_undis(csv, out):
 
 
     if 'bass' in csv:
-        g.fig.text(0.03, 0.95, 'Seabass', transform = g.fig.transFigure, size='large')
+        g.fig.text(0.03, 0.95, 'Seabass', transform=g.fig.transFigure, size='large')
     else:
-       g.fig.text(0.03, 0.95, 'Dab', transform = g.fig.transFigure, size='large')
+        g.fig.text(0.03, 0.95, 'Dab', transform=g.fig.transFigure, size='large')
 
     #draw y=0 line
     for ax in facets:
@@ -109,14 +110,14 @@ def make_graphs_other(csv, out):
     #g.set_titles('{col_name}{row_name}')
 
     #coords are rc
-    ax00  = g.facet_axis(0, 0); ax01  = g.facet_axis(0, 1)
-    ax10  = g.facet_axis(1, 0); ax11  = g.facet_axis(1, 1)
-    ax20  = g.facet_axis(2, 0); ax21  = g.facet_axis(2, 1)
-    ax30  = g.facet_axis(3, 0); ax31  = g.facet_axis(3, 1)
-    ax40  = g.facet_axis(4, 0); ax41  = g.facet_axis(4, 1)
+    ax00 = g.facet_axis(0, 0); ax01 = g.facet_axis(0, 1)
+    ax10 = g.facet_axis(1, 0); ax11 = g.facet_axis(1, 1)
+    ax20 = g.facet_axis(2, 0); ax21 = g.facet_axis(2, 1)
+    ax30 = g.facet_axis(3, 0); ax31 = g.facet_axis(3, 1)
+    ax40 = g.facet_axis(4, 0); ax41 = g.facet_axis(4, 1)
     facets = [ax00, ax10, ax20, ax30, ax40, ax01, ax11, ax21, ax31, ax41]
 
-    for i, ax in enumerate(facets):
+    for _, ax in enumerate(facets):
         ax.set_title('')
         ax.plot([min(xlim), max(xlim)], [0, 0], **PLOT_KWARGS)
 
@@ -171,9 +172,9 @@ def make_graphs_other(csv, out):
         ax41.text(xlim[1]+spacer, ymid, 'Calib.-profile ', ha='center', va='center', rotation=-90)
 
     if 'bass' in csv:
-        g.fig.text(0.5, 0.98, 'Seabass', transform = g.fig.transFigure, va='center', ha='center', weight='bold')
+        g.fig.text(0.5, 0.98, 'Seabass', transform=g.fig.transFigure, va='center', ha='center', weight='bold')
     else:
-        g.fig.text(0.5, 0.98, 'Dab', transform = g.fig.transFigure, va='center', ha='center', weight='bold') #size='large'
+        g.fig.text(0.5, 0.98, 'Dab', transform=g.fig.transFigure, va='center', ha='center', weight='bold') #size='large'
 
     g.despine()
     g.fig.tight_layout()

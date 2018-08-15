@@ -81,6 +81,12 @@ class InitData(object):
             ",sample_length.mv_nas_lens_correction_mm" \
             ",sample_length.mv_ssd_lens_correction_mm" \
             ",sample_length.mv_res_lens_correction_mm" \
+            ",nas_length_est_rotation_adjust1" \
+            ",nas_length_est_rotation_adjust2" \
+            ",res_length_est_rotation_adjust1" \
+            ",res_length_est_rotation_adjust2" \
+            ",ssd_length_est_rotation_adjust1" \
+            ",ssd_length_est_rotation_adjust2" \
             ",sample.unique_code" \
             ",sample.tl_mm" \
             ",sample.board_board_length_mm + housing_mount.subject_to_lens_conversion_mm as lens_subject_distance" \
@@ -143,15 +149,15 @@ class InitData(object):
 
         #for the nas rcnn detections
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'nas_xmin', 'nas_xmax', 'nas_ymin', 'nas_ymax')
-        pdl.col_calculate_new(self.df_lengths, iou2, 'nas_iou', *colinds)
+        pdl.col_calculate_new(self.df_lengths, iou2, 'nas_iou', *colinds, progress_init_msg='Calculating nas_iou')
 
         #for the ssd rcnn detections
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'ssd_xmin', 'ssd_xmax', 'ssd_ymin', 'ssd_ymax')
-        pdl.col_calculate_new(self.df_lengths, iou2, 'ssd_iou', *colinds)
+        pdl.col_calculate_new(self.df_lengths, iou2, 'ssd_iou', *colinds, progress_init_msg='Calculating ssd_iou')
 
         #for the resnet rcnn detections
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'res_xmin', 'res_xmax', 'res_ymin', 'res_ymax')
-        pdl.col_calculate_new(self.df_lengths, iou2, 'res_iou', *colinds)
+        pdl.col_calculate_new(self.df_lengths, iou2, 'res_iou', *colinds, progress_init_msg='Calculating res_iou')
 
 
     def perspective_adjust(self):
@@ -168,41 +174,75 @@ class InitData(object):
         # create new col in dataframe and fill with perspective corrections based on the estimated fish length
         # fish_depth_from_estimate is added to the df in add_depths
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'lens_subject_distance', 'fish_depth_from_estimate', 'lens_correction_mm')
-        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction, 'perspective_corrected_estimate_mm', *colinds)
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction, 'perspective_corrected_estimate_mm', *colinds, progress_init_msg='Calculating perspective_corrected_estimate_mm')
 
         # create new col in dataframe and fill with perspective corrections
         # based on the estimated fish length. Uses the measured lens-subject distance and the iteratve correction
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subject_distance', 'lens_correction_mm')
-        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'perspective_corrected_estimate_iter_mm', *colinds)
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'perspective_corrected_estimate_iter_mm', *colinds, progress_init_msg='Calculating perspective_corrected_estimate_iter_mm')
 
         # create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile based on actual subj-lens distance
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subject_distance', 'lens_correction_mm', 'profile_factor')
-        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'persp_corr_iter_profile_mm', *colinds)
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'persp_corr_iter_profile_mm', *colinds, progress_init_msg='Calculating persp_corr_iter_profile_mm')
 
         #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile
         #based on camera profile estimate subj-lens distance
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_camprop_est', 'lens_correction_mm', 'profile_factor')
-        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'persp_corr_iter_profile_camdist_mm', *colinds)
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'persp_corr_iter_profile_camdist_mm', *colinds, progress_init_msg='Calculating persp_corr_iter_profile_camdist_mm')
 
         #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile
         #based on triangles estimate of subj-lens distance using a calibration shot
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'lens_correction_mm', 'profile_factor')
-        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'persp_corr_iter_profile_tridist_mm', *colinds)
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'persp_corr_iter_profile_tridist_mm', *colinds, progress_init_msg='Calculating persp_corr_iter_profile_tridist_mm')
+
 
         #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the nas_rcnn estimated length
         #based on triangles estimate of subj-lens distance using a calibration shot
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'mv_nas_lens_correction_mm', 'profile_factor')
-        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'nas_persp_corr_iter_profile_tridist_mm', *colinds)
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'nas_persp_corr_iter_profile_tridist_mm', *colinds, progress_init_msg='Calculating nas_persp_corr_iter_profile_tridist_mm')
 
         #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the ssd_rcnn estimated length
         #based on triangles estimate of subj-lens distance using a calibration shot
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'mv_ssd_lens_correction_mm', 'profile_factor')
-        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'ssd_persp_corr_iter_profile_tridist_mm', *colinds)
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'ssd_persp_corr_iter_profile_tridist_mm', *colinds, progress_init_msg='Calculating ssd_persp_corr_iter_profile_tridist_mm')
 
         #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the res_rcnn estimated length
         #based on triangles estimate of subj-lens distance using a calibration shot
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'mv_res_lens_correction_mm', 'profile_factor')
-        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'res_persp_corr_iter_profile_tridist_mm', *colinds)
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'res_persp_corr_iter_profile_tridist_mm', *colinds, progress_init_msg='Calculating res_persp_corr_iter_profile_tridist_mm')
+
+
+        #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the nas_rcnn estimated length
+        #based on triangles estimate of subj-lens distance using a calibration shot, BUT this uses the model 1 length corrected for the rotation
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'nas_length_est_rotation_adjust1', 'profile_factor')
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'nas_all_corr_rot_adj1_mm', *colinds, progress_init_msg='Calculating nas_all_corr_rot_adj1_mm')
+
+        #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the res_rcnn estimated length
+        #based on triangles estimate of subj-lens distance using a calibration shot, BUT this uses the model 1 length corrected for the rotation
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'res_length_est_rotation_adjust1', 'profile_factor')
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'res_all_corr_rot_adj1_mm', *colinds, progress_init_msg='Calculating res_all_corr_rot_adj1_mm')
+
+        #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the res_rcnn estimated length
+        #based on triangles estimate of subj-lens distance using a calibration shot, BUT this uses the model 1 length corrected for the rotation
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'ssd_length_est_rotation_adjust1', 'profile_factor')
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'ssd_all_corr_rot_adj1_mm', *colinds, progress_init_msg='Calculating ssd_all_corr_rot_adj1_mm')
+
+
+        #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the nas_rcnn estimated length
+        #based on triangles estimate of subj-lens distance using a calibration shot, BUT this uses the model 1 length corrected for the rotation
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'nas_length_est_rotation_adjust2', 'profile_factor')
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'nas_all_corr_rot_adj2_mm', *colinds, progress_init_msg='Calculating nas_all_corr_rot_adj2_mm')
+
+        #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the res_rcnn estimated length
+        #based on triangles estimate of subj-lens distance using a calibration shot, BUT this uses the model 1 length corrected for the rotation
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'res_length_est_rotation_adjust2', 'profile_factor')
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'res_all_corr_rot_adj2_mm', *colinds, progress_init_msg='Calculating res_all_corr_rot_adj2_mm')
+
+        #create new col in dataframe and fill with iterative perspective correction adjusted for the fish profile USING the res_rcnn estimated length
+        #based on triangles estimate of subj-lens distance using a calibration shot, BUT this uses the model 1 length corrected for the rotation
+        colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'coeff', 'const', 'lens_subj_triangle_est', 'ssd_length_est_rotation_adjust2', 'profile_factor')
+        pdl.col_calculate_new(self.df_lengths, perspective.get_perspective_correction_iter_linear, 'ssd_all_corr_rot_adj2_mm', *colinds, progress_init_msg='Calculating ssd_all_corr_rot_adj2_mm')
+
 
 
 
@@ -243,10 +283,10 @@ class InitData(object):
                                                   perspective.Measure(marker_length_mm=marker_length_mm, marker_length_px=marker_length_px))
 
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'focal_distance_mm', 'rotated_resolution_x', 'cmos_width_mm', 'ref_length_mm', 'ref_length_px')
-        pdl.col_calculate_new(self.df_lengths, _from_cam, 'lens_subj_camprop_est', *colinds)
+        pdl.col_calculate_new(self.df_lengths, _from_cam, 'lens_subj_camprop_est', *colinds, progress_init_msg='Calculating lens_subj_camprop_est')
 
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'calib_lens_subj_distance_mm', 'calib_marker_length_mm', 'calib_marker_length_px', 'ref_length_mm', 'ref_length_px')
-        pdl.col_calculate_new(self.df_lengths, _from_triangles, 'lens_subj_triangle_est', *colinds)
+        pdl.col_calculate_new(self.df_lengths, _from_triangles, 'lens_subj_triangle_est', *colinds, progress_init_msg='Calculating lens_subj_triangle_est')
 
 
     def _add_linear(self):
@@ -274,16 +314,16 @@ class InitData(object):
         assert isinstance(self.df_lengths, pd.DataFrame)
         # first add the fish depth estimate using the actual measured length
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'tl_mm')
-        pdl.col_calculate_new(self.df_lengths, InitData._get_fish_depth, 'fish_depth_from_actual', colinds)
+        pdl.col_calculate_new(self.df_lengths, InitData._get_fish_depth, 'fish_depth_from_actual', colinds, progress_init_msg='Calculating fish_depth_from_actual')
 
         # add fish depth based on the estimated length
         colinds = pdl.cols_get_indexes_from_names(self.df_lengths, 'estimate_mm')
-        pdl.col_calculate_new(self.df_lengths, InitData._get_fish_depth, 'fish_depth_from_estimate', colinds)
+        pdl.col_calculate_new(self.df_lengths, InitData._get_fish_depth, 'fish_depth_from_estimate', colinds, progress_init_msg='Calculating fish_depth_from_estimate')
 
 
     def write_to_sql(self):
         '''updates the corrected records to sql'''
-        COLCNT = 13
+        COLCNT = 19
         rw_cnt = len(self.df_lengths.index) * COLCNT
         PP = PrintProgress(rw_cnt, init_msg='Writing data back to SQL Server')
 
@@ -390,6 +430,58 @@ class InitData(object):
             sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
             assert isinstance(sam_len, SampleLength)
             sam_len.res_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
+
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_all_corr_rot_adj1_mm') #14
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.nas_all_corr_rot_adj1_mm = _read_range_float(tl_cor)
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_all_corr_rot_adj2_mm') #15
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.nas_all_corr_rot_adj2_mm = _read_range_float(tl_cor)
+
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_all_corr_rot_adj1_mm') #16
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.res_all_corr_rot_adj1_mm = _read_range_float(tl_cor)
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_all_corr_rot_adj2_mm') #17
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.res_all_corr_rot_adj2_mm = _read_range_float(tl_cor)
+
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_all_corr_rot_adj1_mm') #18
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.ssd_all_corr_rot_adj1_mm = _read_range_float(tl_cor)
+
+        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_all_corr_rot_adj2_mm') #19
+        for i, row in self.df_lengths.iterrows():
+            PP.increment()
+            tl_cor = row[est_cor_ind]
+            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+            assert isinstance(sam_len, SampleLength)
+            sam_len.ssd_all_corr_rot_adj2_mm = _read_range_float(tl_cor)
+
 
 
 def _read_range_int(v):

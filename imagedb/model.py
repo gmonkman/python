@@ -1,12 +1,32 @@
+#pylint: skip-file
 # coding: utf-8
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Index, Integer, LargeBinary, String, Table, Text, Unicode, text
-from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mssql.base import BIT
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 
 Base = declarative_base()
 metadata = Base.metadata
+
+
+t_LKMSPJEM = Table('LKMSPJEM', metadata,
+    Column('line', String(50, 'Latin1_General_CI_AS')),
+    Column('reviewer1', String(509, 'Latin1_General_CI_AS')),
+    Column('reviewer2', String(626, 'Latin1_General_CI_AS')),
+    Column('remedial', String(479, 'Latin1_General_CI_AS')),
+    Column('response', String(509, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')")),
+    Column('status', String(50, 'Latin1_General_CI_AS')))
+
+
+t_Section = Table('Section', metadata,
+    Column('line', String(50, 'Latin1_General_CI_AS')),
+    Column('reviewer1', String(960, 'Latin1_General_CI_AS')),
+    Column('reviewer2', String(294, 'Latin1_General_CI_AS')),
+    Column('reviewer3', String(591, 'Latin1_General_CI_AS')),
+    Column('remedial', String(2860, 'Latin1_General_CI_AS')),
+    Column('response', String(2470, 'Latin1_General_CI_AS')),
+    Column('status', String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')")))
 
 
 class Camera(Base):
@@ -26,6 +46,41 @@ class Camera(Base):
     calib_res_y = Column(Float(53), nullable=False, server_default=text("((0))"))
     calib_marker_length_mm = Column(Integer, nullable=False, server_default=text("((0))"))
     calib_marker_length_px = Column(Float(53), nullable=False, server_default=text("((0))"))
+
+
+class Combined(Base):
+    __tablename__ = 'combined'
+
+    combinedid = Column(Integer, primary_key=True)
+    sample_lengthid = Column(ForeignKey('sample_length.sample_lengthid'), nullable=False)
+    imgname = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
+    w = Column(Integer, nullable=False, server_default=text("((0))"))
+    h = Column(Integer, nullable=False, server_default=text("((0))"))
+    groundtruth_xmin = Column(Float(53))
+    groundtruth_xmax = Column(Float(53))
+    groundtruth_ymin = Column(Float(53))
+    groundtruth_ymax = Column(Float(53))
+    xmin = Column(Float(53))
+    xmax = Column(Float(53))
+    ymin = Column(Float(53))
+    ymax = Column(Float(53))
+    score = Column(Float(53), nullable=False, server_default=text("((0))"))
+    length_est = Column(Float(53))
+    length_est_rotation_adjust1 = Column(Float(53))
+    length_est_rotation_adjust2 = Column(Float(53))
+    network = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
+    platform = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
+    camera = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
+    transform = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
+    rotation = Column(Integer, nullable=False, server_default=text("((0))"))
+    scale = Column(Float(53))
+    status = Column(String(50, 'Latin1_General_CI_AS'))
+    sampleid = Column(ForeignKey('sample.sampleid'))
+    species = Column(Unicode(10))
+    hflip = Column(BIT, server_default=text("((0))"))
+
+    sample_length = relationship('SampleLength')
+    sample = relationship('Sample')
 
 
 class Housing(Base):
@@ -149,15 +204,34 @@ class SampleLength(Base):
     res_accuracy = Column(Float(53))
     res_iou = Column(Float(53))
     res_persp_corr_iter_profile_tridist_mm = Column(Integer)
+    status = Column(Unicode(100))
+    transform = Column(Unicode(20), server_default=text("('None')"))
+    rotation = Column(Integer, server_default=text("((0))"))
+    scale = Column(Float(53), server_default=text("((1))"))
+    date_added = Column(DateTime, server_default=text("(getdate())"))
+    nas_length_est_rotation_adjust1 = Column(Float(53))
+    ssd_length_est_rotation_adjust1 = Column(Float(53))
+    res_length_est_rotation_adjust1 = Column(Float(53))
+    nas_length_est_rotation_adjust2 = Column(Float(53))
+    ssd_length_est_rotation_adjust2 = Column(Float(53))
+    res_length_est_rotation_adjust2 = Column(Float(53))
+    hflip = Column(BIT, server_default=text("((0))"))
+    nas_status = Column(Unicode(50))
+    res_status = Column(Unicode(50))
+    ssd_status = Column(Unicode(50))
+    nas_all_corr_rot_adj2_mm = Column(Float(53))
+    nas_all_corr_rot_adj1_mm = Column(Float(53))
+    res_all_corr_rot_adj2_mm = Column(Float(53))
+    res_all_corr_rot_adj1_mm = Column(Float(53))
+    ssd_all_corr_rot_adj2_mm = Column(Float(53))
+    ssd_all_corr_rot_adj1_mm = Column(Float(53))
 
     sample = relationship('Sample')
 
 
 class Sysdiagram(Base):
     __tablename__ = 'sysdiagrams'
-    __table_args__ = (
-        Index('UK_principal_name', 'principal_id', 'name', unique=True),
-    )
+    __table_args__ = (Index('UK_principal_name', 'principal_id', 'name', unique=True),)
 
     name = Column(Unicode(128), nullable=False)
     principal_id = Column(Integer, nullable=False)
@@ -166,8 +240,75 @@ class Sysdiagram(Base):
     definition = Column(LargeBinary)
 
 
-t_v_lengths = Table(
-    'v_lengths', metadata,
+class Transform(Base):
+    __tablename__ = 'transform'
+
+    transform = Column(String(50, 'Latin1_General_CI_AS'), primary_key=True)
+    rotation = Column(Integer, nullable=False)
+    scale = Column(Float(53), nullable=False)
+    hflip = Column(BIT, nullable=False)
+
+
+t_v_fid_long_form_all = Table('v_fid_long_form_all', metadata,
+    Column('Species', String(4, 'Latin1_General_CI_AS'), nullable=False),
+    Column('sampleid', Integer, nullable=False),
+    Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('Marker', String(11, 'Latin1_General_CI_AS'), nullable=False),
+    Column('Correction', String(14, 'Latin1_General_CI_AS'), nullable=False),
+    Column('Correction_Order', String(9, 'Latin1_General_CI_AS'), nullable=False),
+    Column('Actual length', Integer, nullable=False),
+    Column('Length estimate', Float(53)),
+    Column('Error', Float(53)),
+    Column('Percent Error', Float(53)),
+    Column('lens_subject_distance', Integer))
+
+
+t_v_fid_long_form_bass = Table('v_fid_long_form_bass', metadata,
+    Column('sampleid', Integer, nullable=False),
+    Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('marker_type', String(5, 'Latin1_General_CI_AS'), nullable=False),
+    Column('correction', String(79, 'Latin1_General_CI_AS'), nullable=False),
+    Column('tl_mm', Integer, nullable=False),
+    Column('length_estimate', Float(53)),
+    Column('length_estimate_error', Float(53)),
+    Column('lens_subject_distance', Integer))
+
+
+t_v_fid_long_form_dab = Table('v_fid_long_form_dab', metadata,
+    Column('sampleid', Integer, nullable=False),
+    Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('marker_type', String(5, 'Latin1_General_CI_AS'), nullable=False),
+    Column('correction', String(79, 'Latin1_General_CI_AS'), nullable=False),
+    Column('tl_mm', Integer, nullable=False),
+    Column('length_estimate', Float(53)),
+    Column('length_estimate_error', Float(53)),
+    Column('lens_subject_distance', Integer))
+
+
+t_v_fid_stats = Table('v_fid_stats', metadata,
+    Column('species', String(4, 'Latin1_General_CI_AS'), nullable=False),
+    Column('marker_type', String(5, 'Latin1_General_CI_AS'), nullable=False),
+    Column('correction', String(79, 'Latin1_General_CI_AS'), nullable=False),
+    Column('nr', Integer),
+    Column('avg_err', Float(53)),
+    Column('std_err', Float(53)),
+    Column('avg_percent_err', Float(53)),
+    Column('std_percent_err', Float(53)),
+    Column('min_err', Float(53)),
+    Column('max_err', Float(53)))
+
+
+t_v_fid_stats_agg = Table('v_fid_stats_agg', metadata,
+    Column('marker_type', String(5, 'Latin1_General_CI_AS'), nullable=False),
+    Column('correction', String(79, 'Latin1_General_CI_AS'), nullable=False),
+    Column('nr', Integer),
+    Column('avg_percent_err', Float(53)),
+    Column('std_percent_err', Float(53)),
+    Column('min_err', Float(53)),
+    Column('max_err', Float(53)))
+
+
+t_v_lengths = Table('v_lengths', metadata,
     Column('sampleid', Integer, nullable=False),
     Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
     Column('tl_mm', Integer, nullable=False),
@@ -175,18 +316,16 @@ t_v_lengths = Table(
     Column('laser_sans_corr', Integer),
     Column('bg_sans_corr', Integer),
     Column('fg_sans_corr', Integer),
-    Column('laser_lens_corr', Integer),
-    Column('bg_lens_corr', Integer),
-    Column('fg_lens_corr', Integer),
-    Column('laser_all_cor_estimate_depth', Integer),
-    Column('fg_all_cor_estimate_depth', Integer),
-    Column('laser_all_corr_estimate_iter', Integer),
-    Column('fg_all_corr_estimate_iter', Integer)
-)
+    Column('laser_lens_corr', Float(53)),
+    Column('bg_lens_corr', Float(53)),
+    Column('fg_lens_corr', Float(53)),
+    Column('laser_all_cor_estimate_depth', Float(53)),
+    Column('fg_all_cor_estimate_depth', Float(53)),
+    Column('laser_all_corr_estimate_iter', Float(53)),
+    Column('fg_all_corr_estimate_iter', Float(53)))
 
 
-t_v_lengths_bass = Table(
-    'v_lengths_bass', metadata,
+t_v_lengths_bass = Table('v_lengths_bass', metadata,
     Column('sampleid', Integer, nullable=False),
     Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
     Column('tl_mm', Integer, nullable=False),
@@ -206,12 +345,10 @@ t_v_lengths_bass = Table(
     Column('laser_persp_corr_iter_profile_camdist_mm', Float(53)),
     Column('fg_persp_corr_iter_profile_camdist_mm', Float(53)),
     Column('laser_persp_corr_iter_profile_tridist_mm', Float(53)),
-    Column('fg_persp_corr_iter_profile_tridist_mm', Float(53))
-)
+    Column('fg_persp_corr_iter_profile_tridist_mm', Float(53)))
 
 
-t_v_lengths_dab = Table(
-    'v_lengths_dab', metadata,
+t_v_lengths_dab = Table('v_lengths_dab', metadata,
     Column('sampleid', Integer, nullable=False),
     Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
     Column('tl_mm', Integer, nullable=False),
@@ -231,5 +368,61 @@ t_v_lengths_dab = Table(
     Column('laser_persp_corr_iter_profile_camdist_mm', Float(53)),
     Column('fg_persp_corr_iter_profile_camdist_mm', Float(53)),
     Column('laser_persp_corr_iter_profile_tridist_mm', Float(53)),
-    Column('fg_persp_corr_iter_profile_tridist_mm', Float(53))
-)
+    Column('fg_persp_corr_iter_profile_tridist_mm', Float(53)))
+
+
+t_v_mv_detections = Table('v_mv_detections', metadata,
+    Column('Platform', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('Camera', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('sampleid', Integer, nullable=False),
+    Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('species', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('tl_mm', Integer, nullable=False),
+    Column('lens_correction_mm', Float(53), nullable=False),
+    Column('mv_nas_lens_correction_mm', Float(53)),
+    Column('mv_ssd_lens_correction_mm', Float(53)),
+    Column('mv_res_lens_correction_mm', Float(53)),
+    Column('persp_corr_iter_profile_tridist_mm', Float(53)),
+    Column('nas_iou', Float(53)),
+    Column('nas_persp_corr_iter_profile_tridist_mm', Integer),
+    Column('ssd_iou', Float(53)),
+    Column('ssd_persp_corr_iter_profile_tridist_mm', Integer),
+    Column('res_iou', Float(53)),
+    Column('res_persp_corr_iter_profile_tridist_mm', Integer))
+
+
+t_v_mv_detections_long_form = Table('v_mv_detections_long_form', metadata,
+    Column('CNN', String(3, 'Latin1_General_CI_AS'), nullable=False),
+    Column('Platform', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('Camera', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('iou', Float(53)))
+
+
+t_v_mv_long_form = Table('v_mv_long_form', metadata,
+    Column('sample_lengthid', Integer, nullable=False),
+    Column('supplier', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('camera', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('species', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('tl_mm', Integer, nullable=False),
+    Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('cnn', String(3, 'Latin1_General_CI_AS'), nullable=False),
+    Column('persp_corr_iter_profile_camdist_mm', Float(53)),
+    Column('persp_corr_iter_profile_tridist_mm', Float(53)),
+    Column('mv_lens_correction_mm', Float(53)),
+    Column('iou', Float(53)),
+    Column('mv_persp_corr_iter_profile_tridist_mm', Integer))
+
+
+t_v_mv_long_form_errors = Table('v_mv_long_form_errors', metadata,
+    Column('cnn', String(3, 'Latin1_General_CI_AS'), nullable=False),
+    Column('supplier', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('camera', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('species', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('unique_code', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('tl_mm', Integer, nullable=False),
+    Column('persp_corr_iter_profile_tridist_mm', Float(53)),
+    Column('mv_persp_corr_iter_profile_tridist_mm', Integer),
+    Column('manual_tridist_err', Float(53)),
+    Column('mv_tridist_err', Float(53)),
+    Column('pct_manual_tridist_err', Float(53)),
+    Column('pct_mv_tridist_err', Float(53)))

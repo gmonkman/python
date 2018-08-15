@@ -5,6 +5,8 @@ import numpy as _np
 
 from funclib.baselib import list_flatten as _list_flatten
 from funclib.iolib import wait_key
+from funclib.iolib import PrintProgress
+
 # region Pandas
 
 
@@ -53,7 +55,7 @@ def col_append_rand_fill(df, col_name, lower=0, upper=1):
     df[col_name] = _np.random.choice(range(lower, upper), df.shape[0])
 
 
-def col_calculate_new(df, func, new_col_name, *args):
+def col_calculate_new(df, func, new_col_name, *args, progress_init_msg='\n'):
     '''(pd.df, function, str, the named arguments for function)
     1) Adds a new column called col_name
     2) calls func with args by position,  where args are the row indices for the values
@@ -85,7 +87,9 @@ def col_calculate_new(df, func, new_col_name, *args):
 
     args = list(args)
     args = _list_flatten(args)
+    PP = PrintProgress(len(df.index), init_msg=progress_init_msg)
     for i, row in df.iterrows():
+        PP.increment()
         rowvals = []
         for x in args:
             if row[x] is None:

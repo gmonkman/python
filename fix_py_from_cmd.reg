@@ -1,0 +1,32 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\.py]
+@="Python.File"
+"Content Type"="text/plain"
+
+[HKEY_CLASSES_ROOT\.pyc]
+@="Python.CompiledFile"
+"Content Type"="text/plain"
+
+[HKEY_CLASSES_ROOT\.pyw]
+@="Python.NoConFile"
+"Content Type"="text/plain"
+
+
+[HKEY_CLASSES_ROOT\py_auto_file]
+
+[HKEY_CLASSES_ROOT\py_auto_file\DefaultIcon]
+@="C:\\Python354x64\\DLLs\\py.ico"
+
+[HKEY_CLASSES_ROOT\py_auto_file\shell\open\command]
+@="\"C:\\Python354x64\\python.exe\" \"%1\" %*"
+
+
+[HKEY_CLASSES_ROOT\Python.File]
+@="Python File"
+
+[HKEY_CLASSES_ROOT\Python.File\DefaultIcon]
+@="C:\\Python354x64\\DLLs\\py.ico"
+
+[HKEY_CLASSES_ROOT\Python.File\shell\open\command]
+@="\"C:\\Python354x64\\python.exe\" \"%1\" %*"
