@@ -64,8 +64,8 @@ class ConnectionString(object):
             return 'SQL Server Native Client 10.0'
         elif db_type == MSSQLODBCDriver.mssqlserver2012:
             return 'SQL Server Native Client 11.0'
-        else:
-            return 'SQL Server'
+
+        return 'SQL Server'
 
     def mssql_connection_string(self, driver=MSSQLODBCDriver.mssqlserver2012):
         '''connection_string getter for _create_engine'''
@@ -160,16 +160,16 @@ class MsSQLs(object):
             sql_update.append(", ".join(update))
             sql_update.append(" WHERE %s" % (" AND ".join(where)))
             return "".join(sql_update)
-        else:
-            keys = ["%s" % k for k in allargs]
-            values = ["'%s'" % v for v in allargs.values()]
-            sql_insert = list()
-            sql_insert.append("INSERT INTO %s (" % table)
-            sql_insert.append(", ".join(keys))
-            sql_insert.append(") VALUES (")
-            sql_insert.append(", ".join(values))
-            sql_insert.append(");")
-            return "".join(sql_insert)
+
+        keys = ["%s" % k for k in allargs]
+        values = ["'%s'" % v for v in allargs.values()]
+        sql_insert = list()
+        sql_insert.append("INSERT INTO %s (" % table)
+        sql_insert.append(", ".join(keys))
+        sql_insert.append(") VALUES (")
+        sql_insert.append(", ".join(values))
+        sql_insert.append(");")
+        return "".join(sql_insert)
 
 
 def create_engine_mssql(cnstr, echo=False, poolclass=_pool.NullPool):
@@ -183,15 +183,16 @@ def create_engine_mssql(cnstr, echo=False, poolclass=_pool.NullPool):
 
 def close():
     '''close up db stuff'''
-    with fuckit:
+    try:
         ENGINE.dispose()
+    except Exception as _:
+        pass
 
 
 def main():
     '''entry for test code'''
     cnn = ConnectionString('toshiba', 'imagedb', 'sa', 'GGM290471')
-    s = cnn.mssql_connection_string(MSSQLODBCDriver.mssqlserver2012)
-    pass
+    _ = cnn.mssql_connection_string(MSSQLODBCDriver.mssqlserver2012)
 
 
 # This only executes if this script was the entry point

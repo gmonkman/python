@@ -190,7 +190,7 @@ def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_c
 
         yy = box.shape[0] + y - yadj
         xx = box.shape[1] + x - xadj
-        if yy <= box.shape[0] and xx <= box.shape[1]:
+        if yy <= dst.shape[0] and xx <= dst.shape[1]:
             dst[y - yadj: yy, x - xadj: xx] = box
         else:
             _warn('Text box in draw_str too big for the image.')

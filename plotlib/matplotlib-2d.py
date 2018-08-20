@@ -157,7 +157,7 @@ def line(xbounds, y_funs, title=None, xlabel=None, ylabel=None, linelabels=None,
     _plt.clf()
     _plt.close()
     print("Saved line to '%s'" % output)
-    return output	  
+    return output
 
 
 def histogram(values, title, xlabel, ylabel, num_bins, xmax, ymax, output, alpha=0.8, color='royalblue'):
@@ -474,3 +474,17 @@ def bivariate_historgram(x, y):
     _plt.show()
 
 
+
+def cm2inch(*tupl):
+    '''(tuple) -> tuple
+    matplotlib uses inches for figsize,
+    this wll convert inches to cm
+
+    Example:
+    >>>plt.figure(figsize=cm2inch(12.8, 9.6))
+    '''
+    inch = 2.54
+    if isinstance(tupl[0], tuple):
+        return tuple(i/inch for i in tupl[0])
+    else:
+        return tuple(i/inch for i in tupl)

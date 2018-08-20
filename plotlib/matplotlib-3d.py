@@ -166,3 +166,23 @@ def make_figs(output):
             _plt.savefig(out)
             figs.append(out)
     return figs
+
+
+
+
+
+
+
+def cm2inch(*tupl):
+    '''(tuple) -> tuple
+    matplotlib uses inches for figsize,
+    this wll convert inches to cm
+
+    Example:
+    >>>plt.figure(figsize=cm2inch(12.8, 9.6))
+    '''
+    inch = 2.54
+    if isinstance(tupl[0], tuple):
+        return tuple(i/inch for i in tupl[0])
+    else:
+        return tuple(i/inch for i in tupl)

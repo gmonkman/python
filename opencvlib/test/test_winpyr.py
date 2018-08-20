@@ -25,14 +25,14 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled test_showarray")
     def test_pyramid_pts(self):
         '''test'''
-        pts = [[0, 0], [100, 100], [0,100], [100, 0]]
+        pts = [[0, 0], [100, 100], [0, 100], [100, 0]]
         scales = []; points = []; images = []
         for img, pts_, scale in winpyr.pyramid_pts(self.I, pts):
             scales.append(scale)
             points.append(points)
             img_ = view.draw_points(pts_, img)
             images.append(img_)
-        print(scale)
+            print(scale)
 
 
 

@@ -132,3 +132,15 @@ def readfld(v, default=None):
     '''
     return default if _pd.isnull(v) else v
 # endregion
+
+
+def df_mssql(sql, dbname, server='(local)', port=1433, security='integrated', user='', pw=''):
+    '''(str, str, str, str, str)-> pandas.dataframe
+    Get a pandas dataframe from SQL Server
+
+    sql: the sql to execute to get the data
+    dbname: database name
+    server:server identifier
+    security: integrated or sqlserver
+    user,pw: SQL server user authentication details
+    '''

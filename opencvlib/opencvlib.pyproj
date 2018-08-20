@@ -12,7 +12,7 @@
     <Name>opencvlib</Name>
     <RootNamespace>opencvlib</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-y 1.5 -x 20 -f -p charter -c fujifilm -o detection_ssdlite_mobilenet_v2_run2 -d /CPU:0 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/charter/fujifilm/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"</CommandLineArguments>
+    <CommandLineArguments>-x 1 -n flip_r258_UND.jpg -p shore -c fujifilm -o outliers -m APPEND -d /CPU:0 "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/shore/gopro_all_undistorted/rotated/vgg_body-caudal.json" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
@@ -114,6 +114,9 @@ tf_detect_fld.py -x -s -v INFO "C:/Users/Graham Monkman/OneDrive/Documents/PHD/i
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_streams\play.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripts_tf\gen_outlier_calls.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_tf\get_devices.py">
@@ -404,6 +407,7 @@ tf_detect_fld.py -x -s -v INFO "C:/Users/Graham Monkman/OneDrive/Documents/PHD/i
     <Content Include="scripts_tf\bin\via_region_data.json" />
     <Content Include="scripts_tf\cmd_make_fiducial_tfrecords.bat" />
     <Content Include="scripts_tf\cmd_make_train_eval.bat" />
+    <Content Include="scripts_tf\outliers.bat" />
     <Content Include="scripts_tf\test_vgg2TFRecord.py.bat" />
     <Content Include="scripts_vgg\fixvgg.bat" />
     <Content Include="scripts_vgg\img2roi_.bat" />

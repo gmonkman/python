@@ -2,6 +2,8 @@
 '''working with opencv shapes'''
 import math as _math
 
+from sympy import Polygon, Point2D
+
 import numpy as _np
 from numpy.random import uniform
 from scipy.optimize import fsolve as _fsolve
@@ -407,16 +409,16 @@ def order_points(p):
 
 
 def rect_side_lengths(pts):
-    '''(n,2-list) -> 2-list
+    '''(n,2-list) -> float, float
     Get side lengths of rectangle
 
     pts: list of points [[0,0],[10,10],[10,0],[0,10]]
 
-    Returns: shortest side, lonest side
+    Returns: short side, long side
 
     Example:
     >>> rect_side_lengths([[0,0],[10,10],[10,0],[0,10]])
-    14.142135623730951, 14.142135623730951
+    10, 10
     '''
     assert len(pts) == 4, 'Rectangle must have 4 points, got %s' % len(pts)
     ls = length_between_all_pts(pts)
@@ -424,6 +426,22 @@ def rect_side_lengths(pts):
     ls = list(set(ls))
     ls.sort()
     return ls[0], ls[1]
+
+
+def rect_side_lengths2(pts):
+    '''(n,2-list) -> float, float, float
+    Get side lengths and diagonal of rectangle
+
+    pts: list of points [[0,0],[10,10],[10,0],[0,10]]
+
+    Returns: short side, long side, diagonal
+
+    Example:
+    >>> rect_side_lengths([[0,0],[10,10],[10,0],[0,10]])
+    10, 10, 14.142135623730951
+    '''
+    short, long = rect_side_lengths(pts)
+    return _math.sqrt(short**2 + long**2)
 
 
 def bound_poly_rect_side_length(pts, angle, radians=False, centre=None):
@@ -596,6 +614,31 @@ def rect_inner_side_length2(pts_outer, ratio, as_radians=True):
     long_side = float(short_side)*ab_ratio
     theta = theta if as_radians else _math.degrees(theta)
     return short_side, long_side, theta
+
+
+def pt_in_poly(pt, poly, order=True):
+    '''(2-list,  n,2-list, bool)-> bool
+    Does pt lie within poly
+    '''
+    if order:
+        poly_ = order_points(poly)
+    else:
+        poly_ = list(poly)
+    pt = Point2D(pt)
+    polygon = Polygon(*poly_)
+    return polygon.encloses_point(pt)
+
+
+def pts_in_poly(pts, poly):
+    '''(n,2-list, n,2-list) -> bool
+    Are all points in poly.
+
+    >>>pts_in_poly([[1,1],[2,2],[1,2],[2,1]],[[0,0],[0,10],[10,10],[10,0]]
+    True
+
+    '''
+    poly_ = order_points(poly)
+    return all(list(pt_in_poly(pt, order=False) for pt in poly_))
 
 
 def _inner_box_b(b_theta, *args):

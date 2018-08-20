@@ -1,5 +1,6 @@
 #pylint: skip-file
-
+'''script to print out available devices
+'''
 import sys
 from tensorflow.python.client import device_lib
 

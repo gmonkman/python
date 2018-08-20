@@ -6,6 +6,7 @@ From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
 '''
 import itertools as _it
 import math as _math
+from warnings import warn as _warn
 
 import numpy as _np
 import cv2 as _cv2
@@ -213,7 +214,7 @@ def img_make(h=1024, w=768, depth=3, colour=255):
 
 
 @_decs.decgetimg
-def mosaic(imgs, cols=None, pad=True, pad_color=_color.CVColors.black):
+def mosaic(imgs, cols=None, pad=True, pad_color=_color.CVColors.black, save_as=''):
     '''(list|tuple, int|None, bool) -> ndarray
 
     Make a grid from images.
@@ -250,6 +251,12 @@ def mosaic(imgs, cols=None, pad=True, pad_color=_color.CVColors.black):
     I = _it.chain([img0], I)
     rows = _grouper(cols, I, pad)
     out = _np.vstack(map(_np.hstack, rows))
+
+    if save_as:
+        try:
+            _cv2.imwrite(save_as, out)
+        except:
+            _warn('Failed to save the mosaic to %s' % save_as)
     return out
 
 

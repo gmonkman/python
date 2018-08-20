@@ -160,8 +160,8 @@ def readcsv(filename, cols=1, startrow=0, numericdata=True):
     return data
 
 
-def writecsv(filename, datalist, header=[], inner_as_rows=True):
-    '''(_string, list, list, bool) -> Void
+def writecsv(filename, datalist, header=[], inner_as_rows=True, append=False, skip_first_row_if_file_exists=False):
+    '''(_string, list, list, bool, bool) -> Void
     Reads a _csv file into a list and returns the list
     ---
     inner_as_rows == True
@@ -176,26 +176,20 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
     '''
     csvfile = []
     useheader = False
-    # make sure we have the correct versions of python
-    if _sys.version_info.major == 2:
-        try:
-            csvfile = open(filename, 'wb')
-        except FileNotFoundError as e:
-            print("Could not create file %s, check the file's folder exists." % filename)
-            return
-        except Exception as e:
-            raise e
-    elif _sys.version_info.major == 3:
-        try:
-            csvfile = open(filename, 'w', newline='')
-        except FileNotFoundError as e:
-            print("Could not create file %s, check the file's folder exists." % filename)
-            return
-        except Exception as e:
-            raise e
-    else:
-        raise NotImplementedError('You need to use python 2* or 3*')
+    exists = file_exists(filename)
+    if not append:
+        exists = False
 
+    try:
+        if append:
+            csvfile = open(filename, 'a', newline='')
+        else:
+            csvfile = open(filename, 'w', newline='')
+    except FileNotFoundError as e:
+        print("Could not create file %s, check the file's folder exists." % filename)
+        return
+    except Exception as e:
+        raise e
 
     # if user passed a numpy array, convert it
     if isinstance(datalist, _numpy_ndarray):
@@ -244,17 +238,23 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True):
     if useheader:
         writer.writerow(header)
     if inner_as_rows:
-        for row in range(0, list_len):
-            thisrow = []
-            if num_lists > 1:
-                for col in range(0, num_lists):
-                    thisrow.append(datalist[col][row])
+        for i, row in enumerate(range(0, list_len)):
+            if i == 0 and skip_first_row_if_file_exists and exists:
+                pass
             else:
-                thisrow.append(datalist[row])
-            writer.writerow(thisrow)
+                thisrow = []
+                if num_lists > 1:
+                    for col in range(0, num_lists):
+                        thisrow.append(datalist[col][row])
+                else:
+                    thisrow.append(datalist[row])
+                writer.writerow(thisrow)
     else:
-        for row in datalist:
-            writer.writerow(row)
+        for i, row in enumerate(datalist):
+            if i == 0 and skip_first_row_if_file_exists and exists:
+                pass
+            else:
+                writer.writerow(row)
 
     # close the _csv file to save
     csvfile.close()

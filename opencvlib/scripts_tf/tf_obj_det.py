@@ -1,7 +1,11 @@
-#This was the jupyter notebook object_detection_tutorial.ipynb
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+
+
 # When come to export to the spreadsheet
 #check this script, point_px_bass_processors.py
 #THIS IS THE ONE I ACTUALLY USE TO DO THE DETECTIONS
+
+#Check out C:\development\python\opencvlib\scripts_tf\outliers.bat for command line examples to run checks
 
 '''Detect bass in images.
 
@@ -28,6 +32,7 @@ from object_detection.utils import ops as utils_ops
 from opencvlib import aruco
 from funclib import iolib
 from opencvlib.view import show
+import opencvlib.view as view
 from opencvlib.imgpipes import vgg
 from opencvlib.distance import nearestN_euclidean
 from opencvlib import roi
@@ -43,7 +48,7 @@ DETECT_TIMES_SECONDS = []
 VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
 VALID_PLATFORMS = ['shore', 'charter']
 
-RESULTS_HEADER = ['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'score', 'length_est', 'length_est_rotation_adjust1', 'length_est_rotation_adjust2', 'network', 'platform', 'camera', 'transform', 'rotation', 'scale', 'status']
+RESULTS_HEADER = ['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'score', 'length_est', 'length_est_rotation_adjust1', 'length_est_rotation_adjust2', 'network', 'platform', 'camera', 'transform', 'rotation', 'scale', 'status', 'aruco_marker', 'aruco_xmin', 'aruco_xmax', 'aruco_ymin', 'aruco_ymax', 'aruco_side_length', 'aruco_side_px', 'width_px']
 
 DEVICES = ["/GPU:0", "/GPU:1", "/GPU:2", "/GPU:3", "/CPU:0", "/CPU:1", "/CPU:2", "/CPU:3", "/CPU:4", "/CPU:5", "/CPU:6", "/CPU:7", "/CPU:8"]
 DEVICE = "/CPU:0"
@@ -147,8 +152,8 @@ def get_samplelengthid(platform, camera, filename):
     return int(sample_lengthids[ind])
 
 
-def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_graph, results, errs, network, platform, camera, transform='None', rotation=0, scale=0):
-    '''(str, str, int, n-list, n-list, tf.Graph, list, list, str) -> n,2-list|None, float|None
+def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_graph, results, errs, network, platform, camera, transform='None', rotation=0, scale=0, new_aruco_method=False):
+    '''(str, str, int, n-list, n-list, tf.Graph, list, list, str) -> n,2-list|None, float|None, aruco.Marker|None
 
     Get the detection stats as a list to write to a file.
 
@@ -163,25 +168,24 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
     _, imgname, _ = iolib.get_file_parts2(imgpath)
     groundtruth_xmin = min(all_points_x) / w; groundtruth_xmax = max(all_points_x) / w
     groundtruth_ymin = min(all_points_y) / h; groundtruth_ymax = max(all_points_y) / h
-
+    all_points = list(zip(*[all_points_x, all_points_y])) #put all_points as the cvxy point format i.e. [(0, 0), (10, 10), (0, 10), (10, 0)]
     try:
         start = timer()
         output_dict = run_inference_for_single_image(img, detection_graph) # Actual detection.
         global DETECT_TIMES_SECONDS
         DETECT_TIMES_SECONDS.append(timer() - start)
-
     except Exception as e:
         errs.append(['Tensorflow error on image %s. Error was %s' % (str(e), imgname)])
-        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', 'TENSORFLOW ERROR', '', '', '', network, platform, camera, transform, rotation, scale, 'TF raised error']
+        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', 'TENSORFLOW ERROR', '', '', '', network, platform, camera, transform, rotation, scale, 'TF raised error', '', '', '', '', '', '', '', '']
         assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
         results.append(r)
-        return None, None
+        return None, None, None
     score_ = float(output_dict['detection_scores'][0]) #0.99999
     if score_ < SCORE:
-        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', score_, '', '', '', network, platform, camera, transform, rotation, scale, 'Detection score below threshhold']
+        r = [sample_lengthid, imgname, w, h, '', '', '', '', '', '', '', '', score_, '', '', '', network, platform, camera, transform, rotation, scale, 'Detection score below threshhold', '', '', '', '', '', '', '', '']
         assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
         results.append(r)
-        return None, None
+        return None, None, None
 
     ymin, xmin, ymax, xmax = output_dict['detection_boxes'][0].tolist() #[0.4146363139152527, 0.3671582341194153, 0.525425910949707, 0.770221471786499] ymin, xmin, ymax, xmax
     detection_pts = roi.points_denormalize([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], h, w, asint=True)
@@ -195,17 +199,21 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
     if D.Markers:
         for M in D.Markers:
             assert isinstance(M, aruco.Marker)
-            marker_centroids.append(M.centroid)
+            if new_aruco_method:
+                if geom.pts_in_poly(M.points, all_points):
+                    marker_centroids.append(M.centroid)
+            else:
+                marker_centroids.append(M.centroid)
         ind, _ = nearestN_euclidean(detection_box_centroid, marker_centroids)[0]
         marker = D.Markers[ind]
         assert isinstance(marker, aruco.Marker)
     else:
         s = 'No marker found for image %s' % imgname
         errs.append([s])
-        r = [sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score_, '', '', '', network, platform, camera, transform, rotation, scale, 'Marker not detected']
+        r = [sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score_, '', '', '', network, platform, camera, transform, rotation, scale, 'Marker not detected', '', '', '', '', '', '', '', (xmax - xmin) * w]
         assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
         results.append(r)
-        return detection_pts, None
+        return detection_pts, None, None
 
     length_est = abs((detection_pts[1][0] - detection_pts[0][0])) * marker.px_length_mm()
     if rotation != 0:
@@ -217,14 +225,15 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
     else:
         length_est_rotation_adjust1 = length_est
         length_est_rotation_adjust2 = length_est
+    ptsx, ptsy = list(zip(*marker.points))
 
-    r = [sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score_, length_est, length_est_rotation_adjust1, length_est_rotation_adjust2, network, platform, camera, transform, rotation, scale, 'Success']
+    r = [sample_lengthid, imgname, w, h, groundtruth_xmin, groundtruth_xmax, groundtruth_ymin, groundtruth_ymax, xmin, xmax, ymin, ymax, score_, length_est, length_est_rotation_adjust1, length_est_rotation_adjust2, network, platform, camera, transform, rotation, scale, 'Success', marker.markerid, min(ptsx), max(ptsx), min(ptsy), max(ptsy), marker.side_length_mm, marker.side_px, (xmax - xmin) * w]
     assert len(r) == len(RESULTS_HEADER), 'Wrong number of elements in result record'
     results.append(r)
-    return detection_pts, length_est
+    return detection_pts, length_est, marker
 
 
-def write_image(img, groundtruth_pts, detection_pts, fname, show_, detection_label='Detection', groundtruth_label='Groundtruth'):
+def write_image(img, groundtruth_pts, detection_pts, fname, show_, marker, results, detection_label='Detection', groundtruth_label='Groundtruth', prefix=''):
     '''(ndarray, n2-list, str, bool) -> void
     Save the detection to an image and optionally show it.
 
@@ -233,6 +242,7 @@ def write_image(img, groundtruth_pts, detection_pts, fname, show_, detection_lab
     fname: the filename to save the detections as
     show_: show the image
     '''
+    assert isinstance(marker, aruco.Marker)
     img_with_groundtruth = common.draw_polygon(img, groundtruth_pts, color=(0, 0, 0), thickness=2)
     img_with_detection = common.draw_polygon(img_with_groundtruth, detection_pts, color=(0, 255, 0), thickness=2)
     gt_all_x, gt_all_y = list(zip(*groundtruth_pts))
@@ -241,10 +251,26 @@ def write_image(img, groundtruth_pts, detection_pts, fname, show_, detection_lab
     #s = 'Prediction: %.3f' % score
     #common.draw_str(img_with_detection, x=25, y=25, s=s, color=(255, 255, 255), box_background=(0, 0, 0), scale=2, box_pad=10)
     try: #this can fail if not enough room to draw the detection box, but isn't critical
-        common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s=detection_label, color=(255, 255, 255), box_background=(0, 255, 0), scale=1.5, box_pad=10) #top left
+        common.draw_str(img_with_detection, detection_pts[0][0], detection_pts[0][1], s=detection_label, color=(0, 0, 0), box_background=(0, 255, 0), scale=1.5, box_pad=10) #top left
         common.draw_str(img_with_detection, min(gt_all_x), max(gt_all_y), s=groundtruth_label, color=(255, 255, 255), box_background=(0, 0, 0), scale=1.5, box_pad=10) #bottom left
+
+        #RESULTS_HEADER = ['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'score', 'length_est', 'length_est_rotation_adjust1', 'length_est_rotation_adjust2', 'network', 'platform', 'camera', 'transform', 'rotation', 'scale', 'status', 'aruco_marker', 'aruco_xmin', 'aruco_xmax', 'aruco_ymin', 'aruco_ymax', 'aruco_side_length', 'aruco_side_px', 'width_px']
+        px = int(get_result(results, 'width_px'))
+        l = int(get_result(results, 'length_est'))
+        nw = get_result(results, 'network')
+        s = 'l: %s,  px: %s  %s %s' % (l, px, str(marker.markerid), nw)
+        common.draw_str(img_with_detection, 5, 5, s=s, color=(255, 255, 255), box_background=(0, 0, 0), scale=1.0, box_pad=8, centre_box_at_xy=False)
+
+        #x = img.shape[1] / 2; y = img.shape[0] / 2
+        img_with_detection = common.draw_points(marker.points, img_with_detection)
+
     except Exception as _:
-        pass
+        warn('An error occured during image annotation. Some or all of the image annotation will not appear.')
+
+    if prefix != '':
+        fld, fname, _ = iolib.get_file_parts2(fname)
+        fname = '%s/%s_%s' % (fld, prefix, fname)
+        fname = path.normpath(fname)
     cv2.imwrite(fname, img_with_detection)
 
     if show_:
@@ -257,6 +283,9 @@ def main():
     cmdline = argparse.ArgumentParser(description=__doc__)
     cmdline.add_argument('-p', '--platform', help='"charter" or "shore"')
     cmdline.add_argument('-f', '--flip', action='store_true', help='also detect on the horizontally flipped image')
+    cmdline.add_argument('-e', '--raise_error', action='store_true', help='Raise an error if the vgg file contains an RoI but the sample length cannot be found')
+    cmdline.add_argument('-m', '--mode', type=str, help='APPEND or DELETE to the results file', default='DELETE')
+    cmdline.add_argument('-a', '--new_aruco_detector', action='store_true', help='New method to pick the correct ArUco marker')
     cmdline.add_argument('-k', '--kill', action='store_true', help='Kill, i.e. delete all files in detection folder first.')
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
     cmdline.add_argument('-r', '--rotate', type=int, help='Do detections over a range of rotations', default=0)
@@ -267,6 +296,7 @@ def main():
     cmdline.add_argument('-x', '--export_every', type=int, default=0, help='Export  every [x] images to image subdir "detections"')
     cmdline.add_argument('-s', help='Show detections', action='store_true')
     cmdline.add_argument('-v', '--verbosity', help='Set to DEBUG, INFO, WARN, ERROR, or FATAL', default='ERROR')
+    cmdline.add_argument('-n', '--fnames', help='Only detect on these images, pass as single csv list, e.g. -f 123.jpg,234.jpg,qwe.jpg', default='', type=lambda s: [str(item) for item in s.split(',')])
     cmdline.add_argument('vgg_file', help='The full vgg file name')
     cmdline.add_argument('pb_file', help='Folder with the graph in it')
     cmdline.add_argument('labels_file', help='The labels proto')
@@ -300,7 +330,7 @@ def main():
         print('GPU unmasked on user request')
 
     assert iolib.file_exists(vgg_file), 'vgg file %s not found' % vgg_file
-    assert iolib.file_exists(pb_file), 'pb file %s not found' % pb_file
+    assert iolib.file_exists(pb_file), 'pb file %s not found. Remember, provide the file, NOT a folder' % pb_file
     assert iolib.file_exists(labels_file), 'Labels file %s not found' % labels_file
     assert args.platform in VALID_PLATFORMS, 'Platform must be in %s' % str(VALID_PLATFORMS)
     assert args.camera in VALID_CAMERAS, 'Camera must be in %s' % str(VALID_CAMERAS)
@@ -323,8 +353,13 @@ def main():
         _, imgname, _ = iolib.get_file_parts2(imgpath)
         try:
             sample_lengthid = get_samplelengthid(args.platform, args.camera, imgname)
-        except ValueError as dummy:
-            raise Exception('Could not get the sample length from the image name. First Check the inifile settings.')
+        except (IndexError, ValueError) as dummy:
+            if args.raise_error:
+                raise ValueError('Could not get the sample length from the image name %s. First check the inifile settings.' % imgname)
+            else:
+                warn('Could not get the sample length from the image name %s. First check the inifile settings.' % imgname)
+                continue
+
         assert sample_lengthid in list(range(212, 525)), 'sample_lengthid %s was invalid' % sample_lengthid #hardcoded ids
     print('Loading tensorflow graph...')
     #load graph
@@ -347,6 +382,12 @@ def main():
     if args.rotate > 0:
         angles = list(range(-1 * args.rotate, args.rotate + 1, 1))
         angles.remove(0)
+
+        #TODO Oneoff for troubleshooting outliers, remove later
+        warn('Temporarily fixing the rotate argument to a single value.')
+        angles = [args.rotate]
+        #end todo
+
         i += i * len(angles)
 
     PP = iolib.PrintProgress(i, init_msg='\nRunning detections ...', bar_length=20)
@@ -360,6 +401,12 @@ def main():
 
         imgpath = path.normpath(imgpath)
         _, imgname, _ = iolib.get_file_parts2(imgpath)
+
+        #if we have submitted a list in the fname argument, skip if the file doesnt match
+        if args.fnames:
+            if True not in list([x.casefold() == imgname.casefold() for x in args.fnames]):
+                continue
+
         sample_lengthid = get_samplelengthid(args.platform, args.camera, imgname) #dont need to check this, we did it before in the pretest
         img = cv2.imread(imgpath)
 
@@ -369,18 +416,19 @@ def main():
         #detect as is
         detection_pts = None
         try:
-            detection_pts, length = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, network, args.platform, args.camera, 'None', 0, 0)
+            detection_pts, length, marker = detect(img, imgpath, sample_lengthid, Reg.all_points_x, Reg.all_points_y, detection_graph, results, errs, network, args.platform, args.camera, 'None', 0, 0, args.new_aruco_detector)
         except Exception as e:
             s = '%s:   %s'  % (imgname, str(e))
             errs.append(s)
 
         if not detection_pts:
             continue
-
+        assert isinstance(marker, aruco.Marker)
         if args.export_every > 0:
             #Save and optionally show the detection
             detection_image_name = path.normpath(path.join(detections_folder, imgname))
-            write_image(img, Reg.all_points, detection_pts, detection_image_name, args.s)
+            prefix = network if args.fnames else ''
+            write_image(img, Reg.all_points, detection_pts, detection_image_name, args.s, marker, results, prefix=prefix)
 
         #detect when flipped
         if args.flip:
@@ -389,7 +437,7 @@ def main():
             pts_flip_x, pts_flip_y = list(zip(*pts_flip))
             detection_pts = None
             try:
-                detection_pts, length = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, network, args.platform, args.camera, 'hflip', 0, 0)
+                detection_pts, length, marker = detect(img_hflip, imgpath, sample_lengthid, pts_flip_x, pts_flip_y, detection_graph, results, errs, network, args.platform, args.camera, 'hflip', 0, 0, args.new_aruco_detector)
             except Exception as e:
                 s = '%s:   %s'  % (imgname, str(e))
                 errs.append(s)
@@ -400,7 +448,8 @@ def main():
             if args.export_every > 0:
                 #Save and optionally show the detection
                 detection_image_name = path.normpath(path.join(detections_folder, 'flip_' + imgname))
-                write_image(img_hflip, all_points_flip, detection_pts, detection_image_name, args.s)
+                prefix = network if args.fnames else ''
+                write_image(img, all_points_flip, detection_pts, detection_image_name, args.s, marker, results, prefix=prefix)
 
         if args.rotate > 0:
             for angle in angles:
@@ -414,7 +463,7 @@ def main():
                 xform = 'r_%s' % angle
                 detection_pts = None
                 try:
-                    detection_pts, length = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, network, args.platform, args.camera, xform, angle, 0)
+                    detection_pts, length, marker = detect(img_rot, imgpath, sample_lengthid, pts_rot_x, pts_rot_y, detection_graph, results, errs, network, args.platform, args.camera, xform, angle, 0, args.new_aruco_detector)
                 except Exception as e:
                     s = '%s:   %s'  % (imgname, str(e))
                     errs.append(s)
@@ -426,7 +475,8 @@ def main():
                     #Save and optionally show the detection
                     if random.randint(1, args.export_every) == 1:
                         detection_image_name = path.normpath(path.join(detections_folder, xform + '_' + imgname))
-                        write_image(img_rot, pts_bound, detection_pts, detection_image_name, args.s, groundtruth_label='Bounding Rotated Groundtruth')
+                        prefix = network if args.fnames else ''
+                        write_image(img_rot, pts_bound, detection_pts, detection_image_name, args.s, marker, results, groundtruth_label='Bounding Rotated Groundtruth', prefix=prefix)
 
 
         if args.pyramid_scale > 0:
@@ -436,7 +486,7 @@ def main():
                 detection_pts = None
                 pts_scale_x, pts_scale_y = list(zip(*pts_))
                 try:
-                    detection_pts, length = detect(img_scaled, imgpath, sample_lengthid, pts_scale_x, pts_scale_y, detection_graph, results, errs, network, args.platform, args.camera, xform, 0, scale)
+                    detection_pts, length = detect(img_scaled, imgpath, sample_lengthid, pts_scale_x, pts_scale_y, detection_graph, results, errs, network, args.platform, args.camera, xform, 0, scale, args.new_aruco_detector)
                 except Exception as e:
                     s = '%s:   %s'  % (imgname, str(e))
                     errs.append(s)
@@ -453,7 +503,8 @@ def main():
                             s = xform + '_' + imgname
 
                         detection_image_name = path.normpath(path.join(detections_folder, s))
-                        write_image(img_scaled, pts_, detection_pts, detection_image_name, args.s)
+                        prefix = network if args.fnames else ''
+                        write_image(img_scaled, pts_, detection_pts, detection_image_name, args.s, marker, results, prefix=prefix)
 
     #export any problems to a csv file
     if errs:
@@ -473,25 +524,49 @@ def main():
         resfile = path.normpath(path.join(detections_folder, s))
         try:
            #print('Exporting results. There were %s records in results' % len(results))
-            iolib.writecsv(resfile, results, inner_as_rows=False)
+            if args.mode == 'APPEND':
+                iolib.writecsv(resfile, results, inner_as_rows=False, append=True, skip_first_row_if_file_exists=True)
+            else:
+                iolib.writecsv(resfile, results, inner_as_rows=False)
         except Exception as _:
             pass
     else:
         print('results dic was empty')
-
+    print('Results in %s' % detections_folder)
+    iolib.folder_open(detections_folder)
     print('\nCompleted %s %s %s' % (args.camera, args.platform, network))
 
     avg_det_time = -1
 
     if DETECT_TIMES_SECONDS:
         avg_det_time = sum(DETECT_TIMES_SECONDS)/len(DETECT_TIMES_SECONDS)
-        std_det_time = stddev(DETECT_TIMES_SECONDS)
+        if len(DETECT_TIMES_SECONDS) > 1:
+            std_det_time = stddev(DETECT_TIMES_SECONDS)
+        else:
+            std_det_time = 0
         det_time = [['time_secs', 'sd', 'n', 'total_run_time_secs']]
         fname = path.normpath(path.join(detections_folder, 'detect_time.csv'))
         det_time.append([avg_det_time, std_det_time, len(DETECT_TIMES_SECONDS), sw.run_time])
         iolib.writecsv(fname, det_time, inner_as_rows=False)
         print('Saved average detect times')
 
+
+def get_result(results, colname):
+    '''get a value from last row of results'''
+    last = results[-1]
+    #RESULTS_HEADER = ['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'score', 'length_est', 'length_est_rotation_adjust1', 'length_est_rotation_adjust2', 'network', 'platform', 'camera', 'transform', 'rotation', 'scale', 'status', 'aruco_marker', 'aruco_xmin', 'aruco_xmax', 'aruco_ymin', 'aruco_ymax', 'aruco_side_length', 'aruco_side_px']
+    try:
+        v = last[results[0].index(colname)]
+    except:
+        v = 'NULL'
+    return v
+
+
+def trunc(f, dp=3):
+    '''trunc'''
+    if isinstance(f, float):
+        return(round(f, dp))
+    return f
 
 
 if __name__ == "__main__":

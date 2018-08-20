@@ -8,7 +8,6 @@ import funclib.baselib as _baselib
 #import scipy.stats as _stats
 #import math as _math
 
-import funclib.baselib as _baselib
 
 def histo(data, bins='auto', normed=True, show=True):
     '''(list|ndarray, str|int, bool

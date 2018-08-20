@@ -90,7 +90,7 @@ class Test(unittest.TestCase):
         print(b, a, degrees(theta))
         self.assertAlmostEqual(b, 250, 4)
         self.assertAlmostEqual(a, 1000, 4)
-        self.assertAlmostEqual(theta,  radians(10), 4)
+        self.assertAlmostEqual(theta, radians(10), 4)
 
 
 

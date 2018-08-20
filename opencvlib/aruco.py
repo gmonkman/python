@@ -137,6 +137,7 @@ class Marker():
         '''
         return [list(self.vertices_topleft), list(self.vertices_topright), list(self.vertices_bottomright), list(self.vertices_bottomleft)]
 
+
     @property
     def centroid(self):
         '''centroid of points'''

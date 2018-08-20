@@ -19,6 +19,7 @@ class Fish(_ABC):
         self.length_sl = 0
         self.max_ventral_dorsal_thickness = 0
 
+
     @_abstractmethod
     def get_max_depth(self):
         '''(double)->double
@@ -76,7 +77,7 @@ class Bass(Fish):
     scripts_misc/shape_area.py
     '''
     profile_mean_height = 0.598
-
+    lw_ratio - 4.320 #scripts_vgg.calc_lw.py
     def __init__(self, length_tl=0):
         # keep python 2.7 compat, Python 3 only would be
         # super().__init__(length_tl)
@@ -120,7 +121,7 @@ class Dab(Fish):
     calculated from a binary image of the fish profile in
     scripts_misc/shape_area.py
     '''
-    #TODO Sort this for DAB
+
     profile_mean_height = 0.505
     _tl = [197, 193, 187, 186, 171, 164, 176, 194, 156, 157, 154, 145, 145, 143, 123, 134, 102, 133, 123, 102, 173]
     _width = [15, 13.7, 13, 14.4, 12.1, 10.4, 12, 14.1, 9.7, 10.1, 10, 9.6, 9.5, 9.6, 8, 9, 6.3, 8.9, 7.3, 6.5, 12.4]
