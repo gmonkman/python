@@ -110,7 +110,7 @@ class InitData(object):
 
         where = " where"
         if SPECIES == 'bass':
-            where += " sample.species='bass'"
+            where += " sample.species='bass' and sample_length.transform='hflip'"
         else:
             where += " sample.species='dab'"
         #where += " and not nas_xmin is null"
@@ -327,61 +327,64 @@ class InitData(object):
         rw_cnt = len(self.df_lengths.index) * COLCNT
         PP = PrintProgress(rw_cnt, init_msg='Writing data back to SQL Server')
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'perspective_corrected_estimate_mm') #1
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.perspective_corrected_estimate_mm = _read_range_int(tl_cor)
-#todo check why null
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'perspective_corrected_estimate_iter_mm') #2
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.perspective_corrected_estimate_iter_mm = _read_range_int(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_mm') #3
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.persp_corr_iter_profile_mm = _read_range_int(tl_cor)
+        if False:
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'perspective_corrected_estimate_mm') #1
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.perspective_corrected_estimate_mm = _read_range_int(tl_cor)
+    #todo check why null
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'perspective_corrected_estimate_iter_mm') #2
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.perspective_corrected_estimate_iter_mm = _read_range_int(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_camdist_mm') #4
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.persp_corr_iter_profile_camdist_mm = _read_range_int(tl_cor)
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_mm') #3
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.persp_corr_iter_profile_mm = _read_range_int(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_tridist_mm') #5
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.persp_corr_iter_profile_tridist_mm = _read_range_int(tl_cor)
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_camdist_mm') #4
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.persp_corr_iter_profile_camdist_mm = _read_range_int(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'lens_subj_camprop_est') #6
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.lens_subj_camprop_est = _read_range_int(tl_cor)
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'persp_corr_iter_profile_tridist_mm') #5
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.persp_corr_iter_profile_tridist_mm = _read_range_int(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'lens_subj_triangle_est') #7
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.lens_subj_triangle_est = _read_range_int(tl_cor)
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'lens_subj_camprop_est') #6
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.lens_subj_camprop_est = _read_range_int(tl_cor)
+
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'lens_subj_triangle_est') #7
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.lens_subj_triangle_est = _read_range_int(tl_cor)
+
 
         est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_iou') #8
         for i, row in self.df_lengths.iterrows():
@@ -391,13 +394,16 @@ class InitData(object):
             assert isinstance(sam_len, SampleLength)
             sam_len.nas_iou = _read_range_float(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_persp_corr_iter_profile_tridist_mm') #9
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.nas_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
+
+        if False:
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_persp_corr_iter_profile_tridist_mm') #9
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.nas_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
+
 
         est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_iou') #10
         for i, row in self.df_lengths.iterrows():
@@ -407,13 +413,15 @@ class InitData(object):
             assert isinstance(sam_len, SampleLength)
             sam_len.ssd_iou = _read_range_float(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_persp_corr_iter_profile_tridist_mm') #11
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.ssd_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
+
+        if False:
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_persp_corr_iter_profile_tridist_mm') #11
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.ssd_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
 
         est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_iou') #12
         for i, row in self.df_lengths.iterrows():
@@ -423,64 +431,66 @@ class InitData(object):
             assert isinstance(sam_len, SampleLength)
             sam_len.res_iou = _read_range_float(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_persp_corr_iter_profile_tridist_mm') #13
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.res_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
+
+        if False:
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_persp_corr_iter_profile_tridist_mm') #13
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.res_persp_corr_iter_profile_tridist_mm = _read_range_float(tl_cor)
 
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_all_corr_rot_adj1_mm') #14
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.nas_all_corr_rot_adj1_mm = _read_range_float(tl_cor)
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_all_corr_rot_adj1_mm') #14
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.nas_all_corr_rot_adj1_mm = _read_range_float(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_all_corr_rot_adj2_mm') #15
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.nas_all_corr_rot_adj2_mm = _read_range_float(tl_cor)
-
-
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_all_corr_rot_adj1_mm') #16
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.res_all_corr_rot_adj1_mm = _read_range_float(tl_cor)
-
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_all_corr_rot_adj2_mm') #17
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.res_all_corr_rot_adj2_mm = _read_range_float(tl_cor)
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'nas_all_corr_rot_adj2_mm') #15
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.nas_all_corr_rot_adj2_mm = _read_range_float(tl_cor)
 
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_all_corr_rot_adj1_mm') #18
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.ssd_all_corr_rot_adj1_mm = _read_range_float(tl_cor)
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_all_corr_rot_adj1_mm') #16
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.res_all_corr_rot_adj1_mm = _read_range_float(tl_cor)
 
-        est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_all_corr_rot_adj2_mm') #19
-        for i, row in self.df_lengths.iterrows():
-            PP.increment()
-            tl_cor = row[est_cor_ind]
-            sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
-            assert isinstance(sam_len, SampleLength)
-            sam_len.ssd_all_corr_rot_adj2_mm = _read_range_float(tl_cor)
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'res_all_corr_rot_adj2_mm') #17
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.res_all_corr_rot_adj2_mm = _read_range_float(tl_cor)
+
+
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_all_corr_rot_adj1_mm') #18
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.ssd_all_corr_rot_adj1_mm = _read_range_float(tl_cor)
+
+            est_cor_ind = pdl.cols_get_indexes_from_names(self.df_lengths, 'ssd_all_corr_rot_adj2_mm') #19
+            for i, row in self.df_lengths.iterrows():
+                PP.increment()
+                tl_cor = row[est_cor_ind]
+                sam_len = _SESSION.query(SampleLength).filter_by(sample_lengthid=int(i)).first()
+                assert isinstance(sam_len, SampleLength)
+                sam_len.ssd_all_corr_rot_adj2_mm = _read_range_float(tl_cor)
 
 
 
@@ -507,23 +517,28 @@ def _read_range_float(v):
 # region ENTRY
 def main():
     '''execute if script was entry point'''
+
     cmdline = argparse.ArgumentParser(description=__doc__)
     cmdline.add_argument('-s', '--species', help='The where')
     args = cmdline.parse_args()
     global SPECIES
     SPECIES = args.species
     assert SPECIES in ['dab', 'bass'], 'Species should be "dab" or "bass"'
+
     print('\nWorking on it....')
     cls = InitData()
-    print('Calculating fish widths....')
-    cls._add_depths() #add depth estimates based on manual and estimated fish lengths
-    print('Calculatng lens-subj estimates....')
-    cls._add_lens_subj_estimates() #add the lens-subject distance estimates from the two methods
-    print('Calculating l/w coefficients....')
-    cls._add_linear() # add 2 cols - coeff,const to be used to calculate depth on the fly in get_perspective_correction_iter_linear
-    print('Calculating length with perspective adjustment....')
-    cls.perspective_adjust()
-    print('Calculating intersection of unions')
+
+    if False:
+        print('Calculating fish widths....')
+        cls._add_depths() #add depth estimates based on manual and estimated fish lengths
+        print('Calculatng lens-subj estimates....')
+        cls._add_lens_subj_estimates() #add the lens-subject distance estimates from the two methods
+        print('Calculating l/w coefficients....')
+        cls._add_linear() # add 2 cols - coeff,const to be used to calculate depth on the fly in get_perspective_correction_iter_linear
+        print('Calculating length with perspective adjustment....')
+        cls.perspective_adjust()
+        print('Calculating intersection of unions')
+
     cls.calc_iou()
     print('Writing data to SQL Server....')
     cls.write_to_sql()

@@ -635,10 +635,9 @@ def pts_in_poly(pts, poly):
 
     >>>pts_in_poly([[1,1],[2,2],[1,2],[2,1]],[[0,0],[0,10],[10,10],[10,0]]
     True
-
     '''
     poly_ = order_points(poly)
-    return all(list(pt_in_poly(pt, order=False) for pt in poly_))
+    return all(list(pt_in_poly(pt, poly_, order=False) for pt in poly_))
 
 
 def _inner_box_b(b_theta, *args):

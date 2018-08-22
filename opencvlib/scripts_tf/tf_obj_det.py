@@ -45,7 +45,7 @@ from funclib import stopwatch
 from funclib.statslib import stddev
 
 DETECT_TIMES_SECONDS = []
-VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm']
+VALID_CAMERAS = ['gopro', 'samsung', 'fujifilm', 'xp30', 's5690']
 VALID_PLATFORMS = ['shore', 'charter']
 
 RESULTS_HEADER = ['sample_lengthid', 'imgname', 'w', 'h', 'groundtruth_xmin', 'groundtruth_xmax', 'groundtruth_ymin', 'groundtruth_ymax', 'xmin', 'xmax', 'ymin', 'ymax', 'score', 'length_est', 'length_est_rotation_adjust1', 'length_est_rotation_adjust2', 'network', 'platform', 'camera', 'transform', 'rotation', 'scale', 'status', 'aruco_marker', 'aruco_xmin', 'aruco_xmax', 'aruco_ymin', 'aruco_ymax', 'aruco_side_length', 'aruco_side_px', 'width_px']
@@ -243,8 +243,8 @@ def write_image(img, groundtruth_pts, detection_pts, fname, show_, marker, resul
     show_: show the image
     '''
     assert isinstance(marker, aruco.Marker)
-    img_with_groundtruth = common.draw_polygon(img, groundtruth_pts, color=(0, 0, 0), thickness=2)
-    img_with_detection = common.draw_polygon(img_with_groundtruth, detection_pts, color=(0, 255, 0), thickness=2)
+    img_with_groundtruth = common.draw_polygon(img, groundtruth_pts, color=(0, 0, 0), thickness=6)
+    img_with_detection = common.draw_polygon(img_with_groundtruth, detection_pts, color=(0, 255, 0), thickness=6)
     gt_all_x, gt_all_y = list(zip(*groundtruth_pts))
 
 
@@ -289,6 +289,7 @@ def main():
     cmdline.add_argument('-k', '--kill', action='store_true', help='Kill, i.e. delete all files in detection folder first.')
     cmdline.add_argument('-c', '--camera', help='"fujifilm" or "gopro" or "samsung"')
     cmdline.add_argument('-r', '--rotate', type=int, help='Do detections over a range of rotations', default=0)
+    cmdline.add_argument('-l', '--limit', type=float, help='Ignore detections below this score.', default=0.5)
     cmdline.add_argument('-y', '--pyramid_scale', type=float, help='Do detections over a range of downscaling, defaults to no downscaling', default=0)
     cmdline.add_argument('-d', '--device', type=str, help='Tensorflow device to run on', default='/GPU:0')
     cmdline.add_argument('-o', '--detections_folder', type=str, help='Folder in which detections are created, uses root of vgg_file', default='detections')
@@ -305,6 +306,10 @@ def main():
     vgg_file = path.normpath(args.vgg_file)
     pb_file = path.normpath(args.pb_file)
     labels_file = path.normpath(args.labels_file)
+
+    global SCORE
+    SCORE = args.limit
+    assert SCORE > 0 and SCORE < 1, 'argument -l (limit) is the score, and should be between 0 and 1'
 
     if 'ssd' in pb_file:
         network = 'ssd'
@@ -334,6 +339,12 @@ def main():
     assert iolib.file_exists(labels_file), 'Labels file %s not found' % labels_file
     assert args.platform in VALID_PLATFORMS, 'Platform must be in %s' % str(VALID_PLATFORMS)
     assert args.camera in VALID_CAMERAS, 'Camera must be in %s' % str(VALID_CAMERAS)
+
+    if args.camera == 's5690':
+        args.camera = 'samsung'
+
+    if args.camera == 'xp30':
+        args.camera = 'fujifilm'
 
     fld, _, _ = iolib.get_file_parts2(vgg_file)
     detections_folder = path.normpath(path.join(fld, args.detections_folder))

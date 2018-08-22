@@ -77,7 +77,7 @@ class Bass(Fish):
     scripts_misc/shape_area.py
     '''
     profile_mean_height = 0.598
-    lw_ratio - 4.320 #scripts_vgg.calc_lw.py
+    lw_ratio = 4.320 #scripts_vgg.calc_lw.py
     def __init__(self, length_tl=0):
         # keep python 2.7 compat, Python 3 only would be
         # super().__init__(length_tl)

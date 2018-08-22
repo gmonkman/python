@@ -158,13 +158,14 @@ class Detected():
     '''
 
 
-    def __init__(self, img):
-        '''(ndarray|str, Enum|List|Tuple)
+    def __init__(self, img, detect=True):
+        '''(ndarray|str, Enum|List|Tuple, bool)
         '''
         self.Markers = []
         self.image = _getimg(img)
         self.image_with_detections = _np.copy(self.image)
-
+        if detect:
+            self.detect()
 
     def detect(self, expected=eMarkerID.Any_):
         '''(int|tuple|list) -> list

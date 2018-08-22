@@ -11,10 +11,13 @@ import opencvlib.roi as roi
 import funclib.iolib as iolib
 from opencvlib.roi import ePointConversion as eCvt
 from opencvlib.view import show
+from opencvlib.view import draw_points
 from opencvlib.view import mosaic
 from opencvlib.transforms import rotate
 import opencvlib.geom as geom
 import opencvlib.common as common
+
+
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -27,7 +30,7 @@ class Test(unittest.TestCase):
 
         self.db_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db'
 
-        self.imgpath = _path.normpath(_path.join(self.modpath, 'images/matt_pemb5.jpg'))
+        self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
         self.I = cv2.imread(self.imgpath)
         pass
 
@@ -118,15 +121,49 @@ class Test(unittest.TestCase):
         self.assertEqual(a, 0.25)
         z = 10
 
-    @unittest.skip("Temporaily disabled test_showarray")
+    #@unittest.skip("Temporaily disabled test_showarray")
     def test_iou2(self):
         '''test quadrilateral manip'''
-        nas = [0.263571990558615,	0.790715971675845,	0.435483870967741,	0.6,	0.265444666147232,	0.784790337085723,	0.432113647460937,	0.600508213043212]
+        nas = [0.263571990558615,	0.790715971675845,	0.435483870967741,	0.6,
+               0.265444666147232,	0.784790337085723,	0.432113647460937,	0.600508213043212]
         a = roi.iou2(*nas)
         self.assertEqual(a, 0.9628434335096393)
+        img_path = _path.normpath(_path.join(self.modpath, 'bin/images/r358_FISHUND.jpg'))
+        img = cv2.imread(img_path)
+
+        img_flip_path = _path.normpath(_path.join(self.modpath, 'bin/images/r358_FISHUND_flip.jpg'))
+        img_flip = cv2.imread(img_flip_path)
+
+        w = 1569; h=1259
+        pts_gt = _get_pts([0.275971956660293, 0.699808795411089, 0.455917394757744, 0.575853852263701], h, w)
+        pts_inf = _get_pts([0.275301188230514, 0.701213181018829, 0.455382585525512, 0.573848962783813], h, w)
+        img = draw_points(pts_gt, img, join=True, line_color=(0, 0, 0))
+        img = draw_points(pts_inf, img, join=True, line_color=(0, 255, 0))
+        show(img)
+
+        pts_flip_gt = _get_pts([0.30019120458891, 0.724028043339706, 0.455917394757744, 0.575853852263701], h, w)
+        pts_flip_inf = _get_pts([0.303799748420715, 0.725388884544372, 0.453819185495376, 0.575798153877258], h, w)
+
+        img_flip = draw_points(pts_flip_gt, img_flip, join=True, line_color=(0, 0, 0))
+        img_flip = draw_points(pts_flip_inf, img_flip, join=True, line_color=(0, 255, 0))
+        show(img_flip)
 
 
-    #@unittest.skip("Temporaily disabled test_showarray")
+
+    @unittest.skip("Temporaily disabled test_showarray")
+    def test_flip_points(self):
+        '''test'''
+        w = 1569; h = 1259
+        pts = _get_pts([0.175971956660293, 0.699808795411089, 0.455917394757744, 0.575853852263701], h, w)
+        pts_flip = roi.flip_points(pts, h, w, hflip=True)
+        img_path = _path.normpath(_path.join(self.modpath, 'bin/images/r358_FISHUND.jpg'))
+        img = cv2.imread(img_path)
+        img = draw_points(pts, img, join=True, line_color=(0, 0, 0), thickness=3)
+        img = draw_points(pts_flip, img, join=True, line_color=(0, 255, 0), thickness=3)
+        show(img)
+
+
+    @unittest.skip("Temporaily disabled test_showarray")
     def test_bounding_rect_of_poly(self):
         '''test br'''
         sq = [[0, 0], [10, 10], [0, 10], [10, 0]]
@@ -134,6 +171,14 @@ class Test(unittest.TestCase):
         sq45_bound = roi.bounding_rect_of_poly(sq45)
         pass
 
+
+
+
+
+
+def _get_pts(min_max, h, w):
+    pts_raw = roi.points_convert(min_max, 1, 1, roi.ePointConversion.XYMinMaxtoCVXY, roi.ePointsFormat.XY)
+    return roi.points_denormalize(pts_raw, h, w)
 
 
 if __name__ == '__main__':

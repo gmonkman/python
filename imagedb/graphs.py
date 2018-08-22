@@ -1,5 +1,5 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import
-'''graphs'''
+'''graphs for the fid length estimation paper'''
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl

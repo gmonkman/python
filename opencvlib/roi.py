@@ -294,7 +294,7 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointsFormat.XY):
     elif e_out_format == ePointsFormat.XY:
         return out
     elif e_out_format == ePointsFormat.XXXX_YYYY:
-        return zip(*out)
+        return list(zip(*out))
     elif e_out_format == ePointsFormat.XYWH:
         x, y = list(zip(*out))
         return (min(x), min(y), max(x) - min(x), max(y) - min(y))
@@ -875,7 +875,7 @@ def iou2(gt_xmin, gt_xmax, gt_ymin, gt_ymax, xmin, xmax, ymin, ymax):
     Returns the intersection over union score
 
     Example:
-    >>>iou([[1,0],[0,1], [0,0],[1,1]], [[0.5,0],[0,0.5], [0,0],[0.5,0.5]])
+    >>>iou2(0, 1, 0, 1, 0, 0.5, 0, 0.5)
     0.25
 
     Notes:
