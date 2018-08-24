@@ -134,7 +134,7 @@ class Test(unittest.TestCase):
         img_flip_path = _path.normpath(_path.join(self.modpath, 'bin/images/r358_FISHUND_flip.jpg'))
         img_flip = cv2.imread(img_flip_path)
 
-        w = 1569; h=1259
+        w = 1569; h = 1259
         pts_gt = _get_pts([0.275971956660293, 0.699808795411089, 0.455917394757744, 0.575853852263701], h, w)
         pts_inf = _get_pts([0.275301188230514, 0.701213181018829, 0.455382585525512, 0.573848962783813], h, w)
         img = draw_points(pts_gt, img, join=True, line_color=(0, 0, 0))

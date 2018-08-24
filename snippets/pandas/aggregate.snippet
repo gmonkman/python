@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>Aggregate</Title>
+      <Shortcut>agg</Shortcut>
+      <Description>Snippet example of aggregatefunction</Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[#from sklearn.metrics import mean_squared_error
+#import numpy as np
+
+def percentile(n):
+    def percentile_(x):
+        return np.percentile(x, n)
+    percentile_.__name__ = 'percentile_%s' % n
+    return percentile_
+
+def mse(pred):
+    def mse_(est):
+        ndpred = np.zeros(est.shape[0]) + pred
+        return mean_squared_error(ndpred, est)
+    mse_.__name__ = 'mse_%s' % pred
+    return mse_
+  
+df.groupby(['Platform']).agg({'error':[np.median, percentile(25), percentile(75), mse(0)]})
+
+]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3791c3eb-165f-4a04-83e2-956959c15823</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts_misc\arucofld.py</StartupFile>
+    <StartupFile>scripts_misc\scalechk.py</StartupFile>
     <SearchPath>..\;..\models\research\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -109,6 +109,9 @@ tf_detect_fld.py -x -s -v INFO "C:/Users/Graham Monkman/OneDrive/Documents/PHD/i
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_misc\resolutions_to_csv.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripts_misc\scalechk.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts_misc\shape_area.py">
