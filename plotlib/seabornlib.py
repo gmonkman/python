@@ -9,6 +9,10 @@ import seaborn as sns
 from funclib.baselib import switch
 from enum import Enum
 
+from plotlib import INCH
+from plotlib import FigWidths
+from plotlib import getwidth
+
 
 # region classes
 class EnumPalette(Enum):
@@ -63,16 +67,24 @@ def bivariate_histogram(x, y):
 # endregion
 
 
-def cm2inch(*tupl):
-    '''(tuple) -> tuple
-    matplotlib uses inches for figsize,
-    this wll convert inches to cm
 
-    Example:
-    >>>plt.figure(figsize=cm2inch(12.8, 9.6))
+def getheight(width, aspect, width_is_cm=True):
+    '''float|Enum:plotlib.FigWidths, float|None
+    Get width in inches according to target aspect
+
+    width:target width, or Enum instance plotlib.FigWidths
+    aspect:ratio of width to height i.e. w/h
     '''
-    inch = 2.54
-    if isinstance(tupl[0], tuple):
-        return tuple(i/inch for i in tupl[0])
+    assert isinstance(width, (float, int, FigWidths))
+
+    if isinstance(width, FigWidths):
+        w_inch = width.value / INCH
     else:
-        return tuple(i/inch for i in tupl)
+        w_inch = width / INCH if width_is_cm else width
+    return w_inch / aspect
+
+
+def get_scale_ratio(ax):
+    xmin, xmax = ax.get_xscale()
+    ymin, ymax = ax.get_xscale()
+    return abs(xmax - xmin) / abs(ymax - ymin)

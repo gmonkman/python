@@ -1,4 +1,6 @@
 '''basic number related helper functions'''
+import math as _math
+
 
 def translate_scale(val_in, out_min, out_max, val_in_max):
     '''(float, float, float, float) -> float
@@ -18,8 +20,6 @@ def translate_scale(val_in, out_min, out_max, val_in_max):
     return val_in*(out_max - out_min)*(1/val_in_max) + out_min
 
 
-
-
 def is_float(test):
     '''(any) -> bool
     Return true of false if s is a float
@@ -29,3 +29,12 @@ def is_float(test):
         return True
     except ValueError:
         return False
+
+
+def roundx(v):
+    '''(float)->float
+    round to the more extreme value
+    '''
+    if v < 0:
+        return _math.floor(v)
+    return _math.ceil(v)
