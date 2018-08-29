@@ -539,3 +539,19 @@ def pd_df_to_ndarray(df):
     '''
     return df.as_matrix([x for x in df.columns])
 # endregion
+
+
+
+def np_split_by_value(a, thresh):
+    '''(ndarray, float|bool) -> ndarray, ndarray
+    split an array into two arrays at thresh
+
+    Example:
+    >>>np_split_by_value(np.array([1,2,3]), 2)
+    ([1,2]), ([3])
+    '''
+    if isinstance(thresh, bool):
+        Z = a == True
+    else:
+        Z = a <= thresh
+    return a[Z == 0], a[Z == 1]

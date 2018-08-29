@@ -27,7 +27,6 @@ def histo(data, bins='auto', normed=True, show=True):
         Plot.show()
 
 
-
 def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_label_font_sz=8, xlim=None, ylim=None, show=True):
     '''(list|tuple|ndarray, list|tuple|ndarray|None,
             list|tuple|ndarray, list|tuple|ndarray,

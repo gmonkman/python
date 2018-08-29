@@ -5,6 +5,7 @@ for manipulatin other base classes.
 
 Stick list/tuple/dic functions in here.
 '''
+import pickle as _pickle
 import collections as _collections
 import sys as _sys
 import operator
@@ -325,7 +326,7 @@ def lists_remove_empty_pairs(list1, list2):
 def depth(l):
     '''(List|Tuple) -> int
     Depth of a list or tuple.
-    
+
     Returns 0 of l is and empty list or
     tuple.
     '''
@@ -520,3 +521,24 @@ def isempty(x):
 
     return False
 #endreion
+
+
+def pickle(obj, fname):
+    '''(Any, str)->void
+    Save object to fname
+
+    Also see unpickle
+    '''
+    with open(fname, 'wb') as f:
+        _pickle.dump(obj, f)
+
+
+def unpickle(fname):
+    '''(str)->obj
+
+    fname: path to pickled object
+    unpickle'''
+    with open(fname, 'rb') as f:
+        obj = _pickle.load(f)
+    return obj
+
