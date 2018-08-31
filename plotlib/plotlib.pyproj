@@ -23,6 +23,9 @@
   <ItemGroup>
     <Compile Include="matplotlib-2d.py" />
     <Compile Include="matplotlib-3d.py" />
+    <Compile Include="mplfuncs.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="qplot.py">
       <SubType>Code</SubType>
     </Compile>

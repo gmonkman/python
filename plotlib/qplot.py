@@ -5,16 +5,25 @@ import matplotlib.pyplot as Plot
 import matplotlib.mlab as _mlab
 import numpy as _np
 import funclib.baselib as _baselib
+from plotlib.mplfuncs import FigWidthsInch as sizes
 #import scipy.stats as _stats
 #import math as _math
 
+SIZE = (sizes.two_col.value, sizes.two_col.value)
 
-def histo(data, bins='auto', normed=True, show=True):
+
+def histo(data, bins='auto', normed=True, show=True, figsize=None):
     '''(list|ndarray, str|int, bool
     Plot a histogram
     '''
 
     D = _np.array(data).flatten()
+
+    global SIZE
+    if figsize:
+        SIZE = figsize
+
+    Plot.figure(figsize=SIZE)
     dummy, bins, dummy1 = Plot.hist(D, bins=bins, normed=normed)
 
     if normed:
@@ -27,7 +36,7 @@ def histo(data, bins='auto', normed=True, show=True):
         Plot.show()
 
 
-def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_label_font_sz=8, xlim=None, ylim=None, show=True):
+def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_label_font_sz=8, xlim=None, ylim=None, show=True, figsize=None):
     '''(list|tuple|ndarray, list|tuple|ndarray|None,
             list|tuple|ndarray, list|tuple|ndarray,
             2-tuple|None, 2-tuple|None, bool) - void
@@ -62,6 +71,8 @@ def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_lab
         2-Tuple, lower and upper limits of y, or None
     show:
         show the plot
+    figsize:
+        2-tuple (w,h) in inches, defaults to qplot.SIZE if None, also set global value
 
     Example:
     >>>x_data=[[-1,-2,-3],[3,4,5]]
@@ -121,7 +132,11 @@ def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_lab
         else:
             ndY = _np.asarray(y_data[ind]).flatten()
 
-        Plot.figure()
+        global SIZE
+        if figsize:
+            SIZE = figsize
+
+        Plot.figure(figsize=SIZE)
         Plot.scatter(ndX, ndY, s=ptsizes)
 
         axes = Plot.gca()

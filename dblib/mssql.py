@@ -5,15 +5,15 @@ import pymssql
 
 
 class Conn(object):
-    '''connection to database. Loaded into the self.conn
-    initiate with the with statement.
-    A path can be passed in and it will call sqlite_connection_string
-    to correctly format the connection string.
+    '''Connection to an SQL Server database.
 
-    Pass the cnstr in when the class is initialised or call open.
+    Args:
+    dbname:database name
+    server:server name, ip etc
+    security: integrated for NT security, or any other string for SQL Server security
+    user,pw: Authentication of NOT using NT (integrated) security
 
-    e.g.
-    import mssql
+    Example:
     with mssql.Conn('mydb') as conn:
         #do database work
     '''
