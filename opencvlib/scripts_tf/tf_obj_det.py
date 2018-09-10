@@ -199,7 +199,7 @@ def detect(img, imgpath, sample_lengthid, all_points_x, all_points_y, detection_
     if D.Markers:
         for M in D.Markers:
             assert isinstance(M, aruco.Marker)
-            if new_aruco_method:
+            if new_aruco_method: #override - old method was bugged, had to redesign detection
                 if geom.pts_in_poly(M.points, all_points):
                     marker_centroids.append(M.centroid)
             else:
@@ -548,7 +548,7 @@ def main():
     print('\nCompleted %s %s %s' % (args.camera, args.platform, network))
 
     avg_det_time = -1
-
+    #some time metrics
     if DETECT_TIMES_SECONDS:
         avg_det_time = sum(DETECT_TIMES_SECONDS)/len(DETECT_TIMES_SECONDS)
         if len(DETECT_TIMES_SECONDS) > 1:
