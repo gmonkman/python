@@ -29,11 +29,11 @@ def palette(palette=EnumPalette.grey1):
     '''(EnumPalette) -> list
 
     '''
-    default = ["#EEEEEE", "#E8E8E8", "#E3E3E3", "#DEDEDE", "#D9D9D9",
-               "#D3D3D3", "#CECECE", "#C9C9C9", "#C4C4C4", "#BFBFBF"]  # grey1
+    default = ("#EEEEEE", "#E8E8E8", "#E3E3E3", "#DEDEDE", "#D9D9D9",
+               "#D3D3D3", "#CECECE", "#C9C9C9", "#C4C4C4", "#BFBFBF")  # grey1
     for case in switch(palette):
         if case(EnumPalette.grey1):
-            return ["#EEEEEE", "#E8E8E8", "#E3E3E3", "#DEDEDE", "#D9D9D9", "#D3D3D3", "#CECECE", "#C9C9C9", "#C4C4C4", "#BFBFBF"]
+            return ("#EEEEEE", "#E8E8E8", "#E3E3E3", "#DEDEDE", "#D9D9D9", "#D3D3D3", "#CECECE", "#C9C9C9", "#C4C4C4", "#BFBFBF")
         if case():
             return default
 

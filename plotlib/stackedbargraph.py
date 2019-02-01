@@ -32,8 +32,8 @@ class StackedBarGrapher:
         d_heights = [1., 2., 3., 4., 5., 6.]
         d_widths = [.5, 1., 3., 2., 1., 2.]
         d_labels = ["fred", "julie", "sam", "peter", "rob", "baz"]
-        d_colors = ['#2166ac', '#fee090', '#fdbb84',
-                    '#fc8d59', '#e34a33', '#b30000', '#777777']
+        d_colors = ('#2166ac', '#fee090', '#fdbb84',
+                    '#fc8d59', '#e34a33', '#b30000', '#777777')
         gap = 0.05
 
         fig = _plt.figure()

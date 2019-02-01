@@ -98,7 +98,6 @@ tf_detect_fld.py -x -s -v INFO "C:/Users/Graham Monkman/OneDrive/Documents/PHD/i
     <Compile Include="learning\forest.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="lenscorrection\fisheye.py" />
     <Compile Include="matcher.py">
       <SubType>Code</SubType>
     </Compile>

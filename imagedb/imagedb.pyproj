@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>965fc95c-7dbc-4efc-adab-5ed89451655a</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>oneoffwork.py</StartupFile>
+    <StartupFile>graphs.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

@@ -11,7 +11,8 @@ from plotlib.mplfuncs import FigWidthsInch as sizes
 
 SIZE = (sizes.two_col.value, sizes.two_col.value)
 
-
+# see C:\Users\Graham Monkman\OneDrive\Documents\PHD\My Papers\Fiducial_error_minimisation\seaborn\mbe_bars.ipynb
+# for an example of multifacetted journal formatted histo
 def histo(data, bins='auto', normed=True, show=True, figsize=None):
     '''(list|ndarray, str|int, bool
     Plot a histogram
