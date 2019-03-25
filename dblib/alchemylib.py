@@ -7,7 +7,6 @@ import os as _os
 
 import sqlalchemy.pool as _pool
 from sqlalchemy import create_engine as _create_engine
-import fuckit
 
 from funclib.baselib import isPython2 as _isPython2
 from funclib.baselib import dic_merge_two

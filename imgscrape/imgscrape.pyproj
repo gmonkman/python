@@ -30,6 +30,9 @@
     <Compile Include="exec.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="helpers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="items.py" />
     <Compile Include="pipelines.py" />
     <Compile Include="processors.py">

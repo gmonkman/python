@@ -34,7 +34,7 @@ class Conn(object):
         '''
         self.close()
         self.conn = _sqlite3.connect(cnstr)
-        self._conn.row_factory = _sqlite3.Row
+        self.conn.row_factory = _sqlite3.Row
 
     def close(self, commit=False):
         '''close the db'''

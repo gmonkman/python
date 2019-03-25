@@ -162,7 +162,7 @@ def readcsv(filename, cols=1, startrow=0, numericdata=True):
 
 def writecsv(filename, datalist, header=[], inner_as_rows=True, append=False, skip_first_row_if_file_exists=False):
     '''(_string, list, list, bool, bool) -> Void
-    Reads a _csv file into a list and returns the list
+    Writes a list to filename.
     ---
     inner_as_rows == True
     [[1,a],[2,b]]

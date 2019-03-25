@@ -130,6 +130,16 @@ class StopWatch():
         return x
 
 
+    def pretty_remaining(self, n):
+        '''(int) -> float
+        Pretty print wrapper for remaining()
+
+        n:
+            number of events left
+        '''
+        return StopWatch.pretty_time(self.remaining(n))
+
+
     def lap(self, event_ticks=1):
         '''(int) -> void
         Add a 'lap' time to the queue

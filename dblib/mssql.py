@@ -1,7 +1,9 @@
 # pylint: disable=C0302
-'''basic mssql stuff'''
+'''Connection handling and some basic CRUD.
+CRUD is awaiting adaption of the SQLLite code which
+is commented out.
+'''
 import pymssql
-
 
 
 class Conn(object):
@@ -15,10 +17,12 @@ class Conn(object):
 
     Example:
     with mssql.Conn('mydb') as conn:
-        #do database work
+        sql = "DELETE FROM test"
+        with conn.cursor() as cur:
+            cur.execute(sql)
     '''
 
-    def __init__(self, dbname, server='(local)', port=1433, security='integrated', user='', pw=''):
+    def __init__(self, dbname, server='(local)', port=1433, security='integrated', user='', pw='', autocommit=True):
         self.conn = None
         self.dbname = dbname
         self.server = server
@@ -26,6 +30,7 @@ class Conn(object):
         self.security = security
         self.user = user
         self.pw = pw
+        self.autocommit = autocommit
         self._connect()
         # no need to open connection in init - __enter__ will do that.
 
@@ -38,7 +43,7 @@ class Conn(object):
         self.conn.close()
 
 
-    def open(self, dbname, server='(local)', port=1433, security='integrated', user='', pw=''):
+    def open(self, dbname, server='(local)', port=1433, security='integrated', user='', pw='', autocommit=True):
         '''str->void
         file path location of the db
         open a connection, closing existing one
@@ -50,6 +55,7 @@ class Conn(object):
         self.security = security
         self.user = user
         self.pw = pw
+        self.autocommit = autocommit
         try:
             self.close()
         except Exception as _:
@@ -81,17 +87,40 @@ class Conn(object):
             except:
                 pass
         if self.security == 'integrated':
-            self.conn = pymssql.connect(server=self.server, port=self.port, database=self.dbname)
+            self.conn = pymssql.connect(server=self.server, port=self.port, database=self.dbname, autocommit=self.autocommit)
         else:
-            self.conn = pymssql.connect(server=self.server, user=self.user, password=self.pw, port=self.port, database=self.dbname)
+            self.conn = pymssql.connect(server=self.server, user=self.user, password=self.pw, port=self.port, database=self.dbname, autocommit=self.autocommit)
         return self.conn
 
+
+    def execute(self, sql, commit=True):
+        '''(str, bool) ->
+        Executes a T-SQL statement against
+        the current connection
+
+        sql:
+            the SQL
+        commit:
+            commits changes, by default autocommit is set for
+            the connection
+
+        Note, using the with statement for this object
+        returns a pymssql connection instance and so
+        this execute cannot be executed.
+        '''
+        with self.conn.cursor() as cur:
+            cur.execute(sql)
+        if commit:
+            self.commit()
 
 
 
 
 class CRUD(object):
     '''everything to do with the db
+    Not implemented yet.
+    See https://pymysql.readthedocs.io/en/latest/user/examples.html for
+    examples of cursor use.
     '''
 
     def __init__(self, dbconn):
