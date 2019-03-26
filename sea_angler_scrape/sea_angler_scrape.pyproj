@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{5a67df41-0498-4fa1-b3c7-c51cc2202a84}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>get_pdfs.py</StartupFile>
+    <StartupFile>pdf2img.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -14,7 +14,7 @@
     <InterpreterId />
     <InterpreterVersion />
     <IsWindowsApplication>False</IsWindowsApplication>
-    <CommandLineArguments>-s 0 -f 10</CommandLineArguments>
+    <CommandLineArguments>-s C:/temp/sa</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
@@ -28,6 +28,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="get_pdf_links.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pdf2img.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="__init__.py" />
