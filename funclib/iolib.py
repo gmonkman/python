@@ -540,6 +540,8 @@ def file_list_generator(paths, wildcards):
 
     ie. Yields wildcards for consumption a _glob.glob.
     '''
+    _warn('file_list_generator has been superceeded by file_list_generator1. This routine does not nicely handle string (rather than iterable) arguments.')
+
     if isinstance(wildcards, str):
         wildcards = [wildcards]
 
