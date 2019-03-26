@@ -1,6 +1,14 @@
 '''basic number related helper functions'''
 import math as _math
 
+def is_int(s):
+    try:
+        n = int(s)
+        f = float(s)
+        return n == f
+    except:
+        return False
+
 
 def translate_scale(val_in, out_min, out_max, val_in_max):
     '''(float, float, float, float) -> float

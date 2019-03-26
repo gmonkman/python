@@ -542,3 +542,10 @@ def unpickle(fname):
         obj = _pickle.load(f)
     return obj
 
+def is_int(s):
+    try:
+        n = int(s)
+        f = float(s)
+        return n == f
+    except:
+        return False

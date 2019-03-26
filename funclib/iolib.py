@@ -607,6 +607,27 @@ def file_list_generator1(paths, wildcards, recurse=False):
             for myfile in _glob.glob(_os.path.normpath(vals)):
                 yield _os.path.normpath(myfile)
 
+def file_list_generator_dfe(paths, wildcards, recurse=False):
+    '''(str|iterable, str|iterable, bool) -> yields str, str, str
+    Takes path(s) and wildcard(s), yielding the
+    directorty, filename and extension.
+
+    paths:
+        Single path or list/tuple of paths
+    wildcards:
+        Single file extension or list of file extensions.
+        Extensions should be dotted, an asterix is appended
+        if none exists.
+    recurse:
+        recurse down folders
+
+
+    Example syntax:
+    >>>for folder, filename, extension in file_list_generator1('C:/temp', '*.txt', recurse=False):
+    >>>for folder, filename, extension in file_list_generator1(['C:/temp', 'C:/windows'], ['.bat', '.cmd'], recurse=True):
+    '''
+    for fname in file_list_generator1(paths, wildcards, recurse):
+        yield get_file_parts2(fname)
 
 def file_list_glob_generator(wilded_path, recurse=False):
     '''(str, bool)->yields strings (file paths)
