@@ -791,8 +791,8 @@ def write_to_file(results, prefix='', open_in_npp=True, full_file_path=''):
             for s in results:
                 f.write(str(s))
 
-    print(results)
-    print(filename)
+    #print(results)
+    #print(filename)
     if open_in_npp:
         if _get_platform() == 'windows':
             notepadpp_open_file(filename)

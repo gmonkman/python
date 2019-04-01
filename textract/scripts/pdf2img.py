@@ -9,7 +9,7 @@ Arguments
     -s: <path containing pdf>
 
 e.g.
-pdf2img.py -s c:\temp\pdfs
+pdf2img.py -s c:/temp/pdfs
 '''
 import argparse
 import os.path as path

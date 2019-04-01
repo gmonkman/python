@@ -26,7 +26,7 @@ class CleanStrict():
     '''
     def __call__(self, values):
         if values:
-            l = lambda x: _stringslib.filter_alphanumeric(x, strict=True, allow_cr=False, allow_lf=False, include=(' '))
+            l = lambda x: _stringslib._filter_alphanumeric(x, strict=True, allow_cr=False, allow_lf=False, include=(' '))
             if len(values) == 1: #single string in list
                 return ["".join([c for c in values[0] if l(c)])]
             else: #multiple strings in list

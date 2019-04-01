@@ -10,6 +10,10 @@ import string as _string
 # my imports
 import funclib.numericslib
 
+ascii_punctuation = ['!', '"', '#', '$', '%', '&', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '¦', '}', '~', "'"]
+ascii_punctuation_strict = ['!', '"', '(', ')', ',', '-', '.', ':', ';', '?', "'"]
+ascii_and = ['&', '+']
+ascii_or = ['|']
 
 
 class Visible():
@@ -69,10 +73,27 @@ def rndstr(l):
     return  ''.join(_random.choice(_string.ascii_uppercase + _string.ascii_lowercase + _string.digits) for _ in range(l))
 
 
+def filter_alphanumeric1(s, to_ascii=True, strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and'):
+    '''(str, bool, bool, bool, bool, tuple, tuple) -> bool
+
+    to_ascii: replace foreign letters to ASCII ones, e.g, umlat to u
+    strict: only letters and numbers are returned
+    allow_cr, allow_lf: include or exclude cr lf
+    exclude,include : tuple(str,..), force true or false for passed chars
+
+    Example:
+    >>>filter_alphanumeric('asd^!2', strict=True)
+    asd2
+    '''
+    return ''.join([c for c in s if filter_alphanumeric(c, to_ascii, strict, allow_cr, allow_lf, exclude, include, replace_ampersand)])
+
 # region files and paths related
 def filter_alphanumeric(char, to_ascii=True, strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and'):
-    '''(str, bool, bool, bool, bool, tuple, tuple) -> bool
-    Use as a helper function for custom string filters
+    '''(char(1), bool, bool, bool, bool, tuple, tuple) -> bool
+    Use as a helper function for custom string filters.
+
+    Note: Accepts a single char. Use filter_alphanumeric1 for varchar
+
     for example in scrapy item processors
 
     to_ascii : bool
@@ -90,7 +111,6 @@ def filter_alphanumeric(char, to_ascii=True, strict=False, allow_cr=True, allow_
     Example:
     l = lambda x: _filter_alphanumeric(x, strict=True)
     s = [c for c in 'abcef' if l(c)]
-
     '''
 
     if char in exclude: return False
@@ -194,4 +214,18 @@ def get_between_r(s, first, last ):
         return s[start:end]
     except ValueError:
         return ''
+
+def to_ascii(s):
+    '''(byte|str) -> str
+
+    Takes a string or bytes representation of
+    a string and returns an ascii encoded
+    string.
+    '''
+    if isinstance(s, bytes):
+        return s.decode('ascii', 'ignore')
+
+    return s.encode('ascii', 'ignore').decode('ascii')
+
+
 # endregion

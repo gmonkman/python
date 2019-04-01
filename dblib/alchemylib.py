@@ -1,7 +1,31 @@
 # pylint: disable=global-statement,no-name-in-module
+'''This module contains helper functions
+for database connections using the
+sqlalchemy engine.
 
-'''helper function for database connections
-including sqlalchemy
+Example of opening ENGINE:
+>>>cnn = ConnectionString('toshiba', 'imagedb', 'sa', 'GGM290471')
+>>>create_engine_mssql(cnn.mssql_connection_string(cnn.mssql_connection_string()))
+
+Typical use would be to simply get the connection string
+which is then used with SQL Alchemy and an Alchemy ORM
+model generated with sqlcodegen.
+
+For example:
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import session
+import dblib.alchemylib as alc
+
+CNSTR = alc.ConnectionString("toshiba", "imagedb", "sa", "GGM290471")
+alc.create_engine_mssql(CNSTR.mssql_connection_string())
+DBSESS = sessionmaker(bind=alc.ENGINE, autoflush=True, autocommit=True, expire_on_commit=True)
+_SESS = _DBSESS()
+assert isinstance(_SESSION, session.Session)
+
+Example read and update with SQL Alchemy (auto commit assumed)
+from model import Contact [the ORM model created with sqlcodegen]
+row = _SESS.query(SampleLength).filter_by(id=999).first()
+row.contact = 'Joe Blogs'
 '''
 import os as _os
 
@@ -48,12 +72,13 @@ class Consumer(_Enum):
 class ConnectionString(object):
     '''generate connection strings for different databases'''
 
-    def __init__(self, server='', dbname='', user='', pw='', fileptr=''):
+    def __init__(self, server='', dbname='', user='', pw='', fileptr='', use_integrated=False):
         self.server = server
         self.dbname = dbname
         self.user = user
         self.password = pw
         self.fileptr = fileptr
+        self.use_integrated = use_integrated
 
     @staticmethod
     def _get_mssql_prefix(db_type=MSSQLODBCDriver.mssqlserver2012):
@@ -69,11 +94,17 @@ class ConnectionString(object):
     def mssql_connection_string(self, driver=MSSQLODBCDriver.mssqlserver2012):
         '''connection_string getter for _create_engine'''
         drv = quote_plus(ConnectionString._get_mssql_prefix(driver))
-        cnstr = '%s:%s@%s/%s?driver=%s' % (self.user,
-                                           self.password,
-                                           self.server,
-                                           self.dbname,
-                                           drv)
+        if self.use_integrated:
+            #https://github.com/zzzeek/sqlalchemy/blob/master/lib/sqlalchemy/dialects/mssql/pyodbc.py
+            cnstr = '%s:%s@%s/%s?driver=%s' % ('', '', self.server,
+                                               self.dbname,
+                                               drv)
+        else:
+            cnstr = '%s:%s@%s/%s?driver=%s' % (self.user,
+                                               self.password,
+                                               self.server,
+                                               self.dbname,
+                                               drv)
         cnstr = 'mssql+pyodbc://' + cnstr
         return cnstr
 
@@ -191,7 +222,10 @@ def close():
 def main():
     '''entry for test code'''
     cnn = ConnectionString('toshiba', 'imagedb', 'sa', 'GGM290471')
-    _ = cnn.mssql_connection_string(MSSQLODBCDriver.mssqlserver2012)
+    create_engine_mssql(cnn.mssql_connection_string(cnn.mssql_connection_string()))
+    #set cnn to an sql server connection string
+    #and pass to create_engine_mssql to instantiate alchemylib.ENGINE
+
 
 
 # This only executes if this script was the entry point

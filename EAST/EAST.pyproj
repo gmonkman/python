@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{f9d93d92-62d5-4ef4-accd-eb0b730340b9}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>eval.py</StartupFile>
+    <SearchPath>..</SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+    <InterpreterVersion />
+    <CommandLineArguments>--images_path=C:/development/python/EAST/test/bin --checkpoint_path=C:/development/python/EAST/model/east_icdar2015_resnet_v1_50_rbox --output_dir=C:/development/python/EAST/test/bin/detections --nms_mode=none</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <Environment>eval.py --images_path=C:/development/python/EAST/test/bin --checkpoint_path=C:/development/python/EAST/model/east_icdar2015_resnet_v1_50_rbox --output_dir=C:/development/python/EAST/test/bin/detections --nms_mode='none'</Environment>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="demo_images\img_10.jpg" />
+    <Content Include="demo_images\img_14.jpg" />
+    <Content Include="demo_images\img_2.jpg" />
+    <Content Include="demo_images\img_26.jpg" />
+    <Content Include="demo_images\img_75.jpg" />
+    <Content Include="demo_images\web-demo.png" />
+    <Content Include="requirements.txt" />
+    <Content Include="static\css\app.css" />
+    <Content Include="templates\index.html" />
+    <Content Include="test\bin\clean_text.jpg" />
+    <Content Include="test\bin\sa6.jpg" />
+    <Content Include="training_samples\img_1.jpg" />
+    <Content Include="training_samples\img_1.txt" />
+    <Content Include="training_samples\img_2.jpg" />
+    <Content Include="training_samples\img_2.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="data_util.py" />
+    <Compile Include="eval.py" />
+    <Compile Include="icdar.py" />
+    <Compile Include="lanms\.ycm_extra_conf.py" />
+    <Compile Include="lanms\__init__.py" />
+    <Compile Include="lanms\__main__.py" />
+    <Compile Include="locality_aware_nms.py" />
+    <Compile Include="model.py" />
+    <Compile Include="multigpu_train.py" />
+    <Compile Include="nets\resnet_utils.py" />
+    <Compile Include="nets\resnet_v1.py" />
+    <Compile Include="nets\__init__.py" />
+    <Compile Include="run_demo_server.py" />
+    <Compile Include="__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="demo_images" />
+    <Folder Include="lanms" />
+    <Folder Include="nets" />
+    <Folder Include="static\" />
+    <Folder Include="static\css" />
+    <Folder Include="templates" />
+    <Folder Include="test\" />
+    <Folder Include="test\bin" />
+    <Folder Include="training_samples" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>

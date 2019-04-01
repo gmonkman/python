@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>357f2f6c-b6bf-4bb9-b3a3-e6b0130467a2</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_mssql.py</StartupFile>
+    <StartupFile>test\test_alchemy.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -27,6 +27,9 @@
     <Compile Include="alchemylib.py" />
     <Compile Include="mssql.py" />
     <Compile Include="sqlitelib.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_alchemy.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_mssql.py" />

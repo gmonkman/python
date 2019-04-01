@@ -28,13 +28,18 @@ class Test(unittest.TestCase):
 
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_GroupBy(self):
         pdl.GroupBy.PRECISION = 5
         GB = pdl.GroupBy(self.df, ['fish', 'sex'], ['length', 'weight'], np.mean, np.median, pdl.GroupBy.fCI_str(95), pdl.GroupBy.fCI(95), pdl.GroupBy.fPercentile(25))
         out = _path.join(self.bin_path, 'fish_tmp.xlsx')
         GB.to_excel(out, fail_if_exists=False)
         print(GB.result)
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_df_fromstring(self):
+        s = """col1,col2,col3\n1,4.4,99\n2,4.5,200\n3,4.7,65\n4,3.2,140"""
+        df = pdl.df_fromstring(s)
 
 
 if __name__ == '__main__':

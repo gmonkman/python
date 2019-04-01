@@ -136,14 +136,13 @@ class CRUD(object):
         return bool indicating if id exists in table.
         i.e. relies on there being an id column as the primary key
         '''
-        #cur = self.conn.cursor()
-        #sql = 'SELECT EXISTS(SELECT 1 as one FROM ' + table + ' WHERE ' + \
-        #    table + 'id="' + str(keyid) + '" LIMIT 1) as res;'
-        #cur.execute(sql)
-        #row = cur.fetchall()
-        #for res in row:
-        #    return bool(row['res'])
-        raise NotImplementedError
+        cur = self.conn.cursor()
+        sql = 'SELECT EXISTS(SELECT 1 as one FROM ' + table + ' WHERE ' + \
+            table + 'id="' + str(keyid) + '" LIMIT 1) as res;'
+        cur.execute(sql)
+        row = cur.fetchall()
+        for res in row:
+            return bool(row['res'])
 
 
     def exists_by_compositekey(self, table, dic):
@@ -152,17 +151,17 @@ class CRUD(object):
         so dic would be for e.g.
         foreignkey1.id=1, foreignkey2.id=3, id=5
         '''
-        #sql = []
-        #where = ["%s='%s' AND " % (j, k) for j, k in dic.items()]
-        #where[-1] = where[-1].replace('AND', '')
-        #sql.append('select  exists(select 1 from %s where ' % (table))
-        #sql.append("".join(where))
-        #sql.append('LIMIT 1);')
-        #query = "".join(sql)
-        #cur = self.conn.cursor()
-        #cur.execute(query)
-        #row = cur.fetchall()
-        #return bool(row[0][0
+        sql = []
+        where = ["%s='%s' AND " % (j, k) for j, k in dic.items()]
+        where[-1] = where[-1].replace('AND', '')
+        sql.append('select  exists(select 1 from %s where ' % (table))
+        sql.append("".join(where))
+        sql.append('LIMIT 1);')
+        query = "".join(sql)
+        cur = self.conn.cursor()
+        cur.execute(query)
+        row = cur.fetchall()
+        return bool(row[0][0])
         raise NotImplementedError
 
 
@@ -182,22 +181,98 @@ class CRUD(object):
         returns:
             The first matched value, or None
         '''
-        #sql = []
-        #where = ["%s='%s' AND " % (j, k) for j, k in dic.items()]
-        #where[-1] = where[-1].replace('AND', '')
-        #sql.append('select  exists(select 1 from %s where ' % (table))
-        #sql.append("".join(where))
-        #sql.append('LIMIT 1);')
-        #query = "".join(sql)
-        #cur = self.conn.cursor()
-        #cur.execute(query)
-        #row = cur.fetchall()
-        #return str(row[0][0])
+        sql = []
+        where = ["%s='%s' AND " % (j, k) for j, k in dic.items()]
+        where[-1] = where[-1].replace('AND', '')
+        sql.append('select top 1 exists(select 1 from %s where ' % (table))
+        sql.append("".join(where))
+        sql.append(');')
+        query = "".join(sql)
+        cur = self.conn.cursor()
+        cur.execute(query)
+        row = cur.fetchall()
+        return str(row[0][0])
+
+
+    def execute_sql(self, sql, get_cursor=False):
+        '''(str, bool) -> void|cursorpymssql.cursor
+        Execute sql against the db
+
+        get_cursor: if true,return the cursor object else None
+        '''
+        cur = self.conn.cursor()
+        cur.execute(sql)
+        if get_cursor:
+            return cur
+
+
+    def get_last_id(self, table_name):
+        #see https://dba.stackexchange.com/questions/124847/best-way-to-get-last-identity-inserted-in-a-table
+        '''str->int
+        1) Returns last added id in table table_name
+        2) Returns None if no id
+        '''
+        sql = "select ident_current('%s')"
+        cur = self.conn.cursor()
+        cur.execute(sql)
+        row = cur.fetchall()
+        return CRUD._read_col(row, 'seq')
+
+
+
+    def lookup(self, table_name, col_to_search, col_with_value_we_want, value):
+        '''(str, str, str, basetype)->basetype
+        1) Returns lookup value, typically based on a primary key value
+        2) Returns None if no matches found
+        '''
+        sql = "SELECT TOP 1 %s FROM %s WHERE %s='%s';" % \
+            (col_with_value_we_want, table_name, col_to_search, value)
+        cur = self.conn.cursor()
+        cur.execute(sql)
+        row = cur.fetchall()
+        return self._read_col(row, col_with_value_we_want)
+
+
+    def upsert(self, table, keylist, **kwargs):
+        '''str, dict, kwargs->void
+        Do an upsert against the curent connection
+
+        table: table name
+        keylist: field/value pairs for the key
+        kwargs: rest of the field/value pairs for the update/insert
+
+        Example:
+        Insert/Update the contact with id=1 to 'Joe Bloggs'
+        >>>upsert('mytable', {'id':1}, contact='Joe Bloggs')
+        >>>
+        '''
+        self.execute_sql(CRUD.upsert(table, keylist, kwargs))
+
+
+    def delete(self, table, **kwargs):
+        '''str, kwargs->void
+
+        Delete record with key from kwargs.
+
+        table: table name
+        kwargs: field/value pairs
+
+        Example:
+        >>>delete('mytable', forename='Joe', lastname='bloggs')
+        >>>
+        '''
+        self.execute_sql(CRUD.sql_delete(table, kwargs))
+
+
+
+
+    def read_rows(self, **kwargs):
+        '''read multiple rows'''
         raise NotImplementedError
 
 
 
-
+#CLASS STATICS
     @staticmethod
     def get_blob(row, colname):
         '''(sqlite.Row, str)-> dic
@@ -209,57 +284,32 @@ class CRUD(object):
         raise NotImplementedError
 
 
-    def execute_sql(self, sql):
-        '''execute sql against the db'''
-        cur = self.conn.cursor()
-        cur.execute(sql)
-
-
-    def get_last_id(self, table_name):
-        '''str->int
-        1) Returns last added id in table table_name
-        2) Returns None if no id
-        '''
-        #sql = 'select seq from sqlite_sequence where name="%s"' % table_name
-        #cur = self.conn.cursor()
-        #cur.execute(sql)
-        #row = cur.fetchall()
-        #return CRUD._read_col(row, 'seq')
-        raise NotImplementedError
-
-
     @staticmethod
     def _read_col(cur, colname):
-        '''cursor, str->basetype
+        '''pymmsql.cursor, str->basetype
         reads a cursor row column value
         returns None if there is no row
         First row only
         '''
-        #if len(cur) == 0:
-        #    return None
-        #else:
-        #    for results in cur:
-        #        return results[colname]
-        raise NotImplementedError
-
-
-    def lookup(self, table_name, col_to_search, col_with_value_we_want, value):
-        '''(str, str, str, basetype)->basetype
-        1) Returns lookup value, typically based on a primary key value
-        2) Returns None if no matches found
-        '''
-        #sql = 'SELECT %s FROM %s WHERE %s="%s" LIMIT 1;' % \
-        #    (col_with_value_we_want, table_name, col_to_search, value)
-        #cur = self.conn.cursor()
-        #cur.execute(sql)
-        #row = cur.fetchall()
-        #return self._read_col(row, col_with_value_we_want
-        raise NotImplementedError
+        if len(cur) == 0:
+            return None
+        else:
+            for results in cur:
+                return results[colname]
 
 
     @staticmethod
     def sql_read(table, **kwargs):
-        ''' Generates SQL for a SELECT statement matching the kwargs passed. '''
+        '''(str, kwargs) -> str
+        Generates the SQL for a SELECT statement matching the kwargs passed.
+
+        table: table name
+        kwargs:column/value pairs
+
+        Example:
+        >>>sql_read('mytable', id=1, contact='Joe Bloggs')
+        SELECT * FROM mytable WHERE id='1' and contact='Joe Bloggs'
+        '''
         sql = list()
         sql.append("SELECT * FROM %s " % table)
         if kwargs:
@@ -269,40 +319,54 @@ class CRUD(object):
         return "".join(sql)
 
 
+
+    @staticmethod
     def sql_upsert(self, table, keylist, **kwargs):
-        '''(str, dict, **kwargs)->void
-        keylist is dictionary of key fields and their values used
-        to build the where.
-        Pass the rest of the values in kwargs
+        '''(str, dict, **kwargs)->str
+        Return an SQL string UPSERT statement.
+
+        table: table name
+        keylist: field/value pairs for the key
+        kwargs: rest of the field/value pairs for the update/insert
+
+        Example (Key id=1 does not exist):
+        >>>sql_upsert('mytable', {'id':1}, contact='Joe Bloggs')
+        INSERT INTO mytable (id, contact) values (1, 'Joe Bloggs')
         '''
-        #allargs = baselib.dic_merge_two(keylist, kwargs)
-        #sql_insert = []
-        #sql_update = []
-        #if self.exists_by_compositekey(table, keylist):
-        #    where = [" %s='%s' " % (j, k) for j, k in keylist.items()]
+        allargs = baselib.dic_merge_two(keylist, kwargs)
+        sql_insert = []
+        sql_update = []
+        if self.exists_by_compositekey(table, keylist):
+            where = [" %s='%s' " % (j, k) for j, k in keylist.items()]
 
-        #    update = ["%s='%s'" % (j, k) for j, k in allargs.items()]
+            update = ["%s='%s'" % (j, k) for j, k in allargs.items()]
 
-        #    sql_update.append("UPDATE %s SET " % (table))
-        #    sql_update.append(", ".join(update))
-        #    sql_update.append(" WHERE %s" % (" AND ".join(where)))
-        #    return "".join(sql_update)
-        #else:
-        #    keys = ["%s" % k for k in allargs]
-        #    values = ["'%s'" % v for v in allargs.values()]
-        #    sql_insert = list()
-        #    sql_insert.append("INSERT INTO %s (" % table)
-        #    sql_insert.append(", ".join(keys))
-        #    sql_insert.append(") VALUES (")
-        #    sql_insert.append(", ".join(values))
-        #    sql_insert.append(");")
-        #    return "".join(sql_insert)
-        raise NotImplementedError
+            sql_update.append("UPDATE %s SET " % (table))
+            sql_update.append(", ".join(update))
+            sql_update.append(" WHERE %s" % (" AND ".join(where)))
+            return "".join(sql_update)
+        else:
+            keys = ["%s" % k for k in allargs]
+            values = ["'%s'" % v for v in allargs.values()]
+            sql_insert = list()
+            sql_insert.append("INSERT INTO %s (" % table)
+            sql_insert.append(", ".join(keys))
+            sql_insert.append(") VALUES (")
+            sql_insert.append(", ".join(values))
+            sql_insert.append(");")
+            return "".join(sql_insert)
 
 
     @staticmethod
     def sql_delete(table, **kwargs):
-        ''' deletes rows from table where **kwargs match '''
+        '''(kwargs)->str
+        SQL for delete by kwargs.
+        kwargs: field/value pair
+
+        Example:
+        >>>sql_delete('mytable', id=1)
+        DELETE FROM mytable WHERE id=1
+        '''
         sql = list()
         sql.append("DELETE FROM %s " % table)
         sql.append("WHERE " + " AND ".join("%s = '%s'" % (k, v)

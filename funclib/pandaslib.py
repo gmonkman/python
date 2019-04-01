@@ -6,6 +6,7 @@ import math as _math
 
 import statsmodels.stats.api as _sms
 import pandas as _pd
+from pandas.compat import StringIO as _StringIO
 import numpy as _np
 from scipy import stats as _stats
 from sklearn.metrics import mean_squared_error as _mean_squared_error
@@ -14,6 +15,7 @@ from funclib.baselib import list_flatten as _list_flatten
 from funclib.iolib import PrintProgress as _PrintProgress
 import funclib.iolib as _iolib
 from funclib.to_precision import std_notation as _std_notation
+from dblib import mssql
 
 # region Pandas
 
@@ -306,3 +308,18 @@ def df_mssql(sql, dbname, server='(local)', port=1433, security='integrated', us
     security: integrated or sqlserver
     user,pw: SQL server user authentication details
     '''
+    with mssql.Conn(dbname, server, port=port, security=security, user=user, pw=pw) as cnn:
+        df = pd.read_sql(sql, cnn)
+    return df
+
+
+def df_fromstring(str_, sep=',', header=0, names=None, **args):
+    '''(str, str, bool, dict) -> pandas.dataframe
+    Convert a python string into a dataframe.
+
+    Pass names as an array with header=None when
+    there are no header names. As set, the first
+    row is assumed to contain col names
+    '''
+    df = _pd.read_csv(_StringIO(str_), sep=sep, header=header, names=names, **args)
+    return df
