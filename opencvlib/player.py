@@ -340,7 +340,7 @@ class MultiProcessStream():
         if abs(self._frame_current - frame_nr) > 1:
             self._pending = _deque() #flush current
 
-        if frame_nr == 1 or frame_nr == 0:
+        if frame_nr in [1, 0]:
             frame_nr = int(frame_nr)
 
         if isinstance(frame_nr, str):

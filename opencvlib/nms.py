@@ -24,10 +24,10 @@ def nms_fast(boxes, overlapThresh=0.5):
     pick = []
 
     # grab the coordinates of the bounding boxes
-    x1 = boxes[:,0]
-    y1 = boxes[:,1]
-    x2 = boxes[:,2]
-    y2 = boxes[:,3]
+    x1 = boxes[:, 0]
+    y1 = boxes[:, 1]
+    x2 = boxes[:, 2]
+    y2 = boxes[:, 3]
     #if boxes.shape[1] > 4:
      #   extra_cols = boxes[:,4:]
 

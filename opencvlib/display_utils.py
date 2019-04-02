@@ -89,6 +89,6 @@ class KeyBoardInput():
 
         special = [k for k in eSpecialKeys if k.value == waitkeyval]
         if special:
-            return keyOrSpecial == special[0].name or keyOrSpecial == special[0]
+            return keyOrSpecial in [special[0].name, special[0]]
 
         return KeyBoardInput.get_pressed_key(waitkeyval) == str(keyOrSpecial)

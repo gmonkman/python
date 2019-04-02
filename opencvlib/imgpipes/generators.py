@@ -186,7 +186,7 @@ class _Generator(_BaseGenerator):
 
 
 #region Params VGG and Digikam Filter Classes
-class VGGSearchParams(object):
+class VGGSearchParams():
     '''VGGSearchParams
     '''
     def __init__(self, folders, parts, species, recurse=False):

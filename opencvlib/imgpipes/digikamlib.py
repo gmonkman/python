@@ -39,7 +39,7 @@ def read_specific_path(pathin):
     return SPECIFIC_PATH_OVERRIDE
 
 
-class _ImagesValidator(object):
+class _ImagesValidator():
     '''Use this to process a list of digikam image paths.
     It processes the paths to generate valid and invalid links
 
@@ -154,7 +154,7 @@ class _ImagesValidator(object):
                 self._invalid_image_files.append(image)
 
 
-class _ReadFiles(object):
+class _ReadFiles():
     '''executes the sql and generates and instantiates an ImageValidator member
     Handles conversion of digikam stored paths to actual file paths if in
     Linux or windows
@@ -241,7 +241,7 @@ class _ReadFiles(object):
             self.images.image_files = image_paths
 
 
-class MeasuredImages(object):
+class MeasuredImages():
     '''Gets a list of my measured images from my digikamlib
     providing an ndarray (image) generator to access the list and
     as lists to valid, invalid images and the full list of all images in
@@ -297,7 +297,7 @@ class MeasuredImages(object):
         self.Files = _ReadFiles(sql, self.dbfile)
 
 
-class ImagePaths(object):
+class ImagePaths():
     '''This creates lists of paths to image files (ie the full file name, like C:/imgs/myimg.jpg)
     It also only uses files from digikam which exist on the file system.
 

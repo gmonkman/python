@@ -1,3 +1,5 @@
+#pylint: skip-file
+
 '''unit tests for qplot'''
 import unittest
 
@@ -27,6 +29,10 @@ class Test(unittest.TestCase):
         '''test scatter plot'''
         #qplot.scatter([self.x_rnd, self.x_rnd - 50], [self.y_rnd, self.y_rnd - 50], group_labels=('big', 'small'))
         qplot.scatter([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+    def test_bar(self):
+        '''test'''
+        qplot.bar_(('a', 'b', 'c'), (10, 1, 4), 'title', 'xlabel', 'ylabel')
 
 if __name__ == '__main__':
     unittest.main()

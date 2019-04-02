@@ -208,7 +208,7 @@ def imagesGenerator(skip_imghdr_check=False, file_attr_match=None, json_file=Non
             file_attrs = JSON_FILE[img].get('file_attributes', '')
             if file_attrs and file_attrs != '':
                 m = _dic_match(file_attr_match, file_attrs)
-                doit = (m == _eDictMatch.Exact or m == _eDictMatch.Subset)
+                doit = (m in [_eDictMatch.Exact, _eDictMatch.Subset])
             else:
                 doit = False #be explicit - if we have attrs, but no attrs defined we dont want it
         else:
@@ -264,7 +264,7 @@ def roiGenerator(json_file=None, skip_imghdr_check=False, shape_type=None, file_
             yield Img.filepath, Img.resolution, Reg
 
 
-class Image(object):
+class Image():
     '''Load and iterate VGG configured image regions
     based on the actual image file name, size and path
 
@@ -432,7 +432,7 @@ class Image(object):
                     reg = _load_region(shape_attrs, region_attrs, self._key, regionid, region_json_key)
                 else: #we have asked for a filter
                     m = _dic_match(region_attr_match, region_attrs)
-                    if m == _eDictMatch.Exact or m == _eDictMatch.Subset:
+                    if m in [_eDictMatch.Exact, _eDictMatch.Subset]:
                         reg = _load_region(shape_attrs, region_attrs, self._key, regionid, region_json_key)
 
                 if isinstance(reg, Region):
@@ -512,7 +512,7 @@ class Image(object):
         return cnt
 
 
-class Subject(object):
+class Subject():
     '''really a fish object, has many regions
     Should not be accessed directly.
     Iterate through the Images class subjects_generator.
@@ -616,7 +616,7 @@ class Subject(object):
                         yield reg
 
 
-class Region(object):
+class Region():
     '''Object representing a a single shape marked on a subject,
     like a head or the whole.
 
@@ -745,7 +745,7 @@ def _load_region(shape_attr, region_attr=None, image_key=None, region_key=None, 
                 region_attr=region_attr, #store all the region attributes incase we need them
                 part=region_attr.get('part'),
                 image_key=image_key,  # no get, error if doesnt exist
-                has_attrs=True if region_attr else False,
+                has_attrs=bool(region_attr),
                 region_key=region_key,  # no get, error if doesnt exist
                 species=region_attr.get('species'),
                 subjectid=region_attr.get('subjectid'),

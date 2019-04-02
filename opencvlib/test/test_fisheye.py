@@ -1,4 +1,5 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use
+#pylint: skip-file
+
 '''unit tests for features'''
 import cv2 as _cv2
 import unittest

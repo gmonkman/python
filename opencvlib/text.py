@@ -1,5 +1,5 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
-
+'''text.py'''
 
 ## Parameters
 AREA_LIM = 2.0e-4

@@ -292,7 +292,8 @@ def hsvtrans(color_in, format_in):
 
     if format_in == eColorSpace.HSV255255255: #opencv
         return ([bit8_2_d179(color_in[0]), color_in[1], color_in[2]])
-    elif format_in == eColorSpace.HSV360100100: #online pickers
+
+    if format_in == eColorSpace.HSV360100100: #online pickers
         return (d360_2_d179(color_in[0]), perc_2_bit8(color_in[1]), perc_2_bit8(color_in[2]))
 
     return color_in

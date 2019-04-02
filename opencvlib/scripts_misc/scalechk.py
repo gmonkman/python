@@ -51,12 +51,12 @@ def main():
 
     FP = FromPaths(FLDS)
     tot = sum([1 for x in FP.generate(pathonly=True)])
-    mcnt = 0
-    bad = []
-    PP = PrintProgress(tot, init_msg='/nProcessing...')
-    pts = [[0,0], [0,0],[0,0],[0,0]]
 
-    results=[['platform', 'camera', 'imgname', 'orig_x', 'orig_y', 'w', 'h', 'scale', 'status', 'marker_side_px']]
+
+    PP = PrintProgress(tot, init_msg='/nProcessing...')
+    pts = [[0, 0], [0, 0], [0, 0], [0, 0]]
+
+    results = [['platform', 'camera', 'imgname', 'orig_x', 'orig_y', 'w', 'h', 'scale', 'status', 'marker_side_px']]
 
     #this will use images not in the data, but these will be filtered out on the join
     for img, fname, _ in FP.generate():
@@ -65,10 +65,10 @@ def main():
         #detect when flipped:
         _, ffname, _ = get_file_parts2(fname)
         plat, cam = getkey(fname)
-        for img_scaled, pts_, scale in winpyr.pyramid_pts(img, pts, 1.5, yield_original=True):
+        for img_scaled, _, scale in winpyr.pyramid_pts(img, pts, 1.5, yield_original=True):
             status = ''
             scale_str = '%0.3f' % scale
-            xform = 'scale_%s' % scale_str
+           # xform = 'scale_%s' % scale_str
             h, w, _ = img_scaled.shape
             try:
                 D = aruco.Detected(img_scaled)
@@ -80,7 +80,7 @@ def main():
                 else:
                     status = 'marker not detected'
                     px = ''
-            except Exception as _:
+            except Exception as dummy:
                 status = 'Unexpected error'
             res = [plat, cam, ffname, orig_x, orig_y, w, h, scale_str, status, px]
             assert len(res) == len(results[0]), 'header col number doesnt match results col number'

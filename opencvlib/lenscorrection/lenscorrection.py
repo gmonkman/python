@@ -93,7 +93,7 @@ def suppress_stdout(stdout=True, stderr=True):
 
 # region Class Declarations
 
-class CalibrationGrid(object):
+class CalibrationGrid():
     '''representation of checker board x and y vertices'''
 
     def __init__(self, x_vertices=9, y_vertices=6):
@@ -122,7 +122,7 @@ class CalibrationGrid(object):
         self._y = y
 
 
-class CameraIni(object):
+class CameraIni():
     '''Class container for the ini file configuration for a particular camera model'''
 
     def __init__(
@@ -228,7 +228,7 @@ class CameraIni(object):
         return s
 
 
-class Calibration(object):
+class Calibration():
     '''container for a camera calibration at a specific resolution.
 
     Set FISHEYE_CALIBRATION_FLAGS, TERMINATION_CRITERIA

@@ -28,6 +28,7 @@ import model
 from icdar import restore_rectangle
 from opencvlib  import nms
 
+
 class Flags():
     images_path = ''
     gpu_list = '0'
@@ -212,7 +213,9 @@ def main():
 
             im_fn_list = get_images()
             for im_fn in im_fn_list:
-                im = cv2.imread(im_fn)[:, :, ::-1]
+                im = cv2.imread(im_fn)
+                h, w, _ = im.shape
+                im = im[:, :, ::-1]
                 start_time = time.time()
                 im_resized, (ratio_h, ratio_w) = resize_image(im)
 
@@ -244,13 +247,16 @@ def main():
                             continue
 
                         box_cv2 = [box.astype(np.int32).reshape((-1, 1, 2))]
-
+                        
                         if i == 0:
                             boxes_out = np.array(box_cv2)
+                            #x1, y1, x2, y2, x2 - x1, edge colour 
+                            boxes_for_cluster = np.array(box[0, 0]/w, box[0, 1]/h, box[2, 0]/w, box[2, 1]/h, box[2, 1]/h - box[0, 1]/h)
+                            # for_cluster = np.array(box[0, 0], box[0, 1], box[1, 0], box[1, 1], box[2, 0], box[2, 1], box[3, 0], box[3, 1])
                         else:
                             boxes_out = np.vstack((boxes_out, np.array(box_cv2)))
 
-                        #f.write('{},{},{},{},{},{},{},{}\r\n'.format(box[0, 0], box[0, 1], box[1, 0], box[1, 1], box[2, 0], box[2, 1], box[3, 0], box[3, 1],))
+                        #f.write('{},{},{},{},{},{},{},{}\r\n'.format(,))
                         if FLAGS.write_images:
                             cv2.polylines(im[:, :, ::-1], box_cv2, True, color=(255, 255, 0), thickness=1)
                     np.save(res_file_pickle, boxes_out)

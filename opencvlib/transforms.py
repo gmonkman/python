@@ -316,7 +316,7 @@ def to8bpp(img):
     assert isinstance(img, _np.ndarray)
     if 'float' in str(img.dtype):
         return _np.array(img * 255, dtype=_np.uint8)
-    elif str(img.dtype) == 'uint8':
+    if str(img.dtype) == 'uint8':
         return img
 
     assert img.dtype == 'uint8' #unexpected, debug if occurs
@@ -341,23 +341,23 @@ def toFloat(img, conv=eCvt.unint8_to_01):
     if 'uint' in str(img.dtype):
         if conv == eCvt.uint8_to_1minus1:
             return  (_np.array(img / 255, dtype=_np.float) - 0.5) * 2
-        elif conv == eCvt.unint8_to_01:
+
+        if conv == eCvt.unint8_to_01:
             return _np.array(img / 255, dtype=_np.float)
     elif 'float' in str(img.dtype):
         if _np.any(img < 0): #have negatives
             if conv == eCvt.uint8_to_1minus1: #already negatives, return unchanged
                 return img
-            elif conv == eCvt.unint8_to_01:
+            if conv == eCvt.unint8_to_01:
                 return (img - 0.5) * 2
-            else:
-                raise ValueError('Unexpected array datatype passed to transforms.toFloat()')
-        else: #no negatives
-            if conv == eCvt.unint8_to_01: #no negatives and a float, return the float
-                return img
-            elif conv == eCvt.uint8_to_1minus1:
-                return (img - 0.5) * 2
-            else:
-                raise ValueError('Unexpected array datatype passed to transforms.toFloat()')
+            raise ValueError('Unexpected array datatype passed to transforms.toFloat()')
+
+        #no negatives
+        if conv == eCvt.unint8_to_01: #no negatives and a float, return the float
+            return img
+        if conv == eCvt.uint8_to_1minus1:
+            return (img - 0.5) * 2
+        raise ValueError('Unexpected array datatype passed to transforms.toFloat()')
 
 
 
@@ -496,7 +496,7 @@ def crop(img, region, eRegfmt=eRegionFormat.RCHW, around_point=None, allow_crop_
     '''
     assert isinstance(img, _np.ndarray)
     if around_point:
-        assert eRegfmt == eRegionFormat.WH or eRegfmt == eRegionFormat.HW, \
+        assert eRegfmt in [eRegionFormat.WH, eRegionFormat.HW], \
             'Cropping was requested to be around a point, but the RegionFormat was not eRegionFormat.WH or eRegionFormat.HW'
         assert len(region) == 2, 'Cropping around a point, expected region to be a 2-tuple but got a %s tuple' % len(region)
     else:
@@ -573,7 +573,8 @@ def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
     image = _getimg(image)
     if width is None and height is None:
         return image
-    elif width is not None and height is not None:
+
+    if width is not None and height is not None:
         dim = (width, height)
     elif width is None:
         r = height / float(h)
@@ -962,6 +963,6 @@ def bilateral_filter(img):
     #http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html
     #in opencv as cv2.bilateralfilter
     pass
-    #Todo add bilatal filtering support
+    #TODO add bilatal filtering support
     #http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html
     #https://docs.opencv.org/3.0-beta/modules/imgproc/doc/filtering.html#sobel

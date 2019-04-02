@@ -34,7 +34,7 @@ class eImgType(_Enum):
 
 
 
-class Info(object):
+class Info():
     '''general info about versions, system etc'''
     def __init(self):
         pass

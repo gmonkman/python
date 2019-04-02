@@ -32,7 +32,7 @@ from object_detection.utils import ops as utils_ops
 from opencvlib import aruco
 from funclib import iolib
 from opencvlib.view import show
-import opencvlib.view as view
+
 from opencvlib.imgpipes import vgg
 from opencvlib.distance import nearestN_euclidean
 from opencvlib import roi
@@ -309,7 +309,7 @@ def main():
 
     global SCORE
     SCORE = args.limit
-    assert SCORE > 0 and SCORE < 1, 'argument -l (limit) is the score, and should be between 0 and 1'
+    assert 0 < SCORE < 1, 'argument -l (limit) is the score, and should be between 0 and 1'
 
     if 'ssd' in pb_file:
         network = 'ssd'
@@ -367,9 +367,9 @@ def main():
         except (IndexError, ValueError) as dummy:
             if args.raise_error:
                 raise ValueError('Could not get the sample length from the image name %s. First check the inifile settings.' % imgname)
-            else:
-                warn('Could not get the sample length from the image name %s. First check the inifile settings.' % imgname)
-                continue
+
+            warn('Could not get the sample length from the image name %s. First check the inifile settings.' % imgname)
+            continue
 
         assert sample_lengthid in list(range(212, 525)), 'sample_lengthid %s was invalid' % sample_lengthid #hardcoded ids
     print('Loading tensorflow graph...')

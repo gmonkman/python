@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access, unused-import
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access, unused-import, too-many-function-args
 '''
 Keypoint feature matching 
 

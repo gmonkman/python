@@ -15,7 +15,7 @@ import funclib.baselib as _baselib
 
 
 #Coped from dblib.sqlitelib
-class Conn(object):
+class Conn():
     '''connection to database'''
 
     def __init__(self, cnstr=':memory:'):
@@ -53,7 +53,7 @@ class Conn(object):
         self._conn.commit()
 
 
-class CalibrationCRUD(object):
+class CalibrationCRUD():
     '''everything to do with the db
     '''
 
@@ -399,9 +399,9 @@ class CalibrationCRUD(object):
         '''
         if not cur:
             return None
-        else:
-            for results in cur:
-                return results[colname]
+
+        for results in cur:
+            return results[colname]
 
     def _lookup(
             self,

@@ -7,7 +7,7 @@ import numpy as np
 from opencvlib.distance import L2dist
 
 
-class KnnClassifier(object):
+class KnnClassifier():
     '''K-nearest neighour classifier
 
     Given a distance metric (such as euclidean distance),

@@ -70,14 +70,14 @@ def decgetimg(func):
                     i = None
                 imgsout.append(i)
             return func(imgsout, *args, **kwargs)
+
+        if isinstance(img, str):
+            i = g(img)
+        elif isinstance(img, _np.ndarray):
+            i = img
         else:
-            if isinstance(img, str):
-                i = g(img)
-            elif isinstance(img, _np.ndarray):
-                i = img
-            else:
-                i = None
-            return func(i, *args, **kwargs)
+            i = None
+        return func(i, *args, **kwargs)
 
     return _getimg_wrapper
 
@@ -120,18 +120,18 @@ def decgetimg8bpp(func):
                     i = None
                 imgsout.append(i)
             return func(imgsout, *args, **kwargs)
-        else:
-            if isinstance(img, str):
-                i = g(img)
-            elif isinstance(img, _np.ndarray):
-                i = img
-                if 'float' in str(i.dtype):
-                    i = _to8bpp(i)
-                else:
-                    i = img
+
+        if isinstance(img, str):
+            i = g(img)
+        elif isinstance(img, _np.ndarray):
+            i = img
+            if 'float' in str(i.dtype):
+                i = _to8bpp(i)
             else:
-                i = None
-            return func(i, *args, **kwargs)
+                i = img
+        else:
+            i = None
+        return func(i, *args, **kwargs)
 
     return _getimg_wrapper
 
@@ -178,21 +178,21 @@ def decgettruegrey(func):
                     i = None
                 imgsout.append(i)
             return func(imgsout, *args, **kwargs)
+
+        if isinstance(img, str):
+            i = g(img) #forces load as grey scale
+        elif isinstance(img, _np.ndarray):
+
+            if 'float' in str(img.dtype):
+                i = _to8bpp(img)
+
+            if not _isbw(img, single_channel_only=True):
+                i = _cv2.cvtColor(img, _cv2.COLOR_BGR2GRAY)
+            else: #was already 1channel BW
+                i = img
         else:
-            if isinstance(img, str):
-                i = g(img) #forces load as grey scale
-            elif isinstance(img, _np.ndarray):
-
-                if 'float' in str(img.dtype):
-                    i = _to8bpp(img)
-
-                if not _isbw(img, single_channel_only=True):
-                    i = _cv2.cvtColor(img, _cv2.COLOR_BGR2GRAY)
-                else: #was already 1channel BW
-                    i = img
-            else:
-                i = None
-            return func(i, *args, **kwargs)
+            i = None
+        return func(i, *args, **kwargs)
 
     return _getimg_wrapper
 
@@ -285,14 +285,14 @@ def _isbw(img, single_channel_only=False):
         return True
 
     if single_channel_only:
-        return True if len(img.shape) == 2 else False
+        return bool(len(img.shape) == 2)
 
     if len(img.shape) > 2:
         looks_like_rgbbw = not False in ((img[:, :, 0:1] == img[:, :, 1:2]) == (img[:, :, 1:2] == img[:, :, 2:3]))
         looks_like_hsvbw = not (True in (img[:, :, 0:1] > 0) or True in (img[:, :, 1:2] > 0))
         return looks_like_rgbbw or looks_like_hsvbw
-    else:
-        assert img.shape == 2 #looks like an error if we got here, debug
+
+    assert img.shape == 2 #looks like an error if we got here, debug
     return False
 
 
@@ -304,9 +304,10 @@ def _to8bpp(img):
     assert isinstance(img, _np.ndarray)
     if 'float' in str(img.dtype):
         return _np.array(img * 255, dtype=_np.uint8)
-    elif str(img.dtype) == 'uint8':
+
+    if str(img.dtype) == 'uint8':
         return img
-    else:
-        assert(str(img.dtype) == 'uint8') #unexpected, debug if occurs
+
+    assert(str(img.dtype) == 'uint8') #unexpected, debug if occurs
     return img
 #endregion

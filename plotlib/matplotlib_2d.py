@@ -17,7 +17,7 @@ from matplotlib.patches import Polygon
 
 import networkx as _nx
 import numpy as _np
-import utils
+import util
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from funclib.baselib import lists_remove_empty_pairs as _remove_empty

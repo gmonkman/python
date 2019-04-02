@@ -1,10 +1,14 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, consider-using-enumerate
 '''quick plots to view data while debugging'''
+from os import path as _path
+from warnings import warn as _warn
+
 #import matplotlib as _mpl
 import matplotlib.pyplot as Plot
 import matplotlib.mlab as _mlab
 import numpy as _np
 import funclib.baselib as _baselib
+from funclib.to_precision import std_notation as _std_notation
 from plotlib.mplfuncs import FigWidthsInch as sizes
 #import scipy.stats as _stats
 #import math as _math
@@ -167,3 +171,89 @@ def scatter(x_data, y_data, data_labels=(), group_labels=(), ptsizes=4, data_lab
 
     if show:
         Plot.show()
+
+
+
+def bar_(xvalues, yvalues, title='', xlabel='x', ylabel='y', alpha=1, color='royalblue', xlabels=None, width=0.8, output=None, xmax=None, ymax=None, vlines=None, show=True):
+    '''
+        Create and save a bar plot.
+        Args:
+        - xvalues = x-axis positions for bars
+        - yvalues = y-axis magnitudes of each bar
+        - title   = title of plot. Also used for filename
+        - xlabel  = x-axis label
+        - ylabel  = y-axis label
+        Options:
+        - alpha   = opacity of bars
+        - color   = color of bars
+        - xlabels = x-axis labels for each bar
+        - xmax    = max x-value
+        - ymax    = max y-value
+        - width   = width of bars
+    '''
+    _, ax1 = Plot.subplots()
+    # Size
+    if xmax:
+        xmin, _ = ax1.get_xlim()
+        ax1.set_xlim(xmin, xmax)
+    if ymax:
+        ymin, _ = ax1.get_ylim()
+        ax1.set_ylim(ymin, ymax)
+    # Add data
+    dummy = Plot.bar(xvalues, yvalues, width=width, color=color, alpha=alpha)
+    # Add extra lines
+    for line in (vlines or []):
+        Plot.axvline(line["xpos"], color=line["color"],
+                    linestyle=line["style"], linewidth=line["width"])
+    # Labels
+    if xlabels:
+        Plot.xticks([x + width / 2 for x in xvalues], xlabels)
+    ax1.set_title(title)
+    ax1.set_xlabel(xlabel)
+    ax1.set_ylabel(ylabel)
+
+    # Save
+    if output:
+        try:
+            Plot.savefig(_path.normpath(output))
+            print("Saved bar chart to '%s'" % output)
+        except Exception as _:
+            _warn('Faile to save graph to %s. Check the folder is valid.' % output)
+
+    if show:
+        Plot.show()
+
+    Plot.clf()
+    Plot.close()
+
+
+
+def pretty_bin(bin_edges, use_mid=True, precision=2):
+    '''(list|tuple, bool) -> list
+    Given bin edges, get text x col labels
+
+    bin_edges: a list/tuple with the bin edges, eg.
+    [0.0, 5, 1.0]
+
+    use_mid: Generate midpoint labels, rather than ranges
+    [0.25, 0.75]
+
+    Example:
+    >>>pretty_bin([0, 0.5, 1])
+    [0.25, 0.75]
+
+    >>>pretty_bin([0, 0.5, 1], use_mid=False)
+    [0.0-0.50, 0.5-1.0]
+    '''
+    out = []
+
+    for i, item in enumerate(bin_edges[0:len(bin_edges)-1]):
+        if use_mid:
+            v = ((bin_edges[i+1] - item) * 0.5) + item
+            v = _std_notation(v, precision)
+            out.append(str(v))
+        else:
+            a = _std_notation(item, precision)
+            b = _std_notation(bin_edges[i+1], precision)
+            out.append('%s-%s' % (a, b))
+    return out

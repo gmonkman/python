@@ -36,7 +36,8 @@ def get_perspective_correction(bg_dist, object_depth, length):
     '''
     if bg_dist is None or object_depth is None or length is None:
         return None
-    elif bg_dist == 0 or 1 - (object_depth / bg_dist) == 0:
+    
+    if bg_dist == 0 or 1 - (object_depth / bg_dist) == 0:
         return None
 
     return length / (1 - (object_depth / bg_dist))
@@ -73,9 +74,11 @@ def get_perspective_correction_iter_linear(coeff,
 
     if object_depth <= 0:
         return length
-    elif length == 0:
+
+    if length == 0:
         return 0
-    elif (last_length / length < stop_below_proportion) and last_length > 0:
+
+    if (last_length / length < stop_below_proportion) and last_length > 0:
         return length
 
     if last_length == 0:  # first call

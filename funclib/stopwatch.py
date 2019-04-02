@@ -12,7 +12,7 @@ from collections import deque as _deque
 import time as _time
 
 
-from funclib.iolib import time_pretty as time_pretty #convieniance function, takes secs
+from funclib.iolib import time_pretty as _time_pretty #convieniance function, takes secs
 
 def _clock():
     '''
@@ -228,4 +228,4 @@ class StopWatch():
     @staticmethod
     def pretty_time(secs):
         '''pretty print a duration'''
-        return time_pretty(secs)
+        return _time_pretty(secs)

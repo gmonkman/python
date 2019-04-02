@@ -30,6 +30,7 @@
     <Content Include="demo_images\img_26.jpg" />
     <Content Include="demo_images\img_75.jpg" />
     <Content Include="demo_images\web-demo.png" />
+    <Content Include="pylintrc" />
     <Content Include="requirements.txt" />
     <Content Include="static\css\app.css" />
     <Content Include="templates\index.html" />
@@ -53,7 +54,13 @@
     <Compile Include="nets\resnet_utils.py" />
     <Compile Include="nets\resnet_v1.py" />
     <Compile Include="nets\__init__.py" />
+    <Compile Include="paragraphs.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="run_demo_server.py" />
+    <Compile Include="test\test_paragraphs.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
