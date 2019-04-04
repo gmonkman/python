@@ -121,7 +121,7 @@ class Test(unittest.TestCase):
         self.assertEqual(a, 0.25)
         z = 10
 
-    #@unittest.skip("Temporaily disabled test_showarray")
+    @unittest.skip("Temporaily disabled test_showarray")
     def test_iou2(self):
         '''test quadrilateral manip'''
         nas = [0.263571990558615,	0.790715971675845,	0.435483870967741,	0.6,
@@ -171,6 +171,33 @@ class Test(unittest.TestCase):
         sq45_bound = roi.bounding_rect_of_poly(sq45)
         pass
 
+
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_polysfill(self):
+        '''test roi'''
+        ptscv = np.array([[0, 0], [10, 10], [0, 10], [10, 0]])
+        ptscv10 = ptscv + 10
+        ptscv3 = ptscv + 100
+
+        ptslong = np.array([0, 0, 10, 0, 10, 10, 0, 10])
+        ptslong10 = ptslong + 10
+        ptslong3 = ptslong + 100
+
+        ptscvnp = np.array([ptscv, ptscv10, ptscv3])
+        ptslongnp = np.array([ptslong, ptslong10, ptslong3])
+
+        imgcv, mask, contours, heirarchy = roi.polys_fill(self.I, ptscvnp)
+        imglong, mask, contours, heirarchy = roi.polys_fill(self.I, ptslongnp, ptsfmt=roi.ePointsFormat.XYXYXYXY)
+
+
+    #unittest.skip("Temporaily disabled while debugging")
+    def test_crop_from_rects(self):
+        '''test roi'''
+        rect1 = [[100, 100], [300, 100], [300, 300], [100, 300]]
+        rect2 = [[350, 350], [475, 350], [475, 400], [350, 400]]
+        rects = [rect1, rect2]
+        i, mask = roi.crop_from_rects(self.I, rects)
 
 
 

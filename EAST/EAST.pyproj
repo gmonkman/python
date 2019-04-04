@@ -13,7 +13,7 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
-    <CommandLineArguments>--images_path=C:/development/python/EAST/test/bin --checkpoint_path=C:/development/python/EAST/model/east_icdar2015_resnet_v1_50_rbox --output_dir=C:/development/python/EAST/test/bin/detections --nms_mode=none</CommandLineArguments>
+    <CommandLineArguments>--images_path=C:/development/python/EAST/test/bin --checkpoint_path=C:/development/python/EAST/model/east_icdar2015_resnet_v1_50_rbox --output_dir=C:/development/python/EAST/test/bin/detections --nms_mode=none -w</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <Environment>eval.py --images_path=C:/development/python/EAST/test/bin --checkpoint_path=C:/development/python/EAST/model/east_icdar2015_resnet_v1_50_rbox --output_dir=C:/development/python/EAST/test/bin/detections --nms_mode='none'</Environment>
   </PropertyGroup>

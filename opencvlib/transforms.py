@@ -78,6 +78,7 @@ class eRegionFormat(_Enum):
     CVXYWH: (x, y, w, h)
     CVXYXYXYXY: [[x,y], [x,y], [x,y], [x,y]], origin at top left
     XYXYXYXY: [[x,y], [x,y], [x,y], [x,y]], cartesian origin
+    CVXYXY_FLAT: [xmin, ymin, xmax, ymax]
     HW: (h, w), used for cropping an image at a point
     WH: (w, h), used for cropping an image at a point
     '''
@@ -87,6 +88,7 @@ class eRegionFormat(_Enum):
     XYXYXYXY = 3
     HW = 4
     WH = 5
+    CVXYXY_FLAT = 6
 
 
 #region Handling Transforms in Generators
@@ -523,6 +525,8 @@ def crop(img, region, eRegfmt=eRegionFormat.RCHW, around_point=None, allow_crop_
         elif eRegfmt == eRegionFormat.XYXYXYXY:
             pts = _roi.points_convert(region, img.shape[1], img.shape[0], _roi.ePointConversion.XYtoCVXY, _roi.ePointsFormat.XY)
             r, c, h, w = _roi.rect_as_rchw(pts)
+        elif eRegfmt == eRegionFormat.CVXYXY_FLAT:
+            r, c, h, w = _roi.rect_as_rchw([[region[0], region[1]], [region[2], region[1]], [region[2], region[3]], [region[0], region[3]]])
         else:
             raise ValueError('Unknown region format enumeration in argument eRegfmt')
 

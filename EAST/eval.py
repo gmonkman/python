@@ -22,12 +22,26 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
+from sklearn.cluster import DBSCAN as _DBSCAN
+import opencvlib.view as view
+import opencvlib.roi as _roi
+#import funclib.arraylib as arraylib
+
 import locality_aware_nms as nms_locality
 #import lanms
 import model
 from icdar import restore_rectangle
 from opencvlib  import nms
+from opencvlib import roi
+from opencvlib import geom
+from opencvlib.histo import histo_rgb as _histo_rgb
+from plotlib.qplot import bar_ as _bar
 
+from funclib.iolib import PrintProgress
+from funclib.baselib import list_most_common as _lmc
+import funclib.baselib as _baselib
+
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
 class Flags():
     images_path = ''
@@ -167,7 +181,6 @@ def sort_poly(p):
 
 
 def main():
-
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
     cmdline.add_argument('--checkpoint_path', help='Path to the TF tranined model.', required=True)
     cmdline.add_argument('--images_path', help='Path of images to run detections against.', required=True)
@@ -185,7 +198,7 @@ def main():
     FLAGS.images_path = os.path.normpath(args.images_path)
     FLAGS.output_dir = os.path.normpath(args.output_dir)
     FLAGS.gpu_list = args.gpu_list
-    FLAGS.write_images = args.no_write_images
+    FLAGS.write_images = args.write_images
     FLAGS.text_scale = args.text_scale
     FLAGS.nms_mode = args.nms_mode
     model.FLAGS = FLAGS
@@ -212,6 +225,7 @@ def main():
             saver.restore(sess, model_path)
 
             im_fn_list = get_images()
+            PP1 = PrintProgress(len(im_fn_list), 20, 'Outer images progress...')
             for im_fn in im_fn_list:
                 im = cv2.imread(im_fn)
                 h, w, _ = im.shape
@@ -228,46 +242,137 @@ def main():
                 print('{} : net {:.0f}ms, restore {:.0f}ms, nms {:.0f}ms'.format(
                     im_fn, timer['net']*1000, timer['restore']*1000, timer['nms']*1000))
 
-                if boxes is not None: #turn to .shape = n, 4, 2
-                    boxes = boxes[:, :8].reshape((-1, 4, 2))
-                    boxes[:, :, 0] /= ratio_w
-                    boxes[:, :, 1] /= ratio_h
-
                 duration = time.time() - start_time
                 print('[timing] {}'.format(duration))
 
                 # save to file
                 if not boxes is None:
+                    #turn to .shape = n, 4, 2
+                    boxes = boxes[:, :8].reshape((-1, 4, 2))
+                    boxes[:, :, 0] /= ratio_w
+                    boxes[:, :, 1] /= ratio_h
+
                     res_file_pickle = os.path.join(FLAGS.output_dir, '{}'.format(os.path.basename(im_fn).split('.')[0]))
+                    res_cluster_pickle = os.path.join(FLAGS.output_dir, '{}_clust'.format(os.path.basename(im_fn).split('.')[0]))
                     res_file_text = os.path.join(FLAGS.output_dir, '{}.txt'.format(os.path.basename(im_fn).split('.')[0]))
+                    PP2 = PrintProgress(len(boxes), bar_length=20, init_msg='Inner loop computing histograms...')
                     for i, box in enumerate(boxes): #box.shape = (4, 2)
                         # to avoid submitting errors
                         box = sort_poly(box.astype(np.int32))
                         if np.linalg.norm(box[0] - box[1]) < 5 or np.linalg.norm(box[3]-box[0]) < 5:
+                            PP2.increment()
                             continue
 
                         box_cv2 = [box.astype(np.int32).reshape((-1, 1, 2))]
-                        
+
+                        rect = (box[0, 0], box[0, 1], box[2, 0] - box[0 , 0] , box[2, 1] - box[0, 1]) #rect is x,y,w,h
+                        bins, hist1, hist2, hist3 = _histo_rgb(im, rect, (0, 1, 2), bins=3)
+                        hist2.extend(tuple(hist3))
+                        hist1.extend(tuple(hist2))
+                        boxes_for_cluster = np.array((box[0, 0]/w, box[0, 1]/h, box[2, 0]/w, box[2, 1]/h, box[2, 1]/h - box[0, 1]/h)) #x1, y1, x2, y2, y2-y1
+                        boxes_for_cluster = np.hstack((boxes_for_cluster, hist1))
+
                         if i == 0:
                             boxes_out = np.array(box_cv2)
-                            #x1, y1, x2, y2, x2 - x1, edge colour 
-                            boxes_for_cluster = np.array(box[0, 0]/w, box[0, 1]/h, box[2, 0]/w, box[2, 1]/h, box[2, 1]/h - box[0, 1]/h)
+                            boxes_cluster_out = boxes_for_cluster.copy()
+                            #x1, y1, x2, y2, x2 - x1, edge colour
                             # for_cluster = np.array(box[0, 0], box[0, 1], box[1, 0], box[1, 1], box[2, 0], box[2, 1], box[3, 0], box[3, 1])
                         else:
                             boxes_out = np.vstack((boxes_out, np.array(box_cv2)))
+                            boxes_cluster_out = np.vstack((boxes_cluster_out, boxes_for_cluster))
 
                         #f.write('{},{},{},{},{},{},{},{}\r\n'.format(,))
                         if FLAGS.write_images:
                             cv2.polylines(im[:, :, ::-1], box_cv2, True, color=(255, 255, 0), thickness=1)
+                        PP2.increment()
+
+                    centroids = np.hstack(( (boxes_cluster_out[:, 0:1] +  boxes_cluster_out[:, 2:3])/2, (boxes_cluster_out[:, 1:2] + boxes_cluster_out[:, 3:4])/2 ))
+
+                    _, _, contours, _ = roi.polys_fill(im, boxes_cluster_out[:,0:8],ptsfmt=roi.ePointsFormat.XYXYXYXY)
+
                     np.save(res_file_pickle, boxes_out)
+                    np.save(res_cluster_pickle, boxes_cluster_out)
+
+                    if FLAGS.write_images:
+                        img_path = os.path.join(FLAGS.output_dir, os.path.basename(im_fn))
+                        cv2.imwrite(img_path, im[:, :, ::-1])
+                    PP1.increment()
                 else:
                     print('No words detected in %s' % os.path.basename(im_fn))
-
-                if FLAGS.write_images:
-                    img_path = os.path.join(FLAGS.output_dir, os.path.basename(im_fn))
-                    cv2.imwrite(img_path, im[:, :, ::-1])
+                    PP1.increment()
 
 
+
+#This is necessary because the multiple contours can be
+#part of the same text body identified by the cluster routine
+#and that whole text body should be passed to pytesseract
+def _get_regions(img, word_detections, contours):
+    '''(ndarray, ndarray, ndarray) -> list
+    Returns the classification label for each contour, in
+    the order of each contour. Hence get_contour_label[0]
+    is the label for contour[0].
+
+    img:ndarray representation of img
+    word_detections:long format ndarray of word detections
+    contours: cv2 contour detections from word_detections
+
+    Returns:
+        classification label for each contour
+    '''
+
+    #first perform clustering to find regions
+    db = _DBSCAN(eps=0.5, metric='cityblock', min_samples=10).fit(X)
+    core_samples_mask = np.zeros_like(db.labels_, dtype=bool) #array of zeroes same shape as db.labels_
+    core_samples_mask[db.core_sample_indices_] = True #core samples
+    #db.labels_
+    distinct_labels = set(db.labels_)
+
+    dets = np.copy(word_detections)
+
+    contour_votes = [[] for contour in contours]
+
+    np.insert(dets, word_detections.shape[1], db.labels_,  axis=1)
+
+    #do the voting
+    for l in distinct_labels:
+        indices = dets[np.where(dets[:,-1] == l)]
+        idx = np.random.choice(indices.shape[0], size=30, replace=False)
+        for i in idx:
+            pts = roi.rect_longform_to_cvpts(indices[i, 0:8])
+            pts = roi.points_denormalize(pts, img.shape[0], img.shape[1])
+            for i, contour in enumerate(contours):
+                if cv2.pointPolygonTest(contour, roi.centroid(pts)):
+                   contour_votes[i] = l
+                   continue
+
+    votes = [_lmc(cv) for cv in contour_votes]
+    #votes looks like [1, 2, 1, 1, 3, 4]
+    #i.e. the most frequent label for each contour
+
+    extents = {}
+    for x in set(contour_labels):
+        extents[x]=[]
+
+    for i, c in enumerate(contours):
+        extents[votes[i]] = contours[i]
+
+    #extents is now a dictionary, where
+    #each key is the label and the value
+    #is one or more polygons represented as cvxy points
+    #e.g. {'1':[ [[0,0],[10,0],[10,10],[0,10]], [[0,0],[15,0],[15,15],[0,15]], '2': ...}
+    regions = []
+    for i, _, polys in extents.items():
+        img_cropped, _, pts_xt = _roi.crop_from_rects(img, polys)
+        out = geom.poly_distance_order((0,0), [pts_xt], 'taxicab')[0] #closest tuple with distance, polygon
+        regions.append((i, out[0], img_cropped))
+
+    #this should sort regions by the taxicab distance from the origin!
+    regions_sorted = sorted(regions, key=lambda dist: dist[1])
+
+    #regions sorted has all the page regions with the text for
+    #clustered text items, and is ordered by the taxicab distance
+    #from the top left of the page
+    return regions_sorted
 
 
 

@@ -21,6 +21,7 @@ import funclib.baselib as _baselib
 from funclib.arraylib import np_round_extreme as _rnd
 from opencvlib import getimg as _getimg
 
+
 #as we may expect to find these here as well
 from opencvlib.geom import bounding_rect_of_poly2, rect_as_points, flip_points
 
@@ -69,7 +70,7 @@ class ePointsFormat(_enum):
     XXXX_YYYY = 2 #[[x1, x2, x3, x4], [y1, y2, y3, y4]]
     XYWH = 3
     RCHW = 4
-
+    XYXYXYXY = 5
 
 
 class ePointFormat(_enum):
@@ -245,6 +246,7 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointsFormat.XY):
 
     Note that all points are assumed to be in a 0 index.
 
+
     pts:
        An array like of points, e.g. [[1,2], [2,3]],
        or [xmin,xmax,ymin,ymax] for XYMinMaxtoCVXY
@@ -267,6 +269,9 @@ def points_convert(pts, img_x, img_y, e_pt_cvt, e_out_format=ePointsFormat.XY):
     img_y -= 1
 
     out = []
+
+    if e_out_format == ePointsFormat.XYXYXYXY: raise NotImplementedError
+
     if e_pt_cvt == ePointConversion.XYMinMaxtoCVXY: #e.g. of points in for this format (10, 50, 20, 30),  i.e. xmin,xmax,ymin,ymax
         out = [[pts[0], pts[2]], [pts[1], pts[2]], [pts[1], pts[3]], [pts[0], pts[3]]]
     else:
@@ -397,6 +402,11 @@ def cropimg_xywh(img, x, y, w, h):
     return img[relu(y):min(y+h, img.shape[0]), relu(x):min(x+w, img.shape[1])], crop_truncated == crop
 
 
+def cropimg_minmax(img, xmin, ymin, xmax, ymax):
+    pts = geom.order_points([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]])
+    return cropimg_pts(img, pts)
+
+
 def cropimg_pts(img, corners):
     '''(str|ndarray, 4-list|tuple|ndarray) -> ndarray
     Return a rectangular region from an imag. Also see transforms.crop
@@ -480,6 +490,66 @@ def roi_polygons_get(img, points):
     mask = _ma.masked_values(white_mask_crop, 0)
 
     return white_mask_crop, mask, bitwise, rectcrop
+
+
+def polys_fill(img, polys, poly_colour=(0, 0, 0), ptsfmt=ePointsFormat.XY, force_order=True, getcontours=True, cnt_mode=_cv2.RETR_EXTERNAL, cnt_method=_cv2.CHAIN_APPROX_SIMPLE):
+    '''(str|ndarray, list|ndarray, tuple|int, enum:ePointsFormat, bool, bool) -> ndarray, ndarray, tuple
+    Default for polys is an n-list of cv2 points, e.g.
+    [[0, 0], [10, 10], [0, 10], [10, 0],
+    [0, 0], [7, 7], [0, 7], [7, 0]]
+
+    img: path or ndarray image
+    polys:a list or ndarray of polygons, each "row" represents a polygon
+    poly_colour:fill colour of polys in img and returned mask
+    maskbg:background colour of the mask
+    force_order: Order points as rectangle
+    getcontours: Also return contours (uses mask)
+    cnt_mode, cnt_method: mode and method args for the contour function
+
+    Returns:
+        img with filled polygons, mask of image, contours, countour hierachy
+
+    #Contour doc:https://docs.opencv.org/2.4/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours
+    '''
+    img = _getimg(img)
+    assert isinstance(img, _np.ndarray)
+
+    #make maskbg a 3 deep array so we can
+    #multiply each channel seperately
+    mask = _np.squeeze(_np.zeros_like(img[:,:,0:1], dtype='uint8'))
+
+    if isinstance(polys, _np.ndarray):
+        polys_ = _np.squeeze(polys).tolist()
+
+    polys_ = _np.array(polys, dtype='int32')
+
+    #poly sould be an n x 4 x 2 array here
+    for poly in polys_:
+
+        poly = _np.squeeze(poly)
+        if ptsfmt == ePointsFormat.XY:
+            pass
+        elif ptsfmt == ePointsFormat.XYXYXYXY:
+            poly = rect_longform_to_cvpts(poly)
+        elif ptsfmt == ePointsFormat.XYWH:
+            poly = rect_as_points(pts[1], pts[0], pts[2], pts[3])
+        elif ptsfmt == ePointsFormat.RCHW:
+            poly = rect_as_points(pts[0], pts[1], pts[3], pts[2])
+        else:
+            raise NotImplementedError
+
+        if force_order:
+            poly = _geom.order_points(_np.squeeze(poly).tolist())
+            poly = _np.array(poly, dtype='int32')
+
+        if len(poly.shape) == 2:
+            poly = _np.array([poly])
+
+        img = _cv2.fillPoly(img, _np.array(poly, dtype='int32'), poly_colour)
+        mask = _cv2.fillPoly(mask, _np.array(poly, dtype='int32'), (255, 255, 255))
+    cnt = _cv2.findContours(mask, cnt_mode, cnt_method)
+    #imgcountours = _cv2.drawContours(mask,cnt[0],-1,(0,255,0))
+    return img, mask, cnt[0], cnt[1]
 
 
 
@@ -700,6 +770,30 @@ def rect_as_rchw(pts):
     return y, x, h, w
 
 
+def rect_longform_to_cvpts(pts):
+    '''(arraylike) -> list
+
+    Takes an ndarray, list or tuple longform
+    representation (x1,y1,x2,y2,x3,y3,x4,y4) of a rect and coverts it
+    to cv2 point format.
+
+    Example:
+    >>>rect_longform_to_cvpts([0,0,10,0,10,10,0,10])
+    [[0,0], [10,0], [10,10], [10,0]]
+    '''
+    if isinstance(pts, _np.ndarray):
+        a = _np.squeeze(pts)
+        a = a.tolist()
+    else:
+        a = pts.copy()
+
+    return [[a[0], a[1]],
+            [a[2], a[3]],
+            [a[4], a[5]],
+            [a[6], a[7]]]
+
+
+
 # DEBUG bounding_rect_of_poly
 def bounding_rect_of_poly(points, as_points=True):
     '''(list|ndarray)->n-list
@@ -894,3 +988,56 @@ def iou2(gt_xmin, gt_xmax, gt_ymin, gt_ymax, xmin, xmax, ymin, ymax):
     total_area = ((xmax - xmin) * (ymax - ymin)) + ((gt_xmax - gt_xmin) * (gt_ymax - gt_ymin))
     union_area = total_area - overlap
     return overlap / union_area
+
+
+def crop_from_rects(img, rects, crop=True):
+    '''(ndarray, list|tuple, bool) -> ndarray, ndarray, n-2-list
+    Given a set of possibly nonintersecting rectangles
+    build a mask.
+
+    Note, if we ask to crop the image, the returned
+    image dimensions won't match the mask dimensions.
+
+    rects:list cvxy points
+    crop:crop the output image to extent of all mask
+
+    Returns:
+        mask, masked image, extent (n-2-list) in cvpt format
+
+    Example:
+    >>>rect1 = [[100, 100], [300, 100], [300, 300], [100, 300]]
+    >>>rect2 = [[350, 350], [475, 350], [475, 400], [350, 400]]
+    >>>i, mask, extent = roi.crop_from_rects(self.I, [rect1, rect2])
+    '''
+    mask = _np.zeros_like(img)
+    if len(img.shape) == 2:
+        colour = 255
+    elif len(img.shape)== 3:
+        colour = (255, 255, 255)
+    else:
+        colour = (255, 255, 255, 255)
+
+    for rect in rects:
+        _cv2.fillPoly(mask, _np.array([rect], dtype='int32'), color=colour)
+
+
+    i = get_image_from_mask(img, mask)
+    if crop:
+        miny = img.shape[0]; maxy=0; minx=img.shape[1]; maxx = 0;
+        pts = []
+
+        _ = [pts.extend(poly) for poly in rects]
+
+        xs, ys = zip(*pts)
+        miny = miny if min(ys) > miny else min(ys)
+        maxy = maxy if max(ys) < maxy else max(ys)
+        minx = minx if min(xs) > minx else min(xs)
+        maxx = maxx if max(xs) < maxx else max(xs)
+
+        if len(img.shape) == 2:
+            i = i[miny:maxy+1, minx:maxx+1]
+        else:
+            i = i[miny:maxy+1, minx:maxx+1, ...]
+
+    return i, mask, [[minx, miny], [maxx, miny], [maxx, maxy], [minx, maxy]]
+

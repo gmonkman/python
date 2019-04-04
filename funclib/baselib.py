@@ -5,10 +5,11 @@ for manipulatin other base classes.
 
 Stick list/tuple/dic functions in here.
 '''
+import itertools as _itertools
 import pickle as _pickle
 import collections as _collections
 import sys as _sys
-import operator
+import operator as _operator
 from copy import deepcopy as _deepcopy
 from enum import Enum as _enum
 
@@ -86,7 +87,10 @@ class switch(object):
 
 # region dict classes
 class odict(_collections.OrderedDict):
-    '''subclass OrderedDict to support item retreival by index'''
+    '''subclass OrderedDict to support item retreival by index
+    d = _baselib.odict()
+    d[1] = '12'
+    '''
     def getbyindex(self, ind):
         '''(int)->tuple
         Retrieve dictionary key-value pair as a tuple using
@@ -175,7 +179,7 @@ def dic_sort_by_val(d):
         >>>dic_sort_by_val({1:1, 2:10, 3:22, 4:1.03})
         [(1, 1), (4, 1.03), (2, 10), (3, 22)]
     '''
-    return sorted(d.items(), key=operator.itemgetter(1))
+    return sorted(d.items(), key=_operator.itemgetter(1))
 
 
 def dic_sort_by_key(d):
@@ -193,7 +197,7 @@ def dic_sort_by_key(d):
     >>>dic_sort_by_key({1:1, 4:10, 3:22, 2:1.03})
     [(1,1), (2,1.03), (3,22), (4,10)]
     '''
-    return sorted(d.items(), key=operator.itemgetter(0))
+    return sorted(d.items(), key=_operator.itemgetter(0))
 
 
 def dic_match(a, b):
@@ -302,6 +306,32 @@ def list_add_elementwise(lsts):
     [2, 4]
     '''
     return list(map(sum, zip(*lsts)))
+
+
+def list_most_common(L, force_to_string=False):
+    '''(list, bool)->str|int|float
+    Find most common value in list
+
+    force_to_string:
+        make everything a string, use if list
+        has mixed types
+    '''
+    if force_to_string:
+        Ll = [str(s) for s in L]
+    else:
+        Ll = L.copy()
+
+    SL = sorted((x, i) for i, x in enumerate(Ll))
+    groups = _itertools.groupby(SL, key=_operator.itemgetter(0))
+    def _auxfun(g):
+        item, iterable = g
+        count = 0
+        min_index = len(Ll)
+        for _, where in iterable:
+            count += 1
+            min_index = min(min_index, where)
+        return count, -min_index
+    return max(groups, key=_auxfun)[0]
 
 
 def lists_remove_empty_pairs(list1, list2):

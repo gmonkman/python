@@ -36,6 +36,7 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_historgb(self):
+        '''test'''
         bins, hist = histo.histo_rgb(self.img_banded, channels=0, bins=3, normalise_img=True, normalise_histo=True)
         bins = qplot.pretty_bin(bins)
         qplot.bar_(bins, hist)
@@ -51,6 +52,10 @@ class Test(unittest.TestCase):
         qplot.bar_(bins, hist1)
         qplot.bar_(bins, hist2)
         qplot.bar_(bins, hist3)
+
+
+
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
-

@@ -681,3 +681,92 @@ def _inner_box_b2(b_theta, *args):
     xx = (b * ab_ratio * _math.cos(theta)) - A
     yy = (b * _math.cos(theta)) + (b * ab_ratio * _math.sin(theta))  - B
     return (xx, yy)
+
+
+def point_extremes_euclid(polys, origin=(0, 0)):
+    '''(n-2-list) -> 2-tuple, 2-tuple
+    Get the point of a set of polys
+    nearest and furthest from the origin
+
+    If passing a single poly, ensure it is two deep.
+
+    Polys assumed to be in CVXY format, though
+    equally applicable for cartesian.
+    '''
+    pts = []
+    _ = [pts.extend(poly) for poly in polys]
+
+    mindst = None; maxdst = None
+
+    for pt in pts:
+        dst = _dist.L2dist(origin, pt)
+        if not mindst or dst < mindst:
+            mindst = dst
+            ptmin = pt
+
+        if not maxdst or dst > maxdst:
+            maxdst = dst
+            ptmax = pt
+
+    return ptmin, ptmax
+
+def point_extremes_taxicab(polys, origin=(0, 0)):
+    '''(n-2-list) -> 2-tuple, 2-tuple
+    Get the point of a set of polys
+    nearest and furthest from pt
+
+    If passing a single poly, ensure it is two deep.
+
+    Polys assumed to be in CVXY format, though
+    equally applicable for cartesian.
+    '''
+    pts = []
+    _ = [pts.extend(poly) for poly in polys]
+
+    mindst = None; maxdst = None
+
+    for pt in pts:
+        dst = _dist.L1dist(origin, pt)
+        if not mindst or dst < mindst:
+            mindst = dst
+            ptmin = pt
+
+        if not maxdst or dst > maxdst:
+            maxdst = dst
+            ptmax = pt
+
+    return ptmin, ptmax
+
+
+def poly_distance_order(pt, polys, metric='euclidean'):
+    '''(2-tuple, n-2-tuple, str) -> list
+    Given a list of polys defined by CVXY points
+    order them by increasing distance from pt
+
+    pt: base point e.g. (0,0)
+    polys: n-n-list of polygons in CVXY point format
+    metric: in ['euclidean', 'taxicab']
+
+    Returns a list sorted in ascending distance where:
+    lst = [(distance, poly), (distance, poly) ...]
+
+    Example
+    >>>pts = [ [[1200, 1450], [1000, 1000]], [[200, 450], [100, 100]] ]
+    >>>poly_distance_order((0,0), pts)
+    [(114.1, [[200, 450], [100, 100]]), (1141, [[1200, 1450], [1000, 1000]])]
+    '''
+    d = {}
+    assert metric in ['euclidean', 'taxicab'], 'Valid metric strings are "euclidean" or "taxicab"'
+    if metric == 'euclidean':
+        f = point_extremes_euclid
+        l = _dist.L2dist
+    else:
+        f = point_extremes_taxicab
+        l = _dist.L1dist
+
+    for poly in polys:
+        ptmin, _ = f([poly], pt)
+        dist = l(ptmin, pt)
+        d[dist] = poly
+
+    return _baselib.dic_sort_by_key(d)

@@ -7,7 +7,7 @@ __all__ = ['L1dist', 'L2dist']
 
 
 def L2dist(p1, p2):
-    '''(ndarray,ndarray)->float
+    '''(ndarray|list,ndarray|list)->float
     Euclidean L2 distance between two points.
     eg.
     A=np.array([[0,0]])
@@ -16,7 +16,6 @@ def L2dist(p1, p2):
     '''
     if isinstance(p1, (list, tuple)):
         return _np.sqrt(_np.sum((_np.array(p1) - _np.array(p2))**2))
-
     return _np.sqrt(_np.sum((p1 - p2)**2))
 
 
@@ -27,7 +26,10 @@ def L1dist(v1, v2):
     B=np.array([[1,1]])
     L2dist(A, B) = 2
     '''
+    if isinstance(v1, (list, tuple)):
+        return _np.sum(abs(_np.array(v1) - _np.array(v2)))
     return _np.sum(abs(v1 - v2))
+
 
 
 def nearN_euclidean(point, points, nr=1):

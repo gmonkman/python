@@ -68,7 +68,7 @@ class Test(unittest.TestCase):
         show(I)
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_rect_inner_side_length2(self):
         '''test'''
         pts = [[1200, 450], [1200, 200], [200, 450], [200, 200]]
@@ -93,6 +93,16 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(theta, radians(10), 4)
 
 
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_poly_distance_order(self):
+        '''test'''
+        pts = [[1200, 450], [1200, 200], [200, 450], [200, 200]]
+        pts1 = [[10, 100], [12, 200], [2, 450], [5, 5]]
+        pts2 = [[555, 555], [13, 20], [21, 450], [15, 15]]
+        ptsall = [pts, pts1, pts2]
+        origin = (0, 0)
+        o = geom.poly_distance_order(origin, ptsall)
+        print(o)
 
 
 

@@ -1,5 +1,8 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
-'''histogram helpers'''
+'''histogram helpers
+
+See test_histo.py for usage examples.
+'''
 from warnings import warn as _warn
 
 import cv2 as _cv2
@@ -92,15 +95,15 @@ def histo_rgb(img, rect_patch=None, channels=(0, 1, 2), bins=256, flatten_channe
 
     Note:
     This function uses the fast-histogram package rather
-    than numpy's implementation.
+    than numpy's implementation because .. performance.
     https://github.com/astrofrog/fast-histogram
 
     Example:
     >>>im = cv2.imread()
-    >>>histo_rgb(''./a.jpg', bins=10, flatten_channels=True, channels=(0,2))
-    [0. , 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.],
-    [0.2 ,0.8, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0.1 ,0.7, 0, 0.1, 0, 0, 0.1, 0, 0, 0]
+    >>>histo_rgb('./a.jpg', bins=10, flatten_channels=True, channels=(0,2))
+    [0. , 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.], #bin edges
+    [0.2 ,0.8, 0, 0, 0, 0, 0, 0, 0, 0], #frequencies for channel 0
+    [0.1 ,0.7, 0, 0.1, 0, 0, 0.1, 0, 0, 0]  #frequencies for channel 2
     '''
     def _dstack(slice_, hist, i):
         if i == 0:
@@ -108,7 +111,7 @@ def histo_rgb(img, rect_patch=None, channels=(0, 1, 2), bins=256, flatten_channe
         return  _np.dstack((hist, slice_))
 
     if rect_patch:
-        assert len(rect_patch) == 4, 'The tuple rect_path should be a 4-tuple of format (x1, x2, y1, y2)'
+        assert len(rect_patch) == 4, 'The tuple rect_path should be a 4-tuple of format (x, y, w, h)'
 
 
     img = _getimg(img)
@@ -147,7 +150,6 @@ def histo_rgb(img, rect_patch=None, channels=(0, 1, 2), bins=256, flatten_channe
             else:
                 _warn('Got unexpected number %s in channel tuple argument' % c)
 
-    out = []
     edges = _np.linspace(range_[0], range_[1], bins + 1).tolist()
 
     if len(hist.shape) == 1:
@@ -155,9 +157,9 @@ def histo_rgb(img, rect_patch=None, channels=(0, 1, 2), bins=256, flatten_channe
 
     hist = hist.squeeze().T
     if hist.shape[0] == 2:
-        return edges, hist[0,:].tolist(), hist[1,:].tolist()
+        return edges, hist[0,: ].tolist(), hist[1, :].tolist()
 
-    return edges, hist[0,:].tolist(), hist[1,:].tolist(), hist[2,:].tolist()
+    return edges, hist[0, :].tolist(), hist[1, :].tolist(), hist[2, :].tolist()
 
 
 def hsv_map(x=256, y=180):
