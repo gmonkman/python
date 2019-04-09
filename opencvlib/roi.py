@@ -11,11 +11,15 @@ from enum import Enum as _enum
 import cv2 as _cv2
 import numpy as _np
 from numpy import ma as _ma
+import scipy.spatial.distance as _scipy_dist
+import scipy.cluster.hierarchy as _scipy_heir
 
 import opencvlib as _opencvlib
 import opencvlib.info as _info
 import opencvlib.distance as _dist
 import opencvlib.geom as _geom
+import opencvlib.color as _color
+from opencvlib.histo import histo_rgb as _histo_rgb
 
 import funclib.baselib as _baselib
 from funclib.arraylib import np_round_extreme as _rnd
@@ -492,22 +496,17 @@ def roi_polygons_get(img, points):
     return white_mask_crop, mask, bitwise, rectcrop
 
 
-def polys_fill(img, polys, poly_colour=(0, 0, 0), ptsfmt=ePointsFormat.XY, force_order=True, getcontours=True, cnt_mode=_cv2.RETR_EXTERNAL, cnt_method=_cv2.CHAIN_APPROX_SIMPLE):
+def polys_to_mask(img, polys, getcontours=True, cnt_mode=_cv2.RETR_EXTERNAL, cnt_method=_cv2.CHAIN_APPROX_SIMPLE):
     '''(str|ndarray, list|ndarray, tuple|int, enum:ePointsFormat, bool, bool) -> ndarray, ndarray, tuple
-    Default for polys is an n-list of cv2 points, e.g.
-    [[0, 0], [10, 10], [0, 10], [10, 0],
-    [0, 0], [7, 7], [0, 7], [7, 0]]
+    Create a mask (255 = Include, 0 = Exclude) from an n-4-2-array of polygons.
 
     img: path or ndarray image
-    polys:a list or ndarray of polygons, each "row" represents a polygon
-    poly_colour:fill colour of polys in img and returned mask
-    maskbg:background colour of the mask
-    force_order: Order points as rectangle
+    polys:a list or ndarray of polygons, each "row" represents a polygon, i.e. an n x 4 x 2 array|list
     getcontours: Also return contours (uses mask)
     cnt_mode, cnt_method: mode and method args for the contour function
 
     Returns:
-        img with filled polygons, mask of image, contours, countour hierachy
+        mask (b&w image with shape=img.shape), contours, countour hierachy
 
     #Contour doc:https://docs.opencv.org/2.4/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours
     '''
@@ -516,40 +515,20 @@ def polys_fill(img, polys, poly_colour=(0, 0, 0), ptsfmt=ePointsFormat.XY, force
 
     #make maskbg a 3 deep array so we can
     #multiply each channel seperately
-    mask = _np.squeeze(_np.zeros_like(img[:,:,0:1], dtype='uint8'))
-
-    if isinstance(polys, _np.ndarray):
-        polys_ = _np.squeeze(polys).tolist()
-
+    mask = _np.zeros_like(img, dtype='uint8')
     polys_ = _np.array(polys, dtype='int32')
 
     #poly sould be an n x 4 x 2 array here
     for poly in polys_:
+        poly = _np.array(poly, dtype='int32')
+        mask = _cv2.fillPoly(mask, [poly], (255, 255, 255))
 
-        poly = _np.squeeze(poly)
-        if ptsfmt == ePointsFormat.XY:
-            pass
-        elif ptsfmt == ePointsFormat.XYXYXYXY:
-            poly = rect_longform_to_cvpts(poly)
-        elif ptsfmt == ePointsFormat.XYWH:
-            poly = rect_as_points(pts[1], pts[0], pts[2], pts[3])
-        elif ptsfmt == ePointsFormat.RCHW:
-            poly = rect_as_points(pts[0], pts[1], pts[3], pts[2])
-        else:
-            raise NotImplementedError
-
-        if force_order:
-            poly = _geom.order_points(_np.squeeze(poly).tolist())
-            poly = _np.array(poly, dtype='int32')
-
-        if len(poly.shape) == 2:
-            poly = _np.array([poly])
-
-        img = _cv2.fillPoly(img, _np.array(poly, dtype='int32'), poly_colour)
-        mask = _cv2.fillPoly(mask, _np.array(poly, dtype='int32'), (255, 255, 255))
-    cnt = _cv2.findContours(mask, cnt_mode, cnt_method)
+    if getcontours:
+        cnt = _cv2.findContours(mask[:, :, 0:1], cnt_mode, cnt_method) #find contours requires a 1-channel image
+    else:
+        cnt = (None, None)
     #imgcountours = _cv2.drawContours(mask,cnt[0],-1,(0,255,0))
-    return img, mask, cnt[0], cnt[1]
+    return mask, cnt[0], cnt[1]
 
 
 
@@ -768,6 +747,35 @@ def rect_as_rchw(pts):
     w = pts[:, 0].max() + 1 - pts[:, 0].min()
     h = pts[:, 1].max() + 1 - pts[:, 1].min()
     return y, x, h, w
+
+
+def rect_xy_to_tlbr(pts):
+    '''(list|tuple)->2-list
+    Given xy formatted rect, convert
+    to rect defined by top left and top right points
+
+    Order points first, just in case
+    Example:
+    >>>rect_xy_to_tlbr([[0,0],[10,0],[10,10],[0,10]])
+    [[0,0],[10,10]]
+    '''
+    out = _geom.order_points(pts)
+    return [out[0], out[3]]
+
+
+def rect_xy_to_xywh(pts):
+    '''(list|tuple)->2-list
+    Given xy formatted rect, convert
+    to xywh format.
+
+    Order points first, just in case
+    Example:
+    >>>rect_xy_to_tlbr([[0,0],[10,0],[10,10],[0,10]])
+    [[0,0],[10,10]]
+    '''
+    out = _geom.order_points(pts)
+    xs, ys = zip(*pts)
+    return [min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys)]
 
 
 def rect_longform_to_cvpts(pts):
@@ -990,7 +998,7 @@ def iou2(gt_xmin, gt_xmax, gt_ymin, gt_ymax, xmin, xmax, ymin, ymax):
     return overlap / union_area
 
 
-def crop_from_rects(img, rects, crop=True):
+def crop_from_rects(img, rects, crop=True, mask_with_boundary_pixels=False):
     '''(ndarray, list|tuple, bool) -> ndarray, ndarray, n-2-list
     Given a set of possibly nonintersecting rectangles
     build a mask.
@@ -999,10 +1007,12 @@ def crop_from_rects(img, rects, crop=True):
     image dimensions won't match the mask dimensions.
 
     rects:list cvxy points
-    crop:crop the output image to extent of all mask
+    crop:crop the output image to extent of included regions
+    mask_with_boundary_pixels: rather than a black mask, fill with
+    mean boundary pixel value
 
     Returns:
-        mask, masked image, extent (n-2-list) in cvpt format
+        mask image, mask, extent (n-2-list) in cvpt format
 
     Example:
     >>>rect1 = [[100, 100], [300, 100], [300, 300], [100, 300]]
@@ -1041,3 +1051,191 @@ def crop_from_rects(img, rects, crop=True):
 
     return i, mask, [[minx, miny], [maxx, miny], [maxx, maxy], [minx, maxy]]
 
+
+
+def contours_join_slow(img, contours, thresh, thresh_is_pixels=False):
+    '''(ndarray, ndarray, int|float, bool) -> ndarray
+    Join nearby contours with distance threshhold of thresh.
+
+    Returns:
+        Joined contours
+    '''
+    def _find_if_close(cnt1, cnt2):
+        if not thresh_is_pixels:
+            thresh_ = thresh * _np.mean(img.shape[0:2])
+        else:
+            thresh_ = thresh
+
+        row1, row2 = cnt1.shape[0],cnt2.shape[0]
+
+        for i in range(row1):
+            for j in range(row2):
+                dist = _np.linalg.norm(cnt1[i] - cnt2[j])
+                if abs(dist) < thresh_ :
+                    return True
+                elif i==row1 - 1 and j==row2 - 1:
+                    return False
+
+
+    LENGTH = len(contours)
+    status = _np.zeros((LENGTH, 1))
+    gray = _cv2.cvtColor(img, _cv2.COLOR_BGR2GRAY)
+
+    for i, cnt1 in enumerate(contours):
+        x = i
+        if i != LENGTH - 1:
+            for j, cnt2 in enumerate(contours[i+1:]):
+                x += 1
+                dist = _find_if_close(cnt1, cnt2)
+                if dist == True:
+                    val = min(status[i],status[x])
+                    status[x] = status[i] = val
+                else:
+                    if status[x]==status[i]:
+                        status[x] = i + 1
+
+    unified = []
+    maximum = int(status.max())+1
+
+    for i in xrange(maximum):
+        pos = _np.where(status==i)[0]
+        if pos.size != 0:
+            cont = _np.vstack(contours[i] for i in pos)
+            hull = _cv2.convexHull(cont)
+            unified.append(hull)
+
+    return unified
+
+
+def mask_join(img, kernel=(5,5), iterations=10):
+    '''(ndarray, ndarray, 2-tuple, int) -> ndarray
+    Attempt to simplify a mask. Note for masks; White=Keep, Black=Mask out
+
+    img:the mask, a binary mask image
+    kernel:tuple, the size of the kernel for dilation
+    iterations:nr iterations for dilation operation
+
+    Returns: image (ndarray)
+    '''
+    if len(img.shape) == 2:
+        imgbw = img.astype('uint8')
+    else:
+        imgbw = _cv2.cvtColor(img, _cv2.COLOR_BGR2GRAY)
+
+    imgdil = _cv2.dilate(imgbw, kernel=kernel, iterations=iterations)
+    contour, hier = _cv2.findContours(imgdil, _cv2.RETR_CCOMP, _cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contour:
+        _cv2.drawContours(imgdil, [cnt], 0, 255, -1)
+    return imgdil
+
+
+def contours_cluster_by_histo(img, contours, hist_bins=3, thresh=0.2):
+    '''(ndarray, n-1-2-list, int, float) -> dict
+    Cluster contours by their histograms using cosine distances.
+
+    Arguments:
+    contours: Contours found with cv2.findcontours, each contour is a n-1-2 list of cv points
+    >>>contours[0]
+    array([[[100, 200]],
+       [[100, 299]],
+       [[199, 299]],
+       [[199, 200]]], dtype=int32)
+    >>>contours.shape
+    (4, 1, 2)
+
+    hist_bins: Number of bins for each channel's histogram
+    thresh: The cosine distance below which contours are considered the same. Note that cosine distances vary between -1 and 1. For all positive plane values, distances vary between 0 and 1.
+
+    Note:
+    contours is a n-list where each element is an n,1,2-ndarray
+    of points which represent the contour.
+
+    Returns:
+        dictionary, each key is a group containing a
+        list of contours. The keys are 'C1', 'C2' etc.
+    '''
+    dout = {}; obs = None
+    for i, contour in enumerate(contours):
+        bx = contour.squeeze().tolist()
+        bx_xywh = rect_xy_to_xywh(bx)
+        _, hist1, hist2, hist3 = _histo_rgb(img, bx_xywh, (0, 1, 2), bins=hist_bins)
+        hist2.extend(tuple(hist3))
+        hist1.extend(tuple(hist2))
+        if obs is None:
+            obs = _np.array([hist1])
+        else:
+            obs = _np.concatenate((obs, _np.array([hist1])), 0)
+
+    distances = _scipy_dist.pdist(obs, metric='cosine')
+    distances_sq = _scipy_dist.squareform(distances) #n x n pairwise distance matrix as usual
+
+    Z = _scipy_heir.single(distances)
+    F = _scipy_heir.fcluster(Z, thresh, criterion='distance')
+
+    lkey = lambda k: 'C%s' % k
+    for grp in set(F):
+        dout[lkey(grp)] = []
+
+    for i, grp in enumerate(F):
+        dout[lkey(grp)].append(contours[i])
+
+    return dout
+
+
+def mask_get(img, thresh=(1,1,1)):
+    '''(ndarray, list|tuple|int) -> 2d-ndarray
+    Return a 1 channel image mask, masking out pixels
+    below thresh.
+
+    All values less than thresh are masked, setting
+    all values >= thresh to white
+    '''
+    img_ = img.copy()
+
+    if len(img_.shape) > 2:
+        CI = _color.ColorInterval(_color.eColorSpace.BGR, thresh, (255, 255, 255))
+        CD = _color.ColorDetection(img_, CI, _color.eColorSpace.BGR)
+        CD.detect()
+        return CD.detected_as_mask()
+
+
+    if isinstance(thresh, (tuple, list)):
+        thresh = thresh[0]
+
+    img_[img_ < thresh] = 0
+
+
+def boundary_colour_mean(img, rects):
+    '''
+    Get the mean boundary colour for rects
+    '''
+    assert img.shape[2] == 3, 'Expected a 3 channel image'
+
+    topb = []; topg = []; topr = []
+    bottomb = [];bottomg = [];bottomr = []
+    leftb = [];leftg = [];leftr = []
+    rightb = [];rightg = [];rightr = []
+    for rect in rects:
+        rect = _geom.order_points(rect)
+        r, c, h, w = rect_as_rchw(rect)
+        topb.append(_np.mean(img[r + 1, c:c + w, 0]))
+        topg.append(_np.mean(img[r + 1, c:c + w, 1]))
+        topr.append(_np.mean(img[r + 1, c:c + w, 2]))
+
+        bottomb.append(_np.mean(img[r + h - 1, c:c + w, 0]))
+        bottomg.append(_np.mean(img[r + h - 1, c:c + w, 1]))
+        bottomr.append(_np.mean(img[r + h - 1, c:c + w, 2]))
+
+        leftb.append(_np.mean(img[r:r + h, c + 1, 0]))
+        leftg.append(_np.mean(img[r:r + h, c + 1, 1]))
+        leftr.append(_np.mean(img[r:r + h, c + 1, 2]))
+
+        rightb.append(_np.mean(img[r:r + h, c + w - 1, 0]))
+        rightg.append(_np.mean(img[r:r + h, c + w - 1, 1]))
+        rightr.append(_np.mean(img[r:r + h, c + w - 1, 2]))
+
+    m = lambda l: sum(l) / len(l)
+    out = (int((m(topb) + m(bottomb) + m(leftb) + m(rightb))/4),
+           int((m(topg) + m(bottomg) + m(leftg) + m(rightg))/4),
+           int((m(topr) + m(bottomr) + m(leftr) + m(rightr))/4))
+    return out

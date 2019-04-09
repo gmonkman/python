@@ -1,6 +1,7 @@
 # pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, not-context-manager, invalid-name
 '''routines to manipulate array like objects like lists, tuples etc'''
 from warnings import warn as _warn
+import itertools as _iter
 
 import numpy as _np
 import numpy.random
@@ -555,3 +556,25 @@ def np_split_by_value(a, thresh):
     else:
         Z = a <= thresh
     return a[Z == 0], a[Z == 1]
+
+
+def iter_dist_matrix(D):
+    '''(ndarray) -> <any>, 2-tuple
+    Iterate a distance matrix, returning
+    the value and the index.
+
+    Parameters:
+    D: squareform ndarray distance matix
+
+    Yields:
+    value at the index give by the 2-tuple
+    The 2-tuple is (row, col)
+
+    Example:
+    >>>D = np.arange(9).reshape(3,3)
+    >>>list([v for v in iter_dist_matrix(D)])
+    [(1, (0, 1)), (2, (0, 2)), (5, (1, 2))]
+    '''
+    for c in _iter.combinations(range(D[0,:].shape[0]), 2):
+        v = D[c[0], c[1]]
+        yield v, c,

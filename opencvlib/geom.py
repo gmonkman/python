@@ -399,9 +399,14 @@ def points_rmsd(V, W):
 def order_points(p):
     '''(list|tuple|ndarray) -> list
     Sorts a list of points by their position.
+
+    Should accept the contours output of find contours
     '''
     if isinstance(p, (list, tuple, set)):
         pts = _np.array(p)
+    else:
+        pts = p.squeeze()
+
     pts = pts.tolist()
     cent = (sum([p[0] for p in pts])/len(pts), sum([p[1] for p in pts])/len(pts))
     pts.sort(key=lambda p: _math.atan2(p[1] - cent[1], p[0] - cent[0]))

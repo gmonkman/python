@@ -7,17 +7,16 @@ import os.path as _path
 import numpy as np
 import cv2
 
-import opencvlib.roi as roi
+
 import funclib.iolib as iolib
-from opencvlib.roi import ePointConversion as eCvt
 from opencvlib.view import show
 from opencvlib.view import draw_points
 from opencvlib.view import mosaic
 from opencvlib.transforms import rotate
 import opencvlib.geom as geom
 import opencvlib.common as common
-
-
+import opencvlib.roi as roi
+from opencvlib.roi import ePointConversion as eCvt
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -28,11 +27,19 @@ class Test(unittest.TestCase):
         self.pth = iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
         self.modpath = _path.normpath(self.pth)
 
+        getpath = lambda imgfld: _path.normpath(_path.join(self.modpath, imgfld))
+        readimg = lambda imgfld: cv2.imread(_path.normpath(_path.join(self.modpath, imgfld)))
+
         self.db_path = 'C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/digikam4.db'
 
-        self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
-        self.I = cv2.imread(self.imgpath)
-        pass
+        self.imgpath = getpath('bin/images/matt_pemb5.jpg')
+        self.I = readimg(self.imgpath)
+
+        self.mask = readimg('bin/images/mask.jpg')
+        self.color_patches = readimg('bin/images/color_patches.jpg')
+
+
+
 
 
     @unittest.skip("Temporaily disabled while debugging")
@@ -191,13 +198,43 @@ class Test(unittest.TestCase):
         imglong, mask, contours, heirarchy = roi.polys_fill(self.I, ptslongnp, ptsfmt=roi.ePointsFormat.XYXYXYXY)
 
 
-    #unittest.skip("Temporaily disabled while debugging")
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_crop_from_rects(self):
         '''test roi'''
         rect1 = [[100, 100], [300, 100], [300, 300], [100, 300]]
         rect2 = [[350, 350], [475, 350], [475, 400], [350, 400]]
         rects = [rect1, rect2]
-        i, mask = roi.crop_from_rects(self.I, rects)
+        i, mask, rects = roi.crop_from_rects(self.I, rects)
+        show(i)
+
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_mask_join(self):
+        '''test'''
+        #maskbw = self.mask[:, :, 0:1]
+        i = roi.mask_join(self.mask)
+        show(i)
+
+    @unittest.skip("Temporaily disabled while debugging")
+    def test_contours_cluster_by_histo_and_mask_get(self):
+        '''test'''
+        i = roi.mask_get(self.color_patches, thresh=(10,10,10))
+        show(i)
+        contours, h = cv2.findContours(i, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        clust = roi.contours_cluster_by_histo(self.color_patches, contours)
+        pass
+
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_boundary_colour_mean(self):
+        '''test'''
+        i = roi.mask_get(self.color_patches, thresh=(10,10,10))
+
+        contours, h = cv2.findContours(i, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        col = roi.boundary_colour_mean(self.color_patches, contours)
+        pass
+
 
 
 

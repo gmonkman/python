@@ -54,7 +54,7 @@ class ColorInterval():
     '''class to store a filter range
     in defined color space and
     convert between them.
-    
+
     Initialise with tuples where tuples are paired to represent a range
     e.g. start=(0,0,0), finish=(255,255,255) is then entire range
 
@@ -69,8 +69,8 @@ class ColorInterval():
 
     def __init__(self, color_space=eColorSpace.BGR, start=(None, None, None), finish=(None, None, None)):
         self._color_space = color_space
-        
-        if color_space == eColorSpace.Grey:    
+
+        if color_space == eColorSpace.Grey:
             self._check_intervals()
             if len(start) != 1 and len(finish) != 1:
                 raise UserWarning('Color space set to grey, but tuple start and/or finish length greater not equal 1')
@@ -85,7 +85,7 @@ class ColorInterval():
             self._check_intervals() #check intervals only expects opencv color ranges, so do after any conversions
 
 
-    
+
     @property
     def color_space(self):
         '''color_space getter'''
@@ -95,7 +95,7 @@ class ColorInterval():
         '''color_space setter'''
         self._asnumpyinterval = self._cvt(color_space)
         self._color_space = color_space
-        
+
 
 
     def _check_intervals(self):
@@ -121,7 +121,7 @@ class ColorInterval():
 
             if fSV(self.upper_interval()[1:3]) is None:
                 raise UserWarning('Finish range was invalid for saturation and brightness')
-                            
+
 
     def lower_interval(self):
         '''return the lbound numpy array
@@ -135,8 +135,8 @@ class ColorInterval():
         eg [[0,0,0]]
         '''
         return self._asnumpyinterval[1]
-    
-     
+
+
     def _cvt(self, to):
         '''(Enum:eColorSpace) -> ndarray
         Given a range conversion converts the
@@ -159,7 +159,7 @@ class ColorInterval():
             tmp = _np.reshape(self._asnumpyinterval.copy(), [1, 2, 3])
         else: #grey
             tmp = _np.reshape(self._asnumpyinterval.copy(), [1, 2])
-            
+
 
         tmp = cvt(tmp, self._color_space, to)
         if tmp.shape == (1, 2, 3):
@@ -168,9 +168,9 @@ class ColorInterval():
             tmp = _np.reshape(tmp, [2, 1])
         else:
             raise UserWarning('Could not reshape color interval of shape {!s}'.format(tmp.shape))
-        
+
         return tmp
-        
+
 
 
 
@@ -198,7 +198,7 @@ class ColorDetection():
             Class ColorInterval or list like of ColorInterval instances.
             Colorinterval class specifies an color interval and the
             format of that interval (eg, RGB, BGR, HSV).
-            If color_space is Grey, then the image will be converted to greyscale  
+            If color_space is Grey, then the image will be converted to greyscale
         no_conversion:
             Use if img is already in the color_space format, no conversion will occur
 
@@ -207,11 +207,11 @@ class ColorDetection():
             which is converted according to color_space.
 
             Detection will use the supplied ColorInterval class.
-                      
+
         '''
         img = _getimg(img)
         if not no_conversion:
-            img = cvt(img, from_=eColorSpace.BGR, to=color_space) 
+            img = cvt(img, from_=eColorSpace.BGR, to=color_space)
 
         self._color_space = color_space
         self._ColInt = ColInt
@@ -249,20 +249,32 @@ class ColorDetection():
                 first = False
             else:
                 m = _cv2.bitwise_or(m, _cv2.inRange(I, ci.lower_interval(), ci.upper_interval()))
-            
-        I = _cv2.bitwise_and(I, I, mask=m) 
-        self.img_detected = I    
+
+        I = _cv2.bitwise_and(I, I, mask=m)
+        self.img_detected = I
         #self.boolmask = m.astype('bool')
 
-    
+
     def detected_as_bgr(self):
-        '''(void) ->ndarray|None
+        '''() ->ndarray|None
         Get the detected image in
         native OpenCV [BGR] format
         '''
         if self.img_detected.size:
             return cvt(self.img_detected, self._color_space, eColorSpace.BGR)
+        return None
 
+    def detected_as_mask(self):
+        '''() -> ndarray|None
+        Reduce the image to a mask, where
+        none masked pixels are white (255) and masked
+        pixels are black (0)
+        '''
+        img = self.detected_as_bgr()
+        if not img is None:
+            imgbw = _cv2.cvtColor(img, _cv2.COLOR_BGR2GRAY)
+            imgbw[imgbw > 0] = 255
+            return imgbw
         return None
 
 
@@ -355,12 +367,12 @@ def HSVtoGrey(img):
 def cvt(img, from_=eColorSpace.BGR, to=eColorSpace.RGB):
     '''(ndarray|list:ndarray, Enum:eColorSpace)
     Convert images'''
-    
+
     f = lambda x: x[0] if _baselib.isIterable(x) and x else x
 
     if not _baselib.isIterable(img):
         img = [img]
-    
+
     out = []
     for I in img:
         if from_ == eColorSpace.BGR:
@@ -369,7 +381,7 @@ def cvt(img, from_=eColorSpace.BGR, to=eColorSpace.RGB):
             elif to == eColorSpace.HSV:
                 out.append(_cv2.cvtColor(I, _cv2.COLOR_BGR2HSV))
             elif to == eColorSpace.RGB:
-                out.append(_cv2.cvtColor(I, _cv2.COLOR_BGR2RGB)) 
+                out.append(_cv2.cvtColor(I, _cv2.COLOR_BGR2RGB))
             elif to == eColorSpace.BGR:
                 out.append(I)
             else:
@@ -382,7 +394,7 @@ def cvt(img, from_=eColorSpace.BGR, to=eColorSpace.RGB):
             elif to == eColorSpace.BGR:
                 out.append(_cv2.cvtColor(I, _cv2.COLOR_HSV2BGR))
             elif to == eColorSpace.RGB:
-                out.append(_cv2.cvtColor(I, _cv2.COLOR_HSV2RGB))    
+                out.append(_cv2.cvtColor(I, _cv2.COLOR_HSV2RGB))
             elif to == eColorSpace.HSV:
                 out.append(I)
             else:
@@ -395,7 +407,7 @@ def cvt(img, from_=eColorSpace.BGR, to=eColorSpace.RGB):
             elif to == eColorSpace.BGR:
                 out.append(_cv2.cvtColor(I, _cv2.COLOR_RGB2BGR))
             elif to == eColorSpace.HSV:
-                out.append(_cv2.cvtColor(I, _cv2.COLOR_RGB2HSV))  
+                out.append(_cv2.cvtColor(I, _cv2.COLOR_RGB2HSV))
             elif to == eColorSpace.RGB:
                 out.append(I)
             else:
@@ -409,11 +421,11 @@ def cvt(img, from_=eColorSpace.BGR, to=eColorSpace.RGB):
                 out.append(_cv2.cvtColor(I, _cv2.COLOR_GRAY2BGR))
             elif to == eColorSpace.HSV:
                 tmp = _cv2.cvtColor(I, _cv2.COLOR_GRAY2BGR)
-                out.append(_cv2.cvtColor(tmp, _cv2.COLOR_BGR2HSV))    
+                out.append(_cv2.cvtColor(tmp, _cv2.COLOR_BGR2HSV))
             else:
                 raise UserWarning("Unsupported conversion 'to {0!s}'".format(from_.name))
             return f(out)
-    
+
         raise UserWarning("Unsupported conversion 'from {0!s}'".format(from_.name))
 
 
@@ -424,7 +436,7 @@ def split_channels(img):
     Given an image of n channels,
     splits channels into list elements, if
     img was OpenCV, this will be BGRA
-    
+
     img:
         path to an image or an ndarray of arbitary depth
 

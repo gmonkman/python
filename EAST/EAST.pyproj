@@ -13,9 +13,10 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
-    <CommandLineArguments>--images_path=C:/development/python/EAST/test/bin --checkpoint_path=C:/development/python/EAST/model/east_icdar2015_resnet_v1_50_rbox --output_dir=C:/development/python/EAST/test/bin/detections --nms_mode=none -w</CommandLineArguments>
+    <CommandLineArguments>--images_path=C:/development/python/EAST/test/bin --output_dir=C:/development/python/EAST/test/bin/detections --nms_mode=none</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <Environment>eval.py --images_path=C:/development/python/EAST/test/bin --checkpoint_path=C:/development/python/EAST/model/east_icdar2015_resnet_v1_50_rbox --output_dir=C:/development/python/EAST/test/bin/detections --nms_mode='none'</Environment>
+    <DebugStdLib>False</DebugStdLib>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -30,6 +31,7 @@
     <Content Include="demo_images\img_26.jpg" />
     <Content Include="demo_images\img_75.jpg" />
     <Content Include="demo_images\web-demo.png" />
+    <Content Include="EAST.ini" />
     <Content Include="pylintrc" />
     <Content Include="requirements.txt" />
     <Content Include="static\css\app.css" />
@@ -45,6 +47,9 @@
     <Compile Include="data_util.py" />
     <Compile Include="eval.py" />
     <Compile Include="icdar.py" />
+    <Compile Include="ini.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="lanms\.ycm_extra_conf.py" />
     <Compile Include="lanms\__init__.py" />
     <Compile Include="lanms\__main__.py" />

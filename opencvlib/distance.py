@@ -2,6 +2,9 @@
 # no-self-use, unused-argument
 '''Distance measures'''
 import numpy as _np
+import scipy.spatial.distance as _scipy_dist
+
+from funclib.arraylib import iter_dist_matrix #helper
 
 __all__ = ['L1dist', 'L2dist']
 
@@ -136,3 +139,30 @@ def linear_distance_matrix(r, c):
     2|2 1 0
     '''
     return _np.fromfunction(lambda i, j: abs(i - j), (r, c), dtype=int)
+
+
+
+def feature_dist(labelled_array):
+    #see https://stackoverflow.com/questions/37228589/minimal-edge-to-edge-euclidean-distance-between-labeled-components-in-numpy-arra
+    """
+    Takes a labeled array as returned by scipy.ndimage.label and
+    returns an intra-feature distance matrix which should be the
+    edge to edge distance between features.
+
+    Note this should accept ndarray mask images.
+    """
+    I, J = _np.nonzero(labelled_array)
+    labels = labelled_array[I,J]
+    coords = _np.column_stack((I,J))
+
+    sorter = _np.argsort(labels)
+    labels = labels[sorter]
+    coords = coords[sorter]
+
+    sq_dists = _scipy_dist.cdist(coords, coords, 'sqeuclidean')
+
+    start_idx = _np.flatnonzero(_np.r_[1, _np.diff(labels)])
+    nonzero_vs_feat = _np.minimum.reduceat(sq_dists, start_idx, axis=1)
+    feat_vs_feat = _np.minimum.reduceat(nonzero_vs_feat, start_idx, axis=0)
+
+    return _np.sqrt(feat_vs_feat)

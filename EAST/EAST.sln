@@ -11,6 +11,12 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "opencvlib", "..\opencvlib\o
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "plotlib", "..\plotlib\plotlib.pyproj", "{008BC738-5450-45B4-9D24-61DE8A3B0096}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "pytesseract", "..\pytesseract\pytesseract.pyproj", "{5A5C4B57-F03B-4E73-8508-8569C751613F}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "mmodb", "..\mmodb\mmodb.pyproj", "{8CCA8C50-2EA9-44CB-A0F9-C2E0C1FD8393}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "textract", "..\textract\textract.pyproj", "{227DDA94-406A-444D-BAC7-A0712722007B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +31,12 @@ Global
 		{3791C3EB-165F-4A04-83E2-956959C15823}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{008BC738-5450-45B4-9D24-61DE8A3B0096}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{008BC738-5450-45B4-9D24-61DE8A3B0096}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A5C4B57-F03B-4E73-8508-8569C751613F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A5C4B57-F03B-4E73-8508-8569C751613F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CCA8C50-2EA9-44CB-A0F9-C2E0C1FD8393}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CCA8C50-2EA9-44CB-A0F9-C2E0C1FD8393}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{227DDA94-406A-444D-BAC7-A0712722007B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{227DDA94-406A-444D-BAC7-A0712722007B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
