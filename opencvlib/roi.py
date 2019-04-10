@@ -773,7 +773,7 @@ def rect_xy_to_tlbr(pts):
     [[0,0],[10,10]]
     '''
     out = _geom.order_points(pts)
-    return [out[0], out[3]]
+    return [out[0], out[2]]
 
 
 def rect_xy_to_xywh(pts):
@@ -1140,7 +1140,7 @@ def mask_join(img, kernel=(5,5), iterations=10):
 
 
 def contours_cluster_by_histo(img, contours, hist_bins=3, thresh=0.2, additional_obs=None):
-    '''(ndarray, n-1-2-list, int, float, list) -> dict
+    '''(ndarray, n-1-2-list, int, float, list) -> dict, list
     Cluster contours by their histograms using cosine distances.
 
     Arguments:
@@ -1162,8 +1162,8 @@ def contours_cluster_by_histo(img, contours, hist_bins=3, thresh=0.2, additional
     of points which represent the contour.
 
     Returns:
-        dictionary, each key is a group containing a
-        list of contours. The keys are 'C1', 'C2' etc.
+        dictionary, each key is a group containing a list of contours. The keys are 'C1', 'C2' etc.
+        and a simple list of contour numerical labels
     '''
     dout = {}; obs = None
     for i, contour in enumerate(contours):
@@ -1191,7 +1191,7 @@ def contours_cluster_by_histo(img, contours, hist_bins=3, thresh=0.2, additional
     for i, grp in enumerate(F):
         dout[lkey(grp)].append(contours[i])
 
-    return dout
+    return dout, F.tolist()
 
 
 def mask_get(img, thresh=(1,1,1)):
@@ -1281,7 +1281,7 @@ def cvpts_to_contour(pts):
     (2, 1, b2)
 
     '''
-    return _np.array(pts, dtype='int32').reshape(9, -1, 2)
+    return _np.array(pts, dtype='int32').reshape(len(pts), -1, 2)
 
 
 def contours_to_bounding_rects(contours):

@@ -37,6 +37,7 @@ from opencvlib  import nms
 from opencvlib import roi
 from opencvlib import geom
 from opencvlib.histo import histo_rgb as _histo_rgb
+import opencvlib.view as _view
 from opencvlib.view import show
 from plotlib.qplot import bar_ as _bar
 
@@ -372,7 +373,7 @@ def main():
                         centroid = geom.centroid(box)
                         if i == 0:
                             heights = [height]
-                            centroids = list(centroid)
+                            centroids = [centroid]
                             boxes_cluster = box_cluster.copy()
                             boxes_untransformed = np.expand_dims(np.array(box[0:8]), 0)
                         else:
@@ -394,15 +395,22 @@ def main():
 
                     #build average heights as an extra cluster dimension
                     mean_cluster_box_heights = []
+                    heights = np.array(heights)
                     for c in contours:
                         pt = roi.rect_xy_to_tlbr(roi.contour_to_cvpts(c))
                         tl = np.array(pt[0]); br = np.array(pt[1])
                         inidx = np.all(np.logical_and(tl <= centroids, centroids <= br), axis=1)
                         mean_cluster_box_heights.append([np.mean(heights[inidx])])
 
+                    #add width as an additional similarity dimension
+                    #on the basis that areas of similiar width are likely to
+                    #be the same text body in multi column documents
+                    for i, obs in mean_cluster_box_heights:
+                        _, _, _, w = roi.rect_as_rchw(roi.contour_to_cvpts(c))
+                        mean_cluster_box_heights[i].append(w / img_orig.shape[1])
 
-                    contour_clusters = roi.contours_cluster_by_histo(img_orig, contours, thresh=EAST.ini.Eval_py.COSINE_DISTANCE_THRESH, additional_obs=mean_cluster_box_heights) #dic {'C1':[cont,cont, ..], 'C2':[cont,cont, ..], ...}, clusterng contours by there RGB histo
-
+                    contour_clusters, contour_groups_list = roi.contours_cluster_by_histo(img_orig, contours, thresh=EAST.ini.Eval_py.COSINE_DISTANCE_THRESH, additional_obs=mean_cluster_box_heights) #dic {'C1':[cont,cont, ..], 'C2':[cont,cont, ..], ...}, clusterng contours by there RGB histo
+                    _view.contours_show(img_orig, contours, contour_groups_list)
 
                     #Now identify outliers by distance - we put these in their own group and update the contours with the inliers
                     contour_clusters['OUTLIERS'] = []

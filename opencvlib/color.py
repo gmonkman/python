@@ -3,6 +3,7 @@
 See test_color.py for examples of using the filter
 '''
 from enum import Enum as _Enum
+import colorsys
 
 import numpy as _np
 import cv2 as _cv2
@@ -463,3 +464,39 @@ def make_cmap(name, n=256):
         ch = _np.interp(xs, xp, yp)
         channels.append(ch)
     return _np.uint8(_np.array(channels).T * 255)
+
+
+
+def _HSVToRGB(h, s, v):
+    (r, g, b) = colorsys.hsv_to_rgb(h, s, v)
+    return (int(255*r), int(255*g), int(255*b))
+
+
+def getDistinctColors(n):
+    huePartition = 1.0 / (n + 1)
+    return list((_HSVToRGB(huePartition * value, 1.0, 1.0) for value in range(0, n)))
+
+
+def black_or_white(background_color):
+    '''(3-tuple) -> 3-tuple
+
+    Given a colour background pick if black or white provides
+    the highest contrast foreground.
+
+    Returns:
+    tuple of black (0,0,0) or white (255,255,255)
+
+    Example:
+    >>>black_or_white((255,255,255))
+    (0, 0, 0)
+    '''
+    B, G, R = background_color
+    B /= 255; G /= 255; R /= 255
+
+    gamma = 2.2
+    L = 0.2126 * B**gamma + 0.7152 * G**gamma + 0.0722 * R**gamma
+
+    if L > 0.5**gamma:
+        return (0, 0, 0)
+
+    return (255, 255, 255)

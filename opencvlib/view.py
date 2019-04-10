@@ -21,6 +21,8 @@ import opencvlib.color as _color
 import opencvlib.info as _info
 from opencvlib import transforms as _transforms
 from opencvlib.common import draw_str as _draw_str
+import opencvlib.geom as _geom
+import opencvlib.roi as _roi
 from opencvlib import getimg as _getimg
 from opencvlib.display_utils import KeyBoardInput, eSpecialKeys
 from opencvlib.common import draw_grid, draw_line, draw_points, draw_scale, draw_str #for convieniance
@@ -269,3 +271,32 @@ def _grouper(n, iterable, fillvalue=None):
     else:
         output = _it.izip_longest(fillvalue=fillvalue, *args)
     return output
+
+
+def contours_show(img, contours, labels, add_label=True, show_=True):
+    '''(ndarray, n,1,2-ndarray, n-list)- > ndarray
+
+    Plot contours with unique colours according to a label list.
+
+    img: image on which to plot the contours
+    contours: an ndarray of contours, of that output by findContours, can also pass a list of cv points
+    label: a list of grouping labels, of len(labels) == len(contours)
+    show: show the image
+
+    Returns: Nothng, just shows the mage
+    '''
+    unq_lbls = list(set(labels))
+
+
+    color_ramp = list(_color.getDistinctColors(len(unq_lbls)))
+    im = img.copy()
+    
+    for i, c in enumerate(contours):
+        lbl = str(labels[i])
+        bg_col = color_ramp[unq_lbls.index(labels[i])]
+        lbl_col = _color.black_or_white(bg_col)
+        im = _cv2.drawContours(im, [c], -1, bg_col, -1)
+        vert = _geom.centroid(_roi.contour_to_cvpts(c), dtype=_np.int)
+        draw_str(im, vert[0], vert[1], lbl, color=lbl_col, scale=2, thickness=1.5, centre_box_at_xy=True)
+    if show:
+        show(im)
