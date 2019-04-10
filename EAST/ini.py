@@ -32,8 +32,10 @@ class Db():
 
 class Eval_py():
     '''eval.py settings'''
-    MASK_MERGE_KERNEL_RATIO = _ConfigFile.tryread('eval.py', 'MASK_MERGE_KERNEL_RATIO', value_on_create='0.01')
-    MASK_JOIN_ITER = _ConfigFile.tryread('eval.py', 'MASK_MERGE_KERNEL_RATIO', value_on_create='20')
+    MASK_MERGE_KERNEL_RATIO = _ConfigFile.tryread('eval.py', 'MASK_MERGE_KERNEL_RATIO', value_on_create='0.01', astype=float)
+    MASK_JOIN_ITER = _ConfigFile.tryread('eval.py', 'MASK_JOIN_ITER', value_on_create='20', astype=int)
     PROGRESS_STATUS_FILE = _ConfigFile.tryread('eval.py', 'PROGRESS_STATUS_FILE')
-    RETRY_FAILED = _ConfigFile.tryread('eval.py', 'RETRY_FAILED')
+    RETRY_FAILED = _ConfigFile.tryread('eval.py', 'RETRY_FAILED', astype=int) #0 = dont retry, 1=retry
     CHECKPOINT_PATH = _path.normpath(_ConfigFile.tryread('eval.py', 'CHECKPOINT_PATH'))
+    COSINE_DISTANCE_THRESH = _ConfigFile.tryread('eval.py', 'COSINE_DISTANCE_THRESH', astype=float)
+    MIN_OUTLIER_DISTANCE_THRESH = _ConfigFile.tryread('eval.py', 'MIN_OUTLIER_DISTANCE_THRESH', astype=float)

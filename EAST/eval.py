@@ -22,6 +22,7 @@ from enum import Enum as _enum
 import cv2
 import numpy as np
 import tensorflow as tf
+import scipy.ndimage as ndimage
 
 from sklearn.cluster import DBSCAN as _DBSCAN
 import opencvlib.view as view
@@ -48,8 +49,8 @@ import EAST
 
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
-MASK_MERGE_KERNEL_RATIO = 0.01
-MASK_JOIN_ITER = 20
+
+
 
 class Flags():
     images_path = ''
@@ -101,11 +102,11 @@ class ProgressStatus():
         _progress_status_file_path = os.path.normpath(EAST.ini.Eval_py.PROGRESS_STATUS_FILE)
 
         if iolib.file_exists(_progress_status_file_path):
-            _progess_status = _baselib.unpickle(ProgressStatus._progress_status_file_path)
+            _progess_status = _baselib.unpickle(_progress_status_file_path)
         else:
-            progress_status = []
+            _progress_status = []
     except Exception as e:
-        warn('Failed to load status file %s' % ProgressStatus._progress_status_file_path)
+        warn('Failed to load status file %s' % _progress_status_file_path)
 
 
     def __init__(self, **kwargs):
@@ -119,18 +120,19 @@ class ProgressStatus():
     @staticmethod
     def get_file_status(img_path):
         '''test if a specific image was processed'''
+        files = [f[eListIndex.img_path] for f in ProgressStatus._progress_status]
         if os.path.normpath(img_path) in files:
-            return statuss[files.index(img_path)]
+            return ProgressStatus[files.index(img_path)][ProgressStatus.eListIndex.status.value]
         else:
             return ProgressStatus.eProgressStatus.NotProcessed
 
 
     @staticmethod
-    def status_add(img_path, status=ProgressStatus.eProgressStatus.Success, err='', ignore_item_exists=True):
+    def status_add(img_path, status=eProgressStatus.Success, err='', ignore_item_exists=True):
         '''record image file as processed'''
         img_path = os.path.normpath(img_path)
-        if get_file_status(img_path) == ProgressStatus.eProgressStatus.NotProcessed:
-            ProgressStatus._progess_status.append([img_path, ProgressStatus.eProgressStatus.Success.value, err])
+        if ProgressStatus.get_file_status(img_path) == eProgressStatus.NotProcessed:
+            ProgressStatus._progess_status.append([img_path, eProgressStatus.Success.value, err])
         else:
             if ignore_item_exists:
                 pass
@@ -138,10 +140,10 @@ class ProgressStatus():
                 raise ValueError('Image "%s" is already in the processed list' % img_path)
 
     @staticmethod
-    def status_edit(img_path, status=ProgressStatus.eProgressStatus.Success, err='', ignore_no_item=True):
+    def status_edit(img_path, status=eProgressStatus.Success, err='', ignore_no_item=True):
         '''record image file as processed'''
         img_path = os.path.normpath(img_path)
-        files = [f[ProgressStatus.eListIndex.img_path] for f in ProgressStatus._progess_status]
+        files = [f[eListIndex.img_path] for f in ProgressStatus._progess_status]
 
         if ignore_no_item:
             try:
@@ -156,13 +158,13 @@ class ProgressStatus():
 
     @staticmethod
     def save():
-        _baselib.pickle(ProgressStatus._progess_status, ProgressStatus._progress_status_file_path)
+        _baselib.pickle(_progess_status, ProgressStatus._progress_status_file_path)
 
 
     @staticmethod
     def status_del(img_path, ignore_no_item=True):
         img_path = os.path.normpath(img_path)
-        files = [f[ProgressStatus.eListIndex.img_path] for f in ProgressStatus._progess_status]
+        files = [f[eListIndex.img_path] for f in ProgressStatus._progess_status]
         if ignore_no_item:
             try:
                 i = files.index(img_path)
@@ -170,7 +172,7 @@ class ProgressStatus():
                 pass
         else:
             i = files.index(img_path)
-        del ProgressStatus._progess_status[i]
+        del _progess_status[i]
 
 
 
@@ -347,7 +349,7 @@ def main():
                 im_resized, (ratio_h, ratio_w) = resize_image(im) #multiple of 32 px for network
 
                 score, geometry = sess.run([f_score, f_geometry], feed_dict={input_images: [im_resized]})
-                boxes = detect(score_map=score, geo_map=geometry, timer=timer)
+                boxes = detect(score_map=score, geo_map=geometry)
 
                 #read all detectionss
                 if not boxes is None:
@@ -355,7 +357,7 @@ def main():
                     boxes[:, :, 0] /= ratio_w
                     boxes[:, :, 1] /= ratio_h
 
-                    PP2 = PrintProgress(len(boxes), bar_length=20, init_msg='Inner loop computing histograms...')
+                    PP2 = PrintProgress(len(boxes), bar_length=20, init_msg='Processing box detections ...')
 
                     for i, box in enumerate(boxes): #box.shape = (4, 2)
                         # to avoid submitting errors
@@ -365,28 +367,53 @@ def main():
                             continue
 
                         box_cluster = np.array((box[0, 0]/w, box[0, 1]/h, box[2, 0]/w, box[2, 1]/h, box[2, 1]/h - box[0, 1]/h)) #format is x1, y1, x2, y2, y2-y1
-                        box_cluster = np.hstack((box_cluster, hist1))
                         box_for_cluster_untransformed = np.array((box[0, 0], box[0, 1], box[2, 0], box[2, 1], box[2, 1] - box[0, 1])) #format is x1, y1, x2, y2, y2-y1
-
+                        height = box[2, 1]/h - box[0, 1]/h
+                        centroid = geom.centroid(box)
                         if i == 0:
+                            heights = [height]
+                            centroids = list(centroid)
                             boxes_cluster = box_cluster.copy()
                             boxes_untransformed = np.expand_dims(np.array(box[0:8]), 0)
                         else:
+                            heights.append(height)
+                            centroids.append(centroid)
                             boxes_cluster = np.vstack((boxes_cluster, box_cluster))
                             boxes_untransformed = np.concatenate((boxes_untransformed, np.expand_dims(np.array(box[0:8]), 0)))
 
                         PP2.increment()
 
-                    mask, contours, _ = roi.polys_to_mask(im, boxes_untransformed)
-                    mask = roi.mask_join(mask, _get_dilate_kernel(mask), EAST.ini.Eval_py.MASK_JOIN_ITER) #join nearby word detection masks
+                    centroids = np.array(centroids) #n,2 numpy array of points
+
+                    mask, contours, _ = roi.polys_to_mask(im, boxes_untransformed, use_bounding_rect=True) #make a mask out of every word detection
+                    mask = roi.mask_join(mask, _get_dilate_kernel(mask), EAST.ini.Eval_py.MASK_JOIN_ITER) #join nearby word detection masks using dilation
                     contours, _ = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE) #reget the contours after merging
-                    contour_clusters = roi.contours_cluster_by_histo(img_orig, contours) #dic {'C1':[cont,cont, ..], 'C2':[cont,cont, ..], ...}
+                    contours = roi.contours_to_bounding_rects(contours) #make contours rectangles
+                    contours_as_pts = [roi.contour_to_cvpts(c) for c in contours]
+                    mask, contours, _ = roi.polys_to_mask(im, contours_as_pts, use_bounding_rect=False) #make a new mask from the rectangular contours we just made
+
+                    #build average heights as an extra cluster dimension
+                    mean_cluster_box_heights = []
+                    for c in contours:
+                        pt = roi.rect_xy_to_tlbr(roi.contour_to_cvpts(c))
+                        tl = np.array(pt[0]); br = np.array(pt[1])
+                        inidx = np.all(np.logical_and(tl <= centroids, centroids <= br), axis=1)
+                        mean_cluster_box_heights.append([np.mean(heights[inidx])])
 
 
-                    for key, clusters in contour_clusters:
-                        img_cropped, _, pts_xt = _roi.crop_from_rects(img, clusters)
-                        #out = geom.poly_distance_order((0,0), [pts_xt], 'taxicab')[0] #Basically just the distance this merged region
-                        #regions_sorted = sorted(regions, key=lambda dist: dist[1])
+                    contour_clusters = roi.contours_cluster_by_histo(img_orig, contours, thresh=EAST.ini.Eval_py.COSINE_DISTANCE_THRESH, additional_obs=mean_cluster_box_heights) #dic {'C1':[cont,cont, ..], 'C2':[cont,cont, ..], ...}, clusterng contours by there RGB histo
+
+
+                    #Now identify outliers by distance - we put these in their own group and update the contours with the inliers
+                    contour_clusters['OUTLIERS'] = []
+                    for key, items in contour_clusters.items():
+                        inliers, outliers, _ = roi.contour_cluster_outliers(items, thresh=EAST.ini.Eval_py.MIN_OUTLIER_DISTANCE_THRESH, plane_size=img_orig.shape)
+                        contour_cluster[key] = inliers
+                        contour_cluster['OUTLIERS'].append(outliers)
+
+                    for key, clusters in contour_clusters.items():
+                        if clusters:
+                            img_cropped, _, pts_xt = _roi.crop_from_rects(img_orig, clusters)
 
                     ProgressStatus.status_add(im_fn, ProgressStatus.eProgressStatus.Success)
                     PP1.increment()
@@ -407,7 +434,8 @@ def _get_dilate_kernel(img):
     #this was based on manually checking results on
     #a 700x700 image and taking the "good" kernel ratio
     #which was (5,5)
-    return (int(EAST.ini.Eval_py.MASK_MERGE_KERNEL_RATIO * img.shape[0]), int(EAST.ini.Eval_py.MASK_MERGE_KERNEL_RATIO * img.shape[0]))
+    r = float(EAST.ini.Eval_py.MASK_MERGE_KERNEL_RATIO)
+    return (int(r * img.shape[0]), int(r * img.shape[0]))
 
 
 

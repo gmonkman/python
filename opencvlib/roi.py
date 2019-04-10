@@ -13,6 +13,7 @@ import numpy as _np
 from numpy import ma as _ma
 import scipy.spatial.distance as _scipy_dist
 import scipy.cluster.hierarchy as _scipy_heir
+import scipy.ndimage as _ndimage
 
 import opencvlib as _opencvlib
 import opencvlib.info as _info
@@ -496,7 +497,7 @@ def roi_polygons_get(img, points):
     return white_mask_crop, mask, bitwise, rectcrop
 
 
-def polys_to_mask(img, polys, getcontours=True, cnt_mode=_cv2.RETR_EXTERNAL, cnt_method=_cv2.CHAIN_APPROX_SIMPLE):
+def polys_to_mask(img, polys, getcontours=True, cnt_mode=_cv2.RETR_EXTERNAL, cnt_method=_cv2.CHAIN_APPROX_SIMPLE, use_bounding_rect=False):
     '''(str|ndarray, list|ndarray, tuple|int, enum:ePointsFormat, bool, bool) -> ndarray, ndarray, tuple
     Create a mask (255 = Include, 0 = Exclude) from an n-4-2-array of polygons.
 
@@ -504,7 +505,7 @@ def polys_to_mask(img, polys, getcontours=True, cnt_mode=_cv2.RETR_EXTERNAL, cnt
     polys:a list or ndarray of polygons, each "row" represents a polygon, i.e. an n x 4 x 2 array|list
     getcontours: Also return contours (uses mask)
     cnt_mode, cnt_method: mode and method args for the contour function
-
+    use_bounding_rect: Detected contours are first converted to their bounding rectangle
     Returns:
         mask (b&w image with shape=img.shape), contours, countour hierachy
 
@@ -521,6 +522,8 @@ def polys_to_mask(img, polys, getcontours=True, cnt_mode=_cv2.RETR_EXTERNAL, cnt
     #poly sould be an n x 4 x 2 array here
     for poly in polys_:
         poly = _np.array(poly, dtype='int32')
+        if use_bounding_rect:
+            poly = _np.array(bounding_rect_of_poly(poly.squeeze()), dtype='int32')
         mask = _cv2.fillPoly(mask, [poly], (255, 255, 255))
 
     if getcontours:
@@ -716,6 +719,16 @@ def to_rect(a):
     if len(a) == 2:
         a = (0, 0, a[0], a[1])
     return _np.array(a, _np.float64).reshape(2, 2)
+
+def rect_xywh_to_pts(x, y, w, h):
+    '''(int|float,int|float,int|float,int|float) -> 4,2-list
+    xywh defined rect to cvxy points
+
+    Example:
+    >>>rect_xywh_to_pts(0, 0, 10, 10)
+    [[0,0], [0,10], [10,10], [10,0]]
+    '''
+    return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
 
 
 def rect_as_rchw(pts):
@@ -1006,7 +1019,7 @@ def crop_from_rects(img, rects, crop=True, mask_with_boundary_pixels=False):
     Note, if we ask to crop the image, the returned
     image dimensions won't match the mask dimensions.
 
-    rects:list cvxy points
+    rects:numpy array of contours, each contour contains n points, a contour has shape n,1,2
     crop:crop the output image to extent of included regions
     mask_with_boundary_pixels: rather than a black mask, fill with
     mean boundary pixel value
@@ -1027,17 +1040,14 @@ def crop_from_rects(img, rects, crop=True, mask_with_boundary_pixels=False):
     else:
         colour = (255, 255, 255, 255)
 
+    pts = []
     for rect in rects:
         _cv2.fillPoly(mask, _np.array([rect], dtype='int32'), color=colour)
-
+        pts.extend(rect.squeeze().tolist())
 
     i = get_image_from_mask(img, mask)
     if crop:
         miny = img.shape[0]; maxy=0; minx=img.shape[1]; maxx = 0;
-        pts = []
-
-        _ = [pts.extend(poly) for poly in rects]
-
         xs, ys = zip(*pts)
         miny = miny if min(ys) > miny else min(ys)
         maxy = maxy if max(ys) < maxy else max(ys)
@@ -1129,11 +1139,12 @@ def mask_join(img, kernel=(5,5), iterations=10):
     return imgdil
 
 
-def contours_cluster_by_histo(img, contours, hist_bins=3, thresh=0.2):
-    '''(ndarray, n-1-2-list, int, float) -> dict
+def contours_cluster_by_histo(img, contours, hist_bins=3, thresh=0.2, additional_obs=None):
+    '''(ndarray, n-1-2-list, int, float, list) -> dict
     Cluster contours by their histograms using cosine distances.
 
     Arguments:
+    img: the original image from which we build are patch histos
     contours: Contours found with cv2.findcontours, each contour is a n-1-2 list of cv points
     >>>contours[0]
     array([[[100, 200]],
@@ -1145,7 +1156,7 @@ def contours_cluster_by_histo(img, contours, hist_bins=3, thresh=0.2):
 
     hist_bins: Number of bins for each channel's histogram
     thresh: The cosine distance below which contours are considered the same. Note that cosine distances vary between -1 and 1. For all positive plane values, distances vary between 0 and 1.
-
+    additional_obs: an len(contours),n-list of additional data to append to the observationss
     Note:
     contours is a n-list where each element is an n,1,2-ndarray
     of points which represent the contour.
@@ -1157,8 +1168,9 @@ def contours_cluster_by_histo(img, contours, hist_bins=3, thresh=0.2):
     dout = {}; obs = None
     for i, contour in enumerate(contours):
         bx = contour.squeeze().tolist()
-        bx_xywh = rect_xy_to_xywh(bx)
+        bx_xywh = rect_xy_to_xywh(bounding_rect_of_poly(bx))
         _, hist1, hist2, hist3 = _histo_rgb(img, bx_xywh, (0, 1, 2), bins=hist_bins)
+        if additional_obs: hist3.extend(tuple(additional_obs[i]))
         hist2.extend(tuple(hist3))
         hist1.extend(tuple(hist2))
         if obs is None:
@@ -1239,3 +1251,113 @@ def boundary_colour_mean(img, rects):
            int((m(topg) + m(bottomg) + m(leftg) + m(rightg))/4),
            int((m(topr) + m(bottomr) + m(leftr) + m(rightr))/4))
     return out
+
+
+def contour_to_cvpts(cnt):
+    '''(n,1,2-ndarray) -> n,2-list
+    Convert a contour points to
+    standard CVXY points list.
+
+    cnt:A cv2 contour, which is an n,1,2 ndarray
+
+    Returns:
+    List of points in standard cv format, e.g. [[0,0],[1,2]]
+    '''
+    return cnt.squeeze().tolist()
+
+def cvpts_to_contour(pts):
+    '''(n,2-list) -> n,1,2-ndarray
+    Convert a standard CVXY points list to
+    a cv contour (e.g. an element in the list
+    returned by cv2.findContours.
+
+    pts: List of points in standard cv format, e.g. [[0,0],[1,2]]
+
+    Returns:
+    A cv2 contour, which is an n,1,2 ndarray
+
+    Example:
+    >>>cvpts_to_contour([[0,0],[1,2]]).shape
+    (2, 1, b2)
+
+    '''
+    return _np.array(pts, dtype='int32').reshape(9, -1, 2)
+
+
+def contours_to_bounding_rects(contours):
+    '''(n,m,1,2-ndarray) -> (n,4,1,2-ndarray)
+
+    Get bounding contours from contour polygons.
+    Contour polygons are returned by the cv2.findContours
+    function.
+
+    contours: contours list, e.g. from cv2.findContours
+
+    Returns:
+    contours converted to their bounding rects.
+    '''
+    cnts_ = list(contours) #copy it
+    for i, cnt in enumerate(contours):
+         x, y, w, h = _cv2.boundingRect(cnt)
+         c = cvpts_to_contour(rect_xywh_to_pts(x, y, w, h))
+         cnts_[i] = c
+    return cnts_
+
+
+def contour_cluster_outliers(contours, thresh, plane_size=None, thresh_is_proportion=True):
+    '''(list:n,1,2-ndarray, float|int, None|2-tuple, bool)-> list, list, 2-tuple:n,2-lists
+    Given a set of contours (e.g. from cv2.findContours), split the
+    contours into contours further than thresh away from any other contour
+
+    Parameters:
+    contours: Contour list, list of n,1,2-ndarray polygons
+    thresh: Threshold distance, any shape > threshold from all other shapes is an outlier. Based on the greatest image shape rather than average - think of case when image is cut off, we don't want to allow very small distances as the larger dimension will be reflective of the "real" doc size.
+    plane_size: The total plane size, use when using thresh_is_proportion
+    thresh_is_proportion:distances are calculated as a proportion of the plane size, otherwise thresh is pixels.
+
+    Returns:
+        list of clustered contours, and list of outlier contours then a 2-tuple containing the indices of the inliers and outliers.
+        i.e. "return inliers, outliers, (inlier_idxs, outlier_idxs)"
+
+    Example:
+    >>>inliers, outliers, indices = contour_cluster_outliers(contours, 0.1, img.shape)
+    '''
+    assert thresh_is_proportion and plane_size, 'Cannot have a proportional threshhold without  plane_size'
+
+    y1, y2, x1, x2 = contours_bounding_rect(contours)
+
+    if plane_size:
+        I = _np.zeros(plane_size, dtype='int32') #int32 might be required for ndimage manipulation so force it
+    else:
+        I = _np.zeros((y2, x2), dtype='int32')
+
+    if thresh_is_proportion:
+        px_dist = int(max(plane_size) * thresh)
+    else:
+        px_dist = int(thresh)
+
+    I = _cv2.drawContours(I, contours, -1, 255)
+    I, _ = _ndimage.label(I)
+    D = _dist.feature_dist(I)
+
+    inlier_idxs = _np.argwhere(D < px_dist)[:, 0]
+    inliers = [contours[i] for i in inlier_idxs]
+
+    outlier_idxs = _baselib.list_not(range(len(contours)), inliers)
+    outliers = [contours[i] for i in outlier_idxs]
+    return inliers, outliers, (inlier_idxs, outlier_idxs)
+
+
+
+def contours_bounding_rect(contours):
+    '''(list:n,1,2-ndarray)->y1, y2, x1, x2
+
+    Returns:
+        y1, y2, x1, x2. Chosen for ease of use in using for slicing
+    '''
+    allpts = []
+    for c in contours:
+        pts = contour_to_cvpts(c)
+        _ = [allpts.append(pt) for pt in pts]
+    xs, ys = zip(*allpts)
+    return min(ys), max(ys), min(xs), max(xs)

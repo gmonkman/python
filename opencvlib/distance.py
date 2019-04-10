@@ -1,6 +1,8 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled,
 # no-self-use, unused-argument
 '''Distance measures'''
+from warnings import warn as _warn
+
 import numpy as _np
 import scipy.spatial.distance as _scipy_dist
 
@@ -144,13 +146,33 @@ def linear_distance_matrix(r, c):
 
 def feature_dist(labelled_array):
     #see https://stackoverflow.com/questions/37228589/minimal-edge-to-edge-euclidean-distance-between-labeled-components-in-numpy-arra
-    """
+    """(tuple|ndarray) -> n,n-ndarray
     Takes a labeled array as returned by scipy.ndimage.label and
     returns an intra-feature distance matrix which should be the
     edge to edge distance between features.
 
-    Note this should accept ndarray mask images.
+    Use scipy.ndimage.label to label images to be passed into
+    feature_dist. All non-zero values are considered features.
+
+    Params:
+    labelled_array: An ndarray of labelled features
+
+    Returns:
+    A square form n x n distance matrix ndarray
+
+    Example:
+    >>>A=_np.zeros(100).reshape(10,10)
+    >>>A[0:2,0:2] = 1; A[3,3]=1; A[8:10,8:10]=1
+    >>>ALbl= _ndimage.label(A)
+    >>>feature_dist(ALbl[0])
+    array(  [[0.        , 2.82842712, 9.89949494],
+            [2.82842712, 0.        , 7.07106781],
+            [9.89949494, 7.07106781, 0.        ]])
     """
+    if isinstance(labelled_array, tuple):
+        _warn('Tuple was passed to feature_dist, assuming the ndarray is in the tuple. This happens of the output from ndimage.label is used directly and is not a problem.')
+        labelled_array = labelled_array[0]
+
     I, J = _np.nonzero(labelled_array)
     labels = labelled_array[I,J]
     coords = _np.column_stack((I,J))

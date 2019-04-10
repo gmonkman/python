@@ -17,10 +17,10 @@ from contextlib import contextmanager as _contextmanager
 from contextlib import suppress as _suppress
 import datetime as _datetime
 
-try:
-    import cPickle as _pickle
-except BaseException:
-    import _pickle
+#try:
+ #   import cPickle as _pickle
+#except BaseException:
+import pickle as _pickle
 
 import subprocess as _subprocess
 import sys as _sys
@@ -594,7 +594,7 @@ def file_list_generator1(paths, wildcards, recurse=False):
     if isinstance(wildcards, str):
         wildcards = [wildcards]
 
-    wildcards = ['*' + x if x[0] == '.' else x for x in wildcards]
+    wildcards = tuple(set(['*' + x.lower() if x[0] == '.' else x.lower() for x in wildcards]))
 
     #for ind, v in enumerate(paths):
        # paths[ind] = _os.path.normpath(v)

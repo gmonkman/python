@@ -374,8 +374,14 @@ def depth(l):
 def list_not(lst, not_in_list):
     '''(list,list)->list
     return set of lst elements not in not_in_list
-
-    **Removes duplicates'''
+    123456
+        5678
+    >>>1234
+    **Removes duplicates
+    Example:
+    >>>list_not([1,2,3,4,5,6], [5,6,7,8])
+    [1,2,3,4]
+    '''
     return list(set(lst) - set(not_in_list))
 
 

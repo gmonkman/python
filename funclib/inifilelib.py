@@ -40,7 +40,7 @@ class ConfigFile(object):
         return str(self._config.options)
 
 
-    def tryread(self, section, option, force_create=False, value_on_create='', asType=eReadAs.ersStr, error_on_read_fail=False):
+    def tryread(self, section, option, force_create=False, value_on_create='', asType=eReadAs.ersStr, error_on_read_fail=False, astype=str):
         '''(str, str, bool, str|dict, Enum:eReadAs, bool) -> str
         Returns the value read, which will default to value_on_create if no section or option is found.
         Saves to disk if new option created.
@@ -53,9 +53,15 @@ class ConfigFile(object):
             Create the section and option with value value_on_create
         asType:
             The type to try to load the value as, so we can force
-            reading a value in the config file as a dictionary for example
+            reading a value in the config file as a dictionary or list for example
         error_on_read_fail:
             Raise KeyError if entry not read
+        astype:
+            force type if we are reading a non-iterable value (e.g. float|int)
+
+        Example:
+        >>Ini.tryread('SECTION', 'MYINT', astype=float)
+        12.123
         '''
         assert isinstance(self._config, _cp.ConfigParser)
         if self._config.has_section(section): #have the section eg [CONFIG]
@@ -64,7 +70,7 @@ class ConfigFile(object):
                 if asType != eReadAs.ersStr:
                     d = _ast.literal_eval(s)
                     return d
-                return s
+                return astype(s)
             else:
                 if force_create:
                     if isinstance(value_on_create, dict):
@@ -72,7 +78,7 @@ class ConfigFile(object):
                     else:
                         value_on_create = value_on_create
                     self.save()
-                    return value_on_create
+                    return astype(value_on_create)
                 else:
                     raise KeyError('Option %s not found for section %s in inifile %s' % (option, section, self.ini_file))
         else:
@@ -83,7 +89,7 @@ class ConfigFile(object):
                 else:
                     self._config.set(section, option, value_on_create)
                 self.save()
-                return value_on_create
+                return astype(value_on_create)
             else:
                 raise KeyError('Section %s not found in %s' % (section, self.ini_file))
 
