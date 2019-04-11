@@ -103,7 +103,7 @@ class ProgressStatus():
         _progress_status_file_path = os.path.normpath(EAST.ini.Eval_py.PROGRESS_STATUS_FILE)
 
         if iolib.file_exists(_progress_status_file_path):
-            _progess_status = _baselib.unpickle(_progress_status_file_path)
+            _progress_status = _baselib.unpickle(_progress_status_file_path)
         else:
             _progress_status = []
     except Exception as e:
@@ -116,7 +116,7 @@ class ProgressStatus():
 
     @staticmethod
     def save():
-        _baselib.pickle(ProgressStatus._progess_status, ProgressStatus._progress_status_file_path)
+        _baselib.pickle(ProgressStatus._progress_status, ProgressStatus._progress_status_file_path)
 
     @staticmethod
     def get_file_status(img_path):
@@ -129,11 +129,13 @@ class ProgressStatus():
 
 
     @staticmethod
-    def status_add(img_path, status=eProgressStatus.Success, err='', ignore_item_exists=True):
+    def status_add(img_path, status=eProgressStatus.Success, err='', ignore_item_exists=True, save_=True):
         '''record image file as processed'''
         img_path = os.path.normpath(img_path)
-        if ProgressStatus.get_file_status(img_path) == eProgressStatus.NotProcessed:
-            ProgressStatus._progess_status.append([img_path, eProgressStatus.Success.value, err])
+        if ProgressStatus.get_file_status(img_path) == ProgressStatus.eProgressStatus.NotProcessed:
+            ProgressStatus._progress_status.append([img_path, ProgressStatus.eProgressStatus.Success.value, err])
+            if save_:
+                ProgressStatus.save()
         else:
             if ignore_item_exists:
                 pass
@@ -144,7 +146,7 @@ class ProgressStatus():
     def status_edit(img_path, status=eProgressStatus.Success, err='', ignore_no_item=True):
         '''record image file as processed'''
         img_path = os.path.normpath(img_path)
-        files = [f[eListIndex.img_path] for f in ProgressStatus._progess_status]
+        files = [f[eListIndex.img_path] for f in ProgressStatus._progress_status]
 
         if ignore_no_item:
             try:
@@ -159,13 +161,13 @@ class ProgressStatus():
 
     @staticmethod
     def save():
-        _baselib.pickle(_progess_status, ProgressStatus._progress_status_file_path)
+        _baselib.pickle(_progress_status, ProgressStatus._progress_status_file_path)
 
 
     @staticmethod
     def status_del(img_path, ignore_no_item=True):
         img_path = os.path.normpath(img_path)
-        files = [f[eListIndex.img_path] for f in ProgressStatus._progess_status]
+        files = [f[eListIndex.img_path] for f in ProgressStatus._progress_status]
         if ignore_no_item:
             try:
                 i = files.index(img_path)
@@ -173,7 +175,7 @@ class ProgressStatus():
                 pass
         else:
             i = files.index(img_path)
-        del _progess_status[i]
+        del _progress_status[i]
 
 
 
@@ -405,7 +407,7 @@ def main():
                     #add width as an additional similarity dimension
                     #on the basis that areas of similiar width are likely to
                     #be the same text body in multi column documents
-                    for i, obs in mean_cluster_box_heights:
+                    for i, obs in enumerate(mean_cluster_box_heights):
                         _, _, _, w = roi.rect_as_rchw(roi.contour_to_cvpts(c))
                         mean_cluster_box_heights[i].append(w / img_orig.shape[1])
 
@@ -413,11 +415,18 @@ def main():
                     _view.contours_show(img_orig, contours, contour_groups_list)
 
                     #Now identify outliers by distance - we put these in their own group and update the contours with the inliers
-                    contour_clusters['OUTLIERS'] = []
-                    for key, items in contour_clusters.items():
+                    all_outliers = []
+                    for key, items in contour_clusters.items(): #if we have 2 contours which are appart, they are both moved to outliers - doesnt really matter
+                        if key == 'OUTLIERS': continue
                         inliers, outliers, _ = roi.contour_cluster_outliers(items, thresh=EAST.ini.Eval_py.MIN_OUTLIER_DISTANCE_THRESH, plane_size=img_orig.shape)
-                        contour_cluster[key] = inliers
-                        contour_cluster['OUTLIERS'].append(outliers)
+                        contour_clusters[key] = inliers
+                        if outliers:
+                            all_outliers.extend(outliers)
+
+                    outlier_cnt = 1
+                    for o in all_outliers:
+                        contour_clusters['OUTLIERS%s' % outlier_cnt] = [o]
+                        outlier_cnt += 1
 
                     for key, clusters in contour_clusters.items():
                         if clusters:

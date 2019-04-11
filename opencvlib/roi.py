@@ -1041,6 +1041,7 @@ def crop_from_rects(img, rects, crop=True, mask_with_boundary_pixels=False):
         colour = (255, 255, 255, 255)
 
     pts = []
+
     for rect in rects:
         _cv2.fillPoly(mask, _np.array([rect], dtype='int32'), color=colour)
         pts.extend(rect.squeeze().tolist())
@@ -1263,7 +1264,9 @@ def contour_to_cvpts(cnt):
     Returns:
     List of points in standard cv format, e.g. [[0,0],[1,2]]
     '''
-    return cnt.squeeze().tolist()
+    if isinstance(cnt, _np.ndarray):
+        return cnt.squeeze().tolist()
+    return cnt
 
 def cvpts_to_contour(pts):
     '''(n,2-list) -> n,1,2-ndarray
@@ -1318,21 +1321,23 @@ def contour_cluster_outliers(contours, thresh, plane_size=None, thresh_is_propor
     Returns:
         list of clustered contours, and list of outlier contours then a 2-tuple containing the indices of the inliers and outliers.
         i.e. "return inliers, outliers, (inlier_idxs, outlier_idxs)"
-
+        Returns empty lists if no outliers and outlier indices.
     Example:
     >>>inliers, outliers, indices = contour_cluster_outliers(contours, 0.1, img.shape)
     '''
+    if len(contours) == 1: return contours, [], ([0], []) #no outliers with a single contour!
+
     assert thresh_is_proportion and plane_size, 'Cannot have a proportional threshhold without  plane_size'
 
-    y1, y2, x1, x2 = contours_bounding_rect(contours)
+    y1, y2, x1, x2 = contours_bounding_rect(contours) #bounding rect of all contours
 
     if plane_size:
-        I = _np.zeros(plane_size, dtype='int32') #int32 might be required for ndimage manipulation so force it
+        I = _np.zeros(plane_size[0:2], dtype='int32') #int32 might be required for ndimage manipulation so force it
     else:
         I = _np.zeros((y2, x2), dtype='int32')
 
     if thresh_is_proportion:
-        px_dist = int(max(plane_size) * thresh)
+        px_dist = int(plane_size[1] * thresh)
     else:
         px_dist = int(thresh)
 
@@ -1340,10 +1345,10 @@ def contour_cluster_outliers(contours, thresh, plane_size=None, thresh_is_propor
     I, _ = _ndimage.label(I)
     D = _dist.feature_dist(I)
 
-    inlier_idxs = _np.argwhere(D < px_dist)[:, 0]
+    inlier_idxs = list(set(_np.argwhere((D < px_dist) & (D != 0)).flatten().tolist()))
     inliers = [contours[i] for i in inlier_idxs]
 
-    outlier_idxs = _baselib.list_not(range(len(contours)), inliers)
+    outlier_idxs = _baselib.list_not(range(len(contours)), inlier_idxs)
     outliers = [contours[i] for i in outlier_idxs]
     return inliers, outliers, (inlier_idxs, outlier_idxs)
 
