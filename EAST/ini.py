@@ -13,7 +13,9 @@ import os.path as _path
 
 import funclib.iolib as _iolib
 import funclib.inifilelib as _inifilelib
+import EAST as _EAST
 
+NMS_MODES = ['none', 'simple', 'pylanms', 'cpplanms']
 
 _PTH = _iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
 _INIPATH = _path.normpath(_path.join(_PTH, 'EAST.ini'))
@@ -30,7 +32,7 @@ class Db():
     is_integrated = _ConfigFile.tryread('db', 'security').lower() == 'integrated'
 
 
-class Eval_py():
+class Detect_py():
     '''eval.py settings'''
     MASK_MERGE_KERNEL_RATIO = _ConfigFile.tryread('eval.py', 'MASK_MERGE_KERNEL_RATIO', value_on_create='0.01', astype=float)
     MASK_JOIN_ITER = _ConfigFile.tryread('eval.py', 'MASK_JOIN_ITER', value_on_create='20', astype=int)
@@ -39,3 +41,9 @@ class Eval_py():
     CHECKPOINT_PATH = _path.normpath(_ConfigFile.tryread('eval.py', 'CHECKPOINT_PATH'))
     COSINE_DISTANCE_THRESH = _ConfigFile.tryread('eval.py', 'COSINE_DISTANCE_THRESH', astype=float)
     MIN_OUTLIER_DISTANCE_THRESH = _ConfigFile.tryread('eval.py', 'MIN_OUTLIER_DISTANCE_THRESH', astype=float)
+
+    NMS_MODE = _ConfigFile.tryread('eval.py', 'NMS_MODE', astype=str, value_on_create='none').lower()
+    assert NMS_MODE in NMS_MODES, 'Invalid nms_mode %s. nms_mode in %s' % (NMS_MODE, NMS_MODES)
+
+    TEXT_SCALE = _ConfigFile.tryread('eval.py', 'TEXT_SCALE', astype=int, value_on_create=512)
+    GPU_LIST = _ConfigFile.tryread('eval.py', 'GPU_LIST', astype=int, value_on_create=0)

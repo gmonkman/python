@@ -1,8 +1,11 @@
+#pylint: skip-file
+'''nms'''
 import numpy as np
 from shapely.geometry import Polygon
 
 
 def intersection(g, p):
+    '''doc'''
     g = Polygon(g[:8].reshape((4, 2)))
     p = Polygon(p[:8].reshape((4, 2)))
     if not g.is_valid or not p.is_valid:
@@ -16,12 +19,14 @@ def intersection(g, p):
 
 
 def weighted_merge(g, p):
+    '''doc'''
     g[:8] = (g[8] * g[:8] + p[8] * p[:8])/(g[8] + p[8])
     g[8] = (g[8] + p[8])
     return g
 
 
 def standard_nms(S, thres):
+    '''doc'''
     order = np.argsort(S[:, 8])[::-1]
     keep = []
     while order.size > 0:
@@ -59,6 +64,7 @@ def nms_locality(polys, thres=0.3):
 
 
 if __name__ == '__main__':
+    '''doc'''
     # 343,350,448,135,474,143,369,359
     print(Polygon(np.array([[343, 350], [448, 135],
                             [474, 143], [369, 359]])).area)

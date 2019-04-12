@@ -6,9 +6,11 @@ import os.path as path
 import pytesseract
 
 import funclib.iolib as iolib
-from textract.mags import SeaAngler
 
-
+def get_issue(s):
+    '''str -> str
+    gets issue from the file name'''
+    return s.split('_')[1:2][0]
 
 
 def main():

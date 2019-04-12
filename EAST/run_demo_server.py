@@ -1,5 +1,5 @@
+#pylint: skip-file
 #!/usr/bin/env python3
-
 import os
 
 import time
@@ -39,7 +39,7 @@ def get_predictor(checkpoint_path):
     import model
     from icdar import restore_rectangle
     import lanms
-    from eval import resize_image, sort_poly, detect
+    from eval import _resize_image, _sort_poly, _detect
 
     input_images = tf.placeholder(tf.float32, shape=[None, None, None, 3], name='input_images')
     global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0), trainable=False)
@@ -93,7 +93,7 @@ def get_predictor(checkpoint_path):
             ('nms', 0)
         ])
 
-        im_resized, (ratio_h, ratio_w) = resize_image(img)
+        im_resized, (ratio_h, ratio_w) = _resize_image(img)
         rtparams['working_size'] = '{}x{}'.format(
             im_resized.shape[1], im_resized.shape[0])
         start = time.time()
@@ -102,7 +102,7 @@ def get_predictor(checkpoint_path):
             feed_dict={input_images: [im_resized[:,:,::-1]]})
         timer['net'] = time.time() - start
 
-        boxes, timer = detect(score_map=score, geo_map=geometry, timer=timer)
+        boxes, timer = _detect(score_map=score, geo_map=geometry, timer=timer)
         logger.info('net {:.0f}ms, restore {:.0f}ms, nms {:.0f}ms'.format(
             timer['net']*1000, timer['restore']*1000, timer['nms']*1000))
 
@@ -120,7 +120,7 @@ def get_predictor(checkpoint_path):
         if boxes is not None:
             text_lines = []
             for box, score in zip(boxes, scores):
-                box = sort_poly(box.astype(np.int32))
+                box = _sort_poly(box.astype(np.int32))
                 if np.linalg.norm(box[0] - box[1]) < 5 or np.linalg.norm(box[3]-box[0]) < 5:
                     continue
                 tl = collections.OrderedDict(zip(

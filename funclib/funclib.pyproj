@@ -31,6 +31,9 @@
     <Compile Include="configlib.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="decs.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="excellib.py">
       <SubType>Code</SubType>
     </Compile>

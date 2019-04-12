@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f9d93d92-62d5-4ef4-accd-eb0b730340b9}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>eval.py</StartupFile>
+    <StartupFile>test\test_detect.py</StartupFile>
     <SearchPath>..</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -13,9 +13,11 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
-    <CommandLineArguments>--images_path=C:/development/python/EAST/test/bin --output_dir=C:/development/python/EAST/test/bin/detections --nms_mode=none</CommandLineArguments>
+    <CommandLineArguments>
+    </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <Environment>eval.py --images_path=C:/development/python/EAST/test/bin --checkpoint_path=C:/development/python/EAST/model/east_icdar2015_resnet_v1_50_rbox --output_dir=C:/development/python/EAST/test/bin/detections --nms_mode='none'</Environment>
+    <Environment>
+    </Environment>
     <DebugStdLib>False</DebugStdLib>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
@@ -45,7 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="data_util.py" />
-    <Compile Include="eval.py" />
+    <Compile Include="detect.py" />
     <Compile Include="icdar.py" />
     <Compile Include="ini.py">
       <SubType>Code</SubType>
@@ -59,11 +61,8 @@
     <Compile Include="nets\resnet_utils.py" />
     <Compile Include="nets\resnet_v1.py" />
     <Compile Include="nets\__init__.py" />
-    <Compile Include="paragraphs.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="run_demo_server.py" />
-    <Compile Include="test\test_paragraphs.py">
+    <Compile Include="test\test_detect.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="__init__.py" />

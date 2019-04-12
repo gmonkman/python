@@ -29,9 +29,6 @@
     <Compile Include="ini.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="mag.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="model.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>

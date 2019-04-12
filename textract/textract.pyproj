@@ -25,9 +25,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts\pdf2img.py" />
-    <Compile Include="mags.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="tesseractlib.py">
       <SubType>Code</SubType>
     </Compile>

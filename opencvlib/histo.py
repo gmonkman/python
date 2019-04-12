@@ -15,7 +15,7 @@ import funclib.iolib as _iolib
 
 from opencvlib.transforms import BGR2HSV as _BGR2HSV
 from opencvlib import getimg as _getimg
-from opencvlib import roi as _roi
+
 
 def histo_hsv(img, histo=None, channels=(0, 1), mask=None, accumulate=False, img_is_hsv=False, normalise=True):
     '''(str|ndarray, &ndarray, str, bool, bool)
@@ -120,7 +120,7 @@ def histo_rgb(img, rect_patch=None, channels=(0, 1, 2), bins=256, flatten_channe
     if len(img_.shape) < 1: _warn('The image was a 1D ndarray, expect 2D or 3D array')
 
     if rect_patch:
-        img_, _ = _roi.cropimg_xywh(img_, *rect_patch)
+        img_, _ = _cropimg_xywh(img_, *rect_patch)
 
     if normalise_img:
         img_ = (img_ / 255)
@@ -276,3 +276,31 @@ class VisualColorHisto():
         vis = self._hsv_map * h[:, :, _np.newaxis] / 255.0
         self._histimg = vis
         _cv2.imshow('hist', vis)
+
+
+def _cropimg_xywh(img, x, y, w, h):
+    '''(str|ndarray, int, int, int, int)->ndarray, bool
+    Return a rectangular region from an image. Also see transforms.crop.
+
+    Crops to the edge if area would be outside the
+    bounds of the image.
+
+    x, y:
+        Define the point form which to crop, CVXY assumed
+    w, h:
+        Size of region
+
+    Returns:
+        cropped image area,
+        boolean indicating if crop was truncated to border
+        of the image
+
+    Notes:
+        transforms.crop provides conversion and cropping
+        around a point
+    '''
+    assert isinstance(img, _np.ndarray)
+    relu = lambda x: max(0, x)
+    crop_truncated = (relu(y), min(y+h, img.shape[0]), relu(x), min(x+w, img.shape[1]))
+    crop = (y, y+h, x, x+w)
+    return img[relu(y):min(y+h, img.shape[0]), relu(x):min(x+w, img.shape[1])], crop_truncated == crop

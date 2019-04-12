@@ -10,6 +10,7 @@ import cv2
 import funclib.iolib as iolib
 import opencvlib
 
+import EAST.detect as detect
 
 
 class Test(unittest.TestCase):
@@ -25,11 +26,14 @@ class Test(unittest.TestCase):
         self.imgpath_sa6 = _path.normpath(_path.join(self.modpath, 'bin/sa6.jpg'))
         self.img_clean = cv2.imread(self.img_clean)
         self.img_sa6 = cv2.imread(self.img_sa6)
-
+        self.img_path = _path.normpath(_path.join(self.modpath, 'bin/sa6.jpg'))
+        self.vis_path = _path.normpath(_path.join(self.modpath, 'bin/vis'))
 
     #@unittest.skip("Temporaily disabled while debugging")
-    def test_func(self):
+    def test_detect(self):
         '''test'''
+        y = detect.text_region_generator(self.img_path, self.vis_path)
+        pass
 
 
 

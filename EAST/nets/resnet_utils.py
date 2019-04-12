@@ -1,3 +1,4 @@
+#pylint: skip-file
 # Copyright 2016 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,8 +71,7 @@ def subsample(inputs, factor, scope=None):
     """
     if factor == 1:
         return inputs
-    else:
-        return slim.max_pool2d(inputs, [1, 1], stride=factor, scope=scope)
+    return slim.max_pool2d(inputs, [1, 1], stride=factor, scope=scope)
 
 
 def conv2d_same(inputs, num_outputs, kernel_size, stride, rate=1, scope=None):
@@ -111,15 +111,15 @@ def conv2d_same(inputs, num_outputs, kernel_size, stride, rate=1, scope=None):
     if stride == 1:
         return slim.conv2d(inputs, num_outputs, kernel_size, stride=1, rate=rate,
                            padding='SAME', scope=scope)
-    else:
-        kernel_size_effective = kernel_size + (kernel_size - 1) * (rate - 1)
-        pad_total = kernel_size_effective - 1
-        pad_beg = pad_total // 2
-        pad_end = pad_total - pad_beg
-        inputs = tf.pad(inputs,
-                        [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
-        return slim.conv2d(inputs, num_outputs, kernel_size, stride=stride,
-                           rate=rate, padding='VALID', scope=scope)
+
+    kernel_size_effective = kernel_size + (kernel_size - 1) * (rate - 1)
+    pad_total = kernel_size_effective - 1
+    pad_beg = pad_total // 2
+    pad_end = pad_total - pad_beg
+    inputs = tf.pad(inputs,
+                    [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
+    return slim.conv2d(inputs, num_outputs, kernel_size, stride=stride,
+                        rate=rate, padding='VALID', scope=scope)
 
 
 @slim.add_arg_scope
