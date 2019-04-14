@@ -10,7 +10,7 @@ from os.path import normpath as _normpath
 import os as _os
 
 
-class RootLogger(object):
+class RootLogger():
     '''global logger
 
     Instantiate in a packages __init__ for global use

@@ -1,12 +1,12 @@
 #pylint: skip-file
 '''doc'''
-import tensorflow as tf
 import numpy as np
-
+import tensorflow as tf
 from tensorflow.contrib import slim
-from nets import resnet_v1
 
 import EAST as _EAST
+from EAST.nets import resnet_v1
+
 
 def unpool(inputs):
     return tf.image.resize_bilinear(inputs, size=[tf.shape(inputs)[1]*2,  tf.shape(inputs)[2]*2])
@@ -73,7 +73,7 @@ def model(images, weight_decay=1e-5, is_training=True):
             # this is do with the angle map
             F_score = slim.conv2d(g[3], 1, 1, activation_fn=tf.nn.sigmoid, normalizer_fn=None)
             # 4 channel of axis aligned bbox and 1 channel rotation angle
-            geo_map = slim.conv2d(g[3], 4, 1, activation_fn=tf.nn.sigmoid, normalizer_fn=None) * _EAST.ini.Detect_py.TEXT_SCALE
+            geo_map = slim.conv2d(g[3], 4, 1, activation_fn=tf.nn.sigmoid, normalizer_fn=None) * _EAST.ini.Regions_py.TEXT_SCALE
             angle_map = (slim.conv2d(g[3], 1, 1, activation_fn=tf.nn.sigmoid, normalizer_fn=None) - 0.5) * np.pi/2 # angle is between [-45, 45]
             F_geometry = tf.concat([geo_map, angle_map], axis=-1)
 

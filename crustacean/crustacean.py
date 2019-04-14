@@ -30,7 +30,7 @@ import funclib.iolib as iolib
 #import funclib.statslib as statslib #includes rpy which takes ages to load
 from funclib.stringslib import add_right
 from enum import Enum
-from funclib.baselib import switch
+from funclib.baselib import _switch
 #endregion
 #endregion
 

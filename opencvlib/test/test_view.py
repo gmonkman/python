@@ -19,7 +19,7 @@ class Test(unittest.TestCase):
         self.pth = _iolib.get_file_parts2(_path.abspath(_getsourcefile(lambda: 0)))[0]
         self.patch = np.array([[0, 0, 0, 0, 0], [0, 255, 255, 255, 0], [0, 255, 255, 255, 0], [0, 255, 255, 255, 0], [0, 0, 0, 0, 0]])
         self.modpath = _path.normpath(self.pth)
-        self.imgpath = _path.normpath(_path.join(self.modpath, 'images/matt_pemb5.jpg'))
+        self.imgpath = _path.normpath(_path.join(self.modpath, 'bin/images/matt_pemb5.jpg'))
         self.I = cv2.imread(self.imgpath)
         self.mask = np.tri(self.I.shape[0], self.I.shape[1], dtype=int) #creates a mask where top 'sandwich' is masked out
         self.output_folder = _path.normpath(_path.join(self.modpath, 'output'))
@@ -53,6 +53,16 @@ class Test(unittest.TestCase):
     def test_showarray(self):
         '''test'''
         view.showarray([self.patch, self.patch])
+
+    #@unittest.skip("Temporaily disabled test_showarray")
+    def test_pad_image(self):
+        '''test'''
+        i = view.pad_image(self.I, (200, 200))
+        view.show(i)
+
+        i = view.pad_image(self.I, (200, 200), pad_color=(255,255,255), pad_mode=view.ePadColorMode.border)
+        view.show(i)
+
 
 
 

@@ -12,8 +12,7 @@ from fast_histogram import histogram1d as _h1d
 import funclib.iolib as _iolib
 
 
-
-from opencvlib.transforms import BGR2HSV as _BGR2HSV
+from opencvlib.color import BGR2HSV as _BGR2HSV
 from opencvlib import getimg as _getimg
 
 
@@ -157,7 +156,7 @@ def histo_rgb(img, rect_patch=None, channels=(0, 1, 2), bins=256, flatten_channe
 
     hist = hist.squeeze().T
     if hist.shape[0] == 2:
-        return edges, hist[0,: ].tolist(), hist[1, :].tolist()
+        return edges, hist[0, : ].tolist(), hist[1, :].tolist()
 
     return edges, hist[0, :].tolist(), hist[1, :].tolist(), hist[2, :].tolist()
 

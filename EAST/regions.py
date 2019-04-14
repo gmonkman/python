@@ -1,39 +1,33 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+#pylint: skip-file
 '''Produce rext region proposals using tensorflow, saving the
 detection to a pickled numpy array per image and optionally
 showing the detections on a new image, saved in folder output_dir.
 
-Non-maximum suppression can be optionall applied.
+Non-maximum suppression can be optionaly applied.
 '''
-import os as _os
-import math as _math
 from warnings import warn as _warn
 from enum import Enum as _enum
+import os as _os
+from os import path as _path
+
 
 import cv2 as _cv2
-import numpy as _np
 import tensorflow as _tf
-
+import numpy as _np
 
 import funclib.iolib as _iolib
 from funclib.iolib import PrintProgress as _PrintProgress
-from funclib.baselib import list_most_common as _lmc
 import funclib.baselib as _baselib
 from funclib.stopwatch import StopWatch as _StopWatch
 
 from opencvlib import geom as _geom
-from opencvlib.histo import histo_rgb as _histo_rgb
-from opencvlib import nms as _nms
-from opencvlib.view import show as _show
-from opencvlib.view import contours_show as _contours_show
+import opencvlib.view as _view
 import opencvlib.roi as _roi
-
-from plotlib.qplot import bar_ as _bar
-
+from opencvlib.imgpipes.generators import FromPaths as _ImgGenerator
 import EAST as _EAST
-import model as _model
-from icdar import restore_rectangle as _restore_rectangle
-import locality_aware_nms as _nms_locality
+import EAST.model as _model
+import EAST.icdar as _icdar
+
 
 
 
@@ -52,21 +46,23 @@ class _ProgressStatus():
         list[2] = error message (if relevant)
     '''
 
-    print('Initialising ProgressStatus...')
+    #print('Initialising ProgressStatus...')
 
     class eProgressStatus(_enum):
+        '''progress status'''
         NotProcessed = 0
         Errored = 1
         Success = 2
 
 
     class eListIndex(_enum):
+        '''list index for progressstatus list'''
         img_path = 0
         status = 1
         error = 2
 
     try:
-        _progress_status_file_path = _os.path.normpath(_EAST.ini.Detect_py.PROGRESS_STATUS_FILE)
+        _progress_status_file_path = _path.normpath(_EAST.ini.Regions_py.PROGRESS_STATUS_FILE)
 
         if _iolib.file_exists(_progress_status_file_path):
             _progress_status = _baselib.unpickle(_progress_status_file_path)
@@ -82,22 +78,23 @@ class _ProgressStatus():
 
     @staticmethod
     def save():
+        '''pickle progress'''
         _baselib.pickle(_ProgressStatus._progress_status, _ProgressStatus._progress_status_file_path)
+
 
     @staticmethod
     def get_file_status(img_path):
         '''test if a specific image was processed'''
-        files = [f[eListIndex.img_path] for f in _ProgressStatus._progress_status]
-        if _os.path.normpath(img_path) in files:
-            return _ProgressStatus[files.index(img_path)][_ProgressStatus.eListIndex.status.value]
-        else:
-            return _ProgressStatus.eProgressStatus.NotProcessed
+        files = [f[_ProgressStatus.eListIndex.img_path.value] for f in _ProgressStatus._progress_status]
+        if _path.normpath(img_path) in files:
+            return _ProgressStatus.eProgressStatus(_ProgressStatus._progress_status[files.index(img_path)][_ProgressStatus.eListIndex.status.value])
+        return _ProgressStatus.eProgressStatus.NotProcessed
 
 
     @staticmethod
     def status_add(img_path, status=eProgressStatus.Success, err='', ignore_item_exists=True, save_=True):
         '''record image file as processed'''
-        img_path = _os.path.normpath(img_path)
+        img_path = _path.normpath(img_path)
         if _ProgressStatus.get_file_status(img_path) == _ProgressStatus.eProgressStatus.NotProcessed:
             _ProgressStatus._progress_status.append([img_path, _ProgressStatus.eProgressStatus.Success.value, err])
             if save_:
@@ -111,8 +108,8 @@ class _ProgressStatus():
     @staticmethod
     def status_edit(img_path, status=eProgressStatus.Success, err='', ignore_no_item=True):
         '''record image file as processed'''
-        img_path = _os.path.normpath(img_path)
-        files = [f[eListIndex.img_path] for f in _ProgressStatus._progress_status]
+        img_path = _path.normpath(img_path)
+        files = [f[_ProgressStatus.eListIndex.img_path.value] for f in _ProgressStatus._progress_status]
 
         if ignore_no_item:
             try:
@@ -126,14 +123,10 @@ class _ProgressStatus():
 
 
     @staticmethod
-    def save():
-        _baselib.pickle(_progress_status, _ProgressStatus._progress_status_file_path)
-
-
-    @staticmethod
     def status_del(img_path, ignore_no_item=True):
-        img_path = _os.path.normpath(img_path)
-        files = [f[eListIndex.img_path] for f in _ProgressStatus._progress_status]
+        '''delete a status'''
+        img_path = _path.normpath(img_path)
+        files = [f[_ProgressStatus.eListIndex.img_path.value] for f in _ProgressStatus._progress_status]
         if ignore_no_item:
             try:
                 i = files.index(img_path)
@@ -141,7 +134,7 @@ class _ProgressStatus():
                 pass
         else:
             i = files.index(img_path)
-        del _progress_status[i]
+        del _ProgressStatus._progress_status[i]
 
 
 
@@ -158,25 +151,30 @@ def _detect(score_map, geo_map, score_map_thresh=0.8, box_thresh=0.1, nms_thres=
     xy_text = xy_text[_np.argsort(xy_text[:, 0])]
 
     # restore
-    text_box_restored = _restore_rectangle(xy_text[:, ::-1]*4, geo_map[xy_text[:, 0], xy_text[:, 1], :]) # N*4*2
-    print('{} text boxes before nms'.format(text_box_restored.shape[0]))
+    text_box_restored = _icdar.restore_rectangle(xy_text[:, ::-1]*4, geo_map[xy_text[:, 0], xy_text[:, 1], :]) # N*4*2
     boxes = _np.zeros((text_box_restored.shape[0], 9), dtype=_np.float32)
     boxes[:, :8] = text_box_restored.reshape((-1, 8)) #each boxes row is a length 8 box of coord pairs in order topleft, topright, bottomright, bottomleft - final col is confidence scores.
     boxes[:, 8] = score_map[xy_text[:, 0], xy_text[:, 1]]
 
     #DO NMS
-    if  _EAST.ini.Detect_py.NMS_MODE == 'simple':
-        boxes_for_rosebrook_nms = _np.vstack((boxes[:, 0], boxes[:, 1], boxes[:, 4], boxes[:, 5], boxes[:, 8])).T
-        boxes_for_rosebrook_nms = nms.nms_fast(boxes_for_rosebrook_nms)
+    if  _EAST.ini.Regions_py.NMS_MODE == 'simple':
+        raise NotImplementedError('Simple nms mode code triggers pylint bug. Not implemented.')
+        #TODO Statement below causes pylint to fail. Debug and change to single reshape statement
+        #boxes_for_rosebrook_nms = boxes([0, 0, 0, 0, 0], [0, 1, 4, 5, 8])
+        #boxes_for_rosebrook_nms = numpy.vstack((boxes[:, 0], boxes[:, 1], boxes[:, 4], boxes[:, 5], boxes[:, 8])) #boxes_for_rosebrook_nms will be n,1,2
+        #boxes_for_rosebrook_nms = boxes.T
+        #boxes_for_rosebrook_nms = nms.nms_fast(boxes_for_rosebrook_nms)
 
         #now rebuild ndarray in expected format
-        boxes = _np.vstack((boxes_for_rosebrook_nms[:, 0], boxes_for_rosebrook_nms[:, 1],
-                           boxes_for_rosebrook_nms[:, 2], boxes_for_rosebrook_nms[:, 1],
-                           boxes_for_rosebrook_nms[:, 2], boxes_for_rosebrook_nms[:, 3],
-                           boxes_for_rosebrook_nms[:, 0], boxes_for_rosebrook_nms[:, 3], boxes_for_rosebrook_nms[:, 4])).T
-    elif _EAST.ini.Detect_py.NMS_MODE == 'pylanms':
-        boxes = _nms_locality.nms_locality(boxes.astype(_np.float64), nms_thres)
-    elif _EAST.ini.Detect_py.NMS_MODE == 'cpplanms':
+        #boxes = numpy.vstack((boxes_for_rosebrook_nms[:, 0], boxes_for_rosebrook_nms[:, 1],
+            #               boxes_for_rosebrook_nms[:, 2], boxes_for_rosebrook_nms[:, 1],
+           #                boxes_for_rosebrook_nms[:, 2], boxes_for_rosebrook_nms[:, 3],
+          #                 boxes_for_rosebrook_nms[:, 0], boxes_for_rosebrook_nms[:, 3], boxes_for_rosebrook_nms[:, 4]))
+        #boxes = boxes_for_rosebrook_nms
+    elif _EAST.ini.Regions_py.NMS_MODE == 'pylanms':
+        #boxes = locality_aware_nms.nms_locality(boxes.astype(_np.float64), nms_thres)
+        raise NotImplementedError
+    elif _EAST.ini.Regions_py.NMS_MODE == 'cpplanms':
         raise NotImplementedError
         #boxes = lanms.merge_quadrangle_n9(boxes.astype('float32'), nms_thres)
 
@@ -215,7 +213,7 @@ def text_region_generator(images_path, visualisation_dir=None):
     array([[[..]]]), [[10,0], ...], 'C1', 'C:/temp/images/IMAGE1.JPG'
     '''
 
-    visualisation_dir = _os.path.normpath(visualisation_dir)
+    visualisation_dir = _path.normpath(visualisation_dir)
     try:
         _os.makedirs(visualisation_dir)
     except OSError as e:
@@ -232,27 +230,31 @@ def text_region_generator(images_path, visualisation_dir=None):
         saver = _tf.train.Saver(variable_averages.variables_to_restore())
 
         with _tf.Session(config=_tf.ConfigProto(allow_soft_placement=True)) as sess:
-            ckpt_state = _tf.train.get_checkpoint_state(_EAST.ini.Detect_py.checkpoint_path)
-            model_path = _os.path.join(_EAST.ini.Detect_py.CHECKPOINT_PATH, _os.path.basename(ckpt_state.model_checkpoint_path))
-            print('Restore from {}'.format(model_path))
+            ckpt_state = _tf.train.get_checkpoint_state(_EAST.ini.Regions_py.CHECKPOINT_PATH)
+            model_path = _os.path.join(_EAST.ini.Regions_py.CHECKPOINT_PATH, _os.path.basename(ckpt_state.model_checkpoint_path))
+            #print('Restore from {}'.format(model_path))
             saver.restore(sess, model_path)
 
-            im_fn_list = _get_images(images_path)
+            Gen = _ImgGenerator(images_path)
+            im_fn_list = [f[1] for f in Gen.generate(pathonly=True)]
+
             PP1 = _PrintProgress(len(im_fn_list), 20, 'Outer images progress...')
-            SW = _StopWatch('Process Single Image')
-            for ii, im_fn in enumerate(im_fn_list):
-                SW.lap()
+            SW = _StopWatch(event_name='Process Single Image', qsize=20)
+
+            for n, im_fn in enumerate(im_fn_list):
                 #have we processed it before
                 im_fn = _os.path.normpath(im_fn)
                 fs = _ProgressStatus.get_file_status(im_fn)
 
                 if fs == _ProgressStatus.eProgressStatus.Success:
-                    PP1.increment()
+                    SW.lap()
+                    PP1.increment(suffix='Remain: %s' % SW.pretty_remaining(len(im_fn_list) - n))
                     continue
 
                 if fs == _ProgressStatus.eProgressStatus.Errored:
-                    if _EAST.ini.Detect_py.RETRY_FAILED == 0:
-                        PP1.increment()
+                    if _EAST.ini.Regions_py.RETRY_FAILED == 0:
+                        SW.lap()
+                        PP1.increment(suffix='Remain: %s' % SW.pretty_remaining(len(im_fn_list) - n))
                         continue
                     _ProgressStatus.status_del(im_fn) #remove from ProgressStatus list and retry this image
 
@@ -280,7 +282,6 @@ def text_region_generator(images_path, visualisation_dir=None):
                             continue
 
                         box_cluster = _np.array((box[0, 0]/w, box[0, 1]/h, box[2, 0]/w, box[2, 1]/h, box[2, 1]/h - box[0, 1]/h)) #format is x1, y1, x2, y2, y2-y1
-                        box_for_cluster_untransformed = _np.array((box[0, 0], box[0, 1], box[2, 0], box[2, 1], box[2, 1] - box[0, 1])) #format is x1, y1, x2, y2, y2-y1
                         height = box[2, 1]/h - box[0, 1]/h
                         centroid = _geom.centroid(box)
                         if i == 0:
@@ -299,7 +300,7 @@ def text_region_generator(images_path, visualisation_dir=None):
                     centroids = _np.array(centroids) #n,2 numpy array of points
 
                     mask, contours, _ = _roi.polys_to_mask(im, boxes_untransformed, use_bounding_rect=True) #make a mask out of every word detection
-                    mask = _roi.mask_join(mask, _get_dilate_kernel(mask), _EAST.ini.Detect_py.MASK_JOIN_ITER) #join nearby word detection masks using dilation
+                    mask = _roi.mask_join(mask, _get_dilate_kernel(mask), _EAST.ini.Regions_py.MASK_JOIN_ITER) #join nearby word detection masks using dilation
                     contours, _ = _cv2.findContours(mask, _cv2.RETR_CCOMP, _cv2.CHAIN_APPROX_SIMPLE) #reget the contours after merging
                     contours = _roi.contours_to_bounding_rects(contours) #make contours rectangles
                     contours_as_pts = [_roi.contour_to_cvpts(c) for c in contours]
@@ -317,17 +318,17 @@ def text_region_generator(images_path, visualisation_dir=None):
                     #add width as an additional similarity dimension
                     #on the basis that areas of similiar width are likely to
                     #be the same text body in multi column documents
-                    for i, obs in enumerate(mean_cluster_box_heights):
+                    for i, c in enumerate(contours):
                         _, _, _, w = _roi.rect_as_rchw(_roi.contour_to_cvpts(c))
-                        mean_cluster_box_heights[i].append(w / img_orig.shape[1])
+                        mean_cluster_box_heights[i].append(w / img_orig.shape[1]) #just tack the width onto the end of each mean_cluster_box_height of each contour
 
-                    contour_clusters, contour_groups_list = _roi.contours_cluster_by_histo(img_orig, contours, thresh=_EAST.ini.Detect_py.COSINE_DISTANCE_THRESH, additional_obs=mean_cluster_box_heights) #dic {'C1':[cont,cont, ..], 'C2':[cont,cont, ..], ...}, clusterng contours by there RGB histo
+                    contour_clusters, _ = _roi.contours_cluster_by_histo(img_orig, contours, thresh=_EAST.ini.Regions_py.COSINE_DISTANCE_THRESH, additional_obs=mean_cluster_box_heights) #dic {'C1':[cont,cont, ..], 'C2':[cont,cont, ..], ...}, clusterng contours by there RGB histo
 
                     #Now identify outliers by distance - we put these in their own group and update the contours with the inliers
                     all_outliers = []
                     for key, items in contour_clusters.items(): #if we have 2 contours which are appart, they are both moved to outliers - doesnt really matter
                         if key == 'OUTLIERS': continue
-                        inliers, outliers, _ = _roi.contour_cluster_outliers(items, thresh=_EAST.ini.Detect_py.MIN_OUTLIER_DISTANCE_THRESH, plane_size=img_orig.shape)
+                        inliers, outliers, _ = _roi.contour_cluster_outliers(items, thresh=_EAST.ini.Regions_py.MIN_OUTLIER_DISTANCE_THRESH, plane_size=img_orig.shape)
                         contour_clusters[key] = inliers
                         if outliers:
                             all_outliers.extend(outliers)
@@ -337,31 +338,36 @@ def text_region_generator(images_path, visualisation_dir=None):
                         contour_clusters['OUTLIERS%s' % outlier_cnt] = [o]
                         outlier_cnt += 1
 
-                    viskeys = [], viscluster = []
+                    #Export the visualisation if we have asked for it
+                    if visualisation_dir:
+                        try: #dont halt everything if the visualisation fails
+                            viskeys = []; visclusters = []
+                            for i, (k, cnts) in enumerate(contour_clusters.items()):
+                                for c in cnts:
+                                    if isinstance(c, _np.ndarray):
+                                        viskeys.append(k)
+                                        visclusters.append(c)
+
+                            if visclusters:
+                                _iolib.create_folder(visualisation_dir)
+                                visimg = _view.contours_show(img_orig, visclusters, viskeys, show_=False)
+                                vis_fn = '%s/%s_vis.jpg' % (visualisation_dir, _iolib.get_file_parts(im_fn)[1])
+                                _cv2.imwrite(vis_fn, visimg)
+                        except Exception as e:
+                            pass
+
                     for key, clusters in contour_clusters.items():
                         if clusters:
-                            img_cropped, _, pts_xt = _roi.crop_from_rects(img_orig, clusters)
-                            if visualisation_dir:
-                                try: #dont halt everything if the visualisation fails
-                                    _iolib.create_folder(visualisation_dir)
-                                    for c in clusters:
-                                        viskeys.append(key)
-                                        viscluster.append(c)
-                                    visimg =  _contours_show(img_orig, contours, contour_groups_list, show_=False)
-                                    vis_fn = '%s/%s_vis.jpg' % (visualisation_dir, _iolib.get_file_parts(im_fn)[1])
-                                    _cv2.imwrite(vis_fn, visimg)
-                                except Exception as e:
-                                    pass
+                            img_cropped, _, pts_xt = _roi.crop_from_rects(img_orig, clusters, mask_with_boundary_pixels=True)
+                            img_cropped = _view.pad_image(img_cropped, (_EAST.ini.Regions_py.PAD_CONTOURS, _EAST.ini.Regions_py.PAD_CONTOURS), pad_mode=_view.ePadColorMode.border)
                             yield img_cropped, pts_xt, im_fn, key
-
-
                     _ProgressStatus.status_add(im_fn, _ProgressStatus.eProgressStatus.Success)
-                    PP1.increment()
                 else:
-                    #print('No words detected in %s' % os.path.basename(im_fn))
                     _ProgressStatus.status_add(im_fn, _ProgressStatus.eProgressStatus.Success, err='No words detected')
-                    PP1.increment()
 
+                SW.lap()
+                PP1.increment(suffix='Remain: %s' % SW.pretty_remaining(len(im_fn_list) - n))
+                _ProgressStatus.save()
 
 
 
@@ -377,26 +383,9 @@ def _get_dilate_kernel(img):
     #this was based on manually checking results on
     #a 700x700 image and taking the "good" kernel ratio
     #which was (5,5)
-    r = float(_EAST.ini.Detect_py.MASK_MERGE_KERNEL_RATIO)
+    r = float(_EAST.ini.Regions_py.MASK_MERGE_KERNEL_RATIO)
     return (int(r * img.shape[0]), int(r * img.shape[0]))
 
-
-
-def _get_images(images_path):
-    '''
-    find image files in test data path
-    :return: list of files found
-    '''
-    files = []
-    exts = ['jpg', 'png', 'jpeg', 'JPG']
-    for parent, dirnames, filenames in _os.walk(images_path):
-        for filename in filenames:
-            for ext in exts:
-                if filename.endswith(ext):
-                    files.append(_os.path.join(parent, filename))
-                    break
-    print('Found {} images'.format(len(files)))
-    return files
 
 
 def _resize_image(im, max_side_len=2400):
@@ -437,5 +426,4 @@ def _sort_poly(p):
     p = p[[min_axis, (min_axis+1)%4, (min_axis+2)%4, (min_axis+3)%4]]
     if abs(p[0, 0] - p[1, 0]) > abs(p[0, 1] - p[1, 1]):
         return p
-    else:
-        return p[[0, 3, 2, 1]]
+    return p[[0, 3, 2, 1]]

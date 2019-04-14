@@ -284,7 +284,6 @@ def get_masks(cat_name, data_type, mask_type=None):
         img_url = _os.path.normpath(_os.path.join(_IMG_DIR, entry['fname']))
         if img_url != prev_url:
             if blank_img is not None:
-                # TODO: options for how to process the masks
                 # make sure the mask is from 0 to 1
                 max_val = blank_img.max()
                 if max_val > 0:

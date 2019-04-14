@@ -1,5 +1,5 @@
 
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-variable
+#pylint: skip-file
 '''unit tests for features'''
 import unittest
 from inspect import getsourcefile as _getsourcefile

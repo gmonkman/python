@@ -42,7 +42,7 @@ class classproperty(property):
 #CLASSES#
 #########
 
-class switch(object):
+class _switch():
     '''From http://code.activestate.com/recipes/410692/. Replicates the C switch statement
     e.g.
     v = 'ten'
@@ -77,7 +77,8 @@ class switch(object):
         """Indicate whether or not to enter a case suite"""
         if self.fall or not args:
             return True
-        elif self.value in args:  # changed for v1.5, see below
+
+        if self.value in args:  # changed for v1.5, see below
             self.fall = True
             return True
 
@@ -197,7 +198,8 @@ def dic_sort_by_key(d):
     >>>dic_sort_by_key({1:1, 4:10, 3:22, 2:1.03})
     [(1,1), (2,1.03), (3,22), (4,10)]
     '''
-    return sorted(d.items(), key=_operator.itemgetter(0))
+    out = sorted(d.items(), key=_operator.itemgetter(0))
+    return out
 
 
 def dic_match(a, b):
@@ -241,7 +243,9 @@ def dic_match(a, b):
 
         if not unmatched:
             return eDictMatch.Subset
-    elif len(a_lst) > len(b_lst):
+        return None
+
+    if len(a_lst) > len(b_lst):
         for i in b_lst:
             if i in a_lst:
                 matched = True
@@ -256,22 +260,23 @@ def dic_match(a, b):
 
         if not unmatched:
             return eDictMatch.Superset
-    else:   #same length
-        for i in b_lst:
-            if i in a_lst:
-                matched = True
-            else:
-                unmatched = True
+        return None
+    #same length
+    for i in b_lst:
+        if i in a_lst:
+            matched = True
+        else:
+            unmatched = True
 
-        if matched and unmatched:
-            return eDictMatch.Intersects
+    if matched and unmatched:
+        return eDictMatch.Intersects
 
-        if not matched:
-            return eDictMatch.Disjoint
+    if not matched:
+        return eDictMatch.Disjoint
 
-        if not unmatched:
-            return eDictMatch.Exact
-
+    if not unmatched:
+        return eDictMatch.Exact
+    return None
 
 
 # region lists
@@ -324,7 +329,7 @@ def list_most_common(L, force_to_string=False):
     SL = sorted((x, i) for i, x in enumerate(Ll))
     groups = _itertools.groupby(SL, key=_operator.itemgetter(0))
     def _auxfun(g):
-        item, iterable = g
+        _, iterable = g
         count = 0
         min_index = len(Ll)
         for _, where in iterable:
@@ -503,11 +508,11 @@ def get_platform():
     returns windows, mac, linux or unknown
     '''
     s = _sys.platform.lower()
-    if s == "linux" or s == "linux2":
+    if s in ("linux", "linux2"):
         return 'linux'
-    elif s == "darwin":
+    if s == "darwin":
         return 'mac'
-    elif s == "win32" or s == "windows":
+    if s in ("win32", "windows"):
         return 'windows'
     return 'unknown'
 
@@ -523,13 +528,15 @@ def isIterable(i, strIsIter=False, numpyIsIter=False):
     '''
     if isinstance(i, str) and strIsIter is False:
         return False
-    elif isinstance(i, _np.ndarray) and numpyIsIter is False:
+
+    if isinstance(i, _np.ndarray) and numpyIsIter is False:
         return False
-    return isinstance(i, _collections.Iterable)
+    out = isinstance(i, _collections.Iterable)
+    return out
 
 
 def item_from_iterable_by_type(iterable, match_type):
-    '''(iterable,class type)->item
+    '''(iterable,class type)->item|None
     given an iterable and a type, return the item
     which first matches type
     '''
@@ -537,8 +544,9 @@ def item_from_iterable_by_type(iterable, match_type):
         for i in iterable:
             if isinstance(iterable, match_type):
                 return i
-    else:
-        return iterable if isinstance(iterable, match_type) else None
+            return None
+    out = iterable if isinstance(iterable, match_type) else None
+    return out
 
 
 def isempty(x):
@@ -579,6 +587,7 @@ def unpickle(fname):
     return obj
 
 def is_int(s):
+    '''is int'''
     try:
         n = int(s)
         f = float(s)

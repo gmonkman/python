@@ -112,7 +112,7 @@ class StopWatch():
         #don't use smoothed till queue is full
         try:
             if len(self.Times) < self.qsize:
-                x = self.Times[-1]. event_rate * n
+                x = self.Times[-1].event_rate * n
             else:
                 x = self.Times[-1].event_rate_smoothed * n
         except Exception as _:

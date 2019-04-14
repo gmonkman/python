@@ -2,6 +2,7 @@
 import math as _math
 
 def is_int(s):
+    '''is_int'''
     try:
         n = int(s)
         f = float(s)

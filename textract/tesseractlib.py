@@ -2,16 +2,12 @@
 '''Helper routines for tesseract processing of magazine pages with the
 verbose output form
 '''
-import pandas as _pd
-import cv2 as _cv2
-import pytesseract as _pyt
 from PIL import Image
 
+import pytesseract.pytesseract as _pyt
 from funclib.stringslib import to_ascii as _to_ascii
-import funclib.iolib as _iolib
 import funclib.pandaslib as _pdl
 import funclib.stringslib as _stringslib
-import funclib.baselib as _baselib
 
 
 _stringslib.filter_alphanumeric
@@ -64,15 +60,3 @@ def to_paragraphs(img, override_page_nr=None, conf_thresh=90, psm=1):
         else:
             paragraphs[key] = row.text
     return paragraphs
-
-
-def _make_file(img):
-    '''ndarray -> str
-
-    Takes img, and saves it to a tempory file name.
-    Probably not needed as looks like pytesseract can
-    accept an image.
-    '''
-    s = _iolib.get_file_name2(_iolib.temp_folder('tesseract'))
-    _cv2.imwrite(s, img)
-    return s

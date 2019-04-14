@@ -394,7 +394,6 @@ def main():
         angles = list(range(-1 * args.rotate, args.rotate + 1, 1))
         angles.remove(0)
 
-        #TODO Oneoff for troubleshooting outliers, remove later
         warn('Temporarily fixing the rotate argument to a single value.')
         angles = [args.rotate]
         #end todo

@@ -1,4 +1,5 @@
-# pylint: disable=C0302, too-many-branches, dangerous-default-value, line-too-long, no-member, expression-not-assigned, locally-disabled,not-context-manager, unused-import, undefined-variable, no-member
+#pylint: skip-file
+#this is skipped because
 '''routines to manipulate array like objects like lists, tuples etc'''
 from warnings import warn
 import os.path as _path
@@ -11,7 +12,6 @@ import numpy as _np
 from scipy import stats as _stats
 from sklearn.metrics import mean_squared_error as _mean_squared_error
 
-from funclib.baselib import list_flatten as _list_flatten
 from funclib.iolib import PrintProgress as _PrintProgress
 import funclib.iolib as _iolib
 from funclib.to_precision import std_notation as _std_notation
@@ -110,6 +110,7 @@ class GroupBy():
         mse_.__name__ = 'mse_%s' % pred
         return mse_
 
+    @staticmethod
     def fRMSE(pred):
         '''Root mean squared error.
         Assess quality of estimator.
@@ -135,7 +136,7 @@ class GroupBy():
     @staticmethod
     def fCILower(interval=95):
         def CILower_(data):
-            l, u = _sms.DescrStatsW(data).tconfint_mean((100 - interval)*0.01)
+            l, _ = _sms.DescrStatsW(data).tconfint_mean((100 - interval)*0.01)
             return l
         CILower_.__name__ = 'CILower_%s' % interval
         return CILower_
@@ -143,7 +144,7 @@ class GroupBy():
     @staticmethod
     def CIUpper(interval=95):
         def CIUpper_(data):
-            l, u = _sms.DescrStatsW(data).tconfint_mean((100 - interval)*0.01)
+            l, _ = _sms.DescrStatsW(data).tconfint_mean((100 - interval)*0.01)
             return l
         CIUpper_.__name__ = 'CIUpper_%s' % interval
         return CIUpper_
@@ -152,7 +153,7 @@ class GroupBy():
     def fCI_str(interval=95):
         '''formatted str version'''
         def CI_str_(data):
-            l, u = _sms.DescrStatsW(data).tconfint_mean((100 - interval)*0.01)
+            l, _ = _sms.DescrStatsW(data).tconfint_mean((100 - interval)*0.01)
             m = _np.mean(data)
             s = 'M=%s %s%% CIs [%s, %s]' % (_std_notation(m, GroupBy.PRECISION), interval, _std_notation(l, GroupBy.PRECISION), _std_notation(u, GroupBy.PRECISION))
             #return m, m-h, m+h
@@ -169,7 +170,7 @@ class GroupBy():
     def fMeanSD_str(data):
         d = _np.array(data)
         m, sd = _np.mean(a), _np.std(a)
-        s = '%s ±%s' % (_std_notation(m, GroupBy.PRECISION), _std_notation(sd, GroupBy.PRECISION))
+        s = '%s %s%s' % (_std_notation(m, GroupBy.PRECISION), _plus_minus(), _std_notation(sd, GroupBy.PRECISION))
         return s
 
 
@@ -323,3 +324,25 @@ def df_fromstring(str_, sep=',', header=0, names=None, **args):
     '''
     df = _pd.read_csv(_StringIO(str_), sep=sep, header=header, names=names, **args)
     return df
+
+
+
+
+
+
+def _list_flatten(items, seqtypes=(list, tuple)):
+    '''flatten a list
+
+    **beware, this is also by ref**
+    '''
+    citems = _deepcopy(items)
+    for i, dummy in enumerate(citems):
+        while i < len(citems) and isinstance(citems[i], seqtypes):
+            citems[i:i + 1] = citems[i]
+    return citems
+
+
+
+def _plus_minus():
+    '''get plus minus'''
+    return str(u"\u00B1")

@@ -1,15 +1,25 @@
-# pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, not-context-manager, invalid-name
+# pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, not-context-manager, invalid-name, singleton-comparison
 '''routines to manipulate array like objects like lists, tuples etc'''
 from warnings import warn as _warn
 import itertools as _iter
+from copy import deepcopy as _deepcopy
 
 import numpy as _np
-import numpy.random
+
 import scipy.ndimage as _ndimage
-from scipy.spatial import distance as dist
+from scipy.spatial import distance as _dist
 
 
-from funclib.baselib import list_flatten as _list_flatten
+def _list_flatten(items, seqtypes=(list, tuple)):
+    '''flatten a list
+
+    **beware, this is also by ref**
+    '''
+    citems = _deepcopy(items)
+    for i, dummy in enumerate(citems):
+        while i < len(citems) and isinstance(citems[i], seqtypes):
+            citems[i:i + 1] = citems[i]
+    return citems
 
 # region NUMPY
 def  vstackt(arrays):
@@ -224,7 +234,7 @@ def np_nans_to_zero(a):
     assert isinstance(a, _np.ndarray)
 
     out = a.copy().astype(float)
-    mask = numpy.isnan(out)
+    mask = _np.isnan(out)
     # inds where isnan is true, looks like [(11,1),(5,4) ...]
     inds = _np.nonzero(mask)
     inds = zip(inds[0], inds[1])
@@ -335,7 +345,7 @@ def angles_between(vectors1, vectors2):
     '''
     v1 = makenp(vectors1)
     v2 = makenp(vectors2)
-    costheta = 1 - dist.cdist(v1, v2, 'cosine')
+    costheta = 1 - _dist.cdist(v1, v2, 'cosine')
     return _np.arccos(costheta)
 
 
@@ -380,8 +390,8 @@ def distances(origs, dests):
     '''
     nd_o = makenp(origs)
     nd_d = makenp(dests)
-    subts = nd_o[:,None,:] - nd_d
-    return _np.sqrt(_np.einsum('ijk,ijk->ij',subts, subts))
+    subts = nd_o[:, None, :] - nd_d
+    return _np.sqrt(_np.einsum('ijk,ijk->ij', subts, subts))
 
 
 def np_delete_zeros(a):
@@ -575,6 +585,6 @@ def iter_dist_matrix(D):
     >>>list([v for v in iter_dist_matrix(D)])
     [(1, (0, 1)), (2, (0, 2)), (5, (1, 2))]
     '''
-    for c in _iter.combinations(range(D[0,:].shape[0]), 2):
+    for c in _iter.combinations(range(D[0, :].shape[0]), 2):
         v = D[c[0], c[1]]
-        yield v, c,
+        yield v, c #this was v, c, - but pylint moaned

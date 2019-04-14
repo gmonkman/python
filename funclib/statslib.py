@@ -1,10 +1,11 @@
-# pylint: disable=too-few-public-methods, too-many-statements, unused-import, unused-variable, no-member, dangerous-default-value, unbalanced-tuple-unpacking
+#pylint: skip-file
 '''My library of statistics based functions'''
 
 # base imports
-import copy
-import numbers
-import warnings
+import copy as _copy
+import numbers as _numbers
+import warnings as _warnings
+from enum import Enum as _Enum
 
 # packages
 import pandas as _pd
@@ -13,19 +14,16 @@ import pandas as _pd
 import numpy as _np
 import scipy as _scipy
 import scipy.stats as _stats
-import statsmodels.api as sm
+import statsmodels.api as _sm
 
 
 # mine
-from enum import Enum
-from funclib.baselib import switch
-import funclib.baselib as _baselib
 import funclib.iolib as _iolib
 import funclib.arraylib as _arraylib
 
 
 # region Enuerations
-class EnumMethod(Enum):
+class EnumMethod(_Enum):
     '''enum used to select the type of correlation analysis'''
     kendall = 1
     spearman = 2
@@ -47,33 +45,28 @@ def permuted_correlation(list_a, list_b, test_stat, iterations=0, method=EnumMet
     '''
     assert isinstance(list_a, list), 'list_a should be a list'
     assert isinstance(list_b, list), 'list_b should be a list'
-    assert isinstance(
-        iterations, numbers.Number), 'iterations should be an int'
+    assert isinstance(iterations, _numbers.Number), 'iterations should be an int'
 
     if iterations == 0:
         raise ValueError('Iterations cannot be zero')
 
     results = []
     justtest = []
-    # we will permute list_b but don't need to permute list_a
-    permuted = copy.deepcopy(list_b)
+    #we will permute list_b but don't need to permute list_a
+    permuted = _copy.deepcopy(list_b)
     cnt = 0
     for dummy in range(0, int(iterations)):
         cnt += 1
         permuted = _np.random.permutation(permuted)
 
-        for case in switch(method):
-            if case(EnumMethod.kendall):
+        if method == EnumMethod.kendall:
                 teststat, pval = _stats.kendalltau(list_a, permuted)
-                break
-            if case(EnumMethod.pearson):
+        elif method == EnumMethod.pearson:
                 teststat, pval = _stats.pearsonr(list_a, permuted)
-                break
-            if case(EnumMethod.spearman):
-                teststat, pval = _stats.spearmanr(list_a, permuted)
-                break
-            if case():
-                raise ValueError('Enumeration member not in e_method')
+        elif method == EnumMethod.spearman:
+            teststat, pval = _stats.spearmanr(list_a, permuted)
+        else:
+            raise ValueError('Enumeration member not in e_method')
 
         if teststat > test_stat:
             out_greater_than_test_stat[0] += 1
@@ -105,18 +98,14 @@ def correlation_test_from_csv(file_name_or_dataframe, col_a_name, col_b_name, te
     list_a = df[col_a_name].tolist()
     list_b = df[col_b_name].tolist()
 
-    for case in _baselib.switch(test_type):
-        if case(EnumMethod.kendall):
-            teststat, pval = _stats.kendalltau(list_a, list_b)
-            break
-        if case(EnumMethod.pearson):
-            teststat, pval = _stats.pearsonr(list_a, list_b)
-            break
-        if case(EnumMethod.spearman):
-            teststat, pval = _stats.spearmanr(list_a, list_b)
-            break
-        if case():
-            raise ValueError('Enumeration member not in e_method')
+    if test_type == EnumMethod.kendall:
+        teststat, pval = _stats.kendalltau(list_a, list_b)
+    elif test_type == EnumMethod.pearson:
+        teststat, pval = _stats.pearsonr(list_a, list_b)
+    elif test_type == EnumMethod.spearman:
+        teststat, pval = _stats.spearmanr(list_a, list_b)
+    else:
+        raise ValueError('Enumeration member not in e_method')
 
     return {'teststat': teststat, 'p': pval, 'n': len(list_a)}
 
@@ -130,9 +119,8 @@ def correlation(a, b, method=EnumMethod.kendall):
     '''
 
     if isinstance(a, _np.ndarray) or isinstance(b, _np.ndarray):
-        if isinstance(a, _np.ndarray) is False or isinstance(b, _np.ndarray) is False:
-            raise ValueError(
-                'If numpy arrays are used, both must be ndarray types')
+        if not isinstance(a, _np.ndarray) or not isinstance(b, _np.ndarray):
+            raise ValueError('If numpy arrays are used, both must be ndarray types')
 
         if a.shape != b.shape:
             raise ValueError('Numpy array shapes must match exactly')
@@ -159,8 +147,8 @@ def correlation(a, b, method=EnumMethod.kendall):
     else:
         if isinstance(a, list) is False or isinstance(b, list) is False:
             raise ValueError('If lists are used, both must be list types')
-        lst_a = copy.deepcopy(a)
-        lst_b = copy.deepcopy(b)
+        lst_a = _copy.deepcopy(a)
+        lst_b = _copy.deepcopy(b)
 
     if len(lst_a) != len(lst_b):
         raise ValueError('Array lengths must match exactly')
@@ -168,27 +156,14 @@ def correlation(a, b, method=EnumMethod.kendall):
     assert isinstance(lst_a, list)
     assert isinstance(lst_b, list)
 
-    for case in _baselib.switch(method):
-        if case(EnumMethod.kendall):
-            teststat, pval = _stats.kendalltau(lst_a, lst_b)
-            break
-        if case(EnumMethod.pearson):
-            teststat, pval = _stats.pearsonr(lst_a, lst_b)
-            break
-        if case(EnumMethod.spearman):
-            #if engine == EnumStatsEngine.r:
-            #    df = _pd.DataFrame({'a': lst_a, 'b': lst_b})
-            #    df_r = _rpy2.robjects.pandas2ri(df)
-            #    _ro.globalenv['cordf'] = df_r
-            #    tmpstr = 'cor.test(cordf$a, cordf$b, method="spearman")'
-            #    result = _ro.r(tmpstr)
-            #    teststat = result[3][0]
-            #    pval = result[2][0]
-            #else:
-            teststat, pval = _stats.spearmanr(lst_a, lst_b)
-            break
-        if case():
-            raise ValueError('Enumeration member not in e_method')
+    if method == EnumMethod.kendall:
+        teststat, pval = _stats.kendalltau(lst_a, lst_b)
+    elif method == EnumMethod.pearson:
+        teststat, pval = _stats.pearsonr(lst_a, lst_b)
+    elif method == EnumMethod.spearman:
+        teststat, pval = _stats.spearmanr(lst_a, lst_b)
+    else:
+        raise ValueError('Enumeration member not in e_method')
 
     return {'teststat': teststat, 'p': pval}
 
@@ -305,18 +280,18 @@ def quantile_bin(nd, percentiles=None, zero_as_zero=False):
         #assert isinstance(nd, numpy.ndarray)
 
         ret = []
-        a = _np.array(nd).flatten()  # default dtype is float
+        a = _np.array(nd) # default dtype is float: Odd chainging because of recursion errs in pylint
+        a = a.flatten()
         assert isinstance(a, _np.ndarray)
 
         if exclude_zeros:
-            _np.place(a, a == 0, _np.nan)
+          _np.place(a, a == 0, _np.nan)
 
         a = _arraylib.np_delete_zeros(a)
         labels = range(1, len(percentiles) + 2)  # [25,50,75] -> [1,2,3,4]
 
         percentiles.sort()
-        ranges = [_stats.scoreatpercentile(
-            a, x) for x in percentiles] if use_scipy else _np.percentile(a, percentiles)
+        ranges = [_stats.scoreatpercentile(a, x) for x in percentiles] if use_scipy else _np.percentile(a, percentiles)
 
         for ind, item in enumerate(ranges):
             if ind == 0:
@@ -390,6 +365,7 @@ def contingency_conditional(a, bycol=True):
         for i in range(int(b.shape[1])):
             b[0:-1, i:i + 1] = b[0:-1, i:i + 1] / b[-1, i:i + 1]
     else:
+        #TODO Convert to build with lists to overcome the pylint recursion bug, also for vstack
         b = _np.hstack([b, marg_rows])
         for i in range(int(b.shape[0])):
             b[i:i + 1, 0:-1] = b[i:i + 1, 0:-1] / b[i:i + 1, -1]
@@ -403,7 +379,8 @@ def contigency_joint(a):
     '''
     assert isinstance(a, _np.ndarray)
     b = a.astype(float)
-    return b / _np.sum(b)
+    x = _np.sum(b)
+    return b / x
 # endregion
 
 
@@ -411,7 +388,8 @@ def best_fit_distribution(data, bins=200, ax=None):
     """Model data by finding best fit distribution to data"""
     # Get histogram of original data
     y, x = _np.histogram(data, bins=bins, density=True)
-    x = (x + _np.roll(x, -1))[:-1] / 2.0
+    x = (x + _np.roll(x, -1))
+    x = x[:-1] / 2.0
 
     # Distributions to check
     DISTRIBUTIONS = [
@@ -438,8 +416,8 @@ def best_fit_distribution(data, bins=200, ax=None):
         # Try to fit the distribution
         try:
             # Ignore warnings from data that can't be fit
-            with warnings.catch_warnings():
-                warnings.filterwarnings('ignore')
+            with _warnings.catch_warnings():
+                _warnings.filterwarnings('ignore')
 
                 # fit dist to data
                 params = distribution.fit(data)
@@ -504,8 +482,8 @@ def linreg(X, Y):
     >>>Y = X*2
     >>>model = linreg(X, Y)
     '''
-    X = sm.add_constant(X)
-    model = sm.OLS(Y, X).fit()
+    X = _sm.add_constant(X)
+    model = _sm.OLS(Y, X).fit()
     return model
 
 

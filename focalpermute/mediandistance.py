@@ -33,7 +33,7 @@ import fuckit
 
 #region mine
 from enum import Enum
-from funclib.baselib import switch
+from funclib.baselib import _switch
 import funclib.iolib as iolib
 import funclib.statslib as statslib
 import funclib.arraylib as arraylib
@@ -382,7 +382,7 @@ def get_matrix_data(datatype=EnumResultsType.freq, survey=EnumSurvey.fmm, result
     pairwise_key = ''
     hkey = []
     
-    for case in switch(results_key):
+    for case in _switch(results_key):
         if case(EnumKeys.crispDirected_crispMine):
             pairwise_key = 'crispDirected_crispMine'
             break
@@ -404,7 +404,7 @@ def get_matrix_data(datatype=EnumResultsType.freq, survey=EnumSurvey.fmm, result
         if case():
             raise ValueError('Switch value case not found')
 
-    for case in switch(survey):
+    for case in _switch(survey):
         if case(EnumSurvey.fmm):
             hkey.append('fmm_')
             break
@@ -414,7 +414,7 @@ def get_matrix_data(datatype=EnumResultsType.freq, survey=EnumSurvey.fmm, result
         if case():
             raise ValueError('Switch value case not found')
 
-    for case in switch(datatype):
+    for case in _switch(datatype):
         if case(EnumResultsType.contingency):
             hkey.append('contingency')
             break

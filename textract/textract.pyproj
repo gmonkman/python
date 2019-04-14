@@ -40,6 +40,7 @@
     <Folder Include="test\bin\images\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="pylintrc" />
     <Content Include="test\bin\images\clean_text.jpg" />
     <Content Include="test\bin\images\sa006.jpg" />
   </ItemGroup>

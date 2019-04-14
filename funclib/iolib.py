@@ -1,4 +1,4 @@
-# pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, locally-disabled, not-context-manager, redefined-builtin
+# pylint: disable=C0302, dangerous-default-value, no-member, expression-not-assigned, locally-disabled, not-context-manager, redefined-builtin, consider-using-set-comprehension
 
 '''My file input and output library, e.g. for _csv handling.
 Also for general IO to the console'''
@@ -14,28 +14,20 @@ import shutil as _shutil
 import string as _string
 import tempfile as _tempfile
 from contextlib import contextmanager as _contextmanager
-from contextlib import suppress as _suppress
-import datetime as _datetime
-
-#try:
- #   import cPickle as _pickle
-#except BaseException:
-import pickle as _pickle
-
 import subprocess as _subprocess
 import sys as _sys
-
+import datetime as _datetime
+import pickle as _pickle
 
 from numpy import ndarray as _numpy_ndarray
-
 import fuckit as _fuckit
+
 import funclib.stringslib as _stringslib
-from funclib.baselib import get_platform as _get_platform
 
 _NOTEPADPP_PATH = 'C:\\Program Files (x86)\\Notepad++\\notepad++.exe'
 
 
-class CSVIo(object):
+class CSVIo():
     '''class for reading/writing _csv objects
     can work standalone or as the backbone for CSVMatch'''
 
@@ -113,9 +105,11 @@ def write_to_eof(filename, thetext):
     '''(_string,_string) ->void
     Write thetext to the end of the file given in filename.
     '''
-    with _fuckit:
+    try:
         with open(filename, 'a+') as fid:
             fid.write(thetext)
+    except Exception as _:
+        pass
 
 
 def readcsv(filename, cols=1, startrow=0, numericdata=True):
@@ -284,7 +278,7 @@ def datetime_stamp(datetimesep=''):
 
 def exit():
     '''override exit to detect platform'''
-    if _get_platform() == 'windows':
+    if get_platform() == 'windows':
         _os.system("pause")
     else:
         _os.system('read -s -n 1 -p "Press any key to continue..."')
@@ -296,13 +290,12 @@ def get_platform():
     returns windows, mac, linux
     '''
     s = _sys.platform.lower()
-    if s == "linux" or s == "linux2":
+    if s in("linux", "linux2"):
         return 'linux'
-    elif s == "darwin":
+    if s == "darwin":
         return 'mac'
-    elif s == "win32" or s == "windows":
+    if s in("win32", "windows"):
         return 'windows'
-
     return 'linux'
 
 
@@ -510,7 +503,7 @@ def get_drive_from_uuid(uuid, strip=['-']):
     drives = get_available_drive_uuids(strip)
     if uuid in drives:
         return drives[uuid]
-    elif uuid.lower() in drives:
+    if uuid.lower() in drives:
         return drives[uuid]
 
     return None
@@ -683,7 +676,7 @@ def files_delete(folder, delsubdirs=False):
             elif _os.path.isdir(file_path):
                 if delsubdirs:
                     _shutil.rmtree(file_path)
-        except Exception as e:
+        except Exception as _:
             print('Could not clear summary file(s). They are probably being used by tensorboard')
 
 
@@ -794,7 +787,7 @@ def write_to_file(results, prefix='', open_in_npp=True, full_file_path=''):
     #print(results)
     #print(filename)
     if open_in_npp:
-        if _get_platform() == 'windows':
+        if get_platform() == 'windows':
             notepadpp_open_file(filename)
         else:
             print('Option to open in NPP only available on Windows.')
@@ -842,9 +835,9 @@ def file_copy(src, dest, rename=False, create_dest=True, dest_is_folder=False):
     cnt = 0
     if rename and file_exists(dest):
         pth, fname, ext = get_file_parts(dest)
-        dest =  _os.path.join(pth, '%s%s%s' % (fname, _stringslib.rndstr(4), ext))
+        dest = _os.path.join(pth, '%s%s%s' % (fname, _stringslib.rndstr(4), ext))
         while file_exists(dest):
-            cnt +=1
+            cnt += 1
             dest = _os.path.join(pth, '%s%s%s' % (fname, _stringslib.rndstr(4), ext))
             if cnt > 1000: #safety
                 break
@@ -949,7 +942,7 @@ def print_progress(
         _warn('Total iterations was set to zero.')
         return
 
-    filled_length =  int(round(bar_length * iteration / float(total))) if total > 0 else 0
+    filled_length = int(round(bar_length * iteration / float(total))) if total > 0 else 0
     if iteration / float(total) > 1:
         total = iteration
     percents = round(100.00 * (iteration / float(total)), decimals)
@@ -965,7 +958,7 @@ def print_progress(
         print("\n")
 
 #In the consider using tqdm
-class PrintProgressFlash(object):
+class PrintProgressFlash():
     '''class to print a progress flasher
     to console
 
@@ -1002,7 +995,7 @@ class PrintProgressFlash(object):
         _sys.stdout.flush()
 
 #In the future consider using tqdm
-class PrintProgress(object):
+class PrintProgress():
     '''Class for dos progress bar. Implement as global for module level progress
 
     Example:
@@ -1107,9 +1100,9 @@ def time_pretty(seconds):
     minutes, seconds = divmod(seconds, 60)
     if days > 0:
         return '%s%dd %dh %dm %ds' % (sign_string, days, hours, minutes, seconds)
-    elif hours > 0:
+    if hours > 0:
         return '%s%dh %dm %ds' % (sign_string, hours, minutes, seconds)
-    elif minutes > 0:
+    if minutes > 0:
         return '%s%dm %ds' % (sign_string, minutes, seconds)
-    else:
-        return '%s%ds' % (sign_string, seconds)
+
+    return '%s%ds' % (sign_string, seconds)

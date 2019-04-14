@@ -39,7 +39,7 @@ def get_predictor(checkpoint_path):
     import model
     from icdar import restore_rectangle
     import lanms
-    from eval import _resize_image, _sort_poly, _detect
+    from regions import _resize_image, _sort_poly, _detect
 
     input_images = tf.placeholder(tf.float32, shape=[None, None, None, 3], name='input_images')
     global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0), trainable=False)

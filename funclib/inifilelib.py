@@ -18,7 +18,7 @@ class eReadAs(_Enum):
     ersTuple = 4
 
 
-class ConfigFile(object):
+class ConfigFile():
     '''handles ini file defaults for common sections and values
     like data paths etc
     '''
@@ -41,7 +41,7 @@ class ConfigFile(object):
 
 
     def tryread(self, section, option, force_create=False, value_on_create='', asType=eReadAs.ersStr, error_on_read_fail=False, astype=str):
-        '''(str, str, bool, str|dict, Enum:eReadAs, bool) -> str
+        '''(str, str, bool, str|dict, Enum:eReadAs, bool) -> str|None
         Returns the value read, which will default to value_on_create if no section or option is found.
         Saves to disk if new option created.
 
@@ -71,27 +71,30 @@ class ConfigFile(object):
                     d = _ast.literal_eval(s)
                     return d
                 return astype(s)
-            else:
-                if force_create:
-                    if isinstance(value_on_create, dict):
-                        self._config.set(section, option, str(value_on_create))
-                    else:
-                        value_on_create = value_on_create
-                    self.save()
-                    return astype(value_on_create)
-                else:
-                    raise KeyError('Option %s not found for section %s in inifile %s' % (option, section, self.ini_file))
-        else:
+
             if force_create:
-                self._config.add_section(section)
                 if isinstance(value_on_create, dict):
                     self._config.set(section, option, str(value_on_create))
                 else:
-                    self._config.set(section, option, value_on_create)
+                    value_on_create = value_on_create
                 self.save()
                 return astype(value_on_create)
+
+            if error_on_read_fail:
+                raise KeyError('Option %s not found for section %s in inifile %s' % (option, section, self.ini_file))
+            return None
+
+        if force_create:
+            self._config.add_section(section)
+            if isinstance(value_on_create, dict):
+                self._config.set(section, option, str(value_on_create))
             else:
-                raise KeyError('Section %s not found in %s' % (section, self.ini_file))
+                self._config.set(section, option, value_on_create)
+            self.save()
+            return astype(value_on_create)
+        if error_on_read_fail:
+            raise KeyError('Section %s not found in %s' % (section, self.ini_file))
+        return None
 
 
     def trywrite(self, section, option, value):

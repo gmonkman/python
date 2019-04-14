@@ -20,6 +20,7 @@ class autorepr:
 
     @staticmethod
     def repr(obj):
+        '''dec to wrap autorepr functions'''
         items = []
         for prop, value in obj.__dict__.items():
             try:

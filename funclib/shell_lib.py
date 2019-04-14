@@ -23,8 +23,7 @@ def execute(command, on_failure=None):
     except subprocess.CalledProcessError as cpe:
         if on_failure is None:
             raise cpe
-        else:
-            return on_failure(cpe)
+        return on_failure(cpe)
     # Success! Convert the output to string
     if not isinstance(output, str):
         # 2013-09-07: Explicitly convert bytestring to str, for python3

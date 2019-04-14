@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f9d93d92-62d5-4ef4-accd-eb0b730340b9}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test\test_detect.py</StartupFile>
+    <StartupFile>test\test_regions.py</StartupFile>
     <SearchPath>..</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -47,7 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="data_util.py" />
-    <Compile Include="detect.py" />
+    <Compile Include="regions.py" />
     <Compile Include="icdar.py" />
     <Compile Include="ini.py">
       <SubType>Code</SubType>
@@ -62,7 +62,7 @@
     <Compile Include="nets\resnet_v1.py" />
     <Compile Include="nets\__init__.py" />
     <Compile Include="run_demo_server.py" />
-    <Compile Include="test\test_detect.py">
+    <Compile Include="test\test_regions.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="__init__.py" />

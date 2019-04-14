@@ -37,7 +37,7 @@ _Keys = _display_utils.KeyBoardInput()
 
 _FUNCTIONS = {'f':'framebyframe', 'l':'loop', 's':'snapshot', 'escape':'exit', 'r':'restart', 'p':'pause', 'x':'xform', 'd':'detect'}
 
-#TODO remove later, just getting it working
+
 class eSource(_Enum):
     '''where did we get the histo'''
     FromFile = 0

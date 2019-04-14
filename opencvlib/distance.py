@@ -55,7 +55,8 @@ def nearN_euclidean(point, points, nr=1):
     dist = _np.sqrt(dist[0:, 0] + dist[0:, 1])
 
     nr = len(dist) if nr > len(dist) else nr #argpartition generates an error if nr greater than nr of elements in dist
-    ret = _np.argpartition(dist, -nr)[:nr]
+    ret = _np.argpartition(dist, -nr)
+    ret = ret[:nr]
     l_ind = ret.tolist()
     l_dist = dist[l_ind].tolist()
     out = [x for x in zip(l_ind, l_dist)]

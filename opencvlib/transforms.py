@@ -1,5 +1,8 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, protected-access, unused-import, too-many-return-statements
-'''transforms on an image which return an image'''
+'''transforms on an image which return an image
+
+Also check view.py and common.py for some other common img manipulation tasks.
+'''
 from math import sqrt as _sqrt
 import os.path as _path
 from random import shuffle as _shuffle
@@ -19,12 +22,12 @@ from funclib.iolib import quite
 import funclib.iolib as _iolib
 
 import opencvlib.decs as _decs
+
+import opencvlib.info as _info
 from opencvlib import getimg as _getimg
 from opencvlib import color as _color
-from opencvlib.color import BGR2HSV, BGR2RGB, HSVtoGrey, togreyscale
 import opencvlib.roi as _roi
 import opencvlib.geom as _geom
-
 
 
 
@@ -961,12 +964,42 @@ def sharpen_unsharpmask(img, kernel_size=(5, 5), threshhold=0.0, weight=1, sigma
     return usm_img
 
 
-def bilateral_filter(img):
-    '''to implement'''
-    #TODO Implement
-    #http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html
-    #in opencv as cv2.bilateralfilter
-    pass
-    #TODO add bilatal filtering support
-    #http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html
-    #https://docs.opencv.org/3.0-beta/modules/imgproc/doc/filtering.html#sobel
+@_decs.decgetimg8bpp
+def BGR2RGB(img):
+    '''(ndarray)->ndarray
+    BGR  to RGB
+    opencv to skimage
+    '''
+    if _info.ImageInfo.isbw(img):
+        return img
+
+    return _cv2.cvtColor(img, _cv2.COLOR_BGR2RGB)
+
+
+@_decs.decgettruegrey
+def togreyscale(img):
+    '''(str|ndarray)->ndarray
+    Convert image to greyscale, assumes BGR
+    '''
+    return img
+
+
+@_decs.decgetimg
+def BGR2HSV(img):
+    '''(ndarray)->ndarray
+    BGR to HSV
+    179,255,255
+    '''
+    if _info.ImageInfo.isbw(img):
+        return img
+    return _cv2.cvtColor(img, _cv2.COLOR_BGR2HSV)
+
+
+def HSVtoGrey(img):
+    '''(ndarray) -> ndarray
+    Convert hsv to grey.
+
+    This will give different results from
+    converting HSV
+    '''
+    return img[:, :, 2:3].squeeze()

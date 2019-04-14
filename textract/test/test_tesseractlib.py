@@ -28,7 +28,7 @@ class Test(unittest.TestCase):
         '''test'''
 
         im = cv2.imread('C:/temp/sa6dpi300.jpg')
-        im = transforms.resize(im,width=3000)
+        im = transforms.resize(im, width=3000)
         cv2.imwrite('C:/temp/sa6big.jpg', im)
         d = tesslib.to_paragraphs(self.img_clean)
         print(d)

@@ -468,11 +468,13 @@ def make_cmap(name, n=256):
 
 
 def _HSVToRGB(h, s, v):
+    '''helper func stuck in here to avoid circular refs'''
     (r, g, b) = colorsys.hsv_to_rgb(h, s, v)
     return (int(255*r), int(255*g), int(255*b))
 
 
 def getDistinctColors(n):
+    '''create a ramp of distinct colours'''
     huePartition = 1.0 / (n + 1)
     return list((_HSVToRGB(huePartition * value, 1.0, 1.0) for value in range(0, n)))
 

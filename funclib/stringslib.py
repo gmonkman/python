@@ -16,6 +16,11 @@ ascii_and = ['&', '+']
 ascii_or = ['|']
 
 
+def plus_minus():
+    '''get plus minus'''
+    return u"\u00B1"
+
+
 class Visible():
     visible_strict_with_space = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ '
     visible_strict_sans_space = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'

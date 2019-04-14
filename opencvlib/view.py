@@ -1,12 +1,15 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, reimported, superfluous-parens, unused-import
 
 '''
-This module contains some common routines used by other samples.
-From https://github.com/opencv/opencv/blob/master/samples/python/common.py#L1
+This provides tools to view and annotate images,
+largely for debugging purposes
+
+Also check common.py and transforms.py for some other common img manipulation tasks.
 '''
 import itertools as _it
 import math as _math
 from warnings import warn as _warn
+from enum import Enum as _Enum
 
 import numpy as _np
 import cv2 as _cv2
@@ -30,6 +33,10 @@ __all__ = ['mosaic', 'pad_images', 'show', 'showarray']
 
 _SHOW_WIDTH = 800.
 
+class ePadColorMode(_Enum):
+    tuple_ = 0
+    border = 1
+    blackwhite = 2
 
 
 def _getwaitkey(i):
@@ -78,17 +85,68 @@ def _square_array(ndarr):
     return pad
 
 
+def pad_image(img, border_sz, pad_color=_color.CVColors.black , pad_mode=ePadColorMode.tuple_):
+    '''(ndarray|str, int|2-tuple, 3-tuple, enum:ePadColorMode) -> ndarray
+    Pad an image by border_sz pixels of color pad_color. Alternatively
+    use a black or white padding, to contrast least with the guessed
+    backgroud.
+
+    guess_pad_color overrides pad_color, and a black or white pad color
+    is chosen, based on what contrasts least with the background.
+
+    Parameters:
+        imgs: An list of image file system paths, a single image (ndarray) or a list of images ndarrays.
+        border_sz: int or two tuple, order is (height, width), if int, same size used for height and width
+        pad_color:a color tuple, e.g. (0,0,0)
+        guess_pad_color: Pad with black or white, according to the closest match to the background
+
+    Returns:
+        the padded image
+    '''
+    img = _getimg(img)
+
+    if len(border_sz) == 1:
+        border_sz = (border_sz, border_sz)
+    h, w = border_sz
+
+    if pad_mode == ePadColorMode.blackwhite:
+        i_grey = _transforms.togreyscale(img)
+        pad_color = (0, 0, 0) if len(i_grey[i_grey < 128]) > len(i_grey[i_grey >= 128]) else (255, 255, 255)
+    elif pad_mode == ePadColorMode.border:
+        pad_color = _roi.boundary_color_mean(img)
+
+    i = _cv2.copyMakeBorder(img, h, h, w, w, borderType=_cv2.BORDER_CONSTANT, value=pad_color)
+    return i
+
 
 @_decs.decgetimg
 def pad_images(imgs, pad_color=_color.CVColors.black):
-    '''(list|tuple:ndarray|str) -> list
+    '''(list:ndarray|str|ndarray) -> list
     Pad images so that they are all the same size
-    as the maximum dimensions
+    as the maximum dimensions.
+
+    for a grayscale image, a tuple is still used for pad color.
+
+    guess_pad_color overrides pad_color, and a black or white pad color
+    is chosen, based on what contrasts least with the background.
+
+    Parameters:
+        imgs: A list of image file system paths, a single image (ndarray) or a list of images ndarrays.
+        pad_color:a color tuple, e.g. (0,0,0)
+        guess_pad_color: Pad with black or white, according to the closest match to the background
+
+    Returns:
+        array of padded image
     '''
     maxh = max([x.shape[0] for x in imgs])
     maxw = max([x.shape[1] for x in imgs])
 
-    outimgs = []
+    if isinstance(imgs, _np.ndarray):
+        return imgs
+
+    if isinstance(imgs, (list, tuple)):
+        if len(imgs) == 1:
+            return imgs
 
     for img in imgs:
         if isinstance(img, _np.ndarray):
@@ -102,9 +160,7 @@ def pad_images(imgs, pad_color=_color.CVColors.black):
             assert maxh == i.shape[0] and maxw == i.shape[1]
         else:
             i = None
-
         outimgs.append(i)
-
     return outimgs
 
 
@@ -274,29 +330,42 @@ def _grouper(n, iterable, fillvalue=None):
 
 
 def contours_show(img, contours, labels, add_label=True, show_=True):
-    '''(ndarray, n,1,2-ndarray, n-list)- > ndarray
+    '''(ndarray, n-list:n,1,2-ndarray, n-list)- > ndarray
 
     Plot contours with unique colours according to a label list.
 
     img: image on which to plot the contours
-    contours: an ndarray of contours, of that output by findContours, can also pass a list of cv points
+    contours: an n-list of of ndarray of contours, of that output by findContours, can also pass a list of cv points
     label: a list of grouping labels, of len(labels) == len(contours)
     show: show the image
 
     Returns: Nothng, just shows the mage
     '''
     unq_lbls = list(set(labels))
-
+    dpth = _baselib.depth(contours)
+    if dpth == 1:
+        for c in contours:
+            assert isinstance(c, _np.ndarray), 'Contours should be a depth 2 list of ndarrays'
+    elif dpth == 2:
+        assert isinstance(contours[0][0], _np.ndarray), 'Contours should be a depth 2 list of ndarrays'
+        pass
+    else:
+        raise ValueError('Contours should be a depth 2 list of ndarrays')
 
     color_ramp = list(_color.getDistinctColors(len(unq_lbls)))
     im = img.copy()
-    
+
     for i, c in enumerate(contours):
         lbl = str(labels[i])
         bg_col = color_ramp[unq_lbls.index(labels[i])]
         lbl_col = _color.black_or_white(bg_col)
-        im = _cv2.drawContours(im, [c], -1, bg_col, -1)
-        vert = _geom.centroid(_roi.contour_to_cvpts(c), dtype=_np.int)
+        if isinstance(c, _np.ndarray):
+            c = [c]
+        im = _cv2.drawContours(im, c, -1, bg_col, -1)
+        vert = _geom.centroid(_roi.contour_to_cvpts(c[0]), dtype=_np.int)
+        assert len(vert) == 2, 'len(vert) was %s. Expected len(vert) == 2' % len(vert)
         draw_str(im, vert[0], vert[1], lbl, color=lbl_col, scale=2, thickness=1.5, centre_box_at_xy=True)
-    if show:
+
+    if show_:
         show(im)
+    return im

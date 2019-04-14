@@ -6,7 +6,7 @@ from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 
 import funclib.iolib as iolib
-import funclib.arraylib as arraylib
+
 import numpy as np
 import pandas as pd
 import funclib.pandaslib as pdl
@@ -30,6 +30,7 @@ class Test(unittest.TestCase):
 
     @unittest.skip("Temporaily disabled while debugging")
     def test_GroupBy(self):
+        '''test'''
         pdl.GroupBy.PRECISION = 5
         GB = pdl.GroupBy(self.df, ['fish', 'sex'], ['length', 'weight'], np.mean, np.median, pdl.GroupBy.fCI_str(95), pdl.GroupBy.fCI(95), pdl.GroupBy.fPercentile(25))
         out = _path.join(self.bin_path, 'fish_tmp.xlsx')
@@ -38,6 +39,7 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("Temporaily disabled while debugging")
     def test_df_fromstring(self):
+        '''test'''
         s = """col1,col2,col3\n1,4.4,99\n2,4.5,200\n3,4.7,65\n4,3.2,140"""
         df = pdl.df_fromstring(s)
 

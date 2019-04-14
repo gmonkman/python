@@ -15,12 +15,13 @@ import scipy.spatial.distance as _scipy_dist
 import scipy.cluster.hierarchy as _scipy_heir
 import scipy.ndimage as _ndimage
 
+import opencvlib.histo as _histo
 import opencvlib as _opencvlib
 import opencvlib.info as _info
 import opencvlib.distance as _dist
 import opencvlib.geom as _geom
 import opencvlib.color as _color
-from opencvlib.histo import histo_rgb as _histo_rgb
+
 
 import funclib.baselib as _baselib
 from funclib.arraylib import np_round_extreme as _rnd
@@ -535,13 +536,19 @@ def polys_to_mask(img, polys, getcontours=True, cnt_mode=_cv2.RETR_EXTERNAL, cnt
 
 
 
-def get_image_from_mask(img, mask):
-    '''(ndarray, ndarray)->ndarray
-    Apply a white mask representing an roi
-    to image.
+def get_image_from_mask(img, mask, fill_mask=(0, 0, 0)):
+    '''(ndarray, ndarray)->ndarray|None
+    Apply a mask to an image [255=keep pixels] and
+    return the masked image. The masked portions will be filled
+    with color fill_mask.
 
-    img and mask must be the same size,
-    otherwise None is returned
+    Parameters:
+    img: a file path or ndarray image
+    mask: a black and white mask (white=keep, black=mask)
+    fill_mask: colour to fill masked out areas
+
+    Notes:
+    img and mask must be the same size, otherwise None is returned
     '''
 
     img = _getimg(img)
@@ -561,6 +568,13 @@ def get_image_from_mask(img, mask):
             return None
 
     bitwise = _cv2.bitwise_and(img, mask)
+    fill_mask = list(fill_mask)
+    if fill_mask[0] == 255: fill_mask[0] = 254
+    if fill_mask[1] == 255: fill_mask[1] = 254
+    if fill_mask[2] == 255: fill_mask[2] = 254
+    if fill_mask != (0, 0, 0):
+        bitwise[_np.where((mask==[0, 0, 0]).all(axis=2))] = fill_mask
+
     return bitwise
 
 
@@ -1043,10 +1057,15 @@ def crop_from_rects(img, rects, crop=True, mask_with_boundary_pixels=False):
     pts = []
 
     for rect in rects:
-        _cv2.fillPoly(mask, _np.array([rect], dtype='int32'), color=colour)
+        _cv2.fillPoly(mask, _np.array([rect], dtype='int32'), color=colour) #mask is now b&w
         pts.extend(rect.squeeze().tolist())
 
-    i = get_image_from_mask(img, mask)
+    if mask_with_boundary_pixels:
+        bndcol = boundary_color_mean(img, rects)
+        i = get_image_from_mask(img, mask, fill_mask=bndcol)
+    else:
+        i = get_image_from_mask(img, mask)
+
     if crop:
         miny = img.shape[0]; maxy=0; minx=img.shape[1]; maxx = 0;
         xs, ys = zip(*pts)
@@ -1170,7 +1189,7 @@ def contours_cluster_by_histo(img, contours, hist_bins=3, thresh=0.2, additional
     for i, contour in enumerate(contours):
         bx = contour.squeeze().tolist()
         bx_xywh = rect_xy_to_xywh(bounding_rect_of_poly(bx))
-        _, hist1, hist2, hist3 = _histo_rgb(img, bx_xywh, (0, 1, 2), bins=hist_bins)
+        _, hist1, hist2, hist3 = _histo.histo_rgb(img, bx_xywh, (0, 1, 2), bins=hist_bins)
         if additional_obs: hist3.extend(tuple(additional_obs[i]))
         hist2.extend(tuple(hist3))
         hist1.extend(tuple(hist2))
@@ -1218,39 +1237,59 @@ def mask_get(img, thresh=(1,1,1)):
     img_[img_ < thresh] = 0
 
 
-def boundary_colour_mean(img, rects):
+def boundary_color_mean(img, rects=[]):
+    '''(str|ndarray, n,4,2-list) -> 3-tuple
+    Calculate the mean boundary colour for
+    all the rectangles in rects.
+
+    Parameters:
+    img: image as ndarray or file path
+    rects: a list of rectangles, each rectangle defned as cv2 points. If rects is None, then get boundary colour of the image
+
+    Returns:
+        the BGR colour as a 3-tuple, e.g. (0, 0, 0)
+
+    Example:
+    >>>boundary_color_mean(myimg, [[[0,0],[5,0],[5,5],[0,5]], [[5,5],[10,5],[10,10],[5,10]]])
+    (255, 255, 255)
     '''
-    Get the mean boundary colour for rects
-    '''
+    img = _getimg(img)
     assert img.shape[2] == 3, 'Expected a 3 channel image'
 
     topb = []; topg = []; topr = []
     bottomb = [];bottomg = [];bottomr = []
     leftb = [];leftg = [];leftr = []
     rightb = [];rightg = [];rightr = []
-    for rect in rects:
-        rect = _geom.order_points(rect)
-        r, c, h, w = rect_as_rchw(rect)
-        topb.append(_np.mean(img[r + 1, c:c + w, 0]))
-        topg.append(_np.mean(img[r + 1, c:c + w, 1]))
-        topr.append(_np.mean(img[r + 1, c:c + w, 2]))
 
-        bottomb.append(_np.mean(img[r + h - 1, c:c + w, 0]))
-        bottomg.append(_np.mean(img[r + h - 1, c:c + w, 1]))
-        bottomr.append(_np.mean(img[r + h - 1, c:c + w, 2]))
+    if not rects:
+        B = (_np.mean(img[0, :, 0]) + _np.mean(img[-1, :, 0]) + _np.mean(img[:, 0, 0]) + _np.mean(img[:,-1, 0])) / 4
+        G = (_np.mean(img[0, :, 1]) + _np.mean(img[-1, :, 1]) + _np.mean(img[:, 0, 1]) + _np.mean(img[:,-1, 1])) / 4
+        R = (_np.mean(img[0, :, 2]) + _np.mean(img[-1, :, 2]) + _np.mean(img[:, 0, 2]) + _np.mean(img[:,-1, 2])) / 4
+        out = (int(B), int(G), int(R))
+    else:
+        for rect in rects:
+            rect = _geom.order_points(rect)
+            r, c, h, w = rect_as_rchw(rect)
+            topb.append(_np.mean(img[r + 1, c:c + w, 0]))
+            topg.append(_np.mean(img[r + 1, c:c + w, 1]))
+            topr.append(_np.mean(img[r + 1, c:c + w, 2]))
 
-        leftb.append(_np.mean(img[r:r + h, c + 1, 0]))
-        leftg.append(_np.mean(img[r:r + h, c + 1, 1]))
-        leftr.append(_np.mean(img[r:r + h, c + 1, 2]))
+            bottomb.append(_np.mean(img[r + h - 1, c:c + w, 0]))
+            bottomg.append(_np.mean(img[r + h - 1, c:c + w, 1]))
+            bottomr.append(_np.mean(img[r + h - 1, c:c + w, 2]))
 
-        rightb.append(_np.mean(img[r:r + h, c + w - 1, 0]))
-        rightg.append(_np.mean(img[r:r + h, c + w - 1, 1]))
-        rightr.append(_np.mean(img[r:r + h, c + w - 1, 2]))
+            leftb.append(_np.mean(img[r:r + h, c + 1, 0]))
+            leftg.append(_np.mean(img[r:r + h, c + 1, 1]))
+            leftr.append(_np.mean(img[r:r + h, c + 1, 2]))
 
-    m = lambda l: sum(l) / len(l)
-    out = (int((m(topb) + m(bottomb) + m(leftb) + m(rightb))/4),
-           int((m(topg) + m(bottomg) + m(leftg) + m(rightg))/4),
-           int((m(topr) + m(bottomr) + m(leftr) + m(rightr))/4))
+            rightb.append(_np.mean(img[r:r + h, c + w - 1, 0]))
+            rightg.append(_np.mean(img[r:r + h, c + w - 1, 1]))
+            rightr.append(_np.mean(img[r:r + h, c + w - 1, 2]))
+
+        m = lambda l: sum(l) / len(l)
+        out = (int((m(topb) + m(bottomb) + m(leftb) + m(rightb))/4),
+               int((m(topg) + m(bottomg) + m(leftg) + m(rightg))/4),
+               int((m(topr) + m(bottomr) + m(leftr) + m(rightr))/4))
     return out
 
 
@@ -1264,9 +1303,15 @@ def contour_to_cvpts(cnt):
     Returns:
     List of points in standard cv format, e.g. [[0,0],[1,2]]
     '''
+    if isinstance(cnt, list):
+        if isinstance(cnt[0], _np.ndarray):
+            return cnt[0].squeeze().tolist()
+        raise ValueError('Expected an ndarray, or a list with a single ndarray. Got a list of types %s' % type(cnt[0]))
+
     if isinstance(cnt, _np.ndarray):
         return cnt.squeeze().tolist()
-    return cnt
+    raise ValueError('Expected an ndarray, or a list with a single ndarray. Got %s' % type(cnt))
+
 
 def cvpts_to_contour(pts):
     '''(n,2-list) -> n,1,2-ndarray

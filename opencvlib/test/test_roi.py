@@ -218,7 +218,7 @@ class Test(unittest.TestCase):
     @unittest.skip("Temporaily disabled while debugging")
     def test_contours_cluster_by_histo_and_mask_get(self):
         '''test'''
-        i = roi.mask_get(self.color_patches, thresh=(10,10,10))
+        i = roi.mask_get(self.color_patches, thresh=(10, 10, 10))
         show(i)
         contours, h = cv2.findContours(i, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         clust = roi.contours_cluster_by_histo(self.color_patches, contours)
@@ -229,7 +229,7 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled while debugging")
     def test_boundary_colour_mean(self):
         '''test'''
-        i = roi.mask_get(self.color_patches, thresh=(10,10,10))
+        i = roi.mask_get(self.color_patches, thresh=(10, 10, 10))
 
         contours, h = cv2.findContours(i, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         col = roi.boundary_colour_mean(self.color_patches, contours)

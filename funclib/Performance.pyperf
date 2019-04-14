@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<ProfilingTarget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <ProjectTarget>
-    <TargetProject>ec5cf372-8145-4757-ba13-3684ace201fe</TargetProject>
-    <FriendlyName>focalpermute</FriendlyName>
-  </ProjectTarget>
-</ProfilingTarget>

@@ -3,9 +3,6 @@
 '''new script wih argparse'''
 import argparse
 import os.path as path
-import pytesseract
-
-import funclib.iolib as iolib
 
 def get_issue(s):
     '''str -> str
@@ -20,7 +17,7 @@ def main():
     #args.folder == 'c:/temp'
     cmdline.add_argument('folder', help='folder')
     args = cmdline.parse_args()
-    fld = path.normpath(args.folder)
+    _ = path.normpath(args.folder)
 
 
 

@@ -3,6 +3,8 @@
 '''
 From opencv demos
 This module contains some common routines used by other opencv demos.
+
+Also check view.py and transforms.py for some other common img manipulation tasks.
 '''
 
 # Python 2/3 compatibility

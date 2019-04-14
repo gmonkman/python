@@ -1,6 +1,6 @@
 #pylint: skip-file
 '''nms'''
-import numpy as np
+import numpy
 from shapely.geometry import Polygon
 
 
@@ -27,14 +27,14 @@ def weighted_merge(g, p):
 
 def standard_nms(S, thres):
     '''doc'''
-    order = np.argsort(S[:, 8])[::-1]
+    order = numpy.argsort(S[:, 8])[::-1]
     keep = []
     while order.size > 0:
         i = order[0]
         keep.append(i)
-        ovr = np.array([intersection(S[i], S[t]) for t in order[1:]])
+        ovr = numpy.array([intersection(S[i], S[t]) for t in order[1:]])
 
-        inds = np.where(ovr <= thres)[0]
+        inds = numpy.where(ovr <= thres)[0]
         order = order[inds+1]
 
     return S[keep]
@@ -59,12 +59,12 @@ def nms_locality(polys, thres=0.3):
         S.append(p)
 
     if len(S) == 0:
-        return np.array([])
-    return standard_nms(np.array(S), thres)
+        return numpy.array([])
+    return standard_nms(numpy.array(S), thres)
 
 
 if __name__ == '__main__':
     '''doc'''
     # 343,350,448,135,474,143,369,359
-    print(Polygon(np.array([[343, 350], [448, 135],
+    print(Polygon(numpy.array([[343, 350], [448, 135],
                             [474, 143], [369, 359]])).area)
