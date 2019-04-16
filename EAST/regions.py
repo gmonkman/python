@@ -214,12 +214,13 @@ def text_region_generator(images_path, visualisation_dir=None):
     array([[[..]]]), [[10,0], ...], 'C:/temp/images/IMAGE1.JPG', 'C1'
     '''
 
-    visualisation_dir = _path.normpath(visualisation_dir)
-    try:
-        _os.makedirs(visualisation_dir)
-    except OSError as e:
-        if e.errno != 17:
-            raise
+    if visualisation_dir:
+        visualisation_dir = _path.normpath(visualisation_dir)
+        try:
+            _os.makedirs(visualisation_dir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
 
     with _tf.get_default_graph().as_default():
         input_images = _tf.placeholder(_tf.float32, shape=[None, None, None, 3], name='input_images')
