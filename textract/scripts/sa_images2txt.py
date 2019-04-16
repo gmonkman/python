@@ -5,7 +5,6 @@ import argparse
 import os.path as path
 
 from sqlalchemy import and_
-from pysimplelog import Logger as _Logger
 
 import EAST.regions as regions
 import mmodb
@@ -15,14 +14,6 @@ import textract.samag as samag
 import textract.tesseractlib as tes
 import dblib.mssql as _mssql
 import textract as _textract
-
-
-
-LOG_FILE = _ini.Cfg.tryread('train.py', 'LOG_FILE', os.path.normpath(os.path.join(CURRENT_DIR, 'train.py.log')))
-files_delete2(LOG_FILE)
-Log = _Logger(name='train', logToStdout=False, logToFile=True, logFileMaxSize=1)
-Log.set_log_file(LOG_FILE)
-
 
 
 def get_issue(s):

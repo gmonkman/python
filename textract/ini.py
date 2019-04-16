@@ -17,3 +17,4 @@ _ConfigFile = _inifilelib.ConfigFile(_INIPATH)
 class textract():
     '''general settings'''
     is_sentence_word_limit = _ConfigFile.tryread('textract', 'IS_SENTENCE_WORD_LIMIT', value_on_create=5, astype=int)
+    log_file = _path.normpath(_ConfigFile.tryread('textract', 'LOG_FILE', value_on_create='C:/temp/textract.log', astype=str))
