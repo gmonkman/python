@@ -205,12 +205,13 @@ def text_region_generator(images_path, visualisation_dir=None):
     Yields:
         ndarray, i.e.the image cropped to a detected text region,
         Detected region as a rectangle in cv2 points format,
-        A key which groups regions considered to be from the same body of text,
         The path to the image
+        A key which groups regions considered to be from the same body of text,
+
 
     Example:
     >>>detect_image('C:/temp/images', 'C:/temp/images/vis')
-    array([[[..]]]), [[10,0], ...], 'C1', 'C:/temp/images/IMAGE1.JPG'
+    array([[[..]]]), [[10,0], ...], 'C:/temp/images/IMAGE1.JPG', 'C1'
     '''
 
     visualisation_dir = _path.normpath(visualisation_dir)

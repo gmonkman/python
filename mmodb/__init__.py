@@ -10,16 +10,17 @@ import mmodb.ini as ini
 __all__ = ['ini', 'mag', 'model']
 
 print('Trying to connect to database %s.%s ....' % (ini.server, ini.dbname))
-cnnstr = _alc.ConnectionString(ini.server, ini.dbname, ini.user, ini.password, use_integrated=ini.is_integrated)
+cnnstr = _alc.ConnectionString(ini.server, ini.dbname, ini.user, ini.password, use_integrated=ini.is_integrated).mssql_connection_string()
 _alc.create_engine_mssql(cnnstr)
 ENGINE = _alc.ENGINE
-SESSION = _sessmake()
-SESSION.configure(bind=ENGINE, autocommit=False)
-
+SESSION_MAKER = _sessmake()
+SESSION_MAKER.configure(bind=ENGINE, autocommit=False)
+SESSION = SESSION_MAKER()
 
 
 def close_engine():
     try:
+        SESSION.commit()
         ENGINE.dispose()
     except:
         pass

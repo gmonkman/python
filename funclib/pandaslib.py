@@ -322,7 +322,7 @@ def df_fromstring(str_, sep=',', header=0, names=None, **args):
     there are no header names. As set, the first
     row is assumed to contain col names
     '''
-    df = _pd.read_csv(_StringIO(str_), sep=sep, header=header, names=names, **args)
+    df = _pd.read_csv(_StringIO(str_), sep=sep, header=header, names=names, engine='python', **args)
     return df
 
 

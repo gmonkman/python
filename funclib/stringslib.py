@@ -78,7 +78,7 @@ def rndstr(l):
     return  ''.join(_random.choice(_string.ascii_uppercase + _string.ascii_lowercase + _string.digits) for _ in range(l))
 
 
-def filter_alphanumeric1(s, to_ascii=True, strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and'):
+def filter_alphanumeric1(s, to_ascii=True, strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and', remove_single_quote=False, remove_double_quote=False):
     '''(str, bool, bool, bool, bool, tuple, tuple) -> bool
 
     to_ascii: replace foreign letters to ASCII ones, e.g, umlat to u
@@ -90,6 +90,11 @@ def filter_alphanumeric1(s, to_ascii=True, strict=False, allow_cr=True, allow_lf
     >>>filter_alphanumeric('asd^!2', strict=True)
     asd2
     '''
+    if remove_single_quote:
+        s = s.replace("'", "")
+    if remove_double_quote:
+        s = s.replace('"', '')
+
     return ''.join([c for c in s if filter_alphanumeric(c, to_ascii, strict, allow_cr, allow_lf, exclude, include, replace_ampersand)])
 
 # region files and paths related

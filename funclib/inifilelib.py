@@ -24,6 +24,8 @@ class ConfigFile():
     '''
 
     def __init__(self, ini_file):
+        if not _iolib.file_exists(ini_file):
+            raise FileNotFoundError('Inifile %s not found.' % ini_file)
         self.ini_file_path, self.ini_file_name = _os.path.split(
             _os.path.abspath(ini_file))
         self.ini_file = ini_file

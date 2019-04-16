@@ -3,7 +3,7 @@
 from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, Table, Text, Unicode, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from funclib.decs import autorepr as _autorepr
+#from funclib.decs import autorepr as _autorepr
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -11,7 +11,7 @@ metadata = Base.metadata
 
 
 
-@_autorepr
+
 class Mag(Base):
     __tablename__ = 'mag'
 
@@ -20,12 +20,14 @@ class Mag(Base):
     issue = Column(Unicode(10))
     issue_date = Column(DateTime)
     page_num = Column(Integer)
+    group_key = Column(String(20, 'Latin1_General_CI_AS'))
+    block_num = Column(Integer)
     paragraph = Column(Integer)
     text = Column(Text(2147483647, 'Latin1_General_CI_AS'), nullable=False)
-    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
+    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
     date_modified = Column(DateTime)
 
-@_autorepr
+
 class Species(Base):
     __tablename__ = 'species'
 
@@ -40,7 +42,7 @@ class Species(Base):
 
     species_type1 = relationship('SpeciesType1')
 
-@_autorepr
+
 class SpeciesAlia(Base):
     __tablename__ = 'species_alias'
 
@@ -51,7 +53,7 @@ class SpeciesAlia(Base):
     species_alias_type = relationship('SpeciesAliasType')
     species = relationship('Species')
 
-@_autorepr
+
 class SpeciesAliasConflict(Base):
     __tablename__ = 'species_alias_conflict'
 
@@ -63,20 +65,20 @@ class SpeciesAliasConflict(Base):
     species_alia = relationship('SpeciesAlia')
     species = relationship('Species')
 
-@_autorepr
+
 class SpeciesAliasType(Base):
     __tablename__ = 'species_alias_type'
 
     species_alias_typeid = Column(String(50, 'Latin1_General_CI_AS'), primary_key=True)
     comment = Column(Text(2147483647, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
 
-@_autorepr
+
 class SpeciesType(Base):
     __tablename__ = 'species_type'
 
     species_typeid = Column(String(50, 'Latin1_General_CI_AS'), primary_key=True)
 
-@_autorepr
+
 class SpeciesType1(Base):
     __tablename__ = 'species_type1'
 
@@ -85,7 +87,7 @@ class SpeciesType1(Base):
 
     species_type = relationship('SpeciesType')
 
-@_autorepr
+
 class SubstSpecy(Base):
     __tablename__ = 'subst_species'
 

@@ -25,4 +25,4 @@ security = _ConfigFile.tryread('db', 'security')
 user = _ConfigFile.tryread('db', 'user')
 password = _ConfigFile.tryread('db', 'password')
 dbname = _ConfigFile.tryread('db', 'dbname')
-is_integrated = _CondigFile.tryread('db', 'security').lower() == 'integrated'
+is_integrated = _ConfigFile.tryread('db', 'security').lower() == 'integrated'

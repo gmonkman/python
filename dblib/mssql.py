@@ -3,6 +3,7 @@
 CRUD is awaiting adaption of the SQLLite code which
 is commented out.
 '''
+import datetime as _datetime
 import pymssql
 
 
@@ -373,3 +374,9 @@ class CRUD(object):
                                            for k, v in kwargs.items()))
         sql.append(";")
         return "".join(sql)
+
+
+def getNow():
+    '''Get sql friendly current datetime
+    '''
+    return _datetime.datetime.strftime(_datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')

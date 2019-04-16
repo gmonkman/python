@@ -70,7 +70,11 @@ class Consumer(_Enum):
 
 # TODO Expand supported connection types in get_connection_string
 class ConnectionString(object):
-    '''generate connection strings for different databases'''
+    '''generate connection strings for different databases
+
+    Example (MSSQL Connection String):
+    >>>alchemylib.ConnectionString('(local)', 'mydb', 'sa', 'password', use_integrated=ini.is_integrated).mssql_connection_string()
+    '''
 
     def __init__(self, server='', dbname='', user='', pw='', fileptr='', use_integrated=False):
         self.server = server

@@ -14,10 +14,10 @@ _stringslib.filter_alphanumeric
 
 def _cleanstr(s):
     '''clean str'''
-    return _stringslib.filter_alphanumeric1(s, allow_cr=False, allow_lf=False)
+    return _stringslib.filter_alphanumeric1(s, allow_cr=False, allow_lf=False, remove_double_quote=True, remove_single_quote=True)
 
 
-def to_paragraphs(img, override_page_nr=None, conf_thresh=90, psm=1):
+def to_paragraphs(img, override_page_nr=None, conf_thresh=70, psm=1):
     '''(str|ndarray, None|int, int, int) -> dict
     Parameters:
     imgpath:path to the image or ndarray
@@ -38,12 +38,14 @@ def to_paragraphs(img, override_page_nr=None, conf_thresh=90, psm=1):
     '''
     #level,page_num,block_num,par_num,line_num,word_num,left,top,width,height,conf,text
     paragraphs = {}
-    if isinstance(s, str):
+    if isinstance(img, str):
         s = _pyt.image_to_data(img, config='--psm %s' % psm)
     else:
         s = _pyt.image_to_data(Image.fromarray(img), config='--psm %s' % psm)
-
-    df = _pdl.df_fromstring(_to_ascii(s), sep='\t')
+    s = _to_ascii(s)
+    s =  s.replace('"', '')
+    s =  s.replace("'", "")
+    df = _pdl.df_fromstring(s, sep='\t')
     df.sort_values(['page_num', 'block_num', 'par_num', 'line_num', 'word_num'], inplace=True, ascending=True)
     #our key is page_num, block_num, par_num
     #ipage_num, iblock_num, ipar_num, iline_num = pdl.cols_get_indexes_from_names(df, 'page_num', 'block_num', 'par_num', 'line_num')
@@ -55,8 +57,13 @@ def to_paragraphs(img, override_page_nr=None, conf_thresh=90, psm=1):
                 continue
         except:
             continue
-        if key in paragraphs:
-            paragraphs[key] = '%s %s' % (paragraphs[key], _cleanstr(row.text))
-        else:
-            paragraphs[key] = row.text
+        try:
+            if isinstance(row.text, str):
+                s = _cleanstr(row.text)
+                if key in paragraphs:
+                    paragraphs[key] = '%s %s' % (paragraphs[key], s)
+                else:
+                    paragraphs[key] = s
+        except Exception as _:
+            pass
     return paragraphs

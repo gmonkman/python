@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{227dda94-406a-444d-bac7-a0712722007b}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test\test_tesseractlib.py</StartupFile>
+    <StartupFile>scripts\sa_images2txt.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -13,6 +13,8 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
+    <CommandLineArguments>-v C:/development/python/textract/test/bin/images</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -21,6 +23,12 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ini.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="samag.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts\sa_images2txt.py">
       <SubType>Code</SubType>
     </Compile>
@@ -41,8 +49,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="pylintrc" />
-    <Content Include="test\bin\images\clean_text.jpg" />
-    <Content Include="test\bin\images\sa006.jpg" />
+    <Content Include="test\bin\images\SA_001_001.jpg" />
+    <Content Include="test\bin\images\SA_001_002.jpg" />
+    <Content Include="textract.ini">
+      <SubType>Code</SubType>
+    </Content>
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
