@@ -254,12 +254,14 @@ def text_region_generator(images_path, visualisation_dir=None):
 
                 if fs == _ProgressStatus.eProgressStatus.Success:
                     SW.lap()
+                    _EAST.Log.info('Skipped (Previous Success) Image %s.' % im_fn)
                     PP1.increment(suffix='Remain: %s' % SW.pretty_remaining(len(im_fn_list) - n))
                     continue
 
                 if fs == _ProgressStatus.eProgressStatus.Errored:
                     if _EAST.ini.Regions_py.RETRY_FAILED == 0:
                         SW.lap()
+                        _EAST.Log.info('Skipped (Previous Error) Image %s.' % im_fn)
                         PP1.increment(suffix='Remain: %s' % SW.pretty_remaining(len(im_fn_list) - n))
                         continue
                     _ProgressStatus.status_del(im_fn) #remove from ProgressStatus list and retry this image
@@ -306,6 +308,13 @@ def text_region_generator(images_path, visualisation_dir=None):
                     centroids = _np.array(centroids) #n,2 numpy array of points
 
                     mask, contours, _ = _roi.polys_to_mask(im, boxes_untransformed, use_bounding_rect=True) #make a mask out of every word detection
+                    if not contours:
+                        SW.lap()
+                        _ProgressStatus.status_add(im_fn, _ProgressStatus.eProgressStatus.Success, err='No contours found')
+                        _EAST.Log.info('Image %s, no contours found' % im_fn)
+                        PP1.increment(suffix='Remain: %s' % SW.pretty_remaining(len(im_fn_list) - n))
+                        continue
+
                     mask = _roi.mask_join(mask, _get_dilate_kernel(mask), _EAST.ini.Regions_py.MASK_JOIN_ITER) #join nearby word detection masks using dilation
                     contours, _ = _cv2.findContours(mask, _cv2.RETR_CCOMP, _cv2.CHAIN_APPROX_SIMPLE) #reget the contours after merging
                     contours = _roi.contours_to_bounding_rects(contours) #make contours rectangles
@@ -313,26 +322,29 @@ def text_region_generator(images_path, visualisation_dir=None):
                     mask, contours, _ = _roi.polys_to_mask(im, contours_as_pts, use_bounding_rect=True) #make a new mask from the rectangular contours we just made
                     contours = _roi.contours_to_bounding_rects(contours)
 
-                    #build average heights as an extra cluster dimension
-                    mean_cluster_box_heights = []
-                    heights = _np.array(heights)
-                    for c in contours:
-                        pt = _roi.rect_xy_to_tlbr(_roi.contour_to_cvpts(c))
-                        tl = _np.array(pt[0]); br = _np.array(pt[1])
-                        inidx = _np.all(_np.logical_and(tl <= centroids, centroids <= br), axis=1)
-                        mean_cluster_box_heights.append([_np.mean(heights[inidx])])
+                    if len(contours) == 1:
+                        contour_clusters = {'C1': contours}
+                    else:
+                        #build average heights as an extra cluster dimension
+                        mean_cluster_box_heights = []
+                        heights = _np.array(heights)
+                        for c in contours:
+                            pt = _roi.rect_xy_to_tlbr(_roi.contour_to_cvpts(c))
+                            tl = _np.array(pt[0]); br = _np.array(pt[1])
+                            inidx = _np.all(_np.logical_and(tl <= centroids, centroids <= br), axis=1)
+                            mean_cluster_box_heights.append([_np.mean(heights[inidx])])
 
-                    #add width as an additional similarity dimension
-                    #on the basis that areas of similiar width are likely to
-                    #be the same text body in multi column documents
-                    for i, c in enumerate(contours):
-                        cvpts = _roi.contour_to_cvpts(c)
-                        xs, _ = zip(*cvpts)
-                        w = max(xs) - min(xs)
-                        #_, _, _, w = _roi.rect_as_rchw(_roi.contour_to_cvpts(c))
-                        mean_cluster_box_heights[i].append(w / img_orig.shape[1]) #just tack the width onto the end of each mean_cluster_box_height of each contour
+                        #add width as an additional similarity dimension
+                        #on the basis that areas of similiar width are likely to
+                        #be the same text body in multi column documents
+                        for i, c in enumerate(contours):
+                            cvpts = _roi.contour_to_cvpts(c)
+                            xs, _ = zip(*cvpts)
+                            w = max(xs) - min(xs)
+                            #_, _, _, w = _roi.rect_as_rchw(_roi.contour_to_cvpts(c))
+                            mean_cluster_box_heights[i].append(w / img_orig.shape[1]) #just tack the width onto the end of each mean_cluster_box_height of each contour
 
-                    contour_clusters, _ = _roi.contours_cluster_by_histo(img_orig, contours, thresh=_EAST.ini.Regions_py.COSINE_DISTANCE_THRESH, additional_obs=mean_cluster_box_heights) #dic {'C1':[cont,cont, ..], 'C2':[cont,cont, ..], ...}, clusterng contours by there RGB histo
+                        contour_clusters, _ = _roi.contours_cluster_by_histo(img_orig, contours, thresh=_EAST.ini.Regions_py.COSINE_DISTANCE_THRESH, additional_obs=mean_cluster_box_heights) #dic {'C1':[cont,cont, ..], 'C2':[cont,cont, ..], ...}, clusterng contours by there RGB histo
 
                     #Now identify outliers by distance - we put these in their own group and update the contours with the inliers
                     all_outliers = []
@@ -372,9 +384,10 @@ def text_region_generator(images_path, visualisation_dir=None):
                             img_cropped = _view.pad_image(img_cropped, (_EAST.ini.Regions_py.PAD_CONTOURS, _EAST.ini.Regions_py.PAD_CONTOURS), pad_mode=_view.ePadColorMode.border)
                             yield img_cropped, pts_xt, im_fn, key
                     _ProgressStatus.status_add(im_fn, _ProgressStatus.eProgressStatus.Success)
+                    _EAST.Log.info('Processed Image %s.  Found %s clusters.' % (im_fn, len(contours)))
                 else:
                     _ProgressStatus.status_add(im_fn, _ProgressStatus.eProgressStatus.Success, err='No words detected')
-
+                    _EAST.Log.info('Processed Image %s. No words found.' % im_fn)
                 SW.lap()
                 PP1.increment(suffix='Remain: %s' % SW.pretty_remaining(len(im_fn_list) - n))
                 _ProgressStatus.save()
