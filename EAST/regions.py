@@ -215,7 +215,7 @@ def text_region_generator(images_path, visualisation_dir=None):
     '''
 
     if visualisation_dir:
-        visualisation_dir = _path.normpath(visualisation_dir)
+        g = _path.normpath(visualisation_dir)
         try:
             _os.makedirs(visualisation_dir)
         except OSError as e:
