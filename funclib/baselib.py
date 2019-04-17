@@ -14,6 +14,7 @@ from copy import deepcopy as _deepcopy
 from enum import Enum as _enum
 
 import numpy as _np
+import funclib.iolib as _iolib
 
 
 class eDictMatch(_enum):
@@ -573,6 +574,8 @@ def pickle(obj, fname):
 
     Also see unpickle
     '''
+    d, _, _ = _iolib.get_file_parts2(fname)
+    _iolib.create_folder(d)
     with open(fname, 'wb') as f:
         _pickle.dump(obj, f)
 
