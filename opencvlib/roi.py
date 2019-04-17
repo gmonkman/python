@@ -1261,6 +1261,12 @@ def boundary_color_mean(img, rects=[]):
     leftb = [];leftg = [];leftr = []
     rightb = [];rightg = [];rightr = []
 
+    max_col = lambda c, w, img: c + w - 1 if c + w - 1 < img.shape[1] else img.shape[1] - 1
+    max_row = lambda r, h, img: r + h - 1 if r + h - 1 < img.shape[0] else img.shape[0] - 1
+
+    mxc = lambda c, img: c if c < img.shape[1] else img.shape[1] - 1
+    mxr = lambda r, img: r if r < img.shape[0] else img.shape[0] -1
+
     if not rects:
         B = (_np.mean(img[0, :, 0]) + _np.mean(img[-1, :, 0]) + _np.mean(img[:, 0, 0]) + _np.mean(img[:,-1, 0])) / 4
         G = (_np.mean(img[0, :, 1]) + _np.mean(img[-1, :, 1]) + _np.mean(img[:, 0, 1]) + _np.mean(img[:,-1, 1])) / 4
@@ -1270,21 +1276,21 @@ def boundary_color_mean(img, rects=[]):
         for rect in rects:
             rect = _geom.order_points(rect)
             r, c, h, w = rect_as_rchw(rect)
-            topb.append(_np.mean(img[r + 1, c:c + w, 0]))
-            topg.append(_np.mean(img[r + 1, c:c + w, 1]))
-            topr.append(_np.mean(img[r + 1, c:c + w, 2]))
+            topb.append(_np.mean(img[mxr(r + 1, img), c:mxc(c + w, img), 0]))
+            topg.append(_np.mean(img[mxr(r + 1, img), c:mxc(c + w, img), 1]))
+            topr.append(_np.mean(img[mxr(r + 1, img), c:mxc(c + w, img), 2]))
 
-            bottomb.append(_np.mean(img[r + h - 1, c:c + w, 0]))
-            bottomg.append(_np.mean(img[r + h - 1, c:c + w, 1]))
-            bottomr.append(_np.mean(img[r + h - 1, c:c + w, 2]))
+            bottomb.append(_np.mean(img[max_row(r, h, img), c:mxc(c + w, img), 0]))
+            bottomg.append(_np.mean(img[max_row(r, h, img), c:mxc(c + w, img), 1]))
+            bottomr.append(_np.mean(img[max_row(r, h, img), c:mxc(c + w, img), 2]))
 
-            leftb.append(_np.mean(img[r:r + h, c + 1, 0]))
-            leftg.append(_np.mean(img[r:r + h, c + 1, 1]))
-            leftr.append(_np.mean(img[r:r + h, c + 1, 2]))
+            leftb.append(_np.mean(img[r:mxr(r + h, img), mxc(c + 1, img), 0]))
+            leftg.append(_np.mean(img[r:mxr(r + h, img), mxc(c + 1, img), 1]))
+            leftr.append(_np.mean(img[r:mxr(r + h, img), mxc(c + 1, img), 2]))
 
-            rightb.append(_np.mean(img[r:r + h, c + w - 1, 0]))
-            rightg.append(_np.mean(img[r:r + h, c + w - 1, 1]))
-            rightr.append(_np.mean(img[r:r + h, c + w - 1, 2]))
+            rightb.append(_np.mean(img[r:mxr(r + h, img), max_col(c, w, img), 0]))
+            rightg.append(_np.mean(img[r:mxr(r + h, img), max_col(c, w, img), 1]))
+            rightr.append(_np.mean(img[r:mxr(r + h, img), max_col(c, w, img), 2]))
 
         m = lambda l: sum(l) / len(l)
         out = (int((m(topb) + m(bottomb) + m(leftb) + m(rightb))/4),

@@ -48,3 +48,6 @@ class Regions_py():
     TEXT_SCALE = _ConfigFile.tryread('regions.py', 'TEXT_SCALE', astype=int, value_on_create=512)
     GPU_LIST = _ConfigFile.tryread('regions.py', 'GPU_LIST', astype=int, value_on_create=0)
     PAD_CONTOURS = _ConfigFile.tryread('regions.py', 'PAD_CONTOURS', astype=int, value_on_create=20, force_create=True)
+
+class EAST():
+    LOG_FILE = _path.normpath(_ConfigFile.tryread('EAST', 'LOG_FILE', value_on_create='C:/temp/EAST.log', astype=str))

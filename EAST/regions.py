@@ -246,6 +246,10 @@ def text_region_generator(images_path, visualisation_dir=None):
             for n, im_fn in enumerate(im_fn_list):
                 #have we processed it before
                 im_fn = _os.path.normpath(im_fn)
+                try:
+                    _EAST.Log.info('Opened %s' % im_fn)
+                except Exception as _:
+                    pass
                 fs = _ProgressStatus.get_file_status(im_fn)
 
                 if fs == _ProgressStatus.eProgressStatus.Success:
@@ -306,7 +310,8 @@ def text_region_generator(images_path, visualisation_dir=None):
                     contours, _ = _cv2.findContours(mask, _cv2.RETR_CCOMP, _cv2.CHAIN_APPROX_SIMPLE) #reget the contours after merging
                     contours = _roi.contours_to_bounding_rects(contours) #make contours rectangles
                     contours_as_pts = [_roi.contour_to_cvpts(c) for c in contours]
-                    mask, contours, _ = _roi.polys_to_mask(im, contours_as_pts, use_bounding_rect=False) #make a new mask from the rectangular contours we just made
+                    mask, contours, _ = _roi.polys_to_mask(im, contours_as_pts, use_bounding_rect=True) #make a new mask from the rectangular contours we just made
+                    contours = _roi.contours_to_bounding_rects(contours)
 
                     #build average heights as an extra cluster dimension
                     mean_cluster_box_heights = []
@@ -321,7 +326,10 @@ def text_region_generator(images_path, visualisation_dir=None):
                     #on the basis that areas of similiar width are likely to
                     #be the same text body in multi column documents
                     for i, c in enumerate(contours):
-                        _, _, _, w = _roi.rect_as_rchw(_roi.contour_to_cvpts(c))
+                        cvpts = _roi.contour_to_cvpts(c)
+                        xs, _ = zip(*cvpts)
+                        w = max(xs) - min(xs)
+                        #_, _, _, w = _roi.rect_as_rchw(_roi.contour_to_cvpts(c))
                         mean_cluster_box_heights[i].append(w / img_orig.shape[1]) #just tack the width onto the end of each mean_cluster_box_height of each contour
 
                     contour_clusters, _ = _roi.contours_cluster_by_histo(img_orig, contours, thresh=_EAST.ini.Regions_py.COSINE_DISTANCE_THRESH, additional_obs=mean_cluster_box_heights) #dic {'C1':[cont,cont, ..], 'C2':[cont,cont, ..], ...}, clusterng contours by there RGB histo

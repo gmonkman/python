@@ -37,10 +37,6 @@ def main():
         visfold = None
 
     for i, _, imgpath, group_key in regions.text_region_generator(sourcefld, visfold):
-        try:
-            _textract.Log.info('Got img %s' % imgpath)
-        except Exception as _:
-            pass
         issue, pgnr = samag.get_issue_and_page(imgpath)
         det = tes.to_paragraphs(i)
         for k, para in det.items():
