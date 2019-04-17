@@ -5,7 +5,7 @@
 opencvlib/calibration
 opencvlib/movies
 pgnet/scripts/summary
-
+EAST/model/east_icdar2015_resnet_v1_50_rbox
 
 # User-specific files
 *.suo
