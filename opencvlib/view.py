@@ -147,7 +147,7 @@ def pad_images(imgs, pad_color=_color.CVColors.black):
     if isinstance(imgs, (list, tuple)):
         if len(imgs) == 1:
             return imgs
-
+    outimgs = []
     for img in imgs:
         if isinstance(img, _np.ndarray):
             add_h = maxh - img.shape[0]

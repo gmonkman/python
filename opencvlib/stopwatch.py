@@ -18,7 +18,7 @@ def _clock():
     '''
     # _cv2.getTickCount() / _cv2.getTickFrequency()
     return _time.time()
-  
+
 
 class _StopWatchInterval():
     '''stop watch interval'''
@@ -100,24 +100,50 @@ class StopWatch():
         self.Times.append(self._firstInterval)
 
 
-
-    def remaining(self, n):
-        '''(int) -> float
+    def remaining(self, n, use_smoothed=True):
+        '''(int, bool) -> float
         Estimate time left in seconds using
         the smoothed event time
+        Parameters
+            n:number of events left
+            use_smoothed: use the smoothed event, otherwise absolute
 
-        n:
-            number of events left
+        Returns:
+            float, time left in seconds
+
+        Example:
+        >>>remaining(10, use_smoothed=True)
+        23.12123
         '''
         #don't use smoothed till queue is full
         try:
-            if len(self.Times) < self.qsize:
-                x = self.Times[-1].event_rate * n
-            else:
-                x = self.Times[-1].event_rate_smoothed * n
+            x = n * self.event_rate_smoothed if use_smoothed else n * self.event_rate
         except Exception as _:
-            x = 0
+            try:
+                x = n * self.event_rate_global
+            except Exception as _:
+                x = 0
         return x
+
+
+    def pretty_remaining(self, n, use_smoothed=True):
+        '''(int, bool) -> str
+        Return pretty formatted string of the time
+        remaining
+
+        Parameters:
+            n: number of events left
+            use_smoothed: use the smoothed event rates, rather than unsmoothed
+
+        Returns:
+            pretty string with an estimate of the time remaining
+
+        Example:
+        >>>SW.pretty_remaining(10, use_smoothed=True)
+        4d 2h 23m
+        '''
+        return StopWatch.pretty_time(self.remaining(n, use_smoothed))
+
 
 
     def lap(self, event_ticks=1):
@@ -151,6 +177,52 @@ class StopWatch():
 
     @property
     def event_rate(self):
+        ''' -> float
+        Get the mean event rate in seconds using
+        the StopWatchInterval Queue.
+
+        Returns:
+            float of the mean event rate
+
+        Example:
+         >>>SW.event_rate
+         2.1212441
+        '''
+        Is = list(self.Times)
+        if Is:
+            ts = [v.event_rate for v in Is]
+            if ts:
+                return sum(ts) / len(ts)
+            return None
+        return None
+
+
+    @property
+    def event_rate_smoothed(self):
+        ''' -> float
+        Get the mean smoothed event rate in seconds using
+        the StopWatchInterval Queue.
+
+        Returns:
+            float of the mean event rate
+
+        Example:
+         >>>SW.event_rate_smoothed
+         2.1212441
+        '''
+        Is = list(self.Times)
+        if Is:
+            ts = [v.event_rate_smoothed for v in Is]
+            if ts:
+                return sum(ts) / len(ts)
+            return None
+        return None
+
+
+
+
+    @property
+    def event_rate_last(self):
         '''(void) -> float
         Get the latest "raw" rate.
         '''
@@ -160,13 +232,13 @@ class StopWatch():
 
 
     @property
-    def event_rate_smoothed(self):
+    def event_rate_last_smoothed(self):
         '''(void) -> float
         Get the latest smoothed rate.
         '''
         t = self.Times[-1]
         assert isinstance(t, _StopWatchInterval)
-        return t.event_rate
+        return t.event_rate_smoothed
 
 
     @property
