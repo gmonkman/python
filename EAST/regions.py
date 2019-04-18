@@ -240,8 +240,8 @@ def text_region_generator(images_path, visualisation_dir=None):
             Gen = _ImgGenerator(images_path)
             im_fn_list = [f[1] for f in Gen.generate(pathonly=True)]
 
-            PP1 = _PrintProgress(len(im_fn_list), 20, 'Outer images progress...')
-            SW = _StopWatch(event_name='Process Single Image', qsize=20)
+            PP1 = _PrintProgress(len(im_fn_list), 20)
+            SW = _StopWatch(event_name='Process Single Image', qsize=50)
 
             for n, im_fn in enumerate(im_fn_list):
                 #have we processed it before
@@ -280,13 +280,13 @@ def text_region_generator(images_path, visualisation_dir=None):
                     boxes[:, :, 0] /= ratio_w
                     boxes[:, :, 1] /= ratio_h
 
-                    PP2 = _PrintProgress(len(boxes), bar_length=20, init_msg='Processing box detections ...')
+                    #PP2 = _PrintProgress(len(boxes), bar_length=20, init_msg='Processing box detections ...')
 
                     for i, box in enumerate(boxes): #box.shape = (4, 2)
                         # to avoid submitting errors
                         box = _sort_poly(box.astype(_np.int32)) #order points in cv2 drawing order
                         if _np.linalg.norm(box[0] - box[1]) < 5 or _np.linalg.norm(box[3]-box[0]) < 5:
-                            PP2.increment()
+                            #PP2.increment()
                             continue
 
                         box_cluster = _np.array((box[0, 0]/w, box[0, 1]/h, box[2, 0]/w, box[2, 1]/h, box[2, 1]/h - box[0, 1]/h)) #format is x1, y1, x2, y2, y2-y1
@@ -303,7 +303,7 @@ def text_region_generator(images_path, visualisation_dir=None):
                             boxes_cluster = _np.vstack((boxes_cluster, box_cluster))
                             boxes_untransformed = _np.concatenate((boxes_untransformed, _np.expand_dims(_np.array(box[0:8]), 0)))
 
-                        PP2.increment()
+                        #PP2.increment()
 
                     centroids = _np.array(centroids) #n,2 numpy array of points
 

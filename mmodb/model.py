@@ -1,15 +1,24 @@
-#pylint: skip-file
 # coding: utf-8
 from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, Table, Text, Unicode, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-#from funclib.decs import autorepr as _autorepr
+
 
 Base = declarative_base()
 metadata = Base.metadata
 
 
+class Book(Base):
+    __tablename__ = 'book'
 
+    bookid = Column(BigInteger, primary_key=True)
+    book = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
+    publication_date = Column(DateTime)
+    page_num = Column(Integer, nullable=False)
+    paragraph = Column(Integer, nullable=False)
+    text = Column(Text(2147483647, 'Latin1_General_CI_AS'), nullable=False)
+    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
+    date_modified = Column(DateTime)
 
 
 class Mag(Base):
@@ -24,7 +33,7 @@ class Mag(Base):
     block_num = Column(Integer)
     paragraph = Column(Integer)
     text = Column(Text(2147483647, 'Latin1_General_CI_AS'), nullable=False)
-    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
+    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
     date_modified = Column(DateTime)
 
 

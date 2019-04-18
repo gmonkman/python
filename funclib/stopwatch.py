@@ -137,6 +137,28 @@ class StopWatch():
         return x
 
 
+    def remaining_global(self, n):
+        '''(int) -> float
+        Estimate time left in seconds using the global mean event time
+        Parameters
+            n:number of events left
+            use_smoothed: use the smoothed event, otherwise absolute
+
+        Returns:
+            float, time left in seconds
+
+        Example:
+        >>>remaining(10, use_smoothed=True)
+        23.12123
+        '''
+        #don't use smoothed till queue is full
+        try:
+            x = n * self.event_rate_global
+        except Exception as _:
+                x = 0
+        return x
+
+
     def pretty_remaining(self, n, use_smoothed=True):
         '''(int, bool) -> str
         Return pretty formatted string of the time
@@ -154,6 +176,24 @@ class StopWatch():
         4d 2h 23m
         '''
         return StopWatch.pretty_time(self.remaining(n, use_smoothed))
+
+
+    def pretty_remaining_global(self, n):
+        '''(int) -> str
+        Return pretty formatted string of the time
+        remaining, using the global mean
+
+        Parameters:
+            n: number of events left
+
+        Returns:
+            pretty string with an estimate of the time remaining
+
+        Example:
+        >>>SW.pretty_remaining_global(10)
+        4d 2h 23m
+        '''
+        return StopWatch.pretty_time(self.remaining_global(n))
 
 
 

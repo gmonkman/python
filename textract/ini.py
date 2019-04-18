@@ -14,6 +14,16 @@ _INIPATH = _path.normpath(_path.join(_PTH, 'textract.ini'))
 _ConfigFile = _inifilelib.ConfigFile(_INIPATH)
 
 
+class Db():
+    '''db settings'''
+    server = _ConfigFile.tryread('db', 'server')
+    security = _ConfigFile.tryread('db', 'security')
+    user = _ConfigFile.tryread('db', 'user')
+    password = _ConfigFile.tryread('db', 'password')
+    dbname = _ConfigFile.tryread('db', 'dbname')
+    is_integrated = _ConfigFile.tryread('db', 'security').lower() == 'integrated'
+
+
 class textract():
     '''general settings'''
     is_sentence_word_limit = _ConfigFile.tryread('textract', 'IS_SENTENCE_WORD_LIMIT', value_on_create=5, astype=int)

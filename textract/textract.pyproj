@@ -29,6 +29,9 @@
     <Compile Include="samag.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts\pdftext2db.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts\sa_images2txt.py">
       <SubType>Code</SubType>
     </Compile>
@@ -49,8 +52,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="pylintrc" />
+    <Content Include="test\bin\clean_text.pdf" />
     <Content Include="test\bin\images\SA_001_001.jpg" />
     <Content Include="test\bin\images\SA_001_002.jpg" />
+    <Content Include="test\bin\multi_page.pdf" />
     <Content Include="textract.ini">
       <SubType>Code</SubType>
     </Content>

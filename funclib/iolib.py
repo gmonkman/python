@@ -566,7 +566,7 @@ def file_count(paths, wildcards, recurse=False):
 def file_list_generator1(paths, wildcards, recurse=False):
     '''(str|iterable, str|iterable, bool) -> yields str
     Takes path(s) and wildcard(s), yielding the
-    full path to matched files.
+    path-normed full path to matched files.
 
     paths:
         Single path or list/tuple of paths
