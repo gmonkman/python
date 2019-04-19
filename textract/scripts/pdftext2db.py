@@ -2,7 +2,11 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''Extract text from pdfs and write it to the books mmo database table
 
-Args:
+Positional Args:
+    folder: directory with the pdfs (does not recurse)
+
+Example:
+pdftext2db.py C:/mypdfs
 '''
 import argparse
 import os.path as path
@@ -14,7 +18,7 @@ tika.initVM()
 from tika import parser
 
 import mmodb
-from mmodb.model import Mag
+from mmodb.model import Book
 import dblib.mssql as mssql
 import textract as textract
 import funclib.iolib as iolib
@@ -40,35 +44,53 @@ def gen_paragraphs(xml):
         page number, paragraph number, text content
     '''
     bXML = BytesIO(bytes(xml, encoding='utf8'))
-
-    for _, element in etree.iterparse(bXML, tag='page'):
-        belement = BytesIO(element, encoding='utf-8')
-        for _, para in etree.iterparse(belement, tag='p'):
-
-
-
-
+    para_n = 1
+    for pgnr, (_, element) in enumerate(etree.iterparse(bXML, tag='div', events=('end',), remove_blank_text=True,  remove_comments=True, encoding='utf8', html=True), 1):
+        for child in element.getchildren():
+            para = child.text
+            if para:
+                para = clean_para(para)
+                if para:
+                    yield pgnr, para_n, para
+                    para_n += 1
+        para_n = 1
 
 def main():
     '''main'''
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
-    #positional: e.g. scipt.py c:/temp
-    #args.folder == 'c:/temp'
     cmdline.add_argument('folder', help='folder')
     args = cmdline.parse_args()
     sourcefld = path.normpath(args.folder)
 
-    pdfs = iolib.file_list_generator1(sourcefld, '*.pdf')
+    pdfs = [f for f in iolib.file_list_generator1(sourcefld, '*.pdf')]
     if not pdfs:
         raise FileNotFoundError('No pdfs found in %s' % sourcefld)
 
     PP = iolib.PrintProgress(len(pdfs))
+    T = SW()
+    for n, pdf in enumerate(pdfs):
+        _, bookname, _ = iolib.get_file_parts(pdf)
+        bookname = clean_para(bookname)
+        xmlbook = parser.from_file(pdf, xmlContent=True)['content']
 
-    for pdf in pdfs:
-        d, bookname, e = iolib.get_file_name(pdf)
-        xmlbook = parser.from_file(fname, xmlContent=True)['content']
+        for page_nr, para_nr, para_text in gen_paragraphs(xmlbook):
+            book_ = mmodb.SESSION.query(Book).filter(and_(Book.book == bookname, Book.page_num==page_nr,  Book.para_num==para_nr)).first()
+            if not book_:
+                book_ = Book(book=bookname, page_num=page_nr, para_num=para_nr, para_text=para_text)
+                mmodb.SESSION.add(book_)
+            else:
+                book_.date_modified = mssql.getNow()
+                book_.text = para_text
+        mmodb.SESSION.commit()
+        T.lap()
+        suff = 'Remain: %s' % T.pretty_remaining_global(len(pdfs) - n)
+        PP.increment(suffix=suff)
 
-        for para_nr, page_nr, text_ in gen_paragraphs(xmlbook):
 
-        PP.increment()
 
+
+
+
+
+if __name__ == '__main__':
+    main()

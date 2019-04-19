@@ -34,7 +34,7 @@ def main():
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
 
     #named: eg script.py -part head
-    cmdline.add_argument('-s', '--source', help='Source PDFs', required=True)
+    cmdline.add_argument('source', help='Source PDFs')
     args = cmdline.parse_args()
     src = args.source
 

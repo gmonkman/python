@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{227dda94-406a-444d-bac7-a0712722007b}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\sa_images2txt.py</StartupFile>
+    <StartupFile>scripts\pdftext2db.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -13,8 +13,10 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
-    <CommandLineArguments>-v C:/development/python/textract/test/bin/images</CommandLineArguments>
+    <CommandLineArguments>C:/development/python/textract/test/bin</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <Environment>pdftext2db.py C:/development/python/textract/test/bin
+sa_images2txt.py -v C:/development/python/textract/test/bin/images</Environment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />

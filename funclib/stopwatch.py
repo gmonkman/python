@@ -155,7 +155,7 @@ class StopWatch():
         try:
             x = n * self.event_rate_global
         except Exception as _:
-                x = 0
+            x = 0
         return x
 
 

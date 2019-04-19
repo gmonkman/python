@@ -15,9 +15,9 @@ class Book(Base):
     book = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
     publication_date = Column(DateTime)
     page_num = Column(Integer, nullable=False)
-    paragraph = Column(Integer, nullable=False)
-    text = Column(Text(2147483647, 'Latin1_General_CI_AS'), nullable=False)
-    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
+    para_num = Column(Integer, nullable=False)
+    para_text = Column(Text(2147483647, 'Latin1_General_CI_AS'), nullable=False)
+    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
     date_modified = Column(DateTime)
 
 
@@ -33,7 +33,7 @@ class Mag(Base):
     block_num = Column(Integer)
     paragraph = Column(Integer)
     text = Column(Text(2147483647, 'Latin1_General_CI_AS'), nullable=False)
-    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
+    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
     date_modified = Column(DateTime)
 
 

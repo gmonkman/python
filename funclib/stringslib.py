@@ -90,6 +90,7 @@ def filter_alphanumeric1(s, to_ascii=True, strict=False, allow_cr=True, allow_lf
     >>>filter_alphanumeric('asd^!2', strict=True)
     asd2
     '''
+    if not s: return s
     if remove_single_quote:
         s = s.replace("'", "")
     if remove_double_quote:
@@ -122,7 +123,7 @@ def filter_alphanumeric(char, to_ascii=True, strict=False, allow_cr=True, allow_
     l = lambda x: _filter_alphanumeric(x, strict=True)
     s = [c for c in 'abcef' if l(c)]
     '''
-
+    if not char: return char
     if char in exclude: return False
     if char in include: return True
 
@@ -134,7 +135,7 @@ def filter_alphanumeric(char, to_ascii=True, strict=False, allow_cr=True, allow_
     if allow_cr and ord(char) == 13: return char
     if allow_lf and ord(char) == 10: return char
 
-
+    if not char: return char
     if strict:
         return 48 <= ord(char) <= 57 or 65 <= ord(char) <= 90 or 97 <= ord(char) <= 122 or ord(char) == 32 #32 is space
     else:
