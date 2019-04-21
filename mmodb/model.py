@@ -12,7 +12,7 @@ class Book(Base):
     __tablename__ = 'book'
 
     bookid = Column(BigInteger, primary_key=True)
-    book = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
+    book = Column(String(250, 'Latin1_General_CI_AS'), nullable=False)
     publication_date = Column(DateTime)
     page_num = Column(Integer, nullable=False)
     para_num = Column(Integer, nullable=False)

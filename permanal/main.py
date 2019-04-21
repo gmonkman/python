@@ -62,7 +62,7 @@ if bool(int(RUN) & EnumData.pam.value):
     PAM_SUMMARY = 'Completed PAM after ' + str(FINAL_ITERS_PAM[0]) + ' iterations. p=' + str(round(PAM_GREATER[0]/float(FINAL_ITERS_PAM[0]), 5))
     iolib.writecsv(get_file_name(EnumData.pam), PAM_CORRS, inner_as_rows=False)
     iolib.write_to_eof(get_file_name(EnumData.pam), PAM_SUMMARY)
-    print PAM_SUMMARY
+    print(PAM_SUMMARY)
 
 
 if bool(int(RUN) & EnumData.fmm.value):

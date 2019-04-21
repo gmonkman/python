@@ -78,37 +78,84 @@ def rndstr(l):
     return  ''.join(_random.choice(_string.ascii_uppercase + _string.ascii_lowercase + _string.digits) for _ in range(l))
 
 
-def filter_alphanumeric1(s, to_ascii=True, strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and', remove_single_quote=False, remove_double_quote=False):
-    '''(str, bool, bool, bool, bool, tuple, tuple) -> bool
+def filter_alphanumeric1(s, encoding='ascii', strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and', remove_single_quote=False, remove_double_quote=False, exclude_numbers=False):
+    '''(str, bool, bool, bool, bool, tuple, tuple) -> str
 
     to_ascii: replace foreign letters to ASCII ones, e.g, umlat to u
     strict: only letters and numbers are returned
     allow_cr, allow_lf: include or exclude cr lf
     exclude,include : tuple(str,..), force true or false for passed chars
+    replace_ampersand: replace "&" with the argument
+    remove_single_quote: remove single quote from passed string
+    remove_double_quote: remove double quote from passed string
 
     Example:
     >>>filter_alphanumeric('asd^!2', strict=True)
     asd2
     '''
     if not s: return s
+
+    if isinstance(s, bytes):
+        s = s.decode(encoding, 'ignore')
+
+    if exclude_numbers:
+        lst = list(exclude)
+        _ = [lst.extend([i]) for i in range(10)]
+
     if remove_single_quote:
         s = s.replace("'", "")
     if remove_double_quote:
         s = s.replace('"', '')
+    if replace_ampersand:
+        s = s.replace('&', replace_ampersand)
 
-    return ''.join([c for c in s if filter_alphanumeric(c, to_ascii, strict, allow_cr, allow_lf, exclude, include, replace_ampersand)])
+    build = []
+    for c in s:
+        keep = filter_alphanumeric(c, strict, allow_cr, allow_lf, exclude, include)
+        if keep:
+            build.append(c)
+    out = ''.join(build)
+    return out
+
+
+
+def filter_numeric1(s, encoding='ascii'):
+    '''(str, str) -> str
+    Filter out everything but digits from s
+
+    Parameters:
+        s: str to process
+        encoding: a vald encoding string, e.g. 'utf8' or 'ascii' if isinstance(s, bytes)
+    '''
+    if isinstance(s, bytes):
+        s = s.decode(encoding, 'ignore')
+    out = [c for c in s if filter_numeric(c)]
+    return ''.join(out)
+
+
+def filter_numeric(char):
+    '''(char(1)) -> bool
+    As filter_alphanumeric, but just digits.
+    Expects a length 1 string
+
+    Example:
+    >>>filter_numeric('1')
+    True
+
+    >>>filter_numeric('a')
+    False
+    '''
+    return 48 <= ord(char) <= 57
+
 
 # region files and paths related
-def filter_alphanumeric(char, to_ascii=True, strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and'):
+def filter_alphanumeric(char, strict=False, allow_cr=True, allow_lf=True, exclude=(), include=()):
     '''(char(1), bool, bool, bool, bool, tuple, tuple) -> bool
     Use as a helper function for custom string filters.
 
     Note: Accepts a single char. Use filter_alphanumeric1 for varchar
 
     for example in scrapy item processors
-
-    to_ascii : bool
-        replace foreign letters to ASCII ones, e.g, umlat to u
 
     strict : bool
         only letters and numbers are returned
@@ -127,13 +174,11 @@ def filter_alphanumeric(char, to_ascii=True, strict=False, allow_cr=True, allow_
     if char in exclude: return False
     if char in include: return True
 
-    if replace_ampersand:
-        char = char.replace('&', 'and')
-    if to_ascii:
-        char = char.encode('ascii', 'ignore')
+    if allow_cr and ord(char) == 13: return True
+    if allow_lf and ord(char) == 10: return True
 
-    if allow_cr and ord(char) == 13: return char
-    if allow_lf and ord(char) == 10: return char
+    if not allow_cr and ord(char) == 13: return False
+    if not allow_lf and ord(char) == 10: return False
 
     if not char: return char
     if strict:

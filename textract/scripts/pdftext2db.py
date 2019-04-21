@@ -10,6 +10,8 @@ pdftext2db.py C:/mypdfs
 '''
 import argparse
 import os.path as path
+from lxml import etree
+from io import BytesIO
 
 import tika
 from tika import parser
@@ -24,8 +26,7 @@ import dblib.mssql as mssql
 import funclib.iolib as iolib
 import funclib.stringslib as stringslib
 from funclib.stopwatch import StopWatch as SW
-from lxml import etree
-from io import BytesIO
+
 
 
 def clean_para(s):

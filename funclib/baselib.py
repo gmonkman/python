@@ -297,6 +297,27 @@ def list_delete_value_pairs(list_a, list_b, match_value=0):
             del list_b[ind]
 
 
+def list_index(list_, val):
+    '''(list, <anything>) -> int|None
+    Safely returns the list index which
+    matches val, else None
+
+    Parameters:
+        list_: a list
+        val: the value to find in list
+
+    Returns:
+        None if the item not found, else the index of the item in list
+
+    Example:
+    >>>list_index([1,2,3], 2)
+    1
+    >>>list_index([1,2,3], 5)
+    None
+    '''
+    return list_.index(x) if x in list_ else None
+
+
 def list_add_elementwise(lsts):
     '''lists->list
     Add lists elementwise.

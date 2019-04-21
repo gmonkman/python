@@ -10,8 +10,6 @@ import funclib.pandaslib as _pdl
 import funclib.stringslib as _stringslib
 
 
-_stringslib.filter_alphanumeric
-
 def _cleanstr(s):
     '''clean str'''
     return _stringslib.filter_alphanumeric1(s, allow_cr=False, allow_lf=False, remove_double_quote=True, remove_single_quote=True)

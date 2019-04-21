@@ -223,11 +223,9 @@ class FileProcessTracker():
         file_path = _os.path.normpath(file_path)
         files = [f[self.eListIndex.file_path.value] for f in self._status_list]
         if ignore_no_item:
-            try:
-                i = files.index(file_path)
+            i = files.index(file_path) if file_path in files else None
+            if i:
                 del self._status_list[i]
-            except ValueError as _:
-                pass
         else:
             i = files.index(file_path)
             del self._status_list[i]
