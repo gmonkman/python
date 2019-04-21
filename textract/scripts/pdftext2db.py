@@ -11,18 +11,17 @@ pdftext2db.py C:/mypdfs
 import argparse
 import os.path as path
 
-from sqlalchemy import and_
 import tika
-print('Trying to start Tika server....')
-tika.initVM()
 from tika import parser
+tika.initVM()
+
+from sqlalchemy import and_
+
 
 import mmodb
 from mmodb.model import Book
 import dblib.mssql as mssql
-import textract as textract
 import funclib.iolib as iolib
-import funclib.baselib as baselib
 import funclib.stringslib as stringslib
 from funclib.stopwatch import StopWatch as SW
 from lxml import etree
@@ -45,7 +44,7 @@ def gen_paragraphs(xml):
     '''
     bXML = BytesIO(bytes(xml, encoding='utf8'))
     para_n = 1
-    for pgnr, (_, element) in enumerate(etree.iterparse(bXML, tag='div', events=('end',), remove_blank_text=True,  remove_comments=True, encoding='utf8', html=True), 1):
+    for pgnr, (_, element) in enumerate(etree.iterparse(bXML, tag='div', events=('end', ), remove_blank_text=True, remove_comments=True, encoding='utf8', html=True), 1):
         for child in element.getchildren():
             para = child.text
             if para:
@@ -66,22 +65,29 @@ def main():
     if not pdfs:
         raise FileNotFoundError('No pdfs found in %s' % sourcefld)
 
+    tracker_path = path.normpath('%s/pdftext2db.lst' % sourcefld)
+    Tracker = iolib.FileProcessTracker(sourcefld, tracker_path)
+
     PP = iolib.PrintProgress(len(pdfs))
     T = SW()
-    for n, pdf in enumerate(pdfs):
+    for n, pdf in enumerate(pdfs, 1):
         _, bookname, _ = iolib.get_file_parts(pdf)
-        bookname = clean_para(bookname)
-        xmlbook = parser.from_file(pdf, xmlContent=True)['content']
+        if Tracker.get_file_status(pdf) != Tracker.eFileProcessStatus.Success:
+            Tracker.status_del(pdf)
+            bookname = clean_para(bookname)
+            xmlbook = parser.from_file(pdf, xmlContent=True)['content']
 
-        for page_nr, para_nr, para_text in gen_paragraphs(xmlbook):
-            book_ = mmodb.SESSION.query(Book).filter(and_(Book.book == bookname, Book.page_num==page_nr,  Book.para_num==para_nr)).first()
-            if not book_:
-                book_ = Book(book=bookname, page_num=page_nr, para_num=para_nr, para_text=para_text)
-                mmodb.SESSION.add(book_)
-            else:
-                book_.date_modified = mssql.getNow()
-                book_.text = para_text
-        mmodb.SESSION.commit()
+            for page_nr, para_nr, para_text in gen_paragraphs(xmlbook):
+                book_ = mmodb.SESSION.query(Book).filter(and_(Book.book == bookname, Book.page_num == page_nr, Book.para_num == para_nr)).first()
+                if not book_:
+                    book_ = Book(book=bookname, page_num=page_nr, para_num=para_nr, para_text=para_text)
+                    mmodb.SESSION.add(book_)
+                else:
+                    book_.date_modified = mssql.getNow()
+                    book_.text = para_text
+            mmodb.SESSION.commit()
+            Tracker.status_add(pdf, status=Tracker.eFileProcessStatus.Success)
+
         T.lap()
         suff = 'Remain: %s' % T.pretty_remaining_global(len(pdfs) - n)
         PP.increment(suffix=suff)

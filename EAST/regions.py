@@ -96,7 +96,7 @@ class _ProgressStatus():
         '''record image file as processed'''
         img_path = _path.normpath(img_path)
         if _ProgressStatus.get_file_status(img_path) == _ProgressStatus.eProgressStatus.NotProcessed:
-            _ProgressStatus._progress_status.append([img_path, _ProgressStatus.eProgressStatus.Success.value, err])
+            _ProgressStatus._progress_status.append([img_path, status.value, err])
             if save_:
                 _ProgressStatus.save()
         else:

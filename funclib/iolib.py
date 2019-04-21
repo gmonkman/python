@@ -4,6 +4,7 @@
 Also for general IO to the console'''
 from __future__ import print_function as _print_function
 from warnings import warn as _warn
+from enum import Enum as _enum
 
 import csv as _csv
 import glob as _glob
@@ -23,6 +24,7 @@ from numpy import ndarray as _numpy_ndarray
 import fuckit as _fuckit
 
 import funclib.stringslib as _stringslib
+from funclib.numericslib import round_normal as _rndnorm
 
 _NOTEPADPP_PATH = 'C:\\Program Files (x86)\\Notepad++\\notepad++.exe'
 
@@ -98,6 +100,153 @@ class CSVMatch(CSVIo):
 class MultipleMatchError(RuntimeError):
     '''helper'''
     pass
+
+
+
+class FileProcessTracker():
+    '''Manages recording of the processing status
+    of files. This can be used in processing
+    pipelines to skip files that have already
+    been processed.
+
+    It stores each file along with a status and
+    error message (if applicable) in a list which
+    is pickled to the file defined at instance creation.
+
+    Example:
+    >>>T = FileProcessTracker(tracker_path='C:/temp', 'C:/temp/tracker.lst')
+    '''
+
+    #print('Initialising ProgressStatus...')
+
+    class eFileProcessStatus(_enum):
+        '''progress status'''
+        NotProcessed = 0
+        Errored = 1
+        Success = 2
+        FileDoesNotExist = 3
+
+
+    class eListIndex(_enum):
+        '''list index for progressstatus list'''
+        file_path = 0
+        status = 1
+        error = 2
+
+
+    def __init__(self, files_folder, pickle_file_path):
+        '''(str, str) -> void
+
+        A single status record is a 3-list:
+        list[0] = image path
+        list[1] = status (eProgressStatus value)
+        list[2] = error message (if relevant)
+        '''
+        self.files_folder = _os.path.normpath(files_folder)
+        self._pickle_file_path = _os.path.normpath(pickle_file_path)
+        try:
+            if file_exists(self._pickle_file_path):
+                self._status_list = unpickle(self._pickle_file_path)
+            else:
+                self._status_list = []
+        except Exception as _:
+            _warn('Failed to load status file %s' % self.pickle_file)
+
+
+    def __repr__(self):
+        '''repr'''
+        return 'Status tracker for folder: %s\nStatus File:%s\n%s files tracked' % (self.files_folder, self._pickle_file_path, len(self._status_list) if self._status_list else 'None')
+
+
+    def save(self):
+        '''save status_list to the file system'''
+        pickle(self._status_list, self._pickle_file_path)
+
+
+    def get_file_status(self, file_path):
+        '''(str) -> Enum:FileProcessTracker.eFileProcessStatus
+
+        Get status of the file defined by file_path.
+        '''
+        files = [f[FileProcessTracker.eListIndex.file_path.value] for f in self._status_list]
+        if _os.path.normpath(file_path) in files:
+            return FileProcessTracker.eFileProcessStatus(self._status_list[files.index(file_path)][FileProcessTracker.eListIndex.status.value])
+        return FileProcessTracker.eFileProcessStatus.NotProcessed
+
+
+    def status_add(self, file_path, status=eFileProcessStatus.Success, err='', ignore_item_exists=False, save_=True):
+        '''(str, Enum, bool, bool) -> void
+        Add status for the file defined by file_path
+
+        Parameters:
+            ignore_item_exists: adds the status to the list
+            status: The status to set
+            err: error to add (if required)
+            ignore_item_exists: raises ValueError if the item already exists
+            save_: picke the list after item adde
+        '''
+        file_path = _os.path.normpath(file_path)
+        if self.get_file_status(file_path) == FileProcessTracker.eFileProcessStatus.NotProcessed:
+            self._status_list.append([file_path, status.value, err])
+            if save_:
+                self.save()
+        else:
+            if ignore_item_exists:
+                pass
+            else:
+                raise ValueError('Image "%s" is already in the processed list' % file_path)
+
+
+    def status_edit(self, file_path, status=eFileProcessStatus.Success, err='', ignore_no_item=True):
+        '''record image file as processed'''
+        file_path = _os.path.normpath(file_path)
+        files = [f[FileProcessTracker.eListIndex.file_path.value] for f in self._status_list]
+
+        if ignore_no_item:
+            try:
+                i = files.index(file_path)
+            except ValueError as _:
+                pass
+        else:
+            i = files.index(file_path)
+
+        files[i] = [file_path, status.value, err]
+
+
+    def status_del(self, file_path, ignore_no_item=True):
+        '''delete a status
+
+        Parameters:
+            file_path: the file to set
+            ignore_no_item: suppress erros if file_path not in the status list
+        '''
+        file_path = _os.path.normpath(file_path)
+        files = [f[self.eListIndex.file_path.value] for f in self._status_list]
+        if ignore_no_item:
+            try:
+                i = files.index(file_path)
+                del self._status_list[i]
+            except ValueError as _:
+                pass
+        else:
+            i = files.index(file_path)
+            del self._status_list[i]
+
+
+    def clean(self, save=True):
+        '''(bool) -> void
+        Cleans the in-memory list of files
+        which are in the list, but not present
+        in the folder
+
+        Parameters:
+            save: save the in-memory list to disk
+        '''
+        new_lst = [s for s in self._status_list if file_exists(s[FileProcessTracker.eListIndex.file_path.value])]
+        self._status_list = new_lst
+        if save:
+            self.save()
+
 
 
 # region _csv IO
@@ -1094,7 +1243,7 @@ def time_pretty(seconds):
     for printing
     '''
     sign_string = '-' if seconds < 0 else ''
-    seconds = abs(int(seconds))
+    seconds = abs(_rndnorm(seconds))
     days, seconds = divmod(seconds, 86400)
     hours, seconds = divmod(seconds, 3600)
     minutes, seconds = divmod(seconds, 60)
@@ -1106,3 +1255,29 @@ def time_pretty(seconds):
         return '%s%dm %ds' % (sign_string, minutes, seconds)
 
     return '%s%ds' % (sign_string, seconds)
+
+
+#this is also in baselib
+#but don't risk circular imports
+def pickle(obj, fname):
+    '''(Any, str)->void
+    Save object to fname
+
+    Also see unpickle
+    '''
+    d, _, _ = get_file_parts2(fname)
+    create_folder(d)
+    with open(fname, 'wb') as f:
+        _pickle.dump(obj, f)
+
+
+#this is also in baselib
+#but don't risk circular imports
+def unpickle(fname):
+    '''(str)->obj
+
+    fname: path to pickled object
+    unpickle'''
+    with open(fname, 'rb') as f:
+        obj = _pickle.load(f)
+    return obj

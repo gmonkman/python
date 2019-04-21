@@ -43,8 +43,8 @@ def to_paragraphs(img, override_page_nr=None, conf_thresh=70, psm=1):
     else:
         s = _pyt.image_to_data(Image.fromarray(img), config='--psm %s' % psm)
     s = _to_ascii(s)
-    s =  s.replace('"', '')
-    s =  s.replace("'", "")
+    s = s.replace('"', '')
+    s = s.replace("'", "")
     df = _pdl.df_fromstring(s, sep='\t')
     df.sort_values(['page_num', 'block_num', 'par_num', 'line_num', 'word_num'], inplace=True, ascending=True)
     #our key is page_num, block_num, par_num

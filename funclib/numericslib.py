@@ -47,3 +47,14 @@ def roundx(v):
     if v < 0:
         return _math.floor(v)
     return _math.ceil(v)
+
+
+def round_normal(x, y=0):
+    ''' A classical mathematical rounding by Voznica '''
+    m = int('1'+'0'*y) # multiplier - how many positions to the right
+    q = x*m # shift to the right by multiplier
+    c = int(q) # new number
+    i = int( (q-c)*10 ) # indicator number on the right
+    if i >= 5:
+        c += 1
+    return c/m

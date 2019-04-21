@@ -1,5 +1,5 @@
 
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-import
 '''new script wih argparse'''
 import argparse
 import os.path as path
