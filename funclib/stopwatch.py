@@ -5,14 +5,16 @@ This duplicates the one in opencvlib, but doesnt use the cv2 implementation
 to get time.
 '''
 
-#NOTE THE CV2 DEPENDENCY
+
 from time import sleep #for convieience
 import datetime as _datetime
 from collections import deque as _deque
 import time as _time
 
+#my imports
+from funclib.numericslib import round_normal as _rndnorm
 
-from funclib.iolib import time_pretty as _time_pretty #convieniance function, takes secs
+
 
 def _clock():
     '''
@@ -331,3 +333,24 @@ class StopWatch():
     def pretty_time(secs):
         '''pretty print a duration'''
         return _time_pretty(secs)
+
+
+
+def _time_pretty(seconds):
+    '''(float) -> str
+    Return a prettified time interval
+    for printing
+    '''
+    sign_string = '-' if seconds < 0 else ''
+    seconds = abs(_rndnorm(seconds))
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if days > 0:
+        return '%s%dd %dh %dm %ds' % (sign_string, days, hours, minutes, seconds)
+    if hours > 0:
+        return '%s%dh %dm %ds' % (sign_string, hours, minutes, seconds)
+    if minutes > 0:
+        return '%s%dm %ds' % (sign_string, minutes, seconds)
+
+    return '%s%ds' % (sign_string, seconds)

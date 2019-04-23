@@ -90,7 +90,7 @@ def main():
             Tracker.status_add(pdf, status=Tracker.eFileProcessStatus.Success)
 
         T.lap()
-        suff = 'Remain: %s' % T.pretty_remaining_global(len(pdfs) - n)
+        suff = 'Remain: %s      ' % T.pretty_remaining_global(len(pdfs) - n)
         PP.increment(suffix=suff)
 
 

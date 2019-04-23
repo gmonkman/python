@@ -9,6 +9,9 @@ import string as _string
 
 # my imports
 import funclib.numericslib
+from funclib.numericslib import round_normal as _rndnorm
+
+
 
 ascii_punctuation = ['!', '"', '#', '$', '%', '&', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '¦', '}', '~', "'"]
 ascii_punctuation_strict = ['!', '"', '(', ')', ',', '-', '.', ':', ';', '?', "'"]
@@ -285,3 +288,23 @@ def to_ascii(s):
 
 
 # endregion
+
+
+def time_pretty(seconds):
+    '''(float) -> str
+    Return a prettified time interval
+    for printing
+    '''
+    sign_string = '-' if seconds < 0 else ''
+    seconds = abs(_rndnorm(seconds))
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if days > 0:
+        return '%s%dd %dh %dm %ds' % (sign_string, days, hours, minutes, seconds)
+    if hours > 0:
+        return '%s%dh %dm %ds' % (sign_string, hours, minutes, seconds)
+    if minutes > 0:
+        return '%s%dm %ds' % (sign_string, minutes, seconds)
+
+    return '%s%ds' % (sign_string, seconds)

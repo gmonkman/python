@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{227dda94-406a-444d-bac7-a0712722007b}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\pdftext2db.py</StartupFile>
+    <StartupFile>scripts\pdf2img.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -13,7 +13,7 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
-    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/data/Data sources and sites/books+mags"</CommandLineArguments>
+    <CommandLineArguments>"F:/MMOMapping/data/Data sources and sites/books+mags"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <Environment>pdftext2db.py C:/development/python/textract/test/bin
 sa_images2txt.py -v C:/development/python/textract/test/bin/images</Environment>
@@ -38,6 +38,7 @@ sa_images2txt.py -v C:/development/python/textract/test/bin/images</Environment>
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="scripts\pdf2img.py" />
+    <Compile Include="scripts\sa_pdf2img.py" />
     <Compile Include="tesseractlib.py">
       <SubType>Code</SubType>
     </Compile>

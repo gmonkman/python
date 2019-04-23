@@ -25,6 +25,7 @@ import fuckit as _fuckit
 
 import funclib.stringslib as _stringslib
 from funclib.numericslib import round_normal as _rndnorm
+from funclib.stopwatch import StopWatch as _StopWatch
 
 _NOTEPADPP_PATH = 'C:\\Program Files (x86)\\Notepad++\\notepad++.exe'
 
@@ -1157,15 +1158,26 @@ class PrintProgress():
         self.max = maximum
         self.bar_length = bar_length
         self.iteration = 1
+        self.StopWatch = _StopWatch(event_name=init_msg)
+        self._max_suffix_len = 0
 
-    def increment(self, step=1, suffix=''):
-        '''(int) -> void
-        advance the counter step ticks.
-        1 will usually make sense!'''
-        print_progress(
-            self.iteration, self.max, prefix='%i of %i' %
-            (self.iteration, self.max), bar_length=self.bar_length, suffix=suffix)
+
+    def increment(self, step=1, suffix='', show_time_left=False):
+        '''(int, str, bool) -> void
+        Advance the counter step ticks.
+
+        Parameters:
+            step: number of ticks (events) to advance
+            suffix: textto append to end of bar
+            show_time_left: overrides suffix, append estimated time left
+        '''
+        self.StopWatch.lap(step)
+        if show_time_left:
+            suffix = self.StopWatch.pretty_remaining_global(self.max - self.iteration)
+        self.suffix = suffix
+        print_progress(self.iteration, self.max, prefix='%i of %i' % (self.iteration, self.max), bar_length=self.bar_length, suffix=suffix)
         self.iteration += step
+
 
     def reset(self, max=None):
         '''reset the counter. set max
@@ -1175,7 +1187,14 @@ class PrintProgress():
         if max:
             self.max = max
         self.iteration = 1
+        self.StopWatch.reset()
 
+
+    def _get_suffix(self, suffix):
+        '''get padded suffix so we overwrite end chars'''
+        if len(suffix) > self._max_suffix_len:
+            self._max_suffix_len = len(suffix)
+        return suffix.rjust(self._max_suffix_len, fillchar=' ')
 
 # endregion
 
