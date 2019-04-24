@@ -1035,27 +1035,6 @@ def create_folder(folder_name):
     '''
     if not _os.path.exists(folder_name):
         _os.makedirs(folder_name)
-
-
-def pickleit(full_file_name, obj):
-    '''(str) -> void
-    Takes full_file path and pickles (dumps) obj to the file system.
-    Does a normpath on full_file_name
-    '''
-    with open(_os.path.normpath(full_file_name), 'wb') as myfile:
-        _pickle.dump(obj, myfile)
-
-
-def unpickle(path):
-    '''(str) -> unpickled stuff
-    attempts to load a pickled object named path
-    Returns None if file doesnt exist
-    '''
-    if file_exists(path):
-        with open(path, 'rb') as myfile:
-            return _pickle.load(myfile)
-    else:
-        return None
 # endregion
 
 
@@ -1175,7 +1154,7 @@ class PrintProgress():
         if show_time_left:
             suffix = self.StopWatch.pretty_remaining_global(self.max - self.iteration)
         self.suffix = suffix
-        print_progress(self.iteration, self.max, prefix='%i of %i' % (self.iteration, self.max), bar_length=self.bar_length, suffix=suffix)
+        print_progress(self.iteration, self.max, prefix='%i of %i' % (self.iteration, self.max), bar_length=self.bar_length, suffix=self._get_suffix(suffix))
         self.iteration += step
 
 
@@ -1192,9 +1171,10 @@ class PrintProgress():
 
     def _get_suffix(self, suffix):
         '''get padded suffix so we overwrite end chars'''
+        if suffix == '': return ''
         if len(suffix) > self._max_suffix_len:
             self._max_suffix_len = len(suffix)
-        return suffix.rjust(self._max_suffix_len, fillchar=' ')
+        return suffix.rjust(self._max_suffix_len, ' ')
 
 # endregion
 
@@ -1290,11 +1270,13 @@ def pickle(obj, fname):
 
 #this is also in baselib
 #but don't risk circular imports
-def unpickle(fname):
-    '''(str)->obj
-
-    fname: path to pickled object
-    unpickle'''
-    with open(fname, 'rb') as f:
-        obj = _pickle.load(f)
-    return obj
+def unpickle(path):
+    '''(str) -> var|None
+    attempts to load a pickled object named path
+    Returns None if file doesnt exist
+    '''
+    if file_exists(path):
+        with open(path, 'rb') as myfile:
+            return _pickle.load(myfile)
+    else:
+        return None
