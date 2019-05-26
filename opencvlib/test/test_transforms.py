@@ -111,7 +111,7 @@ class Test(unittest.TestCase):
             Ts.shuffle()
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_rigid_transform(self):
         '''test rigid transorm'''
         pts = geom.get_rnd_pts((300, 400), 4)
@@ -131,6 +131,16 @@ class Test(unittest.TestCase):
         Mcv = np.array([30, 30]).reshape(2, 1)
         M = t.similiarity_matrices(pts, pts90)
         pass
+
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_denoise_greyscale(self):
+        '''test'''
+        i = t.denoise_greyscale(self.img_matt_pemb5)
+        mosaic([i, self.img_matt_pemb5], show_=True)
+
+
+
 
 
 

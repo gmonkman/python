@@ -7,6 +7,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "imgscrape", "imgscrape.pypr
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "funclib", "..\funclib\funclib.pyproj", "{EC8E1821-0C22-445E-AF07-22BBE247F71E}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "wayback-machine-scraper", "..\wayback-machine-scraper\wayback-machine-scraper.pyproj", "{A02E6D9C-ACEE-46C6-9DFC-98B094EDA089}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +19,8 @@ Global
 		{1D9B1083-600C-4118-83FD-DE48F0FD0B3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC8E1821-0C22-445E-AF07-22BBE247F71E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EC8E1821-0C22-445E-AF07-22BBE247F71E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A02E6D9C-ACEE-46C6-9DFC-98B094EDA089}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A02E6D9C-ACEE-46C6-9DFC-98B094EDA089}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

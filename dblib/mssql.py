@@ -1,13 +1,15 @@
 # pylint: disable=C0302
 '''Connection handling and some basic CRUD.
 CRUD is awaiting adaption of the SQLLite code which
-is commented out.
+is commented out. - Needs more testing and work
 '''
 import datetime as _datetime
 import pymssql
+import funclib.baselib as _baselib
+import funclib.stringslib as _stringslib
 
 
-class Conn(object):
+class Conn():
     '''Connection to an SQL Server database.
 
     Args:
@@ -142,7 +144,7 @@ class CRUD(object):
             table + 'id="' + str(keyid) + '" LIMIT 1) as res;'
         cur.execute(sql)
         row = cur.fetchall()
-        for res in row:
+        for _ in row:
             return bool(row['res'])
 
 
@@ -163,7 +165,6 @@ class CRUD(object):
         cur.execute(query)
         row = cur.fetchall()
         return bool(row[0][0])
-        raise NotImplementedError
 
 
     def get_value(self, table, col_to_read, key_cols):
@@ -205,6 +206,7 @@ class CRUD(object):
         cur.execute(sql)
         if get_cursor:
             return cur
+        return None
 
 
     def get_last_id(self, table_name):
@@ -247,7 +249,7 @@ class CRUD(object):
         >>>upsert('mytable', {'id':1}, contact='Joe Bloggs')
         >>>
         '''
-        self.execute_sql(CRUD.upsert(table, keylist, kwargs))
+        self.execute_sql(CRUD.sql_upsert(table, keylist, kwargs))
 
 
     def delete(self, table, **kwargs):
@@ -266,16 +268,51 @@ class CRUD(object):
 
 
 
-
     def read_rows(self, **kwargs):
         '''read multiple rows'''
         raise NotImplementedError
 
 
+    def sql_upsert(self, table, keylist, **kwargs):
+        '''(str, dict, **kwargs)->str
+        Return an SQL string UPSERT statement.
+
+        table: table name
+        keylist: field/value pairs for the key
+        kwargs: rest of the field/value pairs for the update/insert
+
+        Example (Key id=1 does not exist):
+        >>>sql_upsert('mytable', {'id':1}, contact='Joe Bloggs')
+        INSERT INTO mytable (id, contact) values (1, 'Joe Bloggs')
+        '''
+        allargs = _baselib.dic_merge_two(keylist, kwargs)
+        sql_insert = []
+        sql_update = []
+        if self.exists_by_compositekey(table, keylist):
+            where = [" %s='%s' " % (j, k) for j, k in keylist.items()]
+
+            update = ["%s='%s'" % (j, k) for j, k in allargs.items()]
+
+            sql_update.append("UPDATE %s SET " % (table))
+            sql_update.append(", ".join(update))
+            sql_update.append(" WHERE %s" % (" AND ".join(where)))
+            return "".join(sql_update)
+
+        keys = ["%s" % k for k in allargs]
+        values = ["'%s'" % v for v in allargs.values()]
+        sql_insert = list()
+        sql_insert.append("INSERT INTO %s (" % table)
+        sql_insert.append(", ".join(keys))
+        sql_insert.append(") VALUES (")
+        sql_insert.append(", ".join(values))
+        sql_insert.append(");")
+        return "".join(sql_insert)
+
+
 
 #CLASS STATICS
     @staticmethod
-    def get_blob(row, colname):
+    def _get_blob(row, colname):
         '''(sqlite.Row, str)-> dic
         Returns unpickled object from db blob field
         which was pickled then stored
@@ -292,15 +329,16 @@ class CRUD(object):
         returns None if there is no row
         First row only
         '''
-        if len(cur) == 0:
-            return None
-        else:
-            for results in cur:
-                return results[colname]
+        if not cur: return None
+
+        for results in cur:
+            if isinstance(results, tuple):
+                return results[0]
+            return results[colname]
 
 
     @staticmethod
-    def sql_read(table, **kwargs):
+    def _sql_read(table, **kwargs):
         '''(str, kwargs) -> str
         Generates the SQL for a SELECT statement matching the kwargs passed.
 
@@ -319,43 +357,6 @@ class CRUD(object):
         sql.append(";")
         return "".join(sql)
 
-
-
-    @staticmethod
-    def sql_upsert(self, table, keylist, **kwargs):
-        '''(str, dict, **kwargs)->str
-        Return an SQL string UPSERT statement.
-
-        table: table name
-        keylist: field/value pairs for the key
-        kwargs: rest of the field/value pairs for the update/insert
-
-        Example (Key id=1 does not exist):
-        >>>sql_upsert('mytable', {'id':1}, contact='Joe Bloggs')
-        INSERT INTO mytable (id, contact) values (1, 'Joe Bloggs')
-        '''
-        allargs = baselib.dic_merge_two(keylist, kwargs)
-        sql_insert = []
-        sql_update = []
-        if self.exists_by_compositekey(table, keylist):
-            where = [" %s='%s' " % (j, k) for j, k in keylist.items()]
-
-            update = ["%s='%s'" % (j, k) for j, k in allargs.items()]
-
-            sql_update.append("UPDATE %s SET " % (table))
-            sql_update.append(", ".join(update))
-            sql_update.append(" WHERE %s" % (" AND ".join(where)))
-            return "".join(sql_update)
-        else:
-            keys = ["%s" % k for k in allargs]
-            values = ["'%s'" % v for v in allargs.values()]
-            sql_insert = list()
-            sql_insert.append("INSERT INTO %s (" % table)
-            sql_insert.append(", ".join(keys))
-            sql_insert.append(") VALUES (")
-            sql_insert.append(", ".join(values))
-            sql_insert.append(");")
-            return "".join(sql_insert)
 
 
     @staticmethod
@@ -379,4 +380,65 @@ class CRUD(object):
 def getNow():
     '''Get sql friendly current datetime
     '''
-    return _datetime.datetime.strftime(_datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')
+    return _datetime.datetime.strftime(_datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
+
+
+def get_as_list(table, col, dbname, server='(local)', quote=True, to_lower=False, clean=False):
+    '''(str, str, Class:Conn, str, bool, bool) -> list
+
+    Convert an sql table col to a list.
+
+    quote: quote the data, use for string data
+    to_lower: convert to lower case
+    clean:clean the strings, e.g. remove single quotes
+
+    example:
+    >>>mssql.get_as_list('species_alias', 'species_aliasid', 'mmo', to_lower=True)
+    ['trout','bass']
+    '''
+    if quote:
+        sql = "" \
+        "SELECT top 1 " \
+	    "'[' + RIGHT(NameValues, len(NameValues) - 1) + ']' as csv" \
+        " FROM (" \
+	    " SELECT (" \
+						    "SELECT " \
+							    "',\"' + CAST([" + col + "] AS nvarchar(max)) + '\"'" \
+						    "FROM" \
+							    "[" + table + "]" \
+						    " FOR XML PATH ('')" \
+						    " )" \
+						    " as NameValues" \
+	    " FROM " \
+		    " [" + table + "] as Results ) as a"
+    else:
+        sql = "" \
+        "SELECT top 1  " \
+	    "'[' + RIGHT(NameValues, len(NameValues) - 1) + ']' as csv " \
+        " FROM (" \
+	    " SELECT (" \
+						    " SELECT " \
+							    "',' + CAST([" + col + "] AS nvarchar(max)) " \
+						    " FROM " \
+							    "[" + table + "]" \
+						    " FOR XML PATH ('')" \
+						    " )" \
+						    " as NameValues" \
+	    " FROM " \
+		    " [" + table + "] as Results ) as a"
+
+
+    with Conn(dbname, server) as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            row = cur.fetchall()
+            s = CRUD._read_col(row, 'csv')
+    l = _baselib.list_from_str(s)
+    if to_lower:
+        l = [s.lower() for s in l]
+    if clean:
+        l = [_stringslib.filter_alphanumeric1(s, strict=True, remove_single_quote=True, remove_double_quote=True) for s in l]
+    return l
+
+
+

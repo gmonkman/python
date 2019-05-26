@@ -32,6 +32,10 @@
     <Compile Include="model.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="test\" />
+    <Folder Include="test\bin\" />
+  </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
 </Project>

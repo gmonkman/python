@@ -73,5 +73,4 @@ def getimg(img, outflag=_cv2.IMREAD_UNCHANGED):
     '''
     if isinstance(img, str):
         return _cv2.imread(_path.normpath(img), outflag)
-
     return img

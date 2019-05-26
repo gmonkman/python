@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>357f2f6c-b6bf-4bb9-b3a3-e6b0130467a2</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_alchemy.py</StartupFile>
+    <StartupFile>test\test_mssql.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

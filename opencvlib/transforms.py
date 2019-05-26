@@ -708,16 +708,39 @@ def gamma1(img, gamma_=1, gain=1):
 
 
 def denoise(img, sigma):
-    '''uses the dctDenoising algo from
-    opencv to denoise an image.
+    '''(str|ndarray, float) -> ndarray
+    Uses the dctDenoising algo from opencv to denoise an image.
 
     sigma:
         value, typically between 0 and 50.
+
+    Returns:
+        image (ndarray)
     '''
     i = _getimg(img)
     iout = _np.copy(i)
     _cv2.xphoto.dctDenoising(i, iout, sigma)
     return iout
+
+
+def denoise_greyscale(img, h=20, searchWindowSize=21):
+    '''(str|ndarray, int, int) -> ndarray
+
+    Denoise a greyscale image using opencv's fastNIMeans Denoising.
+    Accepts a colour (3 channel image).
+
+
+    Parameters:
+        img: image file path or ndarray image
+        h: Integer 0, or greater increasing denoising.
+        searchWindowSize: local pixel area for sliding window
+
+    Returns: Denoised single channel grayscale image
+    '''
+    i = _getimg(img)
+    if not _info.check(i, _info.eImgType.TRUE_BW):
+        i = _cv2.cvtColor(i, _cv2.COLOR_BGR2GRAY)
+    return _cv2.fastNlMeansDenoising(i, h=h, searchWindowSize=searchWindowSize)
 
 
 def brightness(img, value):

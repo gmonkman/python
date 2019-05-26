@@ -9,28 +9,30 @@ import numpy as _np
 import cv2 as _cv2
 import fuckit as _fuckit
 
+
 import opencvlib.decs as _decs
 from opencvlib import getimg as _getimg
-
+from funclib.baselib import list_not as _list_not
 __all__ = ['Info', 'ImageInfo']
 
 
 
 class eImgType(_Enum):
     '''bitwise enum to hold img information'''
-    COLOR_BW = 2**0
-    COLOR_COLOR = 2**1
-    COLOR_UNKNOWN = 2**2
-    CHANNEL_1 = 2**3
-    CHANNEL_2 = 2**4
-    CHANNEL_3 = 2**5
-    CHANNEL_4 = 2**6
-    CHANNEL_UNKOWN = 2**7
-    DEPTH8BIT = 2**8
-    DEPTH16BIT = 2**9
-    DEPTH32BIT = 2**10
-    DEPTH_FLOAT = 2**11
-    DEPTH_UNKNOWN = 2**12
+    TRUE_BW = 2**0
+    COLOR_BW = 2**1
+    COLOR_COLOR = 2**2
+    COLOR_UNKNOWN = 2**3
+    CHANNEL_1 = 2**4
+    CHANNEL_2 = 2**5
+    CHANNEL_3 = 2**6
+    CHANNEL_4 = 2**7
+    CHANNEL_UNKOWN = 2**8
+    DEPTH8BIT = 2**9
+    DEPTH16BIT = 2**10
+    DEPTH32BIT = 2**11
+    DEPTH_FLOAT = 2**12
+    DEPTH_UNKNOWN = 2**13
 
 
 
@@ -68,16 +70,10 @@ class Info():
         return _cv2.__version__.startswith(major)
 
 
-
+#stupid to make this a class, but stuck with it as loads of refs to it
 class ImageInfo():
     '''general info about an image'''
-
     silent = False
-
-    @_decs.decgetimgmethod
-    def __init__(self, img=None):
-        super().__init__(img)
-
 
     @staticmethod
     @_decs.decgetimgpil
@@ -117,10 +113,12 @@ class ImageInfo():
 
 
     @staticmethod
-    @_decs.decgetimg
     def isbw(img, single_channel_only=False):
-        '''is img black and white, even if it has multichannels
+        '''(str, ndarray) -> bool
+        Is img black and white, even if it has multichannels
         Returns None if img invalid'''
+
+        img = _getimg(img)
         if not isinstance(img, _np.ndarray):
             return None
 
@@ -140,18 +138,18 @@ class ImageInfo():
 
 
     @staticmethod
-    @_decs.decgetimg
     def typeinfo(img):
         '''(ndarray|str)->int
-        Return information about the image
-        which can be compared bitwise with
-        the enum eImgType
+        Return information about the image for bitwise
+        comparison with enum eImgType
 
-        Returns 0 if not an ndarray
+        Returns: integer, which can be compared bitwise against Enum:eImageType
+
+        Example:
+        >>>ImageInfo(TrueGreyImage).typeinfo & eImageType.CHANNEL_1.value
+        True
         '''
-        if not isinstance(img, _np.ndarray):
-            return 0
-
+        img = _getimg(img)
         out = 0
         if img.dtype == 'uint8':
             out += eImgType.DEPTH8BIT.value
@@ -166,7 +164,7 @@ class ImageInfo():
             raise ValueError('Unknown image color depth. Numpy array type not IN uint8, uint16, uint32, float.')
 
         if len(img.shape) == 2:
-            out += eImgType.COLOR_BW.value
+            out += eImgType.TRUE_BW.value
             out += eImgType.CHANNEL_1.value
         elif len(img.shape) == 3:
             if img.shape[2] == 3:
@@ -282,6 +280,7 @@ class ImageInfo():
             if ImageInfo.is_image(pic):  # does the work
                 with _fuckit:
                     img = _cv2.imread(pic)
+
                 if isinstance(img, _np.ndarray):
                     h, w = img.shape[:2]
                     if as_row_col:
@@ -320,3 +319,62 @@ class ImageInfo():
 
         h, w = img.shape[:2]
         return {'w': w, 'h': h}
+
+
+
+
+def check(img, enum_types):
+    '''(ndarray|str, Enum:eImageType|List:Enum:eImageType)->bool
+    Quick check if image is enum_type, or enum_types can be
+    a list of eImageTypes, in which case check for all
+    conditions
+
+    Parameters:
+        img: ndarray or image path
+        enum_type: A single eImageType enumeration, or a list of eImageTypes
+
+    Returns: True if image meets enum_type
+
+    Example:
+    >>>check(TrueGreyImage, eImageType.CHANNEL_1)
+    True
+    '''
+    img = _getimg(img)
+    image_enums = []
+    if isinstance(enum_types, eImgType):
+        enum_types = [enum_types]
+
+
+    if img.dtype == 'uint8':
+        image_enums.append(eImgType.DEPTH8BIT)
+    elif img.dtype == 'uint16':
+        image_enums.append(eImgType.DEPTH16BIT)
+    elif img.dtype == 'uint32':
+        image_enums.append(eImgType.DEPTH32BIT)
+    elif 'float' in str(img.dtype):
+        image_enums.append(eImgType.DEPTH_FLOAT)
+    else:
+        image_enums.append(eImgType.DEPTH_UNKNOWN)
+        raise ValueError('Unknown image color depth. Numpy array type not IN uint8, uint16, uint32, float.')
+
+    if len(img.shape) == 2:
+        image_enums.append(eImgType.TRUE_BW)
+        image_enums.append(eImgType.CHANNEL_1)
+    elif len(img.shape) == 3:
+        if img.shape[2] == 3:
+            image_enums.append(eImgType.CHANNEL_3)
+            if ImageInfo._isbw(img):
+                image_enums.append(eImgType.COLOR_BW)
+            else:
+                image_enums.append(eImgType.COLOR_COLOR)
+        elif img.shape[2] == 4:
+            image_enums.append(eImgType.CHANNEL_4)
+            if ImageInfo._isbw(img):
+                image_enums.append(eImgType.COLOR_BW)
+            else:
+                image_enums.append(eImgType.COLOR_COLOR)
+        elif img.shape[2] == 2:
+            image_enums.append(eImgType.CHANNEL_2)
+            image_enums.append(eImgType.COLOR_UNKNOWN)
+
+    return not bool(_list_not(enum_types, image_enums))

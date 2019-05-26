@@ -12,6 +12,7 @@ import sys as _sys
 import operator as _operator
 from copy import deepcopy as _deepcopy
 from enum import Enum as _enum
+import ast as _ast
 
 import numpy as _np
 import funclib.iolib as _iolib
@@ -396,6 +397,19 @@ def depth(l):
         s = 'Depth takes a list or a tuple but got a %s' % (type(l))
         raise ValueError(s)
     return d(l)
+
+
+
+def list_from_str(s):
+    '''(str) -> list
+    Concert a string representation of a list
+    to a list
+
+    Example:
+    >>>list_from_str('[1,2,3]')
+    [1,2,3]
+    '''
+    return _ast.literal_eval(s)
 
 
 def list_not(lst, not_in_list):

@@ -1,6 +1,6 @@
-'''main init for nlp package'''
+'''This project is for general gis functions'''
 
-__all__ = []
+__all__ = ['conversion']
 
 
 def totextfile(s, fname):

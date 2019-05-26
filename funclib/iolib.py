@@ -1174,7 +1174,7 @@ class PrintProgress():
         if suffix == '': return ''
         if len(suffix) > self._max_suffix_len:
             self._max_suffix_len = len(suffix)
-        return suffix.rjust(self._max_suffix_len, ' ')
+        return suffix.ljust(self._max_suffix_len, ' ')
 
 # endregion
 

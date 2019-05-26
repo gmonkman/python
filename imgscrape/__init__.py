@@ -7,3 +7,7 @@ __all__ = ['exec', 'helpers', 'items', 'pipelines', 'settings']
 
 GOOGLE_CACHE_ROOT = "http://webcache.googleusercontent.com/search?q=cache:"
 
+def totextfile(s, fname):
+    '''to text'''
+    with open(fname, "w") as text_file:
+        text_file.write(s)

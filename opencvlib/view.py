@@ -271,8 +271,7 @@ def img_make(h=1024, w=768, depth=3, colour=255):
     return _np.array(_np.ones(shape) * colour)
 
 
-@_decs.decgetimg
-def mosaic(imgs, cols=None, pad=True, pad_color=_color.CVColors.black, save_as=''):
+def mosaic(imgs, cols=None, pad=True, pad_color=_color.CVColors.black, save_as='', show_=False):
     '''(list|tuple, int|None, bool) -> ndarray
 
     Make a grid from images.
@@ -288,6 +287,17 @@ def mosaic(imgs, cols=None, pad=True, pad_color=_color.CVColors.black, save_as='
     if isinstance(imgs, _np.ndarray):
         return imgs
 
+    imgsout = []
+    for im in imgs:
+        if isinstance(im, str):
+            i = _getimg(im)
+        elif isinstance(im, _np.ndarray):
+            i = im
+        else:
+            i = None
+        imgsout.append(i)
+
+    imgs = imgsout
     cols = _math.ceil(_math.sqrt(len(imgs))) if cols is None else cols
 
     #stacks funcs need same channel number
@@ -315,6 +325,9 @@ def mosaic(imgs, cols=None, pad=True, pad_color=_color.CVColors.black, save_as='
             _cv2.imwrite(save_as, out)
         except:
             _warn('Failed to save the mosaic to %s' % save_as)
+
+    if show_:
+        show(out)
     return out
 
 

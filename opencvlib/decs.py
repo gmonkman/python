@@ -68,7 +68,7 @@ def decgetimg(func):
                     i = im
                 else:
                     i = None
-                imgsout.append(i)
+                if i is not None: imgsout.append(i)
             return func(imgsout, *args, **kwargs)
 
         if isinstance(img, str):

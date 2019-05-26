@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ec9dedee-3c18-4a0b-8e3f-f02317501261}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>metrics.py</StartupFile>
+    <StartupFile>test\test_baselib.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -21,12 +21,27 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="baselib.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="clean.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="metrics.py" />
+    <Compile Include="spell.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_baselib.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="test\" />
     <Folder Include="test\bin\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="pylintrc" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />

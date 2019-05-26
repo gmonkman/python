@@ -33,20 +33,27 @@ class Test(unittest.TestCase):
 
 
 
-    #@unittest.skip('histo tested')
+    @unittest.skip('histo tested')
     def test_execute(self):
+        '''test'''
         fld = 'C:/GISDATA/_review/open-names_2904657/test'
         for fname in iolib.file_list_generator1(fld, '*.csv', recurse=True):
             with mssql.Conn('gazetteer', '(local)') as cnn:
                 with open(fname, encoding='utf-8-sig') as f:
                     reader = csv.reader(f, delimiter=",")
                     for row in reader:
-                        row = [s.replace("'","''") for s in row]
+                        row = [s.replace("'", "''") for s in row]
                         ins = "'" + "','".join(row) + "'"
                         sql = "INSERT INTO os_open_names SELECT %s" % ins
                         with cnn.cursor() as cur:
                             cur.execute(sql)
 
+
+    #@unittest.skip('histo tested')
+    def test_get_as_list(self):
+        '''test'''
+        s = mssql.get_as_list('species_alias', 'species_aliasid', 'mmo')
+        print(s)
 
 if __name__ == '__main__':
     unittest.main()
