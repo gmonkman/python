@@ -6,7 +6,7 @@ import time
 import numbers
 import random as _random
 import string as _string
-
+import datetime as _datetime
 # my imports
 import funclib.numericslib
 from funclib.numericslib import round_normal as _rndnorm
@@ -81,11 +81,11 @@ def rndstr(l):
     return  ''.join(_random.choice(_string.ascii_uppercase + _string.ascii_lowercase + _string.digits) for _ in range(l))
 
 
-def filter_alphanumeric1(s, encoding='ascii', strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and', remove_single_quote=False, remove_double_quote=False, exclude_numbers=False):
+def filter_alphanumeric1(s, encoding='ascii', strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and', remove_single_quote=False, remove_double_quote=False, exclude_numbers=False, strip=False):
     '''(str, bool, bool, bool, bool, tuple, tuple) -> str
 
     to_ascii: replace foreign letters to ASCII ones, e.g, umlat to u
-    strict: only letters and numbers are returned
+    strict: only letters and numbers are returned, space is allowed
     allow_cr, allow_lf: include or exclude cr lf
     exclude,include : tuple(str,..), force true or false for passed chars
     replace_ampersand: replace "&" with the argument
@@ -118,6 +118,8 @@ def filter_alphanumeric1(s, encoding='ascii', strict=False, allow_cr=True, allow
         if keep:
             build.append(c)
     out = ''.join(build)
+    if strip:
+        out = out.lstrip().rstrip()
     return out
 
 
@@ -290,6 +292,7 @@ def to_ascii(s):
 # endregion
 
 
+#time stuff
 def time_pretty(seconds):
     '''(float) -> str
     Return a prettified time interval
@@ -308,3 +311,17 @@ def time_pretty(seconds):
         return '%s%dm %ds' % (sign_string, minutes, seconds)
 
     return '%s%ds' % (sign_string, seconds)
+
+
+def date_str_to_iso(s, fmt='%d/%m/%Y %H:%M'):
+    '''Return ISO formatted date as string
+    Set fmt according to string input, as described at
+    http://strftime.org/
+
+    The default set is uk format, eg 1/12/2019 12:23
+
+    Example:
+    >>>date_str_to_iso('1/5/2019 12:13')
+    '20190501 12:13:00'
+    '''
+    return   _datetime.datetime.strptime(s, fmt).strftime('%Y%m%d %H:%M:%S')

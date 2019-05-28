@@ -9,6 +9,14 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "funclib", "..\funclib\funcl
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "wayback-machine-scraper", "..\wayback-machine-scraper\wayback-machine-scraper.pyproj", "{A02E6D9C-ACEE-46C6-9DFC-98B094EDA089}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "mmodb", "..\mmodb\mmodb.pyproj", "{8CCA8C50-2EA9-44CB-A0F9-C2E0C1FD8393}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "mmo", "..\mmo\mmo.pyproj", "{8487DAAB-6561-4C06-B75C-81A067F9315A}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "nlp", "..\nlp\nlp.pyproj", "{EC9DEDEE-3C18-4A0B-8E3F-F02317501261}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "dblib", "..\dblib\dblib.pyproj", "{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +29,14 @@ Global
 		{EC8E1821-0C22-445E-AF07-22BBE247F71E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A02E6D9C-ACEE-46C6-9DFC-98B094EDA089}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A02E6D9C-ACEE-46C6-9DFC-98B094EDA089}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CCA8C50-2EA9-44CB-A0F9-C2E0C1FD8393}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CCA8C50-2EA9-44CB-A0F9-C2E0C1FD8393}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8487DAAB-6561-4C06-B75C-81A067F9315A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8487DAAB-6561-4C06-B75C-81A067F9315A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC9DEDEE-3C18-4A0B-8E3F-F02317501261}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC9DEDEE-3C18-4A0B-8E3F-F02317501261}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

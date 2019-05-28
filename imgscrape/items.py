@@ -9,7 +9,7 @@ import scrapy.loader.processors as _processors
 from imgscrape.processors import Clean_xa0 as _Clean_xa0
 from imgscrape.processors import CleanStrict as _CleanStrict
 from imgscrape.processors import VoteForOrAgainst as _VoteForOrAgainst
-
+import imgscrape.processors as _myprocs
 
 # TakeFirst, MapCompose, Join
 
@@ -28,6 +28,44 @@ class itmMPDetails(_Item):
     constituency = _Field()
 
 
+
+
+#MMO Work
+class AnglingAddictsMMO(_Item):
+    '''item for mmo user generated content database entity
+    '''
+    source = _Field()
+    published_date = _Field()
+    board = _Field()
+    content_identifier = _Field()
+    who = _Field()
+    txt = _Field()
+    url = _Field()
+
+
+class AnglingAddictsMMOLdr(_loader.ItemLoader):
+    '''item loader
+    '''
+    default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst
+    default_output_processor = _myprocs.ListToValue()
+
+
+    txt_in = _myprocs.HTML2Txt()
+    txt_out = _myprocs.ListToValue()
+
+    published_date_in = _myprocs.AnglingAddictsPostDateAsISO() #get as iso format for sql server
+    published_date_out = _myprocs.ListToValue()
+
+    #who_in = _processors.TakeFirst()
+    #source = _Field()
+    #board = _Field()
+    #content_identifier = _Field()
+    #url = _Field()
+
+
+
+
+#Fox Stuff
 class ldrMPDetails(_loader.ItemLoader):
     '''itemloader for item
     '''
@@ -39,7 +77,6 @@ class ldrMPDetails(_loader.ItemLoader):
 
     surname_in = _Clean_xa0()
     firstname_in = _Clean_xa0()
-
 
 
 class policy_vote_ldr(_loader.ItemLoader):

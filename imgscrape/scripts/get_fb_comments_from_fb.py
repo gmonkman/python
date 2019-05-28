@@ -1,3 +1,5 @@
+#pylint: skip-file
+
 import json
 import datetime
 import csv
@@ -22,7 +24,7 @@ def request_until_succeed(url):
             response = urlopen(req)
             if response.getcode() == 200:
                 success = True
-        except Exception as e:
+        except Exception as _:
             print(e)
             time.sleep(5)
 
@@ -35,6 +37,7 @@ def request_until_succeed(url):
 
 
 def unicode_decode(text):
+    '''decode'''
     try:
         return text.encode('utf-8').decode()
     except UnicodeDecodeError:
@@ -42,7 +45,7 @@ def unicode_decode(text):
 
 
 def getFacebookCommentFeedUrl(base_url):
-
+    '''fb'''
     # Construct the URL string
     fields = "&fields=id,message,reactions.limit(0).summary(true)" + \
         ",created_time,comments,from,attachment"
@@ -52,7 +55,7 @@ def getFacebookCommentFeedUrl(base_url):
 
 
 def getReactionsForComments(base_url):
-
+    '''comment'''
     reaction_types = ['like', 'love', 'wow', 'haha', 'sad', 'angry']
     reactions_dict = {}   # dict of {status_id: tuple<6>}
 

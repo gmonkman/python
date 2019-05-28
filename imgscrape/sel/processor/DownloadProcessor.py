@@ -60,7 +60,7 @@ class DownloadProcessor(BaseProcessor):
                 temp_filename_full_path = os.path.join(self.gs_raw_dirpath, temp_filename)
                 info_txt_path = os.path.join(self.gs_raw_dirpath, self.search_term + '_info.txt')
                 data = response.read()  # a `bytes` object
-                if len(data) > 0:
+                if data:
                     f = open(temp_filename_full_path, 'wb')  # save as test.gif
                     # print(url_link)
                     f.write(data)  # if have problem skip

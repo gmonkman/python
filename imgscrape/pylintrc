@@ -9,7 +9,7 @@
 
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
-ignore=CVS
+ignore=CVS,numpy,statsmodels
 
 # Pickle collected data for later comparisons.
 persistent=yes
@@ -19,16 +19,16 @@ persistent=yes
 load-plugins=
 
 # Use multiple processes to speed up Pylint.
-jobs=1
+jobs=2
 
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
-unsafe-load-any-extension=no
+unsafe-load-any-extension=yes
 
 # A comma-separated list of package or module names from where C extensions may
 # be loaded. Extensions are loading into the active Python interpreter and may
 # run arbitrary code
-extension-pkg-whitelist=
+extension-pkg-whitelist=numpy,cv2,skimage,pandas
 
 # Allow optimization of some AST trees. This will activate a peephole AST
 # optimizer, which will apply various small optimizations. For instance, it can
@@ -36,7 +36,7 @@ extension-pkg-whitelist=
 # operator. Joining a lot of strings can lead to a maximum recursion error in
 # Pylint and this flag can prevent that. It has one side effect, the resulting
 # AST will be different than the one from reality.
-optimize-ast=no
+optimize-ast=yes
 
 
 [MESSAGES CONTROL]
@@ -59,8 +59,7 @@ confidence=
 # you want to run only the similarities checker, you can use "--disable=all
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
-# --disable=W"
-disable=line-too-long,lost-exceptiontoo-few-public-methods,too-many-arguments,too-many-branches,too-many-instance-attributes,too-many-locals,too-many-nested-block,too-many-statements,ungrouped-imports,wrong-import-order,apply-builtin,backtick,bad-continuation,basestring-builtin,buffer-builtin,cmp-builtin,cmp-method,coerce-builtin,coerce-method,delslice-method,dict-iter-method,dict-view-method,execfile-builtin,file-builtin,filter-builtin-not-iterating,getslice-method,hex-method,I0011,import-star-module-level,indexing-exception,input-builtin,intern-builtin,line-too-long,locally-disabled,long-builtin,long-suffix,map-builtin-not-iterating,metaclass-assignment,multiple-statements,next-method-called,no-absolute-import,nonzero-method,oct-method,old-division,old-ne-operator,old-octal-literal,old-raise-syntax,parameter-unpacking,print-statement,raising-string,range-builtin-not-iterating,raw_input-builtin,reduce-builtin,relative-import,reload-builtin,round-builtin,setslice-method,standarderror-builtin,suppressed-message,too-few-public-methods,too-many-arguments,too-many-boolean-expressions,too-many-branches,too-many-locals,trailing-whitespace,unichr-builtin,unicode-builtin,using-cmp-argument,xrange-builtin,not-context-manager,file-ignored,unnecessary-pass,invalid-name,attribute-defined-outside-init
+disable=line-too-long,lost-exception,too-few-public-methods,too-many-arguments,too-many-branches,too-many-instance-attributes,too-many-locals,too-many-nested-block,too-many-statements,ungrouped-imports,wrong-import-order,apply-builtin,backtick,bad-continuation,basestring-builtin,buffer-builtin,cmp-builtin,cmp-method,coerce-builtin,coerce-method,delslice-method,dict-iter-method,dict-view-method,execfile-builtin,file-builtin,filter-builtin-not-iterating,getslice-method,hex-method,I0011,import-star-module-level,indexing-exception,input-builtin,intern-builtin,line-too-long,locally-disabled,long-builtin,long-suffix,map-builtin-not-iterating,metaclass-assignment,multiple-statements,next-method-called,no-absolute-import,nonzero-method,oct-method,old-division,old-ne-operator,old-octal-literal,old-raise-syntax,parameter-unpacking,print-statement,raising-string,range-builtin-not-iterating,raw_input-builtin,reduce-builtin,relative-import,reload-builtin,round-builtin,setslice-method,standarderror-builtin,suppressed-message,too-few-public-methods,too-many-arguments,too-many-boolean-expressions,too-many-branches,too-many-locals,trailing-whitespace,unichr-builtin,unicode-builtin,using-cmp-argument,xrange-builtin,invalid-name,global-statement,wring-import-position,too-many-nested-blocks,no-member,not-context-manager,broad-except,lost-exception,wrong-import-position,superfluous-parens,unnecessary-pass,useless-super-delegation,protected-access,inconsistent-return-statements,bare-except,len-as-condition,unnecessary-pass
 
 
 [REPORTS]
@@ -202,7 +201,7 @@ single-line-if-stmt=no
 no-space-check=trailing-comma,dict-separator
 
 # Maximum number of lines in a module
-max-module-lines=1000
+max-module-lines=2000
 
 # String used as indentation unit. This is usually "    " (4 spaces) or "\t" (1
 # tab).
@@ -231,7 +230,7 @@ notes=FIXME,XXX,TODO
 [SIMILARITIES]
 
 # Minimum lines number of a similarity.
-min-similarity-lines=4
+min-similarity-lines=20
 
 # Ignore comments when computing similarities.
 ignore-comments=yes
@@ -240,7 +239,7 @@ ignore-comments=yes
 ignore-docstrings=yes
 
 # Ignore imports when computing similarities.
-ignore-imports=no
+ignore-imports=yes
 
 
 [SPELLING]
@@ -274,7 +273,7 @@ ignored-modules=numpy,numpy.random,pandas.np,pandas.np.random
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set). This supports can work
 # with qualified names.
-ignored-classes=
+ignored-classes=numpy
 
 # List of members which are set dynamically and missed by pylint inference
 # system, and so shouldn't trigger E1101 when accessed. Python regular

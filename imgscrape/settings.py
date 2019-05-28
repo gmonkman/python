@@ -7,7 +7,7 @@ NEWSPIDER_MODULE = 'imgscrape.spiders'
 
 
 #Item Pipelines
-#ITEM_PIPELINES = {'scrapy.pipelines.images.ImagesPipeline': 1}
+ITEM_PIPELINES = {'imgscrape.pipelines.UGCWriter': 10}
 #IMAGES_STORE = 'C:/development/python/imgscrape/images'
 #IMAGES_MIN_HEIGHT = 300
 #IMAGES_MIN_WIDTH = 300
@@ -18,8 +18,8 @@ NEWSPIDER_MODULE = 'imgscrape.spiders'
 
 
 #FEED
-FEED_FORMAT = 'csv'
-FEED_URI = 'file:.c:/temp/mp_fox_straglers.csv'
+#FEED_FORMAT = 'csv'
+#FEED_URI = 'file:.c:/temp/mp_fox_straglers.csv'
 
 
 #USER_AGENT = 'quotesbot (+http://www.yourdomain.com)'
@@ -29,17 +29,12 @@ ROBOTSTXT_OBEY = True
 CONCURRENT_REQUESTS = 8
 
 #Throttling
-DOWNLOAD_DELAY = 0.5
+DOWNLOAD_DELAY = 2
 RANDOMIZE_DOWNLOAD_DELAY = True
-CONCURRENT_REQUESTS_PER_DOMAIN = 5
-CONCURRENT_REQUESTS_PER_IP = 5
+CONCURRENT_REQUESTS_PER_DOMAIN = 4
+CONCURRENT_REQUESTS_PER_IP = 4
 
 AUTOTHROTTLE_ENABLED = True
 AUTOTHROTTLE_START_DELAY = 0.2
-AUTOTHROTTLE_MAX_DELAY = 10
+AUTOTHROTTLE_MAX_DELAY = 8
 AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
-
-
-DOWNLOADER_MIDDLEWARES = {'scrapy_wayback_machine.WaybackMachineMiddleware    ': 5,}
-
-WAYBACK_MACHINE_TIME_RANGE = (20190428000000,)

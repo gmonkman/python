@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#pylint: skip-file
 '''scrape from google cache'''
 import urllib.request as request
 import re
@@ -15,13 +15,11 @@ import funclib.stringslib as stringslib
 
 socket.setdefaulttimeout(30)
 
-#adjust the site here
-SEARCH_SITE = 'www.anglersnet.co.uk'
-URL = 'https://www.google.com/search?safe=off&q=site:www.anglersnet.co.uk%2Fforums+%22sea+fishing%22'
-SAVE_DIR = 'C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/data/Data sources and sites/www/googlecache/test'
-search_term="site:" + SEARCH_SITE + "%2Fforums+%22sea+fishing%22"
 
-
+def get_cache_url(url):
+    '''return cache url from url
+    '''
+    return 'http://webcache.googleusercontent.com/search?q=cache:%s' % url
 
 
 def mkdir_p(path):
@@ -29,8 +27,15 @@ def mkdir_p(path):
     iolib.create_folder(path)
 
 
-def main():
-    '''main'''
+def from_search(search_url, save_dir):
+    '''search url is the url that the chose search uses
+    you can get it by performing the search in google, then
+    copying the address url
+
+    search_url: search url in google, example, searching for site:www.anglersnet.co.uk/forums "sea fishing"
+    yields the search url https://www.google.com/search?safe=off&q=site:www.anglersnet.co.uk%2Fforums+%22sea+fishing%22
+    '''
+
     headers = {'User-Agent': 'Mozilla/5.0 (X11; U; Linux i686 (x86_64); en-US; rv:1.8.1.4) Gecko/20070515 Firefox/2.0.0.4'}
     regex_cache = re.compile(r'<a href="([^"]*)"[^>]*>Cached</a>')
     regex_next = re.compile('<a href="([^"]*)"[^>]*><span[^>]*>[^<]*</span><span[^>]*>Next</span></a>')
@@ -39,9 +44,9 @@ def main():
 #    regex_time = re.compile('page as it appeared on ([\d\w\s:]+)')
     regex_pagenum = re.compile('<a href="([^"]*)"[^>]*><span[^>]*>[^<]*<\/span>([\d]+)')
 
-    #this is the directory we will save files to
-    mkdir_p(SAVE_DIR)
-    path = os.path.dirname(os.path.abspath(__file__)) + '\\' + SEARCH_SITE
+
+    mkdir_p(save_dir)
+    path = os.path.dirname(os.path.abspath(__file__)) + '\\' + save_dir
     mkdir_p(path)
     counter = 0
     pagenum = int(math.floor(len([name for name in os.listdir(path)]) / 10) + 1)
@@ -52,7 +57,7 @@ def main():
             req = urllib.request.Request(URL, None, headers)
             page = stringslib.to_ascii(urllib.request.urlopen(req).read())
             goto = regex_pagenum.findall(page)
-#            print goto
+
             for goto_url, goto_pagenum in goto:
                 goto_pagenum = int(goto_pagenum)
                 if (goto_pagenum == pagenum):
@@ -92,11 +97,11 @@ def main():
                 the_url = the_url + ".html"
 
             #if filename "$url"[.html] does not exists
-            if not os.path.exists(SEARCH_SITE + "/" + the_url):
+            if not os.path.exists(save_dir + "/" + the_url):
                 tmp_req = urllib.request.Request(match.replace('&amp;', '&'), None, headers)
                 try:
                     tmp_page = urllib.request.urlopen(tmp_req).read()
-                    f = open(SEARCH_SITE + "/" + the_url, 'w')
+                    f = open(save_dir + "/" + the_url, 'w')
                     f.write(tmp_page)
                     f.close()
                     print(counter, ": " + the_url)

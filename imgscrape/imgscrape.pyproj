@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>1d9b1083-600c-4118-83fd-de48f0fd0b3b</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>scripts\get_fb_posts_fb_page.py</StartupFile>
+    <StartupFile>exec.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>
     </WorkingDirectory>
@@ -66,6 +66,9 @@
     <Compile Include="sel\setup.py" />
     <Compile Include="sel\__init__.py" />
     <Compile Include="settings.py" />
+    <Compile Include="spiders\angingaddicts_reports.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="spiders\angling_addicts.py">
       <SubType>Code</SubType>
     </Compile>

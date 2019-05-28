@@ -1,3 +1,5 @@
+#pylint: skip-file
+'''stuff'''
 import json
 import datetime
 import csv

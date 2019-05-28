@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>as-python-list</Title>
+      <Shortcut>as-python-list</Shortcut>
+      <Description>Get an SQL column as a python list</Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[import dblib.mssql as _mssql
+
+ SPECIES = _mssql.get_as_list('species_alias', 'species_aliasid', 'mmo', to_lower=True, clean=True)
+
+]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

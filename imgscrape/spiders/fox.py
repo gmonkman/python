@@ -23,7 +23,6 @@ class MPNames(CrawlSpider):
     name = "mp-details"
     allowed_domains = ['parliament.uk']
     start_urls = ['http://www.parliament.uk/mps-lords-and-offices/mps/']
-
     rules = (Rule(LinkExtractor(restrict_xpaths='//div[@class="inner"]'), callback='parse_mp_page'),)
 
     def parse_mp_page(self, response):

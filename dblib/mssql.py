@@ -7,6 +7,7 @@ import datetime as _datetime
 import pymssql
 import funclib.baselib as _baselib
 import funclib.stringslib as _stringslib
+from funclib.stringslib import date_str_to_iso #helper function
 
 
 class Conn():
@@ -381,6 +382,12 @@ def getNow():
     '''Get sql friendly current datetime
     '''
     return _datetime.datetime.strftime(_datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
+
+
+def fmtdate(s):
+    '''
+    get date formatted for SQL as YYYY-mm-dd hh:mm:ss'''
+    return _datetime.datetime.strftime(s, '%Y-%m-%d %H:%M:%S')
 
 
 def get_as_list(table, col, dbname, server='(local)', quote=True, to_lower=False, clean=False):
