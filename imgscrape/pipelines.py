@@ -58,4 +58,5 @@ class UGCWriter():
 
 
 def check_for_dup(url):
+    '''check for dup records by url'''
     return _mmodb.SESSION.query(_Ugc).filter(_Ugc.url == url).first()

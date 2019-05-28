@@ -102,6 +102,7 @@ class Ugc(Base):
     who = Column(String(50, 'Latin1_General_CI_AS'))
     txt = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False)
     url = Column(String(500, 'Latin1_General_CI_AS'))
+    title = Column(String(500, 'Latin1_General_CI_AS'))
 
 
 t_v_err_species_alias_duplicate_accepted = Table(

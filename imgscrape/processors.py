@@ -1,5 +1,6 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''my custom processors'''
+from warnings import warn as _warn
 import base64 as _base64
 import unicodedata as _unicodedata
 import funclib.stringslib as _stringslib
@@ -15,6 +16,23 @@ class Clean_xa0():
         return [_stringslib.trim(_unicodedata.normalize('NFKD', s))  for s in values]
 
 
+class Clean2Ascii():
+    '''Remove crlf, retain ASCII, remove quotes
+    values = ['a\nb','d!','?e']
+    >>>Clean2Ascii(values)
+    ['ab','d!','?e']
+    '''
+    def __call__(self, values):
+        if values:
+            if isinstance(values, list):
+                s = " ".join(values)
+            else:
+                s = values
+            return [_stringslib.filter_alphanumeric1(s, allow_cr=False, allow_lf=False, remove_double_quote=True, remove_single_quote=True, strip=True)]
+        return []
+
+
+
 class CleanStrict():
     '''leave only ascii alpha numerics
     This also strips CR and LF and all punctuation
@@ -25,18 +43,17 @@ class CleanStrict():
     '''
     def __call__(self, values):
         if values:
-            l = lambda x: _stringslib._filter_alphanumeric(x, strict=True, allow_cr=False, allow_lf=False, include=(' '))
+            l = lambda x: _stringslib.filter_alphanumeric(x, strict=True, allow_cr=False, allow_lf=False, include=(' '))
             if len(values) == 1: #single string in list
                 return ["".join([c for c in values[0] if l(c)])]
             return ["".join([c for c in val if l(c)]) for val in values]
-
         return []
 
 
 class CleanStrict1():
     '''As clean strict, but uses the later version
-    which is also used my nlp module - use to ensure
-    same outputs.
+    which is also used by nlp module - use to ensure
+    same outputs. Removes crlf, and punctuation, leaves spaces
 
     We need to allow carriage returns for paragraph detection.
 
@@ -46,10 +63,11 @@ class CleanStrict1():
     '''
     def __call__(self, allow_cr, values):
         if values:
-            l = lambda x: _stringslib.filter_alphanumeric1(x, strict=True, allow_cr=allow_cr, allow_lf=False, include=(' '))
-            if len(values) == 1: #single string in list
-                return ["".join([c for c in values[0] if l(c)])]
-            return ["".join([c for c in val if l(c)]) for val in values]
+            if isinstance(values, list):
+                s = " ".join(values)
+            else:
+                s = values
+            return [_stringslib.filter_alphanumeric1(s, strict=True, allow_cr=True, allow_lf=True, include=(' '))]
         return []
 
 
@@ -84,23 +102,25 @@ class UKDateAsISO():
         return ISO_DATE_DEFAULT
 
 
-class AnglingAddictsPostDateAsISO():
+class PostDateAsISO():
     '''
     Process angling addicts post date
-
-    Date format expected is '%d %b %Y, %H:%M'
     '''
+    DATE_FMT = '%d %b %Y %H:%M'
+
     def __call__(self, v):
         if v:
             try:
-                s = _stringslib.filter_alphanumeric1(v[0], strict=True, allow_cr=False, allow_lf=False, strip=True, include=(':'))
-                s = _stringslib.date_str_to_iso(s, '%d %b %Y %H:%M')
-            except Exception as _:
+                s = _stringslib.filter_alphanumeric1(v[0], strict=True, allow_cr=False, allow_lf=False, strip=True, include=(':', ','))
+                return _stringslib.date_str_to_iso(s, PostDateAsISO.DATE_FMT)
+            except Exception as e:
+                _warn('PostDateAsISO failed, using %s. Error was %s' % (ISO_DATE_DEFAULT, e))
                 s = ISO_DATE_DEFAULT
 
             return s
 
         return ISO_DATE_DEFAULT
+
 
 
 class HTML2Txt():
@@ -144,6 +164,7 @@ class Encode64():
 
 
 def lst2val(l):
+    '''list to val'''
     if isinstance(l, list):
         return l[0]
     return l

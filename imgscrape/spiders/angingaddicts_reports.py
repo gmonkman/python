@@ -5,8 +5,7 @@ from scrapy.spiders import Spider
 from scrapy.linkextractors import LinkExtractor
 import imgscrape.items as _items
 from imgscrape.pipelines import check_for_dup
-from funclib.stringslib import read_number
-
+import imgscrape.ini as _ini
 
 
 
@@ -16,14 +15,8 @@ class AnglingAddictsReportsSpider(Spider):
     name = "anglingaddicts"
     source = 'anglingaddicts.co.uk'
     allowed_domains = ['anglingaddicts.co.uk']
-    start_urls = ['http://www.anglingaddicts.co.uk/forum/north-west-fishing-reports.html',
-                  'http://www.anglingaddicts.co.uk/forum/north-east-sea-fishing-reports.html',
-                  'http://www.anglingaddicts.co.uk/forum/east-coast-sea-fishing-reports.html',
-                  'http://www.anglingaddicts.co.uk/forum/south-coast-sea-fishing-reports.html',
-                  'http://www.anglingaddicts.co.uk/forum/south-east-sea-fishing-reports.html',
-                  'http://www.anglingaddicts.co.uk/forum/south-west-sea-fishing-reports.html'
-                  ]
-    base_url = 'http://www.anglingaddicts.co.uk/forum/'
+    start_urls = _ini.AnglingAddictsReportsIni.START_URLS
+    base_url = _ini.AnglingAddictsReportsIni.BASE_URL
 
     def parse(self, response):
         '''generate links to pages in a board
@@ -70,9 +63,10 @@ class AnglingAddictsReportsSpider(Spider):
 
 
     def crawl_board_threads(self, response):
-        curboard = response.meta.get('curboard')
         '''response in http://www.anglingaddicts.co.uk/forum/north-west-fishing-reports.html http://www.anglingaddicts.co.uk/forum/north-west-fishing-reports-25.html
         yields individual thread links: e.g. http://www.anglingaddicts.co.uk/forum/heysham-today-t22893.html'''
+
+        curboard = response.meta.get('curboard')
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
 
         links = LinkExtractor(restrict_xpaths='//div[@class="forumbg"]//a[@class="topictitle"]').extract_links(response)
@@ -99,10 +93,6 @@ class AnglingAddictsReportsSpider(Spider):
 
         #test
         txt = response.selector.xpath('(//div[contains(@class,"content")])[1]').extract()
-        if not txt:
-            z=10
-            pass
-
         l.add_xpath('txt', '(//div[contains(@class,"content")])[1]') #all html below node - beautful soup is used to strip html
         l.add_value('url', response.url)
         l.add_xpath('who', '(//p[contains(@class,"author")]/strong/a/text())[1]')

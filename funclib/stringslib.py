@@ -83,7 +83,8 @@ def rndstr(l):
 
 
 def filter_alphanumeric1(s, encoding='ascii', strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and', remove_single_quote=False, remove_double_quote=False, exclude_numbers=False, strip=False):
-    '''(str, bool, bool, bool, bool, tuple, tuple) -> str
+    '''(str|bytes, bool, bool, bool, bool, tuple, tuple) -> str
+    Pass a whole string/bytes, does the whole string!
 
     to_ascii: replace foreign letters to ASCII ones, e.g, umlat to u
     strict: only letters and numbers are returned, space is allowed

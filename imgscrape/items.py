@@ -41,7 +41,7 @@ class AnglingAddictsMMO(_Item):
     who = _Field()
     txt = _Field()
     url = _Field()
-
+    title = _Field()
 
 class AnglingAddictsMMOLdr(_loader.ItemLoader):
     '''item loader
@@ -51,18 +51,34 @@ class AnglingAddictsMMOLdr(_loader.ItemLoader):
 
     txt_in = _myprocs.HTML2Txt()
     txt_out = _myprocs.ListToValue()
-    published_date_in = _myprocs.AnglingAddictsPostDateAsISO() #get as iso format for sql server
+
+    _myprocs.PostDateAsISO.DATE_FMT = '%d %b %Y, %H:%M' #see http://strftime.org/
+    published_date_in = _myprocs.PostDateAsISO() #get as iso format for sql server
     published_date_out = _myprocs.ListToValue()
+
     who_in = _myprocs.Encode64()
     who_out = _myprocs.ListToValue()
-
-    #source = _Field()
-    #board = _Field()
-    #content_identifier = _Field()
-    #url = _Field()
+    title_in = _myprocs.Clean2Ascii()
+    title_out = _myprocs.ListToValue()
 
 
+class WirralSeaFishingMMOLdr(_loader.ItemLoader):
+    '''item loader
+    '''
+    default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst
+    default_output_processor = _myprocs.ListToValue()
 
+    txt_in = _myprocs.HTML2Txt()
+    txt_out = _myprocs.ListToValue()
+
+    _myprocs.PostDateAsISO.DATE_FMT = '%a %b %d, %Y %H:%M %p'  #'Sat Jan 12, 2019 06:54 PM' see http://strftime.org/
+    published_date_in = _myprocs.PostDateAsISO() #get as iso format for sql server
+    published_date_out = _myprocs.ListToValue()
+
+    who_in = _myprocs.Encode64()
+    who_out = _myprocs.ListToValue()
+    title_in = _myprocs.Clean2Ascii()
+    title_out = _myprocs.ListToValue()
 
 #Fox Stuff
 class ldrMPDetails(_loader.ItemLoader):
