@@ -2,6 +2,7 @@
 '''string manipulations and related helper functions'''
 
 # base imports
+import re as _re
 import time
 import numbers
 import random as _random
@@ -287,6 +288,11 @@ def to_ascii(s):
         return s.decode('ascii', 'ignore')
 
     return s.encode('ascii', 'ignore').decode('ascii')
+
+
+def newline_del_multi(s):
+    '''replaces multiple newlines with single one'''
+    return _re.sub('\n+','\n', s)
 
 
 # endregion

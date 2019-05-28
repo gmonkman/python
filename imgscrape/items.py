@@ -49,14 +49,13 @@ class AnglingAddictsMMOLdr(_loader.ItemLoader):
     default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst
     default_output_processor = _myprocs.ListToValue()
 
-
     txt_in = _myprocs.HTML2Txt()
     txt_out = _myprocs.ListToValue()
-
     published_date_in = _myprocs.AnglingAddictsPostDateAsISO() #get as iso format for sql server
     published_date_out = _myprocs.ListToValue()
+    who_in = _myprocs.Encode64()
+    who_out = _myprocs.ListToValue()
 
-    #who_in = _processors.TakeFirst()
     #source = _Field()
     #board = _Field()
     #content_identifier = _Field()

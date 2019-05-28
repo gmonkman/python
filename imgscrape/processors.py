@@ -1,6 +1,6 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''my custom processors'''
-
+import base64 as _base64
 import unicodedata as _unicodedata
 import funclib.stringslib as _stringslib
 from bs4 import BeautifulSoup as _Soup
@@ -93,7 +93,7 @@ class AnglingAddictsPostDateAsISO():
     def __call__(self, v):
         if v:
             try:
-                s = _stringslib.filter_alphanumeric1(v[0], strict=True, allow_cr=False, allow_lf=False, strip=True, exclude=(':'))
+                s = _stringslib.filter_alphanumeric1(v[0], strict=True, allow_cr=False, allow_lf=False, strip=True, include=(':'))
                 s = _stringslib.date_str_to_iso(s, '%d %b %Y %H:%M')
             except Exception as _:
                 s = ISO_DATE_DEFAULT
@@ -111,6 +111,9 @@ class HTML2Txt():
             try:
                 #could process further here, for example lower() it all, but caps will be used for sentence and proper name detection
                 s = _Soup(v[0], 'html.parser').get_text('\n')
+                s = _stringslib.newline_del_multi(s).lstrip().rstrip()
+                if not s:
+                    s = ''
             except Exception as _:
                 s = ''
             return s
@@ -126,6 +129,18 @@ class ListToValue():
             return v[0]
         return v
 
+
+class Encode64():
+    '''encode a string'''
+    def __call__(self, v):
+        if v:
+            try:
+                v = lst2val(v)
+                s = _stringslib.filter_alphanumeric1(_base64.urlsafe_b64encode(bytes(v, 'utf8')), remove_single_quote=True, remove_double_quote=True, strip=True)
+                return s
+            except Exception as _:
+                return 'unknown'
+        return 'unknown'
 
 
 def lst2val(l):
