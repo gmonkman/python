@@ -40,7 +40,7 @@ class WirralSeaFishingReportsSpider(Spider):
 
         #get last page nr
         for url in urls:
-            yield scrapy.Request(url, callback=self.crawl_board_threads, dont_filter=True, meta={'curboard':curboard})
+            yield scrapy.Request(url, callback=self.crawl_board_threads, dont_filter=False, meta={'curboard':curboard})
 
 
     def crawl_board_threads(self, response):
@@ -50,12 +50,12 @@ class WirralSeaFishingReportsSpider(Spider):
         yields individual thread links: e.g. http://www.WirralSeaFishing.co.uk/forum/heysham-today-t22893.html'''
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
 
-        links = LinkExtractor(allow=('viewtopic\.php'), deny=('viewtopic.php?f=33&t=18499')).extract_links(response) #deny is the annoncement link
-
+        links = LinkExtractor(restrict_xpaths='//div[@class="forumbg"]//a[@class="topictitle"]').extract_links(response)
         for link in links:
-            #s = response.urljoin(link.url)
-            if not check_for_dup(link.url):
-                yield scrapy.Request(link.url, callback=self.parse_thread, dont_filter=True, meta={'curboard':curboard})
+            s = response.urljoin(link.url)
+            if not check_for_dup(s):
+                yield scrapy.Request(s, callback=self.parse_thread, dont_filter=False, meta={'curboard':curboard})
+
 
     def parse_thread(self, response):
         '''open a report thread and parse first post only
