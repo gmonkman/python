@@ -36,7 +36,7 @@ class WirralSeaFishingReportsSpider(Spider):
 
         '''
         curboard = response.selector.xpath('//h2[contains(@class, "forum-title")]/a/text()').extract()
-        if curboard.lower() == 'Fishing Session Reports'.lower():
+        if curboard[0].lower() == 'Fishing Session Reports'.lower():
             last_link = 5430
         else:
             last_link = 3420 #this isnt right as it will generate too many requests for the 2nd set of links - will need to scrape from #5430
