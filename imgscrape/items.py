@@ -31,7 +31,7 @@ class itmMPDetails(_Item):
 
 
 #MMO Work
-class AnglingAddictsMMO(_Item):
+class ForumUGC(_Item):
     '''item for mmo user generated content database entity
     '''
     source = _Field()
@@ -62,7 +62,7 @@ class AnglingAddictsMMOLdr(_loader.ItemLoader):
     title_out = _myprocs.ListToValue()
 
 
-class WirralSeaFishingMMOLdr(_loader.ItemLoader):
+class WirralSeaFishingLdr(_loader.ItemLoader):
     '''item loader
     '''
     default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst
@@ -81,7 +81,26 @@ class WirralSeaFishingMMOLdr(_loader.ItemLoader):
     title_out = _myprocs.ListToValue()
 
 
-class WorldSeaFishingMMOLdr(_loader.ItemLoader):
+
+class TotalFishingLdr(_loader.ItemLoader):
+    '''item loader
+    '''
+    default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst
+    default_output_processor = _myprocs.ListToValue()
+
+    txt_in = _myprocs.HTML2Txt()
+    txt_out = _myprocs.ListToValue()
+
+    _myprocs.PostDateAsISO.DATE_FMT = '%d/%m/%Y at %H:%M %p'  #18/03/2016 at 9:55 pm see http://strftime.org/
+    published_date_in = _myprocs.PostDateAsISO() #get as iso format for sql server
+    published_date_out = _myprocs.ListToValue()
+
+    who_in = _myprocs.Encode64()
+    who_out = _myprocs.ListToValue()
+    title_in = _myprocs.Clean2Ascii()
+    title_out = _myprocs.ListToValue()
+
+class WorldSeaFishingLdr(_loader.ItemLoader):
     '''item loader
     '''
     default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst

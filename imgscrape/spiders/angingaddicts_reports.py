@@ -85,7 +85,7 @@ class AnglingAddictsReportsSpider(Spider):
 
         #use our own item loaders, which inherits from the base.
         #AnglingAddictsMMOLdr specifies input and output handlers
-        l = _items.AnglingAddictsMMOLdr(item=_items.AnglingAddictsMMO(), response=response)
+        l = _items.AnglingAddictsMMOLdr(item=_items.ForumUGC(), response=response)
         l.add_value('board', curboard)
         l.add_value('content_identifier', '')
         l.add_xpath('published_date', '(//p[contains(@class,"author")]/strong/following-sibling::text())[1]') #note the brackets around the expression, this gets the first instance https://stackoverflow.com/questions/14294997/what-is-the-xpath-expression-to-find-only-the-first-occurrence

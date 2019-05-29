@@ -76,7 +76,7 @@ class worldseafishingReportsSpider(Spider):
 
         #use our own item loaders, which inherits from the base.
         #worldseafishingMMOLdr specifies input and output handlers
-        l = _items.WorldSeaFishingMMOLdr(item=_items.AnglingAddictsMMO(), response=response)
+        l = _items.WorldSeaFishingLdr(item=_items.ForumUGC(), response=response)
         l.add_value('board', curboard)
         l.add_value('content_identifier', '')
         l.add_xpath('title', '//div[contains(@class, "titleBar")]/h1/text()')

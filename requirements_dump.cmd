@@ -14,3 +14,4 @@ pipreqs c:\development\python\opencvlib --encoding=utf-8 --force
 pipreqs c:\development\python\permanal --encoding=utf-8 --force
 pipreqs c:\development\python\pgnet --encoding=utf-8 --force
 pipreqs c:\development\python\plotlib --encoding=utf-8 --force
+pause

@@ -22,6 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="generate_model_mmo.cmd" />
+    <Content Include="mmodb_template.ini" />
     <Content Include="mmodb.ini" />
     <Content Include="pylintrc" />
   </ItemGroup>

@@ -37,3 +37,9 @@ class WirralSeaFishingReportsIni():
     START_URLS = _ConfigFile.tryread('wirralseafishing_reports', 'start_urls', asType=_inifilelib.eReadAs.ersList, error_on_read_fail=True)
     BASE_URL = _ConfigFile.tryread('wirralseafishing_reports', 'base_url', error_on_read_fail=True)
     RUN_FIX = _ConfigFile.tryread('wirralseafishing_reports', 'run_fix', error_on_read_fail=True, astype=bool)
+
+
+class TotalFishingReportsIni():
+    '''cls'''
+    START_URLS = _ConfigFile.tryread('total_fishing_reports', 'start_urls', asType=_inifilelib.eReadAs.ersList, error_on_read_fail=True)
+    BASE_URL = _ConfigFile.tryread('total_fishing_reports', 'base_url', error_on_read_fail=True)

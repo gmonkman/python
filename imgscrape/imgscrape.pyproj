@@ -67,6 +67,9 @@
     <Compile Include="sel\setup.py" />
     <Compile Include="sel\__init__.py" />
     <Compile Include="settings.py" />
+    <Compile Include="spiders\total_fishing.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="spiders\wirralseafishing_reports.py">
       <SubType>Code</SubType>
     </Compile>
@@ -96,6 +99,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="imgscrape_template.ini" />
     <Content Include="imgscrape.ini">
       <SubType>Code</SubType>
     </Content>

@@ -458,4 +458,8 @@ pgnet-master/results/VOC2012/Main/_dummy
 pgnet-master/results/VOC2012/Layout/_dummy
 pgnet/scripts/session/*
 
+#PROJECT INIs
+imgscrape/imgscrape.ini
+mmodb/mmodb.ini
 pgnet/pgnet.ini
+

@@ -81,7 +81,7 @@ class WirralSeaFishingReportsSpider(Spider):
 
         #use our own item loaders, which inherits from the base.
         #WirralSeaFishingMMOLdr specifies input and output handlers
-        l = _items.WirralSeaFishingMMOLdr(item=_items.AnglingAddictsMMO(), response=response)
+        l = _items.WirralSeaFishingLdr(item=_items.ForumUGC(), response=response)
         l.add_value('board', curboard)
         l.add_value('content_identifier', '')
         l.add_xpath('title', '//h3[contains(@class, "first")]/a/text()')
