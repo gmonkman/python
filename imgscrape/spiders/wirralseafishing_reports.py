@@ -21,6 +21,7 @@ class WirralSeaFishingReportsSpider(Spider):
 
     #bug fix - run if set in ini, override ini url list
     if _ini.WirralSeaFishingReportsIni.RUN_FIX:
+        print('\n*RUNNING FIX CODE*\n')
         start_urls = ['https://www.wirralseafishing.co.uk/forum/phpBB2/viewforum.php?f=57']
 
 
@@ -44,6 +45,7 @@ class WirralSeaFishingReportsSpider(Spider):
 
         #ug fixed last link, will need to run a fix to import the left out Fishing Session Reports
         if _ini.WirralSeaFishingReportsIni.RUN_FIX:
+            print('\n*RUNNING FIX CODE*\n')
             for x in range(3420 + posts_per_page, last_link + posts_per_page, posts_per_page):
                 urls.append(urls[0] + "&start=%s" % x)
         else:
