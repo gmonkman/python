@@ -87,6 +87,9 @@
     <Compile Include="spiders\wirralpics.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="spiders\worldseafishing_reports.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="spiders\__init__.py" />
     <Compile Include="__init__.py">
       <SubType>Code</SubType>

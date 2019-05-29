@@ -21,8 +21,7 @@ ITEM_PIPELINES = {'imgscrape.pipelines.UGCWriter': 10}
 #FEED_FORMAT = 'csv'
 #FEED_URI = 'file:.c:/temp/mp_fox_straglers.csv'
 
-
-#USER_AGENT = 'quotesbot (+http://www.yourdomain.com)'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0'
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)

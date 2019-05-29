@@ -19,6 +19,10 @@ class WirralSeaFishingReportsSpider(Spider):
     start_urls = _ini.WirralSeaFishingReportsIni.START_URLS
     base_url = _ini.WirralSeaFishingReportsIni.BASE_URL
 
+    #bug fix - run if set in ini, override ini url list
+    if _ini.WirralSeaFishingReportsIni.RUN_FIX:
+        start_urls = ['https://www.wirralseafishing.co.uk/forum/phpBB2/viewforum.php?f=57']
+
 
     def parse(self, response):
         '''generate links to pages in a board
@@ -28,15 +32,23 @@ class WirralSeaFishingReportsSpider(Spider):
         https://www.wirralseafishing.co.uk/forum/phpBB2/viewforum.php?f=33&start=3420
 
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
-        urls = [response.url] #first page is just the base post url
+
         '''
         curboard = response.selector.xpath('//h2[contains(@class, "forum-title")]/a/text()').extract()
-        last_link = 3420
+        if curboard.lower() == 'Fishing Session Reports'.lower():
+            last_link = 5430
+        else:
+            last_link = 3420 #this isnt right as it will generate too many requests for the 2nd set of links - will need to scrape from #5430
         posts_per_page = 30
-        urls = ['http://www.wirralseafishing.co.uk/forum/phpBB2/viewforum.php?f=33',]
+        urls = [response.url] #first page is just the base post url
 
-        for x in range(posts_per_page, last_link+posts_per_page, posts_per_page):
-            urls.append(urls[0] + "&start=%s" % x)
+        #ug fixed last link, will need to run a fix to import the left out Fishing Session Reports
+        if _ini.WirralSeaFishingReportsIni.RUN_FIX:
+            for x in range(3420 + posts_per_page, last_link + posts_per_page, posts_per_page):
+                urls.append(urls[0] + "&start=%s" % x)
+        else:
+            for x in range(posts_per_page, last_link+posts_per_page, posts_per_page):
+                urls.append(urls[0] + "&start=%s" % x)
 
         #get last page nr
         for url in urls:

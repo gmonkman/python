@@ -80,6 +80,25 @@ class WirralSeaFishingMMOLdr(_loader.ItemLoader):
     title_in = _myprocs.Clean2Ascii()
     title_out = _myprocs.ListToValue()
 
+
+class WorldSeaFishingMMOLdr(_loader.ItemLoader):
+    '''item loader
+    '''
+    default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst
+    default_output_processor = _myprocs.ListToValue()
+
+    txt_in = _myprocs.HTML2Txt()
+    txt_out = _myprocs.ListToValue()
+
+    _myprocs.PostDateAsISO.DATE_FMT = '%b %d, %Y at %H:%M %p'  #'Mar 18, 2012 at 9:53 AM' see http://strftime.org/
+    published_date_in = _myprocs.PostDateAsISO() #get as iso format for sql server
+    published_date_out = _myprocs.ListToValue()
+
+    who_in = _myprocs.Encode64()
+    who_out = _myprocs.ListToValue()
+    title_in = _myprocs.Clean2Ascii()
+    title_out = _myprocs.ListToValue()
+
 #Fox Stuff
 class ldrMPDetails(_loader.ItemLoader):
     '''itemloader for item
