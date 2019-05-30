@@ -452,7 +452,7 @@ imagedb/CodeGraphData/config.json
 #imgscrape
 imgscrape/sel/*.csv
 imgscrape/imgscrape.ini
-immgscrape/settings.py
+imgscrape/settings.py
 
 pgnet-master/LICENSE
 pgnet-master/results/VOC2012/Action/_dummy
