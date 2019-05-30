@@ -15,7 +15,7 @@ from imgscrape import settings
 class SouthWestSeaFishingSpider(Spider):
     '''scrape reports from angling addicts forum
     '''
-    name = "seafishingorg"
+    name = "southwestseafishing"
     source = 'www.southwestseafishing.co.uk'
     allowed_domains = ['southwestseafishing.co.uk']
     start_urls = ['https://www.southwestseafishing.co.uk/forum/shore-fishing'] #just a place holder to kick stuff off
