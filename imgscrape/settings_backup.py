@@ -8,6 +8,10 @@ NEWSPIDER_MODULE = 'imgscrape.spiders'
 
 #Item Pipelines
 #ITEM_PIPELINES = {'imgscrape.pipelines.UGCWriter': 10}
+#MSSQL_DUPLICATE_CHECK = True
+MIN_BODY_LENGTH = 30
+
+
 #IMAGES_STORE = 'C:/development/python/imgscrape/images'
 #IMAGES_MIN_HEIGHT = 300
 #IMAGES_MIN_WIDTH = 300
@@ -20,6 +24,7 @@ NEWSPIDER_MODULE = 'imgscrape.spiders'
 #FEED
 FEED_FORMAT = 'csv'
 FEED_URI = 'file:.c:/temp/test_feed.csv'
+print('\n*** USING CSV FEED TO FILE %s ***\n' % FEED_URI)
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0'
 ROBOTSTXT_OBEY = True

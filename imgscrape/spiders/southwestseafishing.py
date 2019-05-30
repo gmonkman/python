@@ -7,8 +7,7 @@ import scrapy
 from scrapy.spiders import Spider
 from scrapy.linkextractors import LinkExtractor
 import imgscrape.items as _items
-from imgscrape.pipelines import check_for_dup
-from imgscrape import settings
+
 
 
 

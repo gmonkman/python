@@ -30,7 +30,7 @@ process = CrawlerProcess(get_project_settings())
 c = southwestseafishing.SouthWestSeaFishingSpider()
 
 
-process.crawl(c)
+process.crawl(c, chkdup=True)
 process.start()
 #https://www.theyworkforyou.com/search/?q=dianne+abbot
 #https://www.theyworkforyou.com/mp/11148/albert_owen/ynys_mon
