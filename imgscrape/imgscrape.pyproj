@@ -68,6 +68,9 @@
     <Compile Include="sel\__init__.py" />
     <Compile Include="settings_backup.py" />
     <Compile Include="settings.py" />
+    <Compile Include="spiders\sea_fishing_org.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="spiders\total_fishing.py">
       <SubType>Code</SubType>
     </Compile>

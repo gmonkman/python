@@ -109,7 +109,7 @@ class PostDateAsISO():
     '''
     Process angling addicts post date.
 
-    Also does a strict clean to ascii, leaving : and /
+    Also does a strict clean to ascii, leaving : and / but not ,
     '''
     def __init__(self, date_fmt='%x %H:%M'):
         self.date_fmt = date_fmt
