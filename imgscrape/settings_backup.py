@@ -6,26 +6,20 @@ NEWSPIDER_MODULE = 'imgscrape.spiders'
 
 
 
-#SQL SERVER EXPORT
+#Item Pipelines
 #ITEM_PIPELINES = {'imgscrape.pipelines.UGCWriter': 10}
-
-#IMAGE - DIDNT WORK
 #IMAGES_STORE = 'C:/development/python/imgscrape/images'
 #IMAGES_MIN_HEIGHT = 300
 #IMAGES_MIN_WIDTH = 300
 
-#FILE STORE
 #ITEM_PIPELINES = {'scrapy.pipelines.files.FilesPipeline': 1}
 #FILES_STORE = '/path/to/valid/dir'
 
 
-#EASY CSV FEED
-ITEM_PIPELINES = {'scrapy.pipelines.files.FilesPipeline': 1}
+
+#FEED
 FEED_FORMAT = 'csv'
 FEED_URI = 'file:.c:/temp/test_feed.csv'
-
-
-
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0'
 ROBOTSTXT_OBEY = True

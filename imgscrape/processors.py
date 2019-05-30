@@ -5,6 +5,9 @@ import base64 as _base64
 import unicodedata as _unicodedata
 import funclib.stringslib as _stringslib
 from bs4 import BeautifulSoup as _Soup
+import nlp.clean as _clean
+
+
 
 
 ISO_DATE_DEFAULT = '19000101 00:00:00'
@@ -104,15 +107,18 @@ class UKDateAsISO():
 
 class PostDateAsISO():
     '''
-    Process angling addicts post date
+    Process angling addicts post date.
+
+    Also does a strict clean to ascii, leaving : and /
     '''
-    DATE_FMT = '%d %b %Y %H:%M'
+    def __init__(self, date_fmt='%x %H:%M'):
+        self.date_fmt = date_fmt
 
     def __call__(self, v):
         if v:
             try:
-                s = _stringslib.filter_alphanumeric1(v[0], strict=True, allow_cr=False, allow_lf=False, strip=True, include=(':', ','))
-                return _stringslib.date_str_to_iso(s, PostDateAsISO.DATE_FMT)
+                s = _stringslib.filter_alphanumeric1(v[0], strict=True, allow_cr=False, allow_lf=False, strip=True, include=(':', '/'))
+                return _stringslib.date_str_to_iso(s, self.date_fmt)
             except Exception as e:
                 _warn('PostDateAsISO failed, using %s. Error was %s' % (ISO_DATE_DEFAULT, e))
                 s = ISO_DATE_DEFAULT
@@ -127,18 +133,13 @@ class HTML2Txt():
     '''turn html to text, turning <br> to newlines
     '''
     def __call__(self, v):
-        if v:
-            try:
-                #could process further here, for example lower() it all, but caps will be used for sentence and proper name detection
-                s = _Soup(v[0], 'html.parser').get_text('\n')
-                s = _stringslib.newline_del_multi(s).lstrip().rstrip()
-                if not s:
-                    s = ''
-            except Exception as _:
-                s = ''
-            return s
-
-        return ''
+        #list or string is muddled, but just use it for now - really all these functions should work with a list and not strings, and they should return lists
+        #could process further here, for example lower() it all, but caps will be used for sentence and proper name detection
+        s = _Soup(v[0], 'html.parser').get_text('\n')
+        s = _clean.to_ascii(s)
+        s = _clean.strip_urls_list((s,))
+        s = _stringslib.newline_del_multi(s[0]).lstrip().rstrip()
+        return s
 
 
 class ListToValue():

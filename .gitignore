@@ -449,7 +449,10 @@ imagedb/CodeGraphData/Result_pgnet/xml/combine.xslt
 imagedb/CodeGraphData/Result_pgnet/xml/index.xsd
 imagedb/CodeGraphData/config.json
 
+#imgscrape
 imgscrape/sel/*.csv
+imgscrape/imgscrape.ini
+immgscrape/settings.py
 
 pgnet-master/LICENSE
 pgnet-master/results/VOC2012/Action/_dummy
@@ -459,7 +462,7 @@ pgnet-master/results/VOC2012/Layout/_dummy
 pgnet/scripts/session/*
 
 #PROJECT INIs
-imgscrape/imgscrape.ini
+
 mmodb/mmodb.ini
 pgnet/pgnet.ini
 

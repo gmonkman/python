@@ -26,6 +26,7 @@ class TotalFishingReportsSpider(Spider):
         https://www.total-fishing.com/forums/forum/fishing/sea-fishing/page/24/
         '''
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
+
         curboard = ['Sea Fishing']
 
         urls = [response.url] #first page is just the base post url
@@ -41,12 +42,14 @@ class TotalFishingReportsSpider(Spider):
         '''crawl'''
         curboard = response.meta.get('curboard')
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
-
-        links = LinkExtractor(restrict_xpaths='//a[contains(@id, "bbp-topic-title"]').extract_links(response)
+        links = LinkExtractor(restrict_xpaths='//a[contains(@class, "bbp-topic-permalink")]').extract_links(response)
         for link in links:
             s = response.urljoin(link.url)
-            if not check_for_dup(s):
-                yield scrapy.Request(s, callback=self.parse_thread, dont_filter=False, meta={'curboard':curboard})
+            if 'new-forum' in s: #cludge
+                pass
+            else:
+                if not check_for_dup(s):
+                    yield scrapy.Request(s, callback=self.parse_thread, dont_filter=False, meta={'curboard':curboard})
 
 
     def parse_thread(self, response):
@@ -72,7 +75,7 @@ class TotalFishingReportsSpider(Spider):
         l.add_value('txt', txt)
 
         author = response.selector.xpath('(//a[@class = "bbp-author-name"])[1]/text()').extract()
-        l.add_xpath('who', author)
+        l.add_value('who', author)
 
         I = l.load_item()
         return I
