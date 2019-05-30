@@ -21,6 +21,7 @@ class SouthWestSeaFishingSpider(Spider):
     start_urls = ['https://www.southwestseafishing.co.uk/forum/shore-fishing'] #just a place holder to kick stuff off
     base_url = 'https://www.southwestseafishing.co.uk'
 
+    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter'}
 
     def parse(self, response):
         '''generate links to pages in a board        '''
@@ -30,7 +31,6 @@ class SouthWestSeaFishingSpider(Spider):
         URLS = ['https://www.southwestseafishing.co.uk/forum/shore-fishing/devon-fishing', 'https://www.southwestseafishing.co.uk/forum/shore-fishing/cornwall-fishing', 'https://www.southwestseafishing.co.uk/forum/shore-fishing/dorset-fishing', 'https://www.southwestseafishing.co.uk/forum/shore-fishing/somerset-fishing']
         PAGES = [122, 127, 7, 5]
         assert len(BOARDS) == len(URLS) == len(PAGES), 'Setup list lengths DO NOT match'
-        #posts_per_page = 10
 
         for i, root_url in enumerate(URLS):
             curboard = BOARDS[i]
@@ -67,7 +67,7 @@ class SouthWestSeaFishingSpider(Spider):
 
             l = _items.SouthWestSeaFishingLdr(item=_items.ForumUGC(), response=response)
             l.add_value('board', curboard)
-            l.add_value('content_identifier', '1')
+            l.add_value('content_identifier', str(i))
             l.add_value('source', SouthWestSeaFishingSpider.source)
             l.add_value('url', response.url)
             l.add_value('title', title)
