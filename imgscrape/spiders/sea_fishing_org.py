@@ -6,7 +6,7 @@ from scrapy.spiders import Spider
 from scrapy.linkextractors import LinkExtractor
 import imgscrape.items as _items
 from imgscrape.pipelines import check_for_dup
-
+from imgscrape import settings
 
 
 
@@ -48,8 +48,12 @@ class SeaFishingOrgReportsSpider(Spider):
         for link in links:
             title = link.text
             s = response.urljoin(link.url)
-            if not check_for_dup(s):
-                yield scrapy.Request(s, callback=self.parse_thread, dont_filter=False, meta={'curboard':curboard, 'title':title})
+
+            if settings.ITEM_PIPELINES.get('imgscrape.pipelines.UGCWriter'): #if we arnt using sql server, we dont lookup
+                if not check_for_dup(s):
+                    yield scrapy.Request(s, callback=self.parse_thread, dont_filter=False, meta={'curboard':curboard})
+            else:
+                yield scrapy.Request(s, callback=self.parse_thread, dont_filter=False, meta={'curboard':curboard})
 
 
     def parse_thread(self, response):

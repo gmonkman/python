@@ -7,6 +7,7 @@ from scrapy.linkextractors import LinkExtractor
 import imgscrape.items as _items
 from imgscrape.pipelines import check_for_dup
 import imgscrape.ini as _ini
+import imgscrape.settings as settings
 
 LAST_PAGE = 24
 
@@ -48,7 +49,10 @@ class TotalFishingReportsSpider(Spider):
             if 'new-forum' in s: #cludge
                 pass
             else:
-                if not check_for_dup(s):
+                if settings.ITEM_PIPELINES.get('imgscrape.pipelines.UGCWriter'): #if we arnt using sql server, we dont lookup
+                    if not check_for_dup(s):
+                        yield scrapy.Request(s, callback=self.parse_thread, dont_filter=False, meta={'curboard':curboard})
+                else:
                     yield scrapy.Request(s, callback=self.parse_thread, dont_filter=False, meta={'curboard':curboard})
 
 
