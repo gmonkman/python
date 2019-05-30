@@ -21,7 +21,7 @@ class SouthWestSeaFishingSpider(Spider):
     start_urls = ['https://www.southwestseafishing.co.uk/forum/shore-fishing'] #just a place holder to kick stuff off
     base_url = 'https://www.southwestseafishing.co.uk'
 
-    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter'}
+    #custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter'}
 
     def parse(self, response):
         '''generate links to pages in a board        '''
@@ -39,7 +39,7 @@ class SouthWestSeaFishingSpider(Spider):
                 urls.append('%s/page%s' % (urls[0], x))
 
             for url in urls:
-                yield scrapy.Request(url, callback=self.crawl_board_threads, dont_filter=False, meta={'curboard':curboard})
+                yield scrapy.Request(url, callback=self.crawl_board_threads, meta={'curboard':curboard})
 
 
     def crawl_board_threads(self, response):
@@ -53,7 +53,7 @@ class SouthWestSeaFishingSpider(Spider):
             title = link.text
             s = response.urljoin(link.url)
             #don't check for dups this time, we are scraping multiple posts per thread
-            yield scrapy.Request(s, callback=self.parse_thread, dont_filter=False, meta={'curboard':curboard, 'title':title})
+            yield scrapy.Request(s, callback=self.parse_thread, meta={'curboard':curboard, 'title':title})
 
 
     def parse_thread(self, response):
