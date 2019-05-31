@@ -72,9 +72,10 @@
     <Compile Include="spiders\sea_fishing_org.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="spiders\southwestseafishing.py">
+    <Compile Include="spiders\anglersnet.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="spiders\southwestseafishing.py" />
     <Compile Include="spiders\total_fishing.py">
       <SubType>Code</SubType>
     </Compile>

@@ -139,7 +139,7 @@ class HTML2Txt():
         s = _Soup(v[0], 'html.parser').get_text('\n')
         s = _clean.to_ascii(s)
         s = _clean.strip_urls_list((s,))
-        s = _stringslib.newline_del_multi(s[0]).lstrip().rstrip()
+        s = _stringslib.newline_del_multi(s[0]).lstrip().rstrip() #clean messy crlfs
         return s
 
 

@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, unused-variable
+#pylint: skip-file
 '''settings'''
 from funclib.iolib import wait_key
 import fuckit
