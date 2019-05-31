@@ -74,7 +74,7 @@ class AnglersNetSpider(Spider):
             pub_date = [pub_date[0][0:17].lstrip().rstrip()]
             l.add_value('published_date', pub_date)
 
-            txt = post.xpath('.//div[contains(@class, "post entry-content")]/p').extract()
+            txt = post.xpath('.//div[contains(@class, "post entry-content")]').extract()
             txt = ['\n'.join(txt)]
             l.add_value('txt', txt)
 
