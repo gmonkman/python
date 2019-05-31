@@ -159,7 +159,7 @@ class Encode64():
             try:
                 v = lst2val(v)
                 s = _stringslib.filter_alphanumeric1(_base64.urlsafe_b64encode(bytes(v, 'utf8')), remove_single_quote=True, remove_double_quote=True, strip=True)
-                return s
+                return s[0:50]
             except Exception as _:
                 return 'unknown'
         return 'unknown'
