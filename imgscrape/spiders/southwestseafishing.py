@@ -52,7 +52,6 @@ class SouthWestSeaFishingSpider(Spider):
             title = link.text
             s = response.urljoin(link.url)
             #don't check for dups this time, we are scraping multiple posts per thread
-            s = 'https://www.southwestseafishing.co.uk/forum/shore-fishing/devon-fishing/4491-devonport-pontoon'
             yield scrapy.Request(s, callback=self.parse_thread, dont_filter=True, meta={'curboard':curboard, 'title':title})
 
 
