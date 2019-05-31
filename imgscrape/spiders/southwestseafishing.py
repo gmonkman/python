@@ -28,6 +28,7 @@ class SouthWestSeaFishingSpider(Spider):
 
         BOARDS = ['Devon Fishing', 'Cornwall Fishing', 'Dorset Fishing', 'Somerset Fishing']
         URLS = ['https://www.southwestseafishing.co.uk/forum/shore-fishing/devon-fishing', 'https://www.southwestseafishing.co.uk/forum/shore-fishing/cornwall-fishing', 'https://www.southwestseafishing.co.uk/forum/shore-fishing/dorset-fishing', 'https://www.southwestseafishing.co.uk/forum/shore-fishing/somerset-fishing']
+
         PAGES = [122, 127, 7, 5]
         assert len(BOARDS) == len(URLS) == len(PAGES), 'Setup list lengths DO NOT match'
 
@@ -47,11 +48,11 @@ class SouthWestSeaFishingSpider(Spider):
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
         links = LinkExtractor(restrict_xpaths='//a[@class = "topic-title js-topic-title"]').extract_links(response)
 
-
         for link in links:
             title = link.text
             s = response.urljoin(link.url)
             #don't check for dups this time, we are scraping multiple posts per thread
+            s = 'https://www.southwestseafishing.co.uk/forum/shore-fishing/devon-fishing/4491-devonport-pontoon'
             yield scrapy.Request(s, callback=self.parse_thread, dont_filter=True, meta={'curboard':curboard, 'title':title})
 
 
@@ -76,6 +77,7 @@ class SouthWestSeaFishingSpider(Spider):
             l.add_value('published_date', pub_date)
 
             txt = post.xpath('.//div[contains(@class, "js-post__content-text")]/text()').extract()
+            txt = ['\n'.join(txt)]
             l.add_value('txt', txt)
 
             author = post.xpath('.//div[contains(@class, "author")]/strong/a/text()').extract()

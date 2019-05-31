@@ -293,7 +293,9 @@ def to_ascii(s):
 
 def newline_del_multi(s):
     '''replaces multiple newlines with single one'''
-    return _re.sub('\n+','\n', s)
+    s = s.replace('\r', '\n')
+    s = _re.sub('\n+','\n', s)
+    return s
 
 
 # endregion
