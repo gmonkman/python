@@ -109,7 +109,8 @@ class PostDateAsISO():
     '''
     Process angling addicts post date.
 
-    Also does a strict clean to ascii, leaving : and / but not ,
+    Also does a strict clean to ascii,
+   leaveing ":"  "/" and "-" but not ","
     '''
     def __init__(self, date_fmt='%x %H:%M'):
         self.date_fmt = date_fmt
@@ -117,7 +118,7 @@ class PostDateAsISO():
     def __call__(self, v):
         if v:
             try:
-                s = _stringslib.filter_alphanumeric1(v[0], strict=True, allow_cr=False, allow_lf=False, strip=True, include=(':', '/'))
+                s = _stringslib.filter_alphanumeric1(v[0], strict=True, allow_cr=False, allow_lf=False, strip=True, include=(':', '/', '-'))
                 return _stringslib.date_str_to_iso(s, self.date_fmt)
             except Exception as e:
                 _warn('PostDateAsISO failed, using %s. Error was %s' % (ISO_DATE_DEFAULT, e))

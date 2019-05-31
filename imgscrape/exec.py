@@ -16,7 +16,8 @@ from scrapy.utils.project import get_project_settings
 #import imgscrape.spiders.worldseafishing_reports as wsfreports
 #import imgscrape.spiders.total_fishing as total_fishing
 #import imgscrape.spiders.sea_fishing_org as seafishingorg
-import imgscrape.spiders.southwestseafishing as southwestseafishing
+#import imgscrape.spiders.southwestseafishing as southwestseafishing
+import imgscrape.spiders.nesa as nesa
 
 process = CrawlerProcess(get_project_settings())
 
@@ -27,8 +28,8 @@ process = CrawlerProcess(get_project_settings())
 #c = wsfreports.worldseafishingReportsSpider()
 #c = total_fishing.TotalFishingReportsSpider()
 #c = seafishingorg.SeaFishingOrgReportsSpider()
-c = southwestseafishing.SouthWestSeaFishingSpider()
-
+#c = southwestseafishing.SouthWestSeaFishingSpider()
+c = nesa.NESASpider()
 
 process.crawl(c, chkdup=True)
 process.start()

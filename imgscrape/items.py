@@ -155,6 +155,24 @@ class SouthWestSeaFishingLdr(_loader.ItemLoader):
     title_out = _myprocs.ListToValue()
 
 
+class NESALdr(_loader.ItemLoader):
+    '''item loader
+    '''
+    default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst
+    default_output_processor = _myprocs.ListToValue()
+
+    txt_in = _myprocs.HTML2Txt()
+    txt_out = _myprocs.ListToValue()
+
+    published_date_in = _myprocs.PostDateAsISO(date_fmt='%d-%m-%Y %H:%M %p') #06-12-2018, 01:05 AM
+    published_date_out = _myprocs.ListToValue()
+
+    who_in = _myprocs.Encode64()
+    who_out = _myprocs.ListToValue()
+    title_in = _myprocs.Clean2Ascii()
+    title_out = _myprocs.ListToValue()
+
+
 #Fox Stuff
 class ldrMPDetails(_loader.ItemLoader):
     '''itemloader for item
