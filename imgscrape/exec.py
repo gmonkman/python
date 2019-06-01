@@ -10,8 +10,8 @@ from scrapy.utils.project import get_project_settings
 #import imgscrape.spiders.seaanglingreports as sar
 #import imgscrape.spiders.goangling as go
 #import imgscrape.spiders.fox as fox
-import imgscrape.spiders.angingaddicts_reports as aareports
-#import imgscrape.spiders.wirralseafishing_reports as wirralreports
+#import imgscrape.spiders.angingaddicts_reports as aareports
+import imgscrape.spiders.wirralseafishing as wirralseafishing
 #process = CrawlerProcess({'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'})
 #import imgscrape.spiders.worldseafishing_reports as wsfreports
 #import imgscrape.spiders.total_fishing as total_fishing
@@ -26,7 +26,7 @@ process = CrawlerProcess(get_project_settings())
 #c = sai.SeaAnglingIrelandArchives()
 #c = sar.SeaAnglingReportsGallery()
 #c = fox.MPVotesFox()
-c = aareports.AnglingAddictsReportsSpider()
+#c = aareports.AnglingAddictsReportsSpider()
 #c = wsfreports.worldseafishingReportsSpider()
 #c = total_fishing.TotalFishingReportsSpider()
 #c = seafishingorg.SeaFishingOrgReportsSpider()
@@ -34,7 +34,7 @@ c = aareports.AnglingAddictsReportsSpider()
 #c = nesa.NESASpider()
 #c = anglersnet.AnglersNetSpider()
 #c = solentfishingforums.SolentFishingForumsSpider()
-
+c = wirralseafishing.WirralSeaFishingVenuesSpider()
 
 process.crawl(c, chkdup=True)
 process.start()
