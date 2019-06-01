@@ -75,6 +75,9 @@
     <Compile Include="spiders\anglersnet.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="spiders\solentfishingforums.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="spiders\southwestseafishing.py" />
     <Compile Include="spiders\total_fishing.py">
       <SubType>Code</SubType>

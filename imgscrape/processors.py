@@ -137,6 +137,7 @@ class HTML2Txt():
         #list or string is muddled, but just use it for now - really all these functions should work with a list and not strings, and they should return lists
         #could process further here, for example lower() it all, but caps will be used for sentence and proper name detection
         s = _Soup(v[0], 'html.parser').get_text('\n')
+        s = s.replace('\xa0', ' ')
         s = _clean.to_ascii(s)
         s = _clean.strip_urls_list((s,))
         s = _stringslib.newline_del_multi(s[0]).lstrip().rstrip() #clean messy crlfs
