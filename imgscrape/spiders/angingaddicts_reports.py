@@ -72,8 +72,9 @@ class AnglingAddictsReportsSpider(Spider):
         links = LinkExtractor(restrict_xpaths='//div[@class="forumbg"]//a[@class="topictitle"]').extract_links(response)
         for link in links:
             #s = response.urljoin(link.url)
+            title = link.text
             if not check_for_dup(link.url):
-                yield scrapy.Request(link.url, callback=self.parse_thread, dont_filter=True, meta={'curboard':curboard})
+                yield scrapy.Request(link.url, callback=self.parse_thread, dont_filter=True, meta={'curboard':curboard, 'title':title})
 
     def parse_thread(self, response):
         '''open a report thread and parse first post only
@@ -81,6 +82,7 @@ class AnglingAddictsReportsSpider(Spider):
         '''
         #see sunny rhyl for an example where we also loop over multipage threads, here we only bother with the first post
         curboard = response.meta.get('curboard')
+        title = response.meta.get('title')
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
 
         #use our own item loaders, which inherits from the base.
@@ -90,7 +92,7 @@ class AnglingAddictsReportsSpider(Spider):
         l.add_value('content_identifier', '')
         l.add_xpath('published_date', '(//p[contains(@class,"author")]/strong/following-sibling::text())[1]') #note the brackets around the expression, this gets the first instance https://stackoverflow.com/questions/14294997/what-is-the-xpath-expression-to-find-only-the-first-occurrence
         l.add_value('source', AnglingAddictsReportsSpider.source)
-
+        l._add_value('title', title)
         #test
         txt = response.selector.xpath('(//div[contains(@class,"content")])[1]').extract()
         l.add_xpath('txt', '(//div[contains(@class,"content")])[1]') #all html below node - beautful soup is used to strip html
