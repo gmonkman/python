@@ -2,10 +2,12 @@
 '''This module provides routines to expand word lists with alternate versions of words
 '''
 import re as _re
+
 import funclib.stringslib as _stringslib
 import funclib.baselib as _baselib
-from funclib.stringslib import to_ascii
-
+from funclib.stringslib import to_ascii, newline_del_multi, filter_alphanumeric1, non_breaking_space2space
+from nlp.re import fix_multi_spaces
+import nlp.stopwords as _stopwords
 from text2digits import text2digits as _t2d
 
 
@@ -48,3 +50,32 @@ def to_ascii_list(l):
     if isinstance(l, str):
         raise ValueError('Expected iterable, got str')
     return [to_ascii(s) for s in l]
+
+
+def base_substitutons(s):
+    '''a set of base substitutions'''
+    s = s.replace(' & ', ' and ')
+    s = s.replace('@', ' at ')
+    s = non_breaking_space2space(s)
+    s = s.replace(' + ', ' plus ')
+    s = s.replace(',', '. ')
+    s = s.replace('!', '. ')
+
+
+
+def stop_words(s, not_a_stop_word=('the')):
+    '''(str) -> str
+    clean stop words'''
+    stop_words = _stopwords.get(not_a_stop_word)
+    word_tokens = word_tokenize(s)
+    f = [w for w in word_tokens if not w in stop_words]
+    return f
+
+
+def txt2nr(s):
+    '''convert text to digits'''
+    T = _t2d.Text2Digits()
+    return T.convert(s)
+
+
+

@@ -28,10 +28,20 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="metrics.py" />
+    <Compile Include="re.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="spell.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="stopwords.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_typo.py" />
     <Compile Include="test\test_baselib.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="typo.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="__init__.py" />

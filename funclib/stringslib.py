@@ -25,6 +25,11 @@ def plus_minus():
     return u"\u00B1"
 
 
+def non_breaking_space2space(s, replace_with=' '):
+    '''replace non breaking spaces'''
+    return s.replace(s, replace_with)
+
+
 class Visible():
     visible_strict_with_space = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ '
     visible_strict_sans_space = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
@@ -82,7 +87,7 @@ def rndstr(l):
     return  ''.join(_random.choice(_string.ascii_uppercase + _string.ascii_lowercase + _string.digits) for _ in range(l))
 
 
-def filter_alphanumeric1(s, encoding='ascii', strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and', remove_single_quote=False, remove_double_quote=False, exclude_numbers=False, strip=False):
+def filter_alphanumeric1(s, encoding='ascii', strict=False, allow_cr=True, allow_lf=True, exclude=(), include=(), replace_ampersand='and', remove_single_quote=False, remove_double_quote=False, exclude_numbers=False, strip=False, fix_nbs=True):
     '''(str|bytes, bool, bool, bool, bool, tuple, tuple) -> str
     Pass a whole string/bytes, does the whole string!
 
@@ -102,6 +107,9 @@ def filter_alphanumeric1(s, encoding='ascii', strict=False, allow_cr=True, allow
 
     if isinstance(s, bytes):
         s = s.decode(encoding, 'ignore')
+
+    if fix_nbs:
+        s = non_breaking_space2space(s, ' ')
 
     if exclude_numbers:
         lst = list(exclude)

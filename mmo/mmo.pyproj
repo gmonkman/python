@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{8487daab-6561-4c06-b75c-81a067f9315a}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>ini.py</StartupFile>
+    <StartupFile>test\test_name_entities.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -21,12 +21,19 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="mmo.ini" />
     <Content Include="pylintrc" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ini.py" />
     <Compile Include="name_entities.py" />
+    <Compile Include="scripts\fix_scraped.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="settings.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_name_entities.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>

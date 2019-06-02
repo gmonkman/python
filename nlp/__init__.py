@@ -1,6 +1,6 @@
 '''main init for nlp package'''
 
-__all__ = []
+__all__ = ['baselib', 'clean', 'metrics', 're', 'spell' ]
 
 
 def totextfile(s, fname):
