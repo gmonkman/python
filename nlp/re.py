@@ -32,3 +32,6 @@ def fix_repeat_char(s, char):
     return _re.sub(expr, char, s)
 
 
+def get_indices(s, find):
+    exp = '\\b%s\\b' % find
+    return [m.start(0) for m in _re.finditer(exp, s)]

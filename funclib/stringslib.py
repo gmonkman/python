@@ -342,3 +342,18 @@ def date_str_to_iso(s, fmt='%d/%m/%Y %H:%M'):
     '20190501 12:13:00'
     '''
     return   _datetime.datetime.strptime(s, fmt).strftime('%Y%m%d %H:%M:%S')
+
+
+def re_place(s, find_, with_):
+    '''fastest replace!'''
+    return _re.sub(find_, with_, s)
+
+
+def index_all(s, substr, overlap=False):
+    '''return indexes of all occurences
+    of substr in s
+    '''
+    if overlap:
+        return [m.start() for m in _re.finditer('(?=%s)' % substr, s)]
+
+    return [m.start() for m in _re.finditer(substr, s)]

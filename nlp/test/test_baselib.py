@@ -23,6 +23,7 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled while debugging")
     def test_similiar(self):
         s = baselib.similiar('two', 'noun.quantity')
+        s = baselib.similiar('fiday')
         pass
 
 

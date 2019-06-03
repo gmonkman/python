@@ -23,7 +23,7 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled while debugging")
     def test_func(self):
         '''test'''
-        words = ne.AFLOAT_KAYAK.get(add_similiar=False, force_conjugate=False)
+        words = ne.AfloatKayak.get(add_similiar=False, force_conjugate=False)
         print(words)
 
 

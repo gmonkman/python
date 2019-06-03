@@ -27,6 +27,9 @@
     <Compile Include="clean.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="find.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="metrics.py" />
     <Compile Include="re.py">
       <SubType>Code</SubType>

@@ -16,7 +16,7 @@ class Book(Base):
     page_num = Column(Integer, nullable=False)
     para_num = Column(Integer, nullable=False)
     para_text = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False)
-    date_added = Column(DateTime, nullable=False, server_default="text(getdate())")
+    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
     date_modified = Column(DateTime)
 
 
@@ -24,7 +24,7 @@ class Cb(Base):
     __tablename__ = 'cb'
 
     cbid = Column(Integer, primary_key=True)
-    boat = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default="text(getdate())")
+    boat = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     harbour = Column(String(50, 'Latin1_General_CI_AS'))
     skipper = Column(String(50, 'Latin1_General_CI_AS'))
     website = Column(String(50, 'Latin1_General_CI_AS'))
@@ -61,7 +61,7 @@ class Mag(Base):
     block_num = Column(Integer)
     paragraph = Column(Integer)
     text = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False)
-    date_added = Column(DateTime, nullable=False, server_default="text(getdate())")
+    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
     date_modified = Column(DateTime)
 
 
@@ -69,7 +69,7 @@ class SpeciesAliasType(Base):
     __tablename__ = 'species_alias_type'
 
     species_alias_typeid = Column(String(50, 'Latin1_General_CI_AS'), primary_key=True)
-    comment = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False, server_default="text(getdate())")
+    comment = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
 
 
 class SpeciesType(Base):
@@ -92,10 +92,10 @@ class SubstSpecy(Base):
 class Ugc(Base):
     __tablename__ = 'ugc'
 
-    postid = Column(Integer, primary_key=True)
+    ugcid = Column(Integer, primary_key=True, index=True)
     source = Column(String(250, 'Latin1_General_CI_AS'), nullable=False)
     published_date = Column(DateTime)
-    date_added = Column(DateTime, nullable=False, server_default="text(getdate())")
+    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
     date_modified = Column(DateTime)
     board = Column(String(250, 'Latin1_General_CI_AS'))
     content_identifier = Column(String(50, 'Latin1_General_CI_AS'))
@@ -103,6 +103,10 @@ class Ugc(Base):
     txt = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False)
     url = Column(String(500, 'Latin1_General_CI_AS'))
     title = Column(String(500, 'Latin1_General_CI_AS'))
+    txt_processed = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), server_default=text("('')"))
+    date_hint = Column(DateTime)
+    txt_post_sql = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
+    platform_hint = Column(String(10, 'Latin1_General_CI_AS'))
 
 
 t_v_err_species_alias_duplicate_accepted = Table(
@@ -157,7 +161,7 @@ class Species(Base):
     speciesid = Column(String(50, 'Latin1_General_CI_AS'), primary_key=True)
     latin = Column(String(50, 'Latin1_General_CI_AS'))
     protection = Column(TEXT(2147483647, 'Latin1_General_CI_AS'))
-    report_name = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default="text(getdate())")
+    report_name = Column(String(50, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     species_group = Column(String(50, 'Latin1_General_CI_AS'))
     species_type1id = Column(ForeignKey('species_type1.species_type1id'))
     catch_rank = Column(Integer, nullable=False, server_default=text("((0))"))
@@ -177,13 +181,30 @@ class SpeciesAlia(Base):
     species = relationship('Species')
 
 
+class UgcHint(Base):
+    __tablename__ = 'ugc_hint'
+
+    ugc_hintid = Column(BigInteger, primary_key=True)
+    ugcid = Column(ForeignKey('ugc.ugcid'), nullable=False)
+    hint_type = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
+    hint = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
+    pos = Column(Integer)
+    source_text = Column(String(250, 'Latin1_General_CI_AS'))
+    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
+    date_modified = Column(DateTime)
+    speciesid = Column(ForeignKey('species.speciesid'))
+
+    species = relationship('Species')
+    ugc = relationship('Ugc')
+
+
 class SpeciesAliasConflict(Base):
     __tablename__ = 'species_alias_conflict'
 
     species_alias_conflictid = Column(Integer, primary_key=True)
     species_aliasid = Column(ForeignKey('species_alias.species_aliasid'), nullable=False)
     speciesid = Column(ForeignKey('species.speciesid'), nullable=False)
-    comment = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False, server_default="text(getdate())")
+    comment = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
 
     species_alia = relationship('SpeciesAlia')
     species = relationship('Species')

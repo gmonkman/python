@@ -5,21 +5,14 @@
       <SnippetTypes>
         <SnippetType>Expansion</SnippetType>
       </SnippetTypes>
-      <Title>cmdline_args</Title>
+      <Title>argparse_examples</Title>
       <Author>Graham Monkman</Author>
-      <Description>Argparse command lines</Description>
+      <Description>Argparse examples</Description>
       <HelpUrl></HelpUrl>
       <Shortcut></Shortcut>
     </Header>
     <Snippet>
       <Code Language="Python" Delimiter="$"><![CDATA[
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
-'''new script wih argparse'''
-import argparse
-
-
-def main():
-    '''main'''
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
 
     #named: eg script.py -part head
@@ -46,11 +39,7 @@ def main():
     args = cmdline.parse_args()
     if args.recurse == True:
         #dostuff
-    
-    
-if __name__ == "__main__":
-    main()
-
+        
 ]]></Code>
     </Snippet>
   </CodeSnippet>

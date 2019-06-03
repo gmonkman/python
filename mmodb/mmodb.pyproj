@@ -21,6 +21,7 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="generate_model_mmo_s30.cmd" />
     <Content Include="generate_model_mmo.cmd" />
     <Content Include="mmodb_template.ini" />
     <Content Include="mmodb.ini" />

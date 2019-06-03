@@ -3,12 +3,14 @@
 '''
 import re as _re
 
+from text2digits import text2digits as _t2d
+
 import funclib.stringslib as _stringslib
 import funclib.baselib as _baselib
 from funclib.stringslib import to_ascii, newline_del_multi, filter_alphanumeric1, non_breaking_space2space
 from nlp.re import fix_multi_spaces
 import nlp.stopwords as _stopwords
-from text2digits import text2digits as _t2d
+
 
 
 #See https://blog.scrapinghub.com/2015/11/09/parse-natural-language-dates-with-dateparser
@@ -53,14 +55,28 @@ def to_ascii_list(l):
 
 
 def base_substitutons(s):
-    '''a set of base substitutions'''
-    s = s.replace(' & ', ' and ')
-    s = s.replace('@', ' at ')
+    '''a set of base substitutions to improve sentence detection
+    This includes substituting sentence delimiters to the full stop
+    and then removing repeated full stops'''
+    #careful with urls
     s = non_breaking_space2space(s)
-    s = s.replace(' + ', ' plus ')
+    s = s.replace('/', ' or ')
+    s = s.replace('\\', ' or ') #escaped
+    s = s.replace('|', ' or ') #escaped
+    s = s.replace(' & ', ' and ')
+    s = s.replace('+', ' plus ')
+    s = s.replace('@', ' at ')
+
+    #sentence delimiters
+    s = s.replace(';', '. ')
+    s = s.replace('?', '. ')
     s = s.replace(',', '. ')
     s = s.replace('!', '. ')
+    s = s.replace(':', '. ')
 
+    s = _re.fix_repeat_spaces(s)
+    s = _re.fix_repeat_char(s, '.')
+    return s
 
 
 def stop_words(s, not_a_stop_word=('the')):
@@ -76,6 +92,4 @@ def txt2nr(s):
     '''convert text to digits'''
     T = _t2d.Text2Digits()
     return T.convert(s)
-
-
 
