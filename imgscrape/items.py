@@ -27,6 +27,12 @@ class itmMPDetails(_Item):
     constituency = _Field()
 
 
+class Ports(_Item):
+    name = _Field()
+    latitude = _Field()
+    longitude = _Field()
+    country = _Field()
+
 
 
 #MMO Work

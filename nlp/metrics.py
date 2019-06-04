@@ -86,7 +86,6 @@ def nonalpha_density_by_word(s):
     s = _clean_str(s)
     alphas = _stringslib.filter_alphanumeric1(s, remove_single_quote=False, strict=True, remove_double_quote=False, allow_cr=False, allow_lf=False, exclude_numbers=True)
     if alphas:
-        nonalpha_nr = len(s) - len(alphas)
         words = alphas.split() #alphas should have the shit removed from it, eg "valid!!!" will be "valid"
         return (len(s) - len(alphas)) / sum([1 for w in words if _wordnet.synsets(w)])
     return float("inf")
@@ -147,4 +146,3 @@ def  digit_density(s):
         return 0
 
     return None
-

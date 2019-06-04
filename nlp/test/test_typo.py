@@ -1,5 +1,5 @@
 
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-variable
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-variable, missing-docstring
 '''unit tests for features'''
 import unittest
 from inspect import getsourcefile as _getsourcefile
@@ -29,4 +29,3 @@ class Test(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
-

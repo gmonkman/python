@@ -31,7 +31,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="metrics.py" />
-    <Compile Include="re.py">
+    <Compile Include="relib.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="spell.py">

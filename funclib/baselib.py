@@ -167,6 +167,17 @@ def dic_merge_two(x, y):
 # endregion
 
 
+def dic_key_with_max_val(d):
+    '''(dict)->value
+    Get key with largest value
+
+    Example:
+    >>>dic_key_with_max_val({'a':12, 'b':100, 'x':-1})
+    'b'
+    '''
+    return max(d, key=lambda key: stats[key])
+
+
 def dic_sort_by_val(d):
     '''(dict) -> list
     Sort a dictionary by the values,

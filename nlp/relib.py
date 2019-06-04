@@ -1,3 +1,5 @@
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, anomalou-backslash-in-string
+
 '''regular expression based functions'''
 import re as _re
 
@@ -18,7 +20,7 @@ def fix_repeat_spaces(s, tab_and_newlines_are_spaces=False):
     return _re.sub(' +', ' ', s)
 
 
-def fix_repeat_char(s, char):
+def fix_repeat_char(s, char, tab_and_newlines_are_spaces=False):
     '''(str, str) -> str
     remove repeated chars
 
@@ -33,5 +35,12 @@ def fix_repeat_char(s, char):
 
 
 def get_indices(s, find):
+    '''(str, str) -> list
+    Get indices of find in s
+
+    Example:
+    >>>get_indices('asdf 12 12 as 12', '12')
+    [5, 8, 14]
+    '''
     exp = '\\b%s\\b' % find
     return [m.start(0) for m in _re.finditer(exp, s)]

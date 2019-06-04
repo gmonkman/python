@@ -1,9 +1,7 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unreachable
 '''basic functions'''
 from nltk.corpus import wordnet as _wordnet
 import pattern.en as _pattern
-from pattern.en import pluralize, singularize
-
 
 import funclib.stringslib as _stringslib
 
@@ -11,6 +9,7 @@ import funclib.stringslib as _stringslib
 WORDNET_LEXNAMES = ['adj.all', 'adj.pert', 'adv.all', 'noun.tops', 'noun.act', 'noun.animal', 'noun.artifact', 'noun.attribute', 'noun.body', 'noun.cognition', 'noun.communication', 'noun.event', 'noun.feeling', 'noun.food', 'noun.group', 'noun.location', 'noun.motive', 'noun.object', 'noun.person', 'noun.phenomenon', 'noun.plant', 'noun.possession', 'noun.process', 'noun.quantity', 'noun.relation', 'noun.shape', 'noun.state', 'noun.substance', 'noun.time', 'verb.body', 'verb.change', 'verb.cognition', 'verb.communication', 'verb.competition', 'verb.consumption', 'verb.contact', 'verb.creation', 'verb.emotion', 'verb.motion', 'verb.perception', 'verb.possession', 'verb.social', 'verb.stative', 'verb.weather', 'adj.ppl']
 
 class WordnetLexnames():
+    '''enumeration of wordnet lexnames'''
     adj_all = 'adj.all'
     adj_pert = 'adj.pert'
     adv_all = 'adv.all'
@@ -57,23 +56,50 @@ class WordnetLexnames():
     verb_weather = 'verb.weather'
     adj_ppl = 'adj.ppl'
 
-    all_nouns = [noun_tops, noun_act, noun_animal, noun_artifact, noun_attribute, noun_body, noun_cognition, noun_communication, noun_event, noun_feeling, noun_food, noun_group, noun_location, noun_motive, noun_object, noun_person, noun_phenomenon, noun_plant, noun_possession, noun_process, noun_quantity, noun_relation, noun_shape, noun_state, noun_substance, noun_time]
-    all_verbs = [verb_body, verb_change, verb_cognition, verb_communication, verb_competition, verb_consumption, verb_contact, verb_creation, verb_emotion, verb_motion, verb_perception, verb_possession, verb_social, verb_stative, verb_weather]
-    all_adjectives = [adj_ppl, adj_all, adj_pert, adv_all]
+    all_nouns = set([noun_tops, noun_act, noun_animal, noun_artifact, noun_attribute, noun_body, noun_cognition, noun_communication, noun_event, noun_feeling, noun_food, noun_group, noun_location, noun_motive, noun_object, noun_person, noun_phenomenon, noun_plant, noun_possession, noun_process, noun_quantity, noun_relation, noun_shape, noun_state, noun_substance, noun_time])
+    all_verbs = set([verb_body, verb_change, verb_cognition, verb_communication, verb_competition, verb_consumption, verb_contact, verb_creation, verb_emotion, verb_motion, verb_perception, verb_possession, verb_social, verb_stative, verb_weather])
+    all_adjectives = set([adj_ppl, adj_all, adj_pert, adv_all])
+    all = set(all_nouns + all_verbs + all_adjectives)
 
 
+#region helpers
+def _clean(s):
+    s = s.replace(' ', '')
+    return _stringslib.filter_alphanumeric1(s, strict=True, allow_cr=False, allow_lf=False, remove_double_quote=True, remove_single_quote=True)
+
+def _fixitr(s, type_=list, tolower=True):
+    if not s: return s
+    if isinstance(s, str): was_string = True
+    if isinstance(s, (str, int, float, _wordnet.Synset)):
+        s = type_(s)
+    if tolower and was_string:
+        s = [w.lower() for w in s]
+    return type_(s)
+
+def _listadd(list_, list_or_val):
+    '''extend/append to a list'''
+    if isinstance(list_or_val, list):
+        list_.extend(list_or_val)
+    else:
+        list_.append(list_or_val)
 
 def _clean_list(strlist):
     'basic cleaning'''
     l = [s.lstrip().rstrip().lower() for s in strlist]
     return list(set(l))
+#endregion
 
 
-def synonyms(s):
+
+
+def synonym_lemma_bag(s):
     '''(str)->list
+    Get synonyms for all lemmas which match s.
+
+    Note this can cross 'meaning' boundaries.
     '''
-    if s=='': return ''
-    s = s.lstrip().rstrip()
+    if s == '': return ''
+    s = _clean(s)
     if s.split(' ')[0] != s: raise ValueError('Argument had multiple words')
     synonyms = []
 
@@ -83,16 +109,14 @@ def synonyms(s):
     return _clean_list(synonyms)
 
 
-def antonyms(s):
+def antonym_lemma_bag(s):
     '''(str)->list
     Return list of antonyms
     '''
-    if s=='': return ''
-    s = s.lstrip().rstrip()
+    if s == '': return ''
+    s = _clean(s)
     antonyms = []
     if s.split(' ')[0] != s: raise ValueError('Argument had multiple words')
-    synonyms = []
-
     for syn in _wordnet.synsets(s):
         for l in syn.lemmas():
             if l.antonyms():
@@ -100,26 +124,29 @@ def antonyms(s):
     return _clean_list(antonyms)
 
 
-def similiar(s, lexname='', no_underscored=True, force_plural=False, force_conjugate=False):
+def lemma_bag_all(word, lexname='', no_underscored=True, force_plural=False, force_conjugate=False):
     '''(str, str|List, float, bool, bool, bool) -> str
-    gets list of similiar/related word versions
+    gets list of all lemmas and their conjugates, synonyms
+    and plurals of s
+
+    This crosses "meaning" boundaries.
 
     str:word to check
     lexname:restrict synsets which match this lexname, or list of lexnames. See baselib.WordnetLexnames
     no_underscored:some synsets have words with undescores, use this to drop them
 
     Example:
-    >>>similiar('kayak', lexname=WordnetLexnames.adj_all)
+    >>>lemma_bag_all('kayak', lexname=WordnetLexnames.adj_all)
     ['kayaked', 'kayaking', 'kayaks', 'kayak']
     '''
 
-    if s=='': return ''
-    s = s.lstrip().rstrip()
-    SS = _wordnet.synsets(s)
+    if word == '': return ''
+    word = word.lstrip().rstrip()
+    SS = _wordnet.synsets(word)
 
     if lexname and isinstance(lexname, str):
         lexname = [lexname]
-    words = []
+
     lexn = [ss.lower() for ss in lexname]
     if lexn:
         Synsets = [S for S in SS if S.lexname().lower() in lexn]
@@ -134,10 +161,10 @@ def similiar(s, lexname='', no_underscored=True, force_plural=False, force_conju
                 _listadd(final, _pattern.pluralize(w))
                 _listadd(final, _pattern.singularize(w))
         elif Synset.lexname().lower() in WordnetLexnames.all_verbs or force_conjugate:
-                final.append(w)
-                _listadd(final, _pattern.lexeme(w))
+            final.append(w)
+            _listadd(final, _pattern.lexeme(w))
         else:
-                final.append(w)
+            final.append(w)
 
     if no_underscored:
         final = [w for w in final if not '_' in w]
@@ -145,9 +172,129 @@ def similiar(s, lexname='', no_underscored=True, force_plural=False, force_conju
     return list(set(final))
 
 
-def _listadd(list_, list_or_val):
-    '''extend/append to a list'''
-    if isinstance(list_or_val, list):
-        list_.extend(list_or_val)
-    else:
-        list_.append(list_or_val)
+#TODO allow depth to be set - need to write a recursion
+def common_meaning_bag(word, lexname_in=WordnetLexnames.all, hyper_in=(), hypo_in=(), pos=('a', 'n', 'v'), search_nr_synsets=(), dist_threshs=(), sim_threshs=0, no_underscored=True, force_plural=False, force_conjugate=False, clean=False):
+    '''(str, iter|str, iter|str, iter|str, iter|str, iter:synsets, iter:int, bool, bool, bool) -> list
+    gets list of similiar/related words, their conjugates and plurals
+
+    Currently fixed to a depth of 1
+
+    str:word to check
+    lexname:restrict synsets which match this lexname, or list of lexnames. See baselib.WordnetLexnames
+    no_underscored:some synsets have words with undescores, use this to drop them
+    hyper_in, hypo_in:
+    Example:
+    >>>similiar('kayak', lexname=WordnetLexnames.adj_all)
+    ['kayaked', 'kayaking', 'kayaks', 'kayak']
+
+    Also see test_baselib.py for more examples
+    '''
+    if clean: s = _clean(s)
+    SS = _wordnet.synsets(word)
+    lexname_in = [ss.lower() for ss in _fixitr(lexname_in, tuple)]
+    hyper_in = _fixitr(hyper_in, tuple)
+    hypo_in = _fixitr(hypo_in)
+    pos = _fixitr(pos, tuple)
+    dist_threshs = _fixitr(dist_threshs, tuple)
+
+
+    #we filter the candiates
+    Synsets = filter_synsets(SS, pos=pos, lexname_in=lexname_in, dist_synsets=search_nr_synsets, dist_threshs=dist_threshs, sim_threshs=sim_threshs)
+
+    AllS = []
+    AllS += [S.hyponyms for S in Synsets]
+    AllS += [S.hypernyms for S in Synsets]
+    AllS = filter_synsets(AllS, pos=pos, lexname_in=lexname_in, dist_synsets=search_nr_synsets, dist_threshs=dist_threshs, sim_threshs=sim_threshs)
+
+    final = []
+    for Synset in AllS:
+        if Synset.lexname().lower() in WordnetLexnames.all_nouns or force_plural:
+            w = Synset.lemma_names()[0]
+            final.append(w)
+            _listadd(final, _pattern.pluralize(w))
+            _listadd(final, _pattern.singularize(w))
+        elif Synset.lexname().lower() in WordnetLexnames.all_verbs or force_conjugate:
+            final.append(w)
+            _listadd(final, _pattern.lexeme(w))
+        else:
+            final.append(w)
+
+    if no_underscored:
+        final = [w for w in final if not '_' in w]
+
+    return list(set(final))
+
+
+
+def filter_synsets(Synsets, pos=('a', 'n', 'v'), lexname_in=WordnetLexnames.all, dist_synsets=(), dist_threshs=(), sim_threshs=()):
+    '''(list:SynSet, iter:str, iter:str, float, iter:Synset, iter:int, iter:float) -> List:Synsets
+    filter synsets
+
+    synsets: synset list to filter
+    pos: iterable of matching pos strings, i.e. n:noun, v:verb, a:adjective
+    lexname_in: filter on the lexname, e.g. noun.plant, use WordnetLexnames for recognise strings
+    similarity_thresh:similarty threshold between 0 and 1, keeps >= similarity_thresh
+    dist,dist_synset: only keep synsets which are dist or less "hops" from dist_synset, accepts
+                        singular values of lists, where dist_synset[n] uses distance dists[n]
+
+    Returns: filtered list of synsets
+
+    Example:
+    >>>filter_synsets([wordnet.synset('bicycle.n.01'),
+    '''
+    pos = _fixitr(pos)
+    dist_synsets = _fixitr(dist_synsets)
+    dist_threshs = _fixitr(dist_threshs)
+    sim_threshs = _fixitr(sim_threshs)
+
+    SS = [S for S in [S for S in Synsets if S.pos in pos] if S.lexname in lexname_in]
+
+    # loop through each synset against which we wish to check path distance and similarity
+    # rebuilding list with synsets which meet the criteria
+    for n, dS in enumerate(dist_synsets):
+        SS = [S for S in [S for S in SS if SS.shortest_path_distance(dS) <= dist_threshs[n]] if S.path_similarity(dS) >= sim_threshs[n]]
+    return list(set(filter_synsets))
+
+
+
+
+
+def prettyprint_synset(words, printit=True, pos=('a', 'n', 'v'), lexname_in=(), dist_synsets=(), dist_threshs=(), sim_threshs=()):
+    '''str|iter->str
+    words can be fully defined, e.g. 'cycle.n.01'
+
+    See func filter_synsets for arguments
+
+    print synset details for words'''
+    SS = []
+    if not lexname_in: lexname_in = WordnetLexnames.all
+    for word in words:
+        if '.' in word:
+            SS += _wordnet.synset(word)
+        else:
+            SS += [S for S in _wordnet.synsets(word)]
+
+    SS = filter_synsets(SS, pos=pos, lexname_in=lexname_in, dist_synsets=dist_synsets, dist_threshs=dist_threshs, sim_threshs=sim_threshs)
+    bld = []
+    iif = lambda s: s if s else ''
+    for S in SS:
+        bld += 'Name: %s' % iif(', '.join(S.lemma_names()[0]))
+        bld += 'Lemmas: %s' % iif(', '.join(S.lemma_names()[1:]))
+        bld += 'Lexname: %s' % iif(S.lexname())
+        bld += 'Definition: %s' % iif(S.definition())
+        bld += 'Examples: %s' % iif(S.examples())
+        bld += '\n--------------------'
+    txt = '\n'.join(bld)
+    print(txt)
+    return txt
+
+
+
+#TODO finish this, idea is to recusively generate to depth=depth
+def genhyper(synset, depth=2):
+    '''to generate'''
+    raise NotImplementedError
+    assert isinstance(synset, _wordnet.Synset), 'Expected a synset'
+    if depth == 0:
+        print('done')
+        return

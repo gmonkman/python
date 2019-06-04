@@ -16,13 +16,19 @@ from mmo import settings
 
 
 from nlp import clean, find
-
+from funclib import baselib
 import funclib.iolib as iolib
+
 
 assert isinstance(mmodb.SESSION, sqlalchemy.orm.Session)
 
 if iolib.wait_key('\n\n%s\nPress "Q" to quit\n' % mmodb.ENGINE) == 'q':
     quit()
+
+
+SHORE_VOTE_THRESH = 2
+
+
 
 
 class HintTypes():
@@ -58,7 +64,7 @@ def get_whitelist_words(dump_list):
         ne.Metrological.get(add_similiar=True) + \
         ne.SESSION.get(add_similiar=True) + \
         ne.Species.get(add_similiar=False, force_plural_singular=True) + \
-        ne.TIME(add_similiar=True, force_plural_singular=True)
+        ne.Time(add_similiar=True, force_plural_singular=True)
 
     if dump_list:
         iolib.pickle(words, settings.PATHS.WHITELIST_WORDS)
@@ -100,44 +106,58 @@ def make_date_hints(title, post_txt):
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, date_hint
 
 
+#byref
+def addit(dic, hint, source, hints,  source_texts, pos_lists, sources, ns):
+    cnt = 0
+    #it should look like {'charter':1, 'chartered':2, 'Mary Sue':1}
+    for it in dic.items():
+        hints += hint
+        source_texts += it[0]
+        sources += source
+        pos_lists += it[1]
+        ns += len(it[1])
+        cnt += sum(it[1]) #a vote count
+
+    return cnt
 
 
 def make_platform_hints(title, post_txt):
     '''platform stuff'''
     hints = []; source_texts = [];pos_lists = []; sources = []; ns = []
     platform_hint = {'platform_hint':None}
-    def addit(dic, hint, source):
-        nonlocal hints, source_texts, pos_lists
-        for it in dic.items():
-            hints += hint
-            source_texts += it[0]
-            sources += source
-            pos_lists += it[1]
-            ns += len(it[1])
+    vote_cnts = {'afloat':0, 'charter':0, 'kayak':0, 'private':0}
 
-    addit(ne.Afloat.indices(title), 'afloat', Sources.title)
-    addit(ne.AfloatCharterBoat.indices(title), 'charter', Sources.title)
-    addit(ne.AfloatKayak.indices(title), 'kayak', Sources.title)
-    addit(ne.AfloatPrivate.indices(title), 'private', Sources.title)
+    vote_cnts['afloat'] += addit(ne.Afloat.indices(title), 'afloat', Sources.title, hints, source_texts, pos_lists, sources, ns) #args after Sources.title are BYREF
+    vote_cnts['charter'] += addit(ne.AfloatCharterBoat.indices(title), 'charter', Sources.title, hints, source_texts, pos_lists, sources, ns)
+    vote_cnts['kayak'] += addit(ne.AfloatKayak.indices(title), 'kayak', Sources.title, hints, source_texts, pos_lists, sources, ns)
+    vote_cnts['private'] += addit(ne.AfloatPrivate.indices(title), 'private', Sources.title, hints, source_texts, pos_lists, sources, ns)
 
-    addit(ne.Afloat.indices(post_txt), 'afloat', Sources.post_text)
-    addit(ne.AfloatCharterBoat.indices(post_txt), 'charter', Sources.post_text)
-    addit(ne.AfloatKayak.indices(post_txt), 'kayak', Sources.post_text)
-    addit(ne.AfloatPrivate.indices(post_txt), 'private', Sources.post_text)
-
-
-    hints += dts
-
-    dts = find.get_dates(post_txt)
-    if dts and not date_hint: {'date_hint':dts[0]}
-    source_text += ['post body text'] * len(dts)
-    hints += dts
+    vote_cnts['afloat'] += addit(ne.Afloat.indices(post_txt), 'afloat', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
+    vote_cnts['charter'] += addit(ne.AfloatCharterBoat.indices(post_txt), 'charter', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
+    vote_cnts['kayak'] += addit(ne.AfloatKayak.indices(post_txt), 'kayak', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
+    vote_cnts['private'] += addit(ne.AfloatPrivate.indices(post_txt), 'private', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
 
     hint_types = [HintTypes.platform] * len(hints)
-    poss = [None] * len(out_dates)
+    votes = sum([x for x in vote_cnts.values])
+    if votes < SHORE_VOTE_THRESH:
+        platform_hint = {'platform_hint': 'shore'}
+    else:
+        platform_hint = {'platform_hint': baselib.dic_key_with_max_val(vote_cnts)}
+    #TODO write platform hint
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, platform_hint
 
 
+def make_species_hints(title, post_text):
+    '''detect species'''
+    hints = []; source_texts = [];pos_lists = []; sources = []; ns = []
+    platform_hint = {'species_hint':None}
+
+    #we wont write
+    addit(ne.Species.indices(title), 'species', Sources.title, hints, source_texts, pos_lists, sources, ns) #args after Sources.title are BYREF
+    addit(ne.Species.indices(post_txt), 'species', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
+    hint_types = [HintTypes.species] * len(hints)
+    platform_hint = {'platform_hint': baselib.dic_key_with_max_val(vote_cnts)}
+    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, None
 
 
 

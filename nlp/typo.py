@@ -1,5 +1,8 @@
-#THIS CODE FROM https://github.com/wsong
+#pylint: skip-file
 
+
+#THIS CODE FROM https://github.com/wsong
+'''This module generates typos'''
 
 SHIFT_COST = 3.0
 INSERTION_COST = 1.0
@@ -7,10 +10,10 @@ DELETION_COST = 1.0
 SUBSTITUTION_COST = 1.0
 
 qwertyKeyboardArray = [
-    ['`','1','2','3','4','5','6','7','8','9','0','-','='],
-    ['q','w','e','r','t','y','u','i','o','p','[',']','\\'],
-    ['a','s','d','f','g','h','j','k','l',';','\''],
-    ['z','x','c','v','b','n','m',',','.','/'],
+    ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='],
+    ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
+    ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\''],
+    ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/'],
     ['', '', ' ', ' ', ' ', ' ', ' ', '', '']
     ]
 
@@ -118,7 +121,7 @@ def substitutionCost(s, i, c):
 # on the canonical Levenshtein distance algorithm.
 def typoDistance(s, t, layout='QWERTY'):
     if layout in layoutDict:
-        keyboardArray, shiftedKeyboardArray = layoutDict[layout]
+        keyboardArray, _ = layoutDict[layout]
     else:
         raise KeyError(layout + " keyboard layout not supported")
 
@@ -158,7 +161,7 @@ def getPossibleActions(s, layout='QWERTY'):
     actions = []
     for i in range(len(s)):
         actions.append(DeletionAction(i))
-        for key in (sum([r for r in keyboardArray], []) + sum([r for r in shiftedKeyboardArray], [])):
+        for key in sum([r for r in keyboardArray], []) + sum([r for r in shiftedKeyboardArray], []):
             actions.append(SubstitutionAction(i, key))
             actions.append(InsertionAction(i, key))
     return actions
@@ -199,7 +202,7 @@ def typoGenerator(s, d, layout='QWERTY'):
     # the last action in c versus some other action.
     changedString = s
 
-    while(True):
+    while True:
         if t == 0:
             # No actions
             yield s
@@ -223,7 +226,7 @@ def typoGenerator(s, d, layout='QWERTY'):
             i = 1
             brokeOut = False
             # Let's try replacing the last action with a new candidate
-            while(c[t - 1] > c[t] + i):
+            while c[t - 1] > c[t] + i:
                 if r >= (actions[c[t] + i].cost(changedString) - actions[c[t]].cost(changedString)):
                     # Our new candidate is cheap enough; use it.
                     c[t] += i

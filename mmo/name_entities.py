@@ -13,6 +13,9 @@ def _clean(lst):
 
 class _NamedEntityBase():
     '''base class for named entities'''
+    __ALL__ = {}
+
+
     @staticmethod
     def conjugations(word_list, lexname_list, exclude=()):
         '''(iterable, iterable|str, iterable|str ) -> list
@@ -26,7 +29,7 @@ class _NamedEntityBase():
 
         out = []
         for w in word_list:
-            out.extend(_nlpbase.similiar(w, lexname_list))
+            out.extend(_nlpbase.lemma_bag_all(w, lexname_list))
 
         for e in exclude:
             out.remove(e)
@@ -69,7 +72,7 @@ class _NamedEntityBase():
 
 
     @classmethod
-    def get(cls, add_similiar=False, force_conjugate=False, typos=('nouns', 'verbs', 'phrases', 'others'), force_plural_singular=False, as_set=False):
+    def get(cls, add_similiar=False, force_conjugate=False, typos=('nouns', 'verbs', 'phrases', 'others'), force_plural_singular=False, as_set=False, force_load=False):
         '''this gets a list of words with misspellings, conjugates and plurals
         according to the class variable name
 
@@ -82,8 +85,13 @@ class _NamedEntityBase():
             wds = []
             for w in wordlst:
                 wds.append(w)
-                wds.extend(_nlpbase.similiar(w, force_plural=force_plural, force_conjugate=force_conjugate))
+                wds.extend(_nlpbase.lemma_bag_all(w, force_plural=force_plural, force_conjugate=force_conjugate))
             return wds
+
+        if force_load: cls.__ALL__ = {}
+        if cls.__ALL__:
+            if as_set: return cls.__ALL__
+            return list(cls.__ALL__)
 
         nouns = []; verbs = []; others = []; phrases = []
         for s in dir(cls):
@@ -173,20 +181,16 @@ class AfloatKayak(_NamedEntityBase):
     '''kayak'''
     ADJECTIVES = []
     NOUNS_COMMON = ["kayak", "yak", "prowler"]
-    NOUNS_MODEL = ["tarpon", "trident", "scupper", "paddle", "fatyak", "dorado", "kaskazi", "teksport", "emotion", 'cuda', 'mirage', 'profish', 'outback', 'galaxy', 'wilderness', 'aquago', 'juntos']
-    NOUNS_PROPER_MANUFACTURER = ['feelfree', 'hobbie', 'hobie', 'dorado', 'wilderness systems', 'wildernes systems', 'wido', 'riber', 'perception']
+    NOUNS_MODEL = ["tarpon", "trident", "scupper", "paddle", "fatyak", "dorado", "teksport", "emotion", 'cuda', 'mirage', 'profish', 'outback', 'sturgeon', 'wilderness', 'aquago', 'juntos', 'malibu', 'huntsman', 'profisha', 'revo 16', 'gosea', 'tetra']
+    NOUNS_PROPER_MANUFACTURER = ['feelfree', 'hobbie', 'dorado', 'wilderness systems', 'wido', 'riber', 'perception', 'systemx', 'tootega', "kaskazi", 'galaxy', 'viking', 'werner']  #jackson
     NOUNS_MISC = ['railblaza']
-    PHRASES = ['mirage outback', 'pelican catch', 'lifetime muskie', "fat yak"]
+    PHRASES = ['mirage outback', 'pelican catch', 'lifetime muskie', "fat yak", 'system x', 'jackson cuda', 'cuda 14']
     VERBS = ['kayaking', 'paddled']
-
-#    @classmethod
- #   def get(cls): #not verbs
-  #      super().get(force_conjugate=False)
 
 
 class Metrological(_NamedEntityBase):
     '''doc'''
-    ADJECTIVES = ['heavy', 'big', 'small', 'huge', 'giant', 'tiny', 'little', 'loads']
+    ADJECTIVES = ['heavy', 'big', 'small', 'huge', 'giant', 'tiny', 'little', 'loads', 'plenty', 'lots']
     NOUNS_WEIGHT = ["pound", "pounds", "kilos", "kilo", "kilogram", "kilograms", "grams", "gram", "ounce", "ounces", "lbs", "ozs", "kg", "kgs"]
     NOUNS_LENGTH = ["meter", "meters", "metre", "metres", "cm", "cms", "centimeters", "centimeter", "centimetres", "centimetre", "inch", "inches", "foot", "feet"]
 
@@ -196,14 +200,14 @@ class SESSION(_NamedEntityBase):
     ADJECTIVES = []
     NOUNS_COMMON = ['session', 'trip']
     PHRASES = ["before low", "after low", "to low", "after high", "to high", "before high", "either side", "around high", "around low", "tide out", "tide down", "tide in", "tide up", "packed up", "went home"]
-    VERBS = ["arrived", "started", "fished", "fishing", "hour", "flood", "ebb", 'caught', 'landed', 'unhooked', 'hooked', 'released', "fished", "fishing", "arrived", "started", "stopped", "ended", "left", 'casting', 'leave']
+    VERBS = ["arrived", "started", "fished", "fishing", "hour", "flood", "ebb", 'caught', 'landed', 'unhooked', 'hooked', 'released', "fished", "fishing", "arrived", "started", "stopped", "ended", "left", 'casting', 'leave', 'trolling']
 
 
-class TIME(_NamedEntityBase):
+class Time(_NamedEntityBase):
     '''doc'''
     ADJECTIVES = ['early', 'late']
-    NOUNS_COMMON = ["hour", "mins", "minutes", "hrs", "minute", "hours", "min", 'morning', 'afternoon', 'noon', 'midday']
-    PHRASES = ["p.m.", "a.m", 'pm', 'am']
+    NOUNS_COMMON = ["hour", "mins", "minutes", "hrs", "minute", "hours", "min", 'morning', 'afternoon', 'noon', 'midday', 'early', 'late']
+    PHRASES = ["p.m.", "a.m.", 'pm', 'a.m', 'p.m']
     VERBS = []
 
 
@@ -218,12 +222,13 @@ class GearAngling(_NamedEntityBase):
 
 class GearNoneAngling(_NamedEntityBase):
     '''doc'''
-    PHRASES = ['spear gun', 'long lines', 'long line', 'purse net', 'seine']
+    NOUNS_COMMON = ['seine']
+    PHRASES = ['spear gun', 'long lines', 'long line', 'purse net']
 
 
 class Species(_NamedEntityBase):
     '''spp'''
-    NOUNS = list(_mssql.get_as_list('species_alias', 'species_aliasid', 'mmo', to_lower=True, clean=True)
+    NOUNS = list(_mssql.get_as_list('species_alias', 'species_aliasid', 'mmo', to_lower=True, clean=True))
 
 
 class Dates(_NamedEntityBase):
