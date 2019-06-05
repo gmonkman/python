@@ -1,4 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, anomalou-backslash-in-string
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, anomalous-backslash-in-string
 
 '''regular expression based functions'''
 import re as _re

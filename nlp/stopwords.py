@@ -39,4 +39,3 @@ def get(not_stop_words=('the'), as_set=True):
     _ALL = {s for s in _ALL_STOPWORDS if s not in _NOT_STOP_WORDS}
     if as_set: return _ALL
     return list(_ALL)
-

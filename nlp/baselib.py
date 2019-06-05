@@ -173,7 +173,7 @@ def lemma_bag_all(word, lexname='', no_underscored=True, force_plural=False, for
 
 
 #TODO allow depth to be set - need to write a recursion
-def common_meaning_bag(word, lexname_in=WordnetLexnames.all, hyper_in=(), hypo_in=(), pos=('a', 'n', 'v'), search_nr_synsets=(), dist_threshs=(), sim_threshs=0, no_underscored=True, force_plural=False, force_conjugate=False, clean=False):
+def common_meaning_bag(word, lexname_in=(), hyper_in=(), hypo_in=(), pos=('a', 'n', 'v'), search_nr_synsets=(), dist_threshs=(), sim_threshs=0, no_underscored=True, force_plural=False, force_conjugate=False, clean=False):
     '''(str, iter|str, iter|str, iter|str, iter|str, iter:synsets, iter:int, bool, bool, bool) -> list
     gets list of similiar/related words, their conjugates and plurals
 
@@ -191,6 +191,7 @@ def common_meaning_bag(word, lexname_in=WordnetLexnames.all, hyper_in=(), hypo_i
     '''
     if clean: s = _clean(s)
     SS = _wordnet.synsets(word)
+    if not lexname_in: lexname_in = WordnetLexnames.all
     lexname_in = [ss.lower() for ss in _fixitr(lexname_in, tuple)]
     hyper_in = _fixitr(hyper_in, tuple)
     hypo_in = _fixitr(hypo_in)
