@@ -3,17 +3,46 @@ import funclib.stringslib as _stringslib
 import dblib.mssql as _mssql
 from nlp import baselib as _nlpbase
 from nlp import typo as _typo
-from nlp import re as _re
+from nlp import relib as _relib
 
 
 def _clean(lst):
     '''clean list'''
     return  [_stringslib.filter_alphanumeric1(s, strict=True, remove_double_quote=True, remove_single_quote=True).lower() for s in lst]
 
+def _fixiter(v, type_=list):
+    '''fx'''
+    if isinstance(v, (float, int, str)):
+        return type_(v)
+    return v
 
 class _NamedEntityBase():
     '''base class for named entities'''
     __ALL__ = {}
+
+    @staticmethod
+    def expansions(words, expansion_words):
+        '''(iter|str, dic) -> dic
+        add words based on alternate spellings provided in
+        the expansion_words dictionary
+
+        txt: 
+        '''
+        words = _fixiter(words)
+        assert isinstance(expansion_words, dict)
+        assert isinstance(words, list)
+        out = []
+
+        for word in words:
+            for key, word_list in expansion_words.items():
+                if not key in word: continue
+
+                for w in word_list:
+                    w = _relib.replace_whole_word(word, key, w)
+                    if not w: continue
+                    out += w
+        return out
+
 
 
     @staticmethod
@@ -144,8 +173,8 @@ class _NamedEntityBase():
         {'black':[1]}
         '''
         out = {}
-        for i, word in enumerate(cls.get(**kwargs)):
-            inds = _re.get_indices(s, word)
+        for word in cls.get(**kwargs):
+            inds = _relib.get_indices(s, word)
             if inds:
                 out['word'] = inds
         return out
@@ -158,7 +187,6 @@ class AfloatCharterBoat(_NamedEntityBase):
     VERBS = ["charter", "skipper", "hire"]
     NOUNS_COMMON = ['charter']
     ADJECTIVE = ["inflatable"]
-    PHRASES = ["seasick", "sea sick", 'puked', 'puke']
 
 
 class Afloat(_NamedEntityBase):
@@ -167,6 +195,7 @@ class Afloat(_NamedEntityBase):
     NOUNS_COMMON = ["boat", "tub", "ship", "inflatable", "sail", "onboard", "drift", "anchor", 'slipway', 'tiller', 'starboard', 'aft', 'engine', 'outboard']
     VERBS = ["launch", "sail", "drift", 'steamed', 'motored', "launched", "sailed", "drifting", "anchored"]
     OTHER = ['prop']
+    PHRASES = ["seasick", "sea sick", 'puked', 'puke']
 
 
 class AfloatPrivate(_NamedEntityBase):
@@ -195,20 +224,12 @@ class Metrological(_NamedEntityBase):
     NOUNS_LENGTH = ["meter", "meters", "metre", "metres", "cm", "cms", "centimeters", "centimeter", "centimetres", "centimetre", "inch", "inches", "foot", "feet"]
 
 
-class SESSION(_NamedEntityBase):
+class Session(_NamedEntityBase):
     '''doc'''
-    ADJECTIVES = []
+    ADJECTIVES = ['early', 'late']
     NOUNS_COMMON = ['session', 'trip']
     PHRASES = ["before low", "after low", "to low", "after high", "to high", "before high", "either side", "around high", "around low", "tide out", "tide down", "tide in", "tide up", "packed up", "went home"]
     VERBS = ["arrived", "started", "fished", "fishing", "hour", "flood", "ebb", 'caught', 'landed', 'unhooked', 'hooked', 'released', "fished", "fishing", "arrived", "started", "stopped", "ended", "left", 'casting', 'leave', 'trolling']
-
-
-class Time(_NamedEntityBase):
-    '''doc'''
-    ADJECTIVES = ['early', 'late']
-    NOUNS_COMMON = ["hour", "mins", "minutes", "hrs", "minute", "hours", "min", 'morning', 'afternoon', 'noon', 'midday', 'early', 'late']
-    PHRASES = ["p.m.", "a.m.", 'pm', 'a.m', 'p.m']
-    VERBS = []
 
 
 class GearAngling(_NamedEntityBase):
@@ -228,10 +249,13 @@ class GearNoneAngling(_NamedEntityBase):
 
 class Species(_NamedEntityBase):
     '''spp'''
-    NOUNS = list(_mssql.get_as_list('species_alias', 'species_aliasid', 'mmo', to_lower=True, clean=True))
+    NOUNS = list(_mssql.get_as_list('species_alias', 'species_aliasid', 'mmo', to_lower=True, clean=True, remove_single_quote=True, remove_double_quote=True))
+    
 
-
-class Dates(_NamedEntityBase):
+class DateTime(_NamedEntityBase):
+    '''dates'''
     NOUNS_DAY = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'mond', 'tues', 'wedn', 'thur', 'frid', 'satu', 'sund', 'monda', 'tuesd', 'wedne', 'thurs', 'frida', 'satur', 'sunda', 'fr', 'tu', 'wds', 'mdy']
     NOUNS_MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december', 'jan.', 'feb.', 'mar.', 'apr.', 'may', 'june', 'july', 'aug.', 'sept.', 'oct.', 'nov.', 'dec.', 'sep.', 'jul.', 'jun.']
     NOUNS_SEASONS = ['summer', 'winter', 'autumn', 'spring']
+    NOUNS_TIME = ["hour", "mins", "minutes", "hrs", "minute", "hours", "min", 'morning', 'afternoon', 'noon', 'midday', 'early', 'late']
+    PHRASES = ["p.m.", "a.m.", 'pm', 'a.m', 'p.m'] #we cant have am

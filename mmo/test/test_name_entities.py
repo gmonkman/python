@@ -23,8 +23,12 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled while debugging")
     def test_func(self):
         '''test'''
-        words = ne.AfloatKayak.get(add_similiar=False, force_conjugate=False)
-        print(words)
+        class Ent(ne._NamedEntityBase):
+            '''test ent'''
+            EXPAND = ['this is', 'we are']
+
+        subst = Ent.expansions(Ent.EXPAND, {'is':['was', 'were', 'when'], 'are': ['XX', 'YY']})
+        print(subst)
 
 
 

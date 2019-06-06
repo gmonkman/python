@@ -390,7 +390,7 @@ def fmtdate(s):
     return _datetime.datetime.strftime(s, '%Y-%m-%d %H:%M:%S')
 
 
-def get_as_list(table, col, dbname, server='(local)', quote=True, to_lower=False, clean=False):
+def get_as_list(table, col, dbname, server='(local)', quote=True, to_lower=False, clean=False, **cleankwargs):
     '''(str, str, Class:Conn, str, bool, bool) -> list
 
     Convert an sql table col to a list.
@@ -398,7 +398,8 @@ def get_as_list(table, col, dbname, server='(local)', quote=True, to_lower=False
     quote: quote the data, use for string data
     to_lower: convert to lower case
     clean:clean the strings, e.g. remove single quotes
-
+    **kwargs: arguments to pass to stringslib.filteralphanumeric1 e.g.:
+            strict=True, remove_single_quote=True, remove_double_quote=True
     example:
     >>>mssql.get_as_list('species_alias', 'species_aliasid', 'mmo', to_lower=True)
     ['trout','bass']
@@ -444,7 +445,7 @@ def get_as_list(table, col, dbname, server='(local)', quote=True, to_lower=False
     if to_lower:
         l = [s.lower() for s in l]
     if clean:
-        l = [_stringslib.filter_alphanumeric1(s, strict=True, remove_single_quote=True, remove_double_quote=True) for s in l]
+        l = [_stringslib.filter_alphanumeric1(s, **kwargs) for s in l]
     return l
 
 

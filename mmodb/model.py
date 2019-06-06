@@ -1,5 +1,6 @@
 # coding: utf-8
 from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, NCHAR, String, TEXT, Table, Unicode, text
+from sqlalchemy.dialects.mssql import BIT
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -107,6 +108,8 @@ class Ugc(Base):
     date_hint = Column(DateTime)
     txt_post_sql = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     platform_hint = Column(String(10, 'Latin1_General_CI_AS'))
+    date_fragment_hint = Column(String(10, 'Latin1_General_CI_AS'))
+    processed = Column(BIT, nullable=False, server_default=text("((0))"))
 
 
 t_v_err_species_alias_duplicate_accepted = Table(
@@ -193,6 +196,9 @@ class UgcHint(Base):
     date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
     date_modified = Column(DateTime)
     speciesid = Column(ForeignKey('species.speciesid'))
+    pos_list = Column(String(collation='Latin1_General_CI_AS'))
+    n = Column(Integer)
+    source = Column(String(50, 'Latin1_General_CI_AS'))
 
     species = relationship('Species')
     ugc = relationship('Ugc')

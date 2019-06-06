@@ -59,7 +59,7 @@ class WordnetLexnames():
     all_nouns = set([noun_tops, noun_act, noun_animal, noun_artifact, noun_attribute, noun_body, noun_cognition, noun_communication, noun_event, noun_feeling, noun_food, noun_group, noun_location, noun_motive, noun_object, noun_person, noun_phenomenon, noun_plant, noun_possession, noun_process, noun_quantity, noun_relation, noun_shape, noun_state, noun_substance, noun_time])
     all_verbs = set([verb_body, verb_change, verb_cognition, verb_communication, verb_competition, verb_consumption, verb_contact, verb_creation, verb_emotion, verb_motion, verb_perception, verb_possession, verb_social, verb_stative, verb_weather])
     all_adjectives = set([adj_ppl, adj_all, adj_pert, adv_all])
-    all = set(all_nouns + all_verbs + all_adjectives)
+    all = set(list(all_nouns) + list(all_verbs) + list(all_adjectives))
 
 
 #region helpers

@@ -1,8 +1,40 @@
 '''run some SQLS to fix common text mistakes'''
+import argparse
 import sqlalchemy
+from pysimplelog import Logger
+from funclib.iolib import files_delete2
+import mmo.settings as settings
 
-import spacy as _sp
-Doc = spacy.load('en_core_web_sm')
+
+
+files_delete2(settings.PATHS.LOG_WRITE_HINTS)
+Log = Logger(name='train', logToStdout=False, logToFile=True, logFileMaxSize=1)
+Log.set_log_file(settings.PATHS.LOG_WRITE_HINTS)
+print('\nLogging to %s\n' % settings.PATHS.LOG_WRITE_HINTS)
+
+
+
+def log(args, msg):
+    '''(argparse.parse, str) -> void
+    '''
+    try:
+        s = args.log.lower()
+        if s in ['file', 'both']:
+            Log.info(msg)
+
+        if s in ['console', 'both']:
+            print(msg)
+    except Exception as e:
+        try:
+            print('Log file failed to print.')
+        except Exception as e:
+            pass
+
+
+
+#Spacy will be used to generate sentences, see species_catch at the bottom of this module
+#import spacy as _sp
+#Doc = spacy.load('en_core_web_sm')
 
 
 from warnings import warn
@@ -15,7 +47,7 @@ from mmo import name_entities as ne
 from mmo import settings
 
 
-from nlp import clean, find
+from nlp import find
 from funclib import baselib
 import funclib.iolib as iolib
 
@@ -30,21 +62,25 @@ SHORE_VOTE_THRESH = 2
 
 
 
-
 class HintTypes():
+    '''hint type enumeration'''
     platform = 'platform'
-    when = 'when'
+    date_hint = 'date_hint' #use hint to avoid keywords in SQL
     species = 'species'
-    species_catch = 'species_catch' #actual species catches, will require sentence parsing
+    species_catch = 'species_catch' #actual species catches, will require sentence parsing, not used atm
+    date_fragment = 'date_fragment'
+    season = 'season'
+    month = 'month_hint'
 
 
 class Sources():
+    '''sources enumeration'''
     title = 'title'
     post_text = 'post text'
 
 
 
-def get_whitelist_words(dump_list):
+def _get_whitelist_words(dump_list):
     '''(bool) -> list
     Load whitelist if it exists, otherwise
     recreate list and redump it. This is used
@@ -62,7 +98,7 @@ def get_whitelist_words(dump_list):
         ne.GearAngling.get(add_similiar=True) + \
         ne.GearNoneAngling.get(add_similiar=True) + \
         ne.Metrological.get(add_similiar=True) + \
-        ne.SESSION.get(add_similiar=True) + \
+        ne.Session.get(add_similiar=True) + \
         ne.Species.get(add_similiar=False, force_plural_singular=True) + \
         ne.Time(add_similiar=True, force_plural_singular=True)
 
@@ -71,105 +107,140 @@ def get_whitelist_words(dump_list):
     return words
 
 
-def clean(txt):
+def _clean(s):
     '''clean open text'''
-    s = clean.strip_urls_list(s)
-    s = clean.base_substitutons(s) #base substitutions would make urls unidentifiable
-    s = clean.stop_words(s, get_whitelist_words(False))
-    s = replace("'", "")
-    s = replace('"', '')
-    s = clean.non_breaking_space2space(s)
-    s = clean.newline_del_multi(s)
-    s = clean.txt2nr(s)
+    #the order of this matters
+    assert isinstance(s, str)
+    s = _clean.strip_urls_list(s)
+    s = _clean.base_substitutons(s) #base substitutions would make urls unidentifiable
+    s = _clean.stop_words(s, _get_whitelist_words(False))
+    s = s.replace("'", "")
+    s = s.replace('"', '')
+    s = _clean.non_breaking_space2space(s)
+    s = _clean.newline_del_multi(s)
+    s = _clean.txt2nr(s)
     return s
 
 
 
 def make_date_hints(title, post_txt):
-    hints = []; source_text = []; sources = []
+    '''(str, str) -> list, list, list, list, list, list, list, list, list
+    get date hints
+    
+    title:post title
+    post_txt: post main text
+    returns: hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, date_hint
+    '''
+    hints = []; source_texts = []; sources = []
     dts = find.get_dates(title)
-    if dts: date_hint = {'date_hint':dts[0]} #return this to write the best date to ugc table
+    if dts: ugc_hint = {'ugc_hint':dts[0]} #return this to write the best date to ugc table
     sources += [Sources.title] * len(dts)
     hints += dts
 
     dts = find.get_dates(post_txt)
-    if dts and not date_hint: {'date_hint':dts[0]}
-    source += ['post body text'] * len(dts)
+    if dts and not ugc_hint: ugc_hint = {'date_hint':dts[0]} #return this to write the best date to ugc table if we didnt get it from the title
+    sources += ['post body text'] * len(dts)
     hints += dts
 
     hint_types = [HintTypes.when] * len(hints)
-    poss = [None] * len(out_dates)
-    speciesids = [None] * len(out_dates)
-    ns = [None] * len(out_dates)
-    pos_lists = [None] * len(out_dates)
-    sources = [None] * len(out_dates)
-    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, date_hint
+    poss = [None] * len(hints)
+    speciesids = [None] * len(hints)
+    ns = [None] * len(hints)
+    pos_lists = [None] * len(hints)
+    source_texts = ['n/a for date hints'] * len(hints)
+    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
 
 
 #byref
-def addit(dic, hint, source, hints,  source_texts, pos_lists, sources, ns):
+def _addit(dic, hint, source, hints, source_texts, poss, pos_lists, sources, ns, speciesids):
+    '''(dict, str, str, list, list, list, list, list, list) -> int
+    NB: hints, source_texts, pos_lists, sources, ns -> BY REF
+
+    for basic text matches using named entities and fills
+    hints, source_texts, pos_lists, sources, ns.
+    
+    Note poss is built for completeness, but all the data is in pos_lists so
+    poss is just populated with Nones
+
+    Example:
+    >>>addit({'atlanta':[10,20], 'skipper':[500]}, 'charter', 'post text', hints, source_texts, poss, pos_lists, sources, ns)
+    3
+    >>>print(hints, source_texts, pos_lists, sources, ns)
+    ['charter', 'charter'], ['atlanta', 'serentit'], [[10, 20], [500]], ['post text', 'post text']]
+
+    So we have two keywords, one keyword appears twice, hence we return two hint summary records, one with
+    a frequency of two and one with a frequency of 1.
+    '''
     cnt = 0
     #it should look like {'charter':1, 'chartered':2, 'Mary Sue':1}
     for it in dic.items():
         hints += hint
         source_texts += it[0]
         sources += source
+        poss += None
         pos_lists += it[1]
         ns += len(it[1])
         cnt += sum(it[1]) #a vote count
-
+        speciesids += None
     return cnt
 
 
 def make_platform_hints(title, post_txt):
     '''platform stuff'''
-    hints = []; source_texts = [];pos_lists = []; sources = []; ns = []
-    platform_hint = {'platform_hint':None}
+    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []
+    ugc_hint = {'ugc_hint':None}
     vote_cnts = {'afloat':0, 'charter':0, 'kayak':0, 'private':0}
 
-    vote_cnts['afloat'] += addit(ne.Afloat.indices(title), 'afloat', Sources.title, hints, source_texts, pos_lists, sources, ns) #args after Sources.title are BYREF
-    vote_cnts['charter'] += addit(ne.AfloatCharterBoat.indices(title), 'charter', Sources.title, hints, source_texts, pos_lists, sources, ns)
-    vote_cnts['kayak'] += addit(ne.AfloatKayak.indices(title), 'kayak', Sources.title, hints, source_texts, pos_lists, sources, ns)
-    vote_cnts['private'] += addit(ne.AfloatPrivate.indices(title), 'private', Sources.title, hints, source_texts, pos_lists, sources, ns)
+    #args after Sources.title are BYREF
+    vote_cnts['afloat'] += _addit(ne.Afloat.indices(title), 'afloat', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids) 
+    vote_cnts['charter'] += _addit(ne.AfloatCharterBoat.indices(title), 'charter', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['kayak'] += _addit(ne.AfloatKayak.indices(title), 'kayak', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['private'] += _addit(ne.AfloatPrivate.indices(title), 'private', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
 
-    vote_cnts['afloat'] += addit(ne.Afloat.indices(post_txt), 'afloat', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
-    vote_cnts['charter'] += addit(ne.AfloatCharterBoat.indices(post_txt), 'charter', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
-    vote_cnts['kayak'] += addit(ne.AfloatKayak.indices(post_txt), 'kayak', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
-    vote_cnts['private'] += addit(ne.AfloatPrivate.indices(post_txt), 'private', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
-
+    vote_cnts['afloat'] += _addit(ne.Afloat.indices(post_txt), 'afloat', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['charter'] += _addit(ne.AfloatCharterBoat.indices(post_txt), 'charter', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['kayak'] += _addit(ne.AfloatKayak.indices(post_txt), 'kayak', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['private'] += _addit(ne.AfloatPrivate.indices(post_txt), 'private', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    assert isinstance(vote_cnts, dict)
     hint_types = [HintTypes.platform] * len(hints)
-    votes = sum([x for x in vote_cnts.values])
+    votes = sum([x for x in vote_cnts.itervalues()])
+
+    #NOW Get the platform hint to write to UGC table - ie what platform do we think the post was reporting
     if votes < SHORE_VOTE_THRESH:
-        platform_hint = {'platform_hint': 'shore'}
+        ugc_hint = {'ugc_hint': 'shore'}
     else:
-        platform_hint = {'platform_hint': baselib.dic_key_with_max_val(vote_cnts)}
+        ugc_hint = {'ugc_hint': baselib.dic_key_with_max_val(vote_cnts)}
     #TODO write platform hint
-    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, platform_hint
+    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
 
 
 def make_species_hints(title, post_text):
     '''detect species'''
-    hints = []; source_texts = [];pos_lists = []; sources = []; ns = []
-    platform_hint = {'species_hint':None}
+    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []
 
     #we wont write
-    addit(ne.Species.indices(title), 'species', Sources.title, hints, source_texts, pos_lists, sources, ns) #args after Sources.title are BYREF
-    addit(ne.Species.indices(post_txt), 'species', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
+    _addit(ne.Species.indices(title), 'species', Sources.title, hints, source_texts, pos_lists, sources, ns) #args after Sources.title are BYREF
+    _addit(ne.Species.indices(post_txt), 'species', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
     hint_types = [HintTypes.species] * len(hints)
-    platform_hint = {'platform_hint': baselib.dic_key_with_max_val(vote_cnts)}
-    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, None
-
+    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, {'ugc_hint':None}
 
 
 def write_hints(ugcid, hint_types, hints, sources=None, source_texts=None, poss=None, speciesids=None, pos_lists=None, ns=None):
     '''write date hints'''
-    #hint_type in ('month', 'year', 'day', 'season', 'date', 'published_date')
-    #assert len(hint_types) == len(poss) == len(source_texts) == len(hints) == len(speciesids)
+    #the following are optional, so if nothing passed, we create them
+    
+    if not hints:
+        return
 
-    if not n: n = [1] * len(hints)
+    fx = lambda lst, val: l if l else [v] * len(hints)
+    ns = fx(ns, 1)
+    speciesids = fx(speciesids, None)
+    source_texts = fx(source_texts, None)
+    pos_lists = fx(pos_lists, None)
+
     for i, hint in enumerate(hints):
         Item = UgcHint()
-        Item.ugcid = ugcItem.ugcid
+        Item.ugcid = ugcid
         Item.hint_type = hint_types[i]
         Item.hint = hint[i]
 
@@ -177,22 +248,22 @@ def write_hints(ugcid, hint_types, hints, sources=None, source_texts=None, poss=
         if source_texts: Item.source_text = source_texts[i]
         if poss: Item.pos = poss[i]
         if speciesids: Item.speciesid = speciesids[i]
-        if pos_list: Item.pos_list = pos_lists[i]
+        if pos_lists: Item.pos_list = pos_lists[i]
         if sources: Item.source = sources[i]
-        if n: Item.n = ns[i]
+        if ns: Item.n = ns[i]
         mmodb.SESSION.add(Item)
 
 
 
 def main():
+    '''main'''
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
-    f = lambda s: [str(itme) for item in s.split(',')]
-    parser.add_argument('-s', '--slice', help='Record slice, eg -l 0,1000', type=f)
+    f = lambda s: [str(item) for item in s.split(',')]
+    cmdline.add_argument('-s', '--slice', help='Record slice, eg -l 0,1000', type=f)
+    args = cmdline.parse_args()
 
-    offset = int(argparse.slice[0])
-    max_row = argparse.slice[1]
-
-    n = mmodb.SESSION.query(OsOpenName.os_open_namesid).count()
+    offset = int(args.slice[0])
+    max_row = int(args.slice[1])
     if not max_row or max_row in ('max', 'end', 'last'):
         max_row = n
     else:
@@ -212,26 +283,26 @@ def main():
 
         for row in rows:
             assert isinstance(row, Ugc)
-            mmodb.SESSION.query(UgcDateHint).filter(UgcDateHint.ugcid==ugcItem.ugcid).delete()
-            txt_post_sql = clean(row.txt_post_sql)
-            title = clean(row.title)
+            mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid==row.ugcid).delete()
+            txt_post_sql = _clean(row.txt_post_sql) #the raw text, after running clean sqls separately on sql server
+            title = _clean(row.title)
 
-            hint_types, poss, source_texts, hints, speciesids, dict_out = date_hints(sentence_pos)
-            date_hint = dict['date_hint'] #write this to ugc
-            if date_hint:
-                    row.date_hint = date_hint
-            else:
-                    row.date_hint = row.published_date
+            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_date_hints(title, txt_post_sql)
+            row.date_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else row.published_date
+            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns) #order changed from the make call because some are by ref
+            
+            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_platform_hints(title, txt_post_sql)
+            row.platform_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else row.published_date
+            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
 
-            write_hints(row.ugcid, sentence, sentence_pos, hint_types, poss, source_texts, hints, speciesids, ns)
+            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_post_sql)
+            #There is no platform hint for species
+            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
 
-
+            
+            row.processed = True
             mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
-
             PP.increment()
-
-            row.x = res[0][0]
-            row.y = res[1][0]
 
         try:
             mmodb.SESSION.commit()
@@ -255,9 +326,10 @@ if __name__ == "__main__":
 
 
 def species_catch(txt_post):
+    '''TEMP'''
     #place holder routine for if we want to actually detect
     #confirmed catches
     raise NotImplementedError
-    sentences = Doc(txt_post_sql)
-    for sent in sentences:
-        sentence_pos = txt_post_sql.index(sent)
+    #sentences = Doc(txt_post_sql)
+    #for sent in sentences:
+     #   sentence_pos = txt_post_sql.index(sent)
