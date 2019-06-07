@@ -13,5 +13,5 @@ BIN_FOLDER = _path.normpath(_path.join(_MODULE_ROOT, '/bin/'))
 
 class PATHS():
     '''folder settings'''
-    WHITELIST_WORDS = _np(_path.join([BIN_FOLDER, 'whitelist.pkl']))
-    LOG_WRITE_HINTS = _path.normpath('c:\temp\log_write_hints.py.log')
+    WHITELIST_WORDS = _path.normpath(_path.join([BIN_FOLDER, 'whitelist.pkl']))
+    LOG_WRITE_HINTS = _path.normpath('c:/temp/log_write_hints.py.log')

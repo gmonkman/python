@@ -91,6 +91,19 @@ def _clean_list(strlist):
 
 
 
+def plural_sing(word):
+    '''(str) -> list
+    add plural or singular forms returning
+    a list including <word>'''
+    if not word: return ''
+    word = word.lstrip().rstrip()
+    final = []
+    final.append(word)
+    _listadd(final, _inflect.engine().plural(word))
+    _listadd(final, _inflect.engine().singular_noun(word))
+    return final
+
+
 
 def synonym_lemma_bag(s):
     '''(str)->list
@@ -140,7 +153,7 @@ def lemma_bag_all(word, lexname='', no_underscored=True, force_plural=False, for
     ['kayaked', 'kayaking', 'kayaks', 'kayak']
     '''
 
-    if word == '': return ''
+    if not word: return ''
     word = word.lstrip().rstrip()
     SS = _wordnet.synsets(word)
 

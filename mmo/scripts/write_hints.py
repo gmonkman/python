@@ -1,17 +1,37 @@
 '''run some SQLS to fix common text mistakes'''
 import argparse
+from warnings import warn
+
+
 import sqlalchemy
 from pysimplelog import Logger
+import spacy
+Doc = spacy.load('en_core_web_sm')
+
 from funclib.iolib import files_delete2
 import mmo.settings as settings
+import nlp as _nlp
+import mmodb
+import mmodb.model as model
+from mmodb.model import Ugc, UgcHint
+from mmo import name_entities as ne
+from nlp import find
+from funclib import baselib
+import funclib.iolib as iolib
 
 
+if iolib.wait_key('\n\n%s\nPress "Q" to quit\n' % mmodb.ENGINE) == 'q':
+    quit()
 
+
+SHORE_VOTE_THRESH = 2
+
+
+#region setup log
 files_delete2(settings.PATHS.LOG_WRITE_HINTS)
 Log = Logger(name='train', logToStdout=False, logToFile=True, logFileMaxSize=1)
 Log.set_log_file(settings.PATHS.LOG_WRITE_HINTS)
 print('\nLogging to %s\n' % settings.PATHS.LOG_WRITE_HINTS)
-
 
 
 def log(args, msg):
@@ -24,41 +44,12 @@ def log(args, msg):
 
         if s in ['console', 'both']:
             print(msg)
-    except Exception as e:
+    except Exception as _:
         try:
             print('Log file failed to print.')
-        except Exception as e:
+        except Exception as _:
             pass
-
-
-
-#Spacy will be used to generate sentences, see species_catch at the bottom of this module
-#import spacy as _sp
-#Doc = spacy.load('en_core_web_sm')
-
-
-from warnings import warn
-
-
-import mmodb
-import mmodb.model as model
-from mmodb.model import Ugc, UgcHint
-from mmo import name_entities as ne
-from mmo import settings
-
-
-from nlp import find
-from funclib import baselib
-import funclib.iolib as iolib
-
-
-assert isinstance(mmodb.SESSION, sqlalchemy.orm.Session)
-
-if iolib.wait_key('\n\n%s\nPress "Q" to quit\n' % mmodb.ENGINE) == 'q':
-    quit()
-
-
-SHORE_VOTE_THRESH = 2
+#endregion
 
 
 
@@ -66,18 +57,17 @@ class HintTypes():
     '''hint type enumeration'''
     platform = 'platform'
     date_hint = 'date_hint' #use hint to avoid keywords in SQL
-    species = 'species'
+    species = 'species' #frequency of species mentions
     species_catch = 'species_catch' #actual species catches, will require sentence parsing, not used atm
     date_fragment = 'date_fragment'
-    season = 'season'
-    month = 'month_hint'
+    trip = 'trip' #does it look like a trip
+
 
 
 class Sources():
     '''sources enumeration'''
     title = 'title'
     post_text = 'post text'
-
 
 
 def _get_whitelist_words(dump_list):
@@ -96,10 +86,12 @@ def _get_whitelist_words(dump_list):
         ne.AfloatKayak.get(add_similiar=True) + \
         ne.AfloatPrivate.get(add_similiar=True) + \
         ne.GearAngling.get(add_similiar=True) + \
-        ne.GearNoneAngling.get(add_similiar=True) + \
+        ne.DateTime.get(add_similiar=True) + \
+        ne.GearNoneAngling.get() + \
         ne.Metrological.get(add_similiar=True) + \
         ne.Session.get(add_similiar=True) + \
-        ne.Species.get(add_similiar=False, force_plural_singular=True) + \
+        ne.SpeciesSpecified.get_by_key() 
+
         ne.Time(add_similiar=True, force_plural_singular=True)
 
     if dump_list:
@@ -111,14 +103,15 @@ def _clean(s):
     '''clean open text'''
     #the order of this matters
     assert isinstance(s, str)
-    s = _clean.strip_urls_list(s)
-    s = _clean.base_substitutons(s) #base substitutions would make urls unidentifiable
-    s = _clean.stop_words(s, _get_whitelist_words(False))
+    s = _nlp.clean.strip_urls_list(s)
+    s = _nlp.clean.sep_num_from_words(s)
+    s = _nlp.clean.base_substitutons(s) #base substitutions would make urls unidentifiable
+    s = _nlp.clean.stop_words(s, _get_whitelist_words(False))
     s = s.replace("'", "")
     s = s.replace('"', '')
-    s = _clean.non_breaking_space2space(s)
-    s = _clean.newline_del_multi(s)
-    s = _clean.txt2nr(s)
+    s = _nlp.clean.non_breaking_space2space(s)
+    s = _nlp.clean.newline_del_multi(s)
+    s = _nlp.clean.txt2nr(s)
     return s
 
 
@@ -181,13 +174,16 @@ def _addit(dic, hint, source, hints, source_texts, poss, pos_lists, sources, ns,
         pos_lists += it[1]
         ns += len(it[1])
         cnt += sum(it[1]) #a vote count
-        speciesids += None
+        if hint in ne.SpeciesSpecified.SPECIES_DICT.keys():
+            speciesids += hint
+        else:
+            speciesids += None
     return cnt
 
 
 def make_platform_hints(title, post_txt):
     '''platform stuff'''
-    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []
+    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []; speciesids = []
     ugc_hint = {'ugc_hint':None}
     vote_cnts = {'afloat':0, 'charter':0, 'kayak':0, 'private':0}
 
@@ -214,22 +210,29 @@ def make_platform_hints(title, post_txt):
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
 
 
+#this is the simple frequency of species mentions in the text
 def make_species_hints(title, post_text):
-    '''detect species'''
+    '''detect occurence of species names and count them
+    hints contains speciesids
+    '''
     #This is a little different as we need to add speciesids for the spelling we have found
-    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []; speciesids
+    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []; speciesids = []
+    
+    vote_cnts = {}
 
-    #we wont write
-    for key, val in ne.Species.getSpecies():
-        vote_cnts[key] += _addit(ne
-
-  _addit(ne.Species.indices(title), 'species', Sources.title, hints, source_texts, pos_lists, sources, ns) #args after Sources.title are BYREF
-    _addit(ne.Species.indices(post_txt), 'species', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
+    for speciesid in ne.SpeciesSpecified.NOUN_DICT_ALL.keys():
+        if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
+        vote_cnts[speciesid] += _addit(ne.SpeciesSpecified.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        vote_cnts[speciesid] += _addit(ne.SpeciesSpecified.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
     hint_types = [HintTypes.species] * len(hints)
-
-    {'spp1_hint':spp1_hint, 'spp2_hint':spp2_hint, 'spp3_hint':spp3_hint}
-
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, {'ugc_hint':None}
+
+
+def make_date_fragment_hints(title, post_text):
+    '''date fragment hints, e.g. summer, spring, may'''
+
+
+
 
 
 def write_hints(ugcid, hint_types, hints, sources=None, source_texts=None, poss=None, speciesids=None, pos_lists=None, ns=None):
@@ -272,7 +275,7 @@ def main():
     offset = int(args.slice[0])
     max_row = int(args.slice[1])
     if not max_row or max_row in ('max', 'end', 'last'):
-        max_row =  mmodb.SESSION.query(Ugc.ugcid).count()
+        max_row = mmodb.SESSION.query(Ugc.ugcid).count()
     else:
         max_row = int(max_row)
 
@@ -329,14 +332,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-def species_catch(txt_post):
-    '''TEMP'''
-    #place holder routine for if we want to actually detect
-    #confirmed catches
-    raise NotImplementedError
-    #sentences = Doc(txt_post_sql)
-    #for sent in sentences:
-     #   sentence_pos = txt_post_sql.index(sent)

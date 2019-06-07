@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>iterate+update</Title>
+      <Shortcut>+u</Shortcut>
+      <Description>Iterate and update in SQLAlchemy</Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[
+    #this creates a dict from the rows  
+    rows = _mmodb.SESSION.query(_text('select speciesid, species_aliasid from v_species_all')).fetchall()
+    out = {}
+    for r in rows:
+        out[r[0]] = r[1]
+    return out
+
+
+]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

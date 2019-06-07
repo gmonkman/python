@@ -20,7 +20,7 @@ class Test(unittest.TestCase):
 
 
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_func(self):
         '''test'''
         class Ent(ne._NamedEntityBase):
@@ -30,6 +30,14 @@ class Test(unittest.TestCase):
         subst = Ent.expansions(Ent.EXPAND, {'is':['was', 'were', 'when'], 'are': ['XX', 'YY']})
         print(subst)
 
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_species(self):
+        '''test'''
+        Sp = ne.SpeciesSpecified()
+        Sp.get_by_key('cod')
+        pass
+      
 
 
 if __name__ == '__main__':

@@ -63,7 +63,7 @@ def stop_words(s, not_a_stop_word=('the')):
     clean stop words'''
     sw = _stopwords.get(not_a_stop_word)
     word_tokens = _word_tokenize(s)
-    f = [w for w in word_tokens if not w in sw]
+    f = [w.lower() for w in word_tokens if not w in sw]
     return f
 
 
@@ -71,3 +71,8 @@ def txt2nr(s):
     '''convert text to digits'''
     T = _t2d.Text2Digits()
     return T.convert(s)
+
+
+def sep_num_from_words(s):
+    '''seperate words from number'''
+    return _re.sub(r"([0-9]+(\.[0-9]+)?)",r" \1 ", s).strip()
