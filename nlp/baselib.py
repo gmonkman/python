@@ -1,7 +1,7 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unreachable
 '''basic functions'''
 from nltk.corpus import wordnet as _wordnet
-import pattern.en as _pattern
+import inflect
 
 import funclib.stringslib as _stringslib
 
@@ -158,8 +158,8 @@ def lemma_bag_all(word, lexname='', no_underscored=True, force_plural=False, for
         if Synset.lexname().lower() in WordnetLexnames.all_nouns or force_plural:
             for w in Synset.lemma_names():
                 final.append(w)
-                _listadd(final, _pattern.pluralize(w))
-                _listadd(final, _pattern.singularize(w))
+                _listadd(final, _inflect.engine().plural(w))
+                _listadd(final, _inflect.engine().singular_noun(w))
         elif Synset.lexname().lower() in WordnetLexnames.all_verbs or force_conjugate:
             final.append(w)
             _listadd(final, _pattern.lexeme(w))
@@ -212,8 +212,8 @@ def common_meaning_bag(word, lexname_in=(), hyper_in=(), hypo_in=(), pos=('a', '
         if Synset.lexname().lower() in WordnetLexnames.all_nouns or force_plural:
             w = Synset.lemma_names()[0]
             final.append(w)
-            _listadd(final, _pattern.pluralize(w))
-            _listadd(final, _pattern.singularize(w))
+            _listadd(final, _inflect.engine().plural(w))
+            _listadd(final, _inflect.engine().singular_noun(w))
         elif Synset.lexname().lower() in WordnetLexnames.all_verbs or force_conjugate:
             final.append(w)
             _listadd(final, _pattern.lexeme(w))

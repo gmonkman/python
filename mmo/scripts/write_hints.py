@@ -216,12 +216,19 @@ def make_platform_hints(title, post_txt):
 
 def make_species_hints(title, post_text):
     '''detect species'''
-    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []
+    #This is a little different as we need to add speciesids for the spelling we have found
+    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []; speciesids
 
     #we wont write
-    _addit(ne.Species.indices(title), 'species', Sources.title, hints, source_texts, pos_lists, sources, ns) #args after Sources.title are BYREF
+    for key, val in ne.Species.getSpecies():
+        vote_cnts[key] += _addit(ne
+
+  _addit(ne.Species.indices(title), 'species', Sources.title, hints, source_texts, pos_lists, sources, ns) #args after Sources.title are BYREF
     _addit(ne.Species.indices(post_txt), 'species', Sources.post_text, hints, source_texts, pos_lists, sources, ns)
     hint_types = [HintTypes.species] * len(hints)
+
+    {'spp1_hint':spp1_hint, 'spp2_hint':spp2_hint, 'spp3_hint':spp3_hint}
+
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, {'ugc_hint':None}
 
 
@@ -232,7 +239,7 @@ def write_hints(ugcid, hint_types, hints, sources=None, source_texts=None, poss=
     if not hints:
         return
 
-    fx = lambda lst, val: l if l else [v] * len(hints)
+    fx = lambda lst, val: lst if lst else [val] * len(hints)
     ns = fx(ns, 1)
     speciesids = fx(speciesids, None)
     source_texts = fx(source_texts, None)
@@ -265,7 +272,7 @@ def main():
     offset = int(args.slice[0])
     max_row = int(args.slice[1])
     if not max_row or max_row in ('max', 'end', 'last'):
-        max_row = n
+        max_row =  mmodb.SESSION.query(Ugc.ugcid).count()
     else:
         max_row = int(max_row)
 
@@ -283,7 +290,7 @@ def main():
 
         for row in rows:
             assert isinstance(row, Ugc)
-            mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid==row.ugcid).delete()
+            mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
             txt_post_sql = _clean(row.txt_post_sql) #the raw text, after running clean sqls separately on sql server
             title = _clean(row.title)
 

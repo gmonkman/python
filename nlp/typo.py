@@ -1,5 +1,5 @@
 #pylint: skip-file
-
+import re as _re
 
 #THIS CODE FROM https://github.com/wsong
 '''This module generates typos'''
@@ -8,6 +8,21 @@ SHIFT_COST = 3.0
 INSERTION_COST = 1.0
 DELETION_COST = 1.0
 SUBSTITUTION_COST = 1.0
+
+class Filter():
+    @staticmethod
+    def starts(lst, start):
+        '''str, str -> list
+        Removes results which dont match start
+
+        Assumes 1st word is correct
+        '''
+        return [w for w in lst if w.startswith(lst[0][:start])]
+
+    def ends(lst, end_):
+        return [w for w in lst if w.endswith(lst[0][end_*-1:])]
+
+
 
 qwertyKeyboardArray = [
     ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='],
@@ -167,9 +182,12 @@ def getPossibleActions(s, layout='QWERTY'):
     return actions
 
 
-def typos(v, dist=1, exclude=(), add_v=True):
-    '''(iterable|str, float, iterable|str, bool) -> list
-    generate typos in single list'''
+def typos(v, dist=1, exclude=(), add_v=True, filter_start_n=0, filter_end_n=0):
+    '''(iterable|str, float, iterable|str, bool, str, str) -> list
+    generate typos in single list
+    
+    filter_start, filter_end: only keep typos which match these strings
+    '''
     if isinstance(v, str):
         v = (v, )
 
@@ -182,6 +200,9 @@ def typos(v, dist=1, exclude=(), add_v=True):
 
     if not add_v:
         out = [w for w in out if w not in v]
+
+    if filter_start_n: out = Filter.starts(out, filter_start_n)
+    if filter_end_n: out = Filter.ends(out, filter_end_n)
     return list(set(out))
 
 

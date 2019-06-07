@@ -17,7 +17,7 @@ class Book(Base):
     page_num = Column(Integer, nullable=False)
     para_num = Column(Integer, nullable=False)
     para_text = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False)
-    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
+    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
     date_modified = Column(DateTime)
 
 
@@ -62,7 +62,7 @@ class Mag(Base):
     block_num = Column(Integer)
     paragraph = Column(Integer)
     text = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False)
-    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
+    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
     date_modified = Column(DateTime)
 
 
@@ -96,7 +96,7 @@ class Ugc(Base):
     ugcid = Column(Integer, primary_key=True, index=True)
     source = Column(String(250, 'Latin1_General_CI_AS'), nullable=False)
     published_date = Column(DateTime)
-    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
+    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
     date_modified = Column(DateTime)
     board = Column(String(250, 'Latin1_General_CI_AS'))
     content_identifier = Column(String(50, 'Latin1_General_CI_AS'))
@@ -193,7 +193,7 @@ class UgcHint(Base):
     hint = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
     pos = Column(Integer)
     source_text = Column(String(250, 'Latin1_General_CI_AS'))
-    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
+    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
     date_modified = Column(DateTime)
     speciesid = Column(ForeignKey('species.speciesid'))
     pos_list = Column(String(collation='Latin1_General_CI_AS'))

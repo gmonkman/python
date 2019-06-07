@@ -1,6 +1,7 @@
 '''doc'''
 import funclib.stringslib as _stringslib
 import dblib.mssql as _mssql
+from mmodb import species as _species
 from nlp import baselib as _nlpbase
 from nlp import typo as _typo
 from nlp import relib as _relib
@@ -26,12 +27,15 @@ class _NamedEntityBase():
         add words based on alternate spellings provided in
         the expansion_words dictionary
 
-        txt: 
+        Returns original words as well
+        Example:
+        >>>expansion(['North Point', 'South Point'], {'Point':['End', 'Spit']})
+        ['North Point', 'South Point', 'North End, 'North Spit', 'South End', 'South Spit']
         '''
         words = _fixiter(words)
         assert isinstance(expansion_words, dict)
         assert isinstance(words, list)
-        out = []
+        out = list(words)
 
         for word in words:
             for key, word_list in expansion_words.items():
@@ -144,10 +148,10 @@ class _NamedEntityBase():
 
         words = phrases + nouns + verbs + others #yes we can just add lists
         if typos: print('\nGenerating typos ...')
-        if 'phrases' in typos: words.extend(cls.typos(phrases))
-        if 'verbs' in typos: words.extend(cls.typos(verbs))
-        if 'nouns' in typos: words.extend(cls.typos(nouns))
-        if 'others' in typos: words.extend(cls.typos(others))
+        if 'phrases' in typos: words.extend(cls.typos(phrases, filter_start_n=2))
+        if 'verbs' in typos: words.extend(cls.typos(verbs, filter_start_n=2))
+        if 'nouns' in typos: words.extend(cls.typos(nouns, filter_start_n=2))
+        if 'others' in typos: words.extend(cls.typos(others, filter_start_n=2))
 
         if as_set:
             return set(words)
@@ -249,8 +253,78 @@ class GearNoneAngling(_NamedEntityBase):
 
 class Species(_NamedEntityBase):
     '''spp'''
-    NOUNS = list(_mssql.get_as_list('species_alias', 'species_aliasid', 'mmo', to_lower=True, clean=True, remove_single_quote=True, remove_double_quote=True))
-    
+    print('loading species dictionary...')
+    SPECIES_DICT = _species.get_species_as_dict()
+    __ALL__ = {}
+
+
+
+    @classmethod
+    def get(cls, as_set=False, typos=True, force_load=False):
+        '''this gets a list of words with misspellings, conjugates and plurals
+        according to the class variable name
+
+        e.g. if the class variable has contans noun, we don't conjugate
+
+        Note for string comparisons, use sets
+        '''
+        def ext(wordlst, force_plural):
+            '''f'''
+            wds = []
+            for w in wordlst:
+                wds.append(w)
+                wds.extend(_nlpbase.lemma_bag_all(w, force_plural=force_plural))
+            return wds
+
+        if force_load: cls.__ALL__ = {}
+        if cls.__ALL__:
+            if as_set: return cls.__ALL__
+            return list(cls.__ALL__)
+
+        for speciesid, words in Species.SPECIES_DICT:  #speciesid is the proper name
+            if not words: continue
+            words += ext(nouns, force_plural=True)
+            if typos:
+                print('\nGenerating typos ...')
+                words.extend(cls.typos(nouns, filter_start_n=2))
+            Species.SPECIES_DICT[speciesid] = words
+
+        if as_set:
+            return set(words)
+
+        return list(set(words))
+
+
+    @classmethod
+    def indices(cls, s, **kwargs):
+        '''check if any verson exists instr
+        returns a dictionary with the word frequencies
+        found in str which are in the class
+
+        kwargs are passed to the base get function and are:
+        add_similiar:bool
+        force_conjugate:bool
+        typos=('nouns', 'verbs', 'phrases', 'others')
+        force_plural_singular:bool
+        as_set:bool
+
+        Example:
+        >>>instr('the black black fox is grey')
+        {'black':[1]}
+        '''
+        out = {}
+        for word in cls.get(**kwargs):
+            inds = _relib.get_indices(s, word)
+            if inds:
+                out['word'] = inds
+        return out
+
+
+    @staticmethod
+    def 
+
+        
+
 
 class DateTime(_NamedEntityBase):
     '''dates'''

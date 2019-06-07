@@ -10,6 +10,12 @@ import funclib.stringslib as _stringslib
 from funclib.stringslib import date_str_to_iso #helper function
 
 
+def _fixiter(v, type_=list):
+    '''fix'''
+    return type_(v) if isinstance(v, (int, str, float)) else v
+
+
+
 class Conn():
     '''Connection to an SQL Server database.
 
@@ -448,5 +454,29 @@ def get_as_list(table, col, dbname, server='(local)', quote=True, to_lower=False
         l = [_stringslib.filter_alphanumeric1(s, **kwargs) for s in l]
     return l
 
+
+
+def get_as_dict(table, cols, dbname, server='(local)', quote=True, to_lower=False, clean=False, **cleankwargs):
+    '''(str, iter|str, Class:Conn, str, bool, bool) -> list
+
+    Convert sql table cols to a dict.
+
+    The cols are the key, with associated valuess as a list
+
+    quote: quote the data, use for string data
+    to_lower: convert to lower case
+    clean:clean the strings, e.g. remove single quotes
+    **kwargs: arguments to pass to stringslib.filteralphanumeric1 e.g.:
+            strict=True, remove_single_quote=True, remove_double_quote=True
+    example:
+    >>>mssql.get_as_list('species_alias', 'species_aliasid', 'mmo', to_lower=True)
+    ['trout','bass']
+    '''
+    cols = _fixiter(cols)
+    d = {}
+    cols = list(set(cols))
+    for c in cols:
+        d['cols'] = get_as_list(table, c, dbname, server, quote, to_lower, clean, **cleankwargs)
+    return d
 
 
