@@ -2,12 +2,39 @@
 ####################################################################################
 ### If new classes are added here, we must add to write_hints._get_white_list_words#
 ####################################################################################
+
+##################################################################################
+# if add another UNSPECIFIED class, update mmo.write_hints.py:make_species_hints #
+##################################################################################
+
+
 import funclib.stringslib as _stringslib
 import dblib.mssql as _mssql
+
 from mmodb import species as _species
 from nlp import baselib as _nlpbase
 from nlp import typo as _typo
 from nlp import relib as _relib
+
+class UnspecifiedKeys():
+    blenny = 'blenny (unspecified)'
+    bream = 'bream (unspecified)'
+    eel = 'eel (unspecified)'
+    flatfish = 'flatfish (unspecified)'
+    goby = 'goby (unspecified)'
+    gurnard = 'gurnard (unspecified)'
+    mullet = 'mullet (unspecified)'
+    pipefish = 'pipefish (unspecified)'
+    rockling = 'rockling (unspecified)'
+    sand_eel = 'sand eel (unspecified)'
+    sea_scorpion = 'sea scorpion (unspecified)'
+    shad = 'shad (unspecified)'
+    skate_ray = 'skate/ray (unspecified)'
+    sole = 'sole (unspecified)'
+    squid = 'squid (unspecified)'
+    sturgeon = 'sturgeon (unspecified)'
+    weeverfish = 'weeverfish (unspecified)'
+    wrasse = 'wrasse (unspecified)'
 
 
 def _clean(lst):
@@ -357,9 +384,15 @@ class AfloatPrivate(_NamedEntityBase):
     VERBS = ['rowed']
 
 
+class DateTimeDayOfWeek(_NamedEntityBaseDict):
+    '''day of week'''
+    NOUN_DICT = {'monday':['monday', 'mon', 'mond', 'monda', 'mdy'], 'tuesday':['tuesday', 'tue', 'tues', 'tuesd', 'tu'], 'wednesday':['wednesday', 'wed', 'wedn', 'wedne', 'wds'], 'thursday':['thursday', 'thu', 'thur', 'thurs'], 'friday':['friday', 'fri', 'frid', 'frida', 'fr'], 'saturday':['saturday', 'sat', 'satu', 'satur'], 'sunday':['sunday', 'sun', 'sund', 'sunda']]
+    DateTimeDayOfWeek.setdic(typos=False)
+
+
 class DateTimeMonth(_NamedEntityBaseDict):
     '''dates'''
-    NOUN_DICT = {'january':['january', 'jan', 'jan.'], 'february':['february', 'feb', 'feb.'], 'march':['march', 'mar', 'mar.'], 'april':['april', 'apr', 'apr.'], 'may':['may', 'may', 'may'], 'june':['june', 'jun', 'june'], 'july':['july', 'jul', 'july'], 'august':['august', 'aug', 'aug.'], 'september':['september', 'sep', 'sept.'], 'october':['october', 'oct', 'oct.'], 'november':['november', 'nov', 'nov.'], 'december':['december', 'dec', 'dec.']}
+    NOUN_DICT = {'january':['january', 'jan'], 'february':['february', 'feb'], 'march':['march', 'mar'], 'april':['april', 'apr'], 'may':['may'], 'june':['june', 'jun'], 'july':['july', 'jul'], 'august':['august', 'aug'], 'september':['september', 'sep', 'sept'], 'october':['october', 'oct'], 'november':['november', 'nov'], 'december':['december', 'dec']}
     DateTimeMonth.setdic()
 
     @classmethod
@@ -371,16 +404,9 @@ class DateTimeMonth(_NamedEntityBaseDict):
         return 'autumn'
 
 
-class DateTimeDayOfWeek():
-    '''day of week'''
-    NOUN_DICT = {'monday':['monday', 'mon', 'mond', 'monda', 'mdy'], 'tuesday':['tuesday', 'tue', 'tues', 'tuesd', 'tu'], 'wednesday':['wednesday', 'wed', 'wedn', 'wedne', 'wds'], 'thursday':['thursday', 'thu', 'thur', 'thurs'], 'friday':['friday', 'fri', 'frid', 'frida', 'fr'], 'saturday':['saturday', 'sat', 'satu', 'satur'], 'sunday':['sunday', 'sun', 'sund', 'sunda']]
-    DateTimeDayOfWeek.setdic(typos=False)
-
-
-class DateTimeSeasom():
+class DateTimeSeason(_NamedEntityBaseDict):
     NOUN_DICT = {'spring':['spring'], 'winter':['winter', 'wntr'], 'autumn':['autumn', 'aut', 'atmn'], 'spring':['spring']}
     DateTimeSeasom.setdic(typos=False)
-
 
 
 class GearAngling(_NamedEntityBase):
@@ -421,7 +447,9 @@ class SpeciesSpecified(_NamedEntityBaseDict):
     NOUN_DICT = _species.get_species_as_dict_sans_unspecified()
     SpeciesSpecified.setdic(typos=True)
 
-
+##################################################################################
+# if add another unspecified class, update mmo.write_hints.py:make_species_hints #
+##################################################################################
 class SpeciesUnspecified(_NamedEntityBaseDict):
     '''spp'''
     print('loading species dictionary...')
@@ -454,4 +482,11 @@ class SpeciesUnspecifiedBream(_NamedEntityBaseDict):
     '''spp'''
     print('loading species dictionary...')
     NOUN_DICT = _species.get_species_bream()
+    SpeciesUnspecifiedMullet.setdic(typos=True)
+
+
+class SpeciesUnspecifiedSkatesRays(_NamedEntityBaseDict):
+    '''spp'''
+    print('loading species dictionary...')
+    NOUN_DICT = _species.get_species_skates_rays()
     SpeciesUnspecifiedMullet.setdic(typos=True)
