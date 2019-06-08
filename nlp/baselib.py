@@ -303,6 +303,71 @@ def prettyprint_synset(words, printit=True, pos=('a', 'n', 'v'), lexname_in=(), 
     return txt
 
 
+def expansions(words, expansion_words):
+    '''(iter|str, dic) -> dic
+    add words based on alternate spellings provided in
+    the expansion_words dictionary
+
+    Returns original words as well
+    Example:
+    >>>expansion(['North Point', 'South Point'], {'Point':['End', 'Spit']})
+    ['North Point', 'South Point', 'North End, 'North Spit', 'South End', 'South Spit']
+    '''
+    words = _fixitr(words)
+    assert isinstance(expansion_words, dict)
+    assert isinstance(words, list)
+    out = list(words)
+
+    for word in words:
+        for key, word_list in expansion_words.items():
+            if not key in word: continue
+
+            for w in word_list:
+                w = _relib.replace_whole_word(word, key, w)
+                if not w: continue
+                out += w
+    return out
+
+
+def conjugations(word_list, lexname_list, exclude=()):
+    '''(iterable, iterable|str, iterable|str ) -> list
+    Get original list and add conjugations (for verbs)
+
+    word_list:iterable of of words
+
+    '''
+    if isinstance(exclude, str):
+        exclude = (exclude, )
+
+    out = []
+    for w in word_list:
+        out.extend(lemma_bag_all(w, lexname_list))
+
+    for e in exclude:
+        out.remove(e)
+
+    return list(set(out))
+
+
+def typos(wordlist, dist=1, exclude=()):
+    '''(iterable, list) -> list
+    Get original list and add typos for QWERTY
+
+    word_list:iterable of of words
+    l:keyboard distance, recommend 1
+    exclude:words in this list will be excluded (can also be a str)
+
+    Example:
+    >>>typos(['kayak', 'moken'])
+    [
+    '''
+    if isinstance(exclude, str):
+        exclude = (exclude, )
+
+    out = []
+    out.extend(_typo.typos(wordlist, dist, exclude))
+    return out
+
 
 #TODO finish this, idea is to recusively generate to depth=depth
 def genhyper(synset, depth=2):

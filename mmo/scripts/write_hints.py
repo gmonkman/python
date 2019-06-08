@@ -16,7 +16,7 @@ import mmodb
 import mmodb.model as model
 from mmodb.model import Ugc, UgcHint
 from mmo import name_entities as ne
-from mmo.name_entities import UnspecifiedKeys
+from mmo.name_entities import UnspecifiedKeys #this is just an enumeration
 from nlp import find
 from funclib import baselib
 import funclib.iolib as iolib
@@ -27,6 +27,27 @@ if iolib.wait_key('\n\n%s\nPress "Q" to quit\n' % mmodb.ENGINE) == 'q':
 
 
 SHORE_VOTE_THRESH = 2
+
+
+class NamedEntities():
+    print('\nSetting Up Named Entities...\n')
+    Afloat = ne.Afloat()
+    AfloatCharterBoat =  ne.AfloatCharterBoat()
+    AfloatKayak = ne.AfloatKayak()
+    AfloatPrivate = ne.AfloatPrivate()
+    DateTimeDayOfWeek = ne.DateTimeDayOfWeek()
+    DateTimeMonth = ne.DateTimeMonth()
+    DateTimeSeason = ne.DateTimeSeason()
+    GearAngling = ne.GearAngling()
+    GearNoneAngling = ne.GearNoneAngling()
+    Metrological = ne.MetrologicalAll()
+    Session = ne.Session()
+    SpeciesSpecified = ne.SpeciesSpecified()
+    SpeciesUnspecified = ne.SpeciesUnspecified()
+    SpeciesUnspecifiedBream = ne.SpeciesUnspecifiedBream()
+    SpeciesUnspecifiedFlatfish = ne.SpeciesUnspecifiedFlatfish()
+    SpeciesUnspecifiedMullet = ne.SpeciesUnspecifiedMullet()
+    SpeciesUnspecifiedSole = ne.SpeciesUnspecifiedSole()
 
 
 #region setup log
@@ -86,23 +107,23 @@ def _get_whitelist_words(dump_list):
         return iolib.unpickle(settings.PATHS.WHITELIST_WORDS)
 
     words = [] + \
-        ne.Afloat.get(add_similiar=True) + \
-        ne.AfloatCharterBoat.get(add_similiar=True) + \
-        ne.AfloatKayak.get(add_similiar=True) + \
-        ne.AfloatPrivate.get(add_similiar=True) + \
-        ne.DateTimeDayOfWeek.NOUN_DICT_ALL + \
-        ne.DateTimeMonth.NOUN_DICT_ALL + \
-        ne.DateTimeSeason.NOUN_DICT_ALL + \
-        ne.GearAngling.get(add_similiar=True) + \
-        ne.GearNoneAngling.get(add_similiar=True) + \
-        ne.Metrological.get(add_similiar=True) + \
-        ne.Session.get(add_similiar=True) + \
-        ne.SpeciesSpecified.NOUN_DICT_ALL + \
-        ne.SpeciesUnspecified.NOUN_DICT_ALL + \
-        ne.SpeciesUnspecifiedBream.NOUN_DICT_ALL + \
-        ne.SpeciesUnspecifiedFlatfish.NOUN_DICT_ALL + \
-        ne.SpeciesUnspecifiedMullet.NOUN_DICT_ALL + \
-        ne.SpeciesUnspecifiedSole.NOUN_DICT_ALL
+        NamedEntities.Afloat._get(add_similiar=True) + \
+        NamedEntities.AfloatCharterBoat._get(add_similiar=True) + \
+        NamedEntities.AfloatKayak._get(add_similiar=True) + \
+        NamedEntities.AfloatPrivate._get(add_similiar=True) + \
+        NamedEntities.DateTimeDayOfWeek.NOUN_DICT_ALL + \
+        NamedEntities.DateTimeMonth.NOUN_DICT_ALL + \
+        NamedEntities.DateTimeSeason.NOUN_DICT_ALL + \
+        NamedEntities.GearAngling._get(add_similiar=True) + \
+        NamedEntities.GearNoNamedEntitiesAngling.get(add_similiar=True) + \
+        NamedEntities.Metrological._get(add_similiar=True) + \
+        NamedEntities.Session._get(add_similiar=True) + \
+        NamedEntities.SpeciesSpecified.NOUN_DICT_ALL + \
+        NamedEntities.SpeciesUnspecified.NOUN_DICT_ALL + \
+        NamedEntities.SpeciesUnspecifiedBream.NOUN_DICT_ALL + \
+        NamedEntities.SpeciesUnspecifiedFlatfish.NOUN_DICT_ALL + \
+        NamedEntities.SpeciesUnspecifiedMullet.NOUN_DICT_ALL + \
+        NamedEntities.SpeciesUnspecifiedSole.NOUN_DICT_ALL
 
     if dump_list:
         iolib.pickle(words, settings.PATHS.WHITELIST_WORDS)
@@ -183,11 +204,40 @@ def _addit(dic, hint, source, hints, source_texts, poss, pos_lists, sources, ns,
         pos_lists += it[1]
         ns += len(it[1])
         cnt += sum(it[1]) #a vote count
-        if hint in ne.SpeciesSpecified.SPECIES_DICT.keys():
+        if hint in NamedEntities.SpeciesSpecified.SPECIES_DICT.keys():
             speciesids += hint
         else:
             speciesids += None
     return cnt
+
+
+def make_trip_hints(title, post_txt):
+    '''platform stuff'''
+    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []; speciesids = []
+    ugc_hint = {'ugc_hint':None}
+
+    all_keywords = NamedEntities.Session._get() + NamedEntities.Metrological._get()
+    found = False
+    for w in all_keywords:
+        if w in title:
+            hints = [w]
+            source_texts = [Sources.title]
+            found = True
+            break
+
+        if w in post_txt:
+            hints = [w]
+            source_texts = [Sources.post_text]
+            found = True
+            break
+
+    hint_types = [HintTypes.trip]
+    ugc_hint = {'ugc_hint': int(found)}
+    ns = [1]
+    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
+
+
+
 
 
 def make_platform_hints(title, post_txt):
@@ -197,15 +247,15 @@ def make_platform_hints(title, post_txt):
     vote_cnts = {'afloat':0, 'charter':0, 'kayak':0, 'private':0}
 
     #args after Sources.title are BYREF
-    vote_cnts['afloat'] += _addit(ne.Afloat.indices(title), 'afloat', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids) 
-    vote_cnts['charter'] += _addit(ne.AfloatCharterBoat.indices(title), 'charter', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-    vote_cnts['kayak'] += _addit(ne.AfloatKayak.indices(title), 'kayak', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-    vote_cnts['private'] += _addit(ne.AfloatPrivate.indices(title), 'private', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['afloat'] += _addit(NamedEntities.Afloat.indices(title), 'afloat', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids) 
+    vote_cnts['charter'] += _addit(NamedEntities.AfloatCharterBoat.indices(title), 'charter', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['kayak'] += _addit(NamedEntities.AfloatKayak.indices(title), 'kayak', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['private'] += _addit(NamedEntities.AfloatPrivate.indices(title), 'private', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
 
-    vote_cnts['afloat'] += _addit(ne.Afloat.indices(post_txt), 'afloat', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-    vote_cnts['charter'] += _addit(ne.AfloatCharterBoat.indices(post_txt), 'charter', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-    vote_cnts['kayak'] += _addit(ne.AfloatKayak.indices(post_txt), 'kayak', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-    vote_cnts['private'] += _addit(ne.AfloatPrivate.indices(post_txt), 'private', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['afloat'] += _addit(NamedEntities.Afloat.indices(post_txt), 'afloat', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['charter'] += _addit(NamedEntities.AfloatCharterBoat.indices(post_txt), 'charter', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['kayak'] += _addit(NamedEntities.AfloatKayak.indices(post_txt), 'kayak', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    vote_cnts['private'] += _addit(NamedEntities.AfloatPrivate.indices(post_txt), 'private', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
     assert isinstance(vote_cnts, dict)
     hint_types = [HintTypes.platform] * len(hints)
     votes = sum([x for x in vote_cnts.itervalues()])
@@ -229,10 +279,10 @@ def make_species_hints(title, post_text):
     
     vote_cnts = {}
 
-    for speciesid in ne.SpeciesSpecified.NOUN_DICT_ALL.keys(): #addit processes the list of species under each key
+    for speciesid in NamedEntities.SpeciesSpecified.NOUN_DICT_ALL.keys(): #addit processes the list of species under each key
         if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-        vote_cnts[speciesid] += _addit(ne.SpeciesSpecified.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[speciesid] += _addit(ne.SpeciesSpecified.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        vote_cnts[speciesid] += _addit(NamedEntities.SpeciesSpecified.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        vote_cnts[speciesid] += _addit(NamedEntities.SpeciesSpecified.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
     
     all_found = set(list(vote_cnts.keys()))
     #now we have to deal with unspecifieds
@@ -243,37 +293,43 @@ def make_species_hints(title, post_text):
     #vote_cnts = {'black bream':1, 'bass':4}, so all found = ['black bream', 'bass']
     #we then delete all keys from dUnspecified which with values in all found
     #we use sets as they are fast
-    dUnspecified = dict(ne.SpeciesUnspecified.NOUN_DICT)
-    for speciesid, species in ne.SpeciesUnspecified.NOUN_DICT:
+    dUnspecified = dict(NamedEntities.SpeciesUnspecified.NOUN_DICT)
+    for speciesid, species in NamedEntities.SpeciesUnspecified.NOUN_DICT:
         if not set(species).isdisjoint(all_found):
             del(dUnspecified[speciesid])
 
-    #Udnspecified should now just contain unspecified species
+    #dUnspecified should now just contain unspecified species
     #where more specific species have not been found
-    for speciesid in ne.SpeciesUnspecifiedSole.NOUN_DICT_ALL.keys():        #do sole, the more specific first
-        if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    if UnspecifiedKeys.sole in dUnspecified.keys():
+        for speciesid in NamedEntities.SpeciesUnspecifiedSole.NOUN_DICT_ALL.keys():        #do sole, the more specific first
+            if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
+            vote_cnts[speciesid] += _addit(NamedEntities.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+            vote_cnts[speciesid] += _addit(NamedEntities.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
 
-    for speciesid in ne.SpeciesUnspecifiedFlatfish():        #do sole, the more specific first
-        if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    if UnspecifiedKeys.flatfish in dUnspecified.keys():
+        for speciesid in NamedEntities.SpeciesUnspecifiedFlatfish.NOUN_DICT_ALL.keys():        #do sole, the more specific first
+            if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
+            vote_cnts[speciesid] += _addit(NamedEntities.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+            vote_cnts[speciesid] += _addit(NamedEntities.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
 
-    for speciesid in ne.SpeciesUnspecifiedBream.NOUN_DICT_ALL.keys():        #do sole, the more specific first
-        if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    if UnspecifiedKeys.bream in dUnspecified.keys():
+        for speciesid in NamedEntities.SpeciesUnspecifiedBream.NOUN_DICT_ALL.keys():        #do sole, the more specific first
+            if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
+            vote_cnts[speciesid] += _addit(NamedEntities.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+            vote_cnts[speciesid] += _addit(NamedEntities.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
 
-    for speciesid in ne.SpeciesUnspecifiedMullet.NOUN_DICT_ALL.keys():        #do sole, the more specific first
-        if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    if UnspecifiedKeys.mullet in dUnspecified.keys():
+        for speciesid in NamedEntities.SpeciesUnspecifiedMullet.NOUN_DICT_ALL.keys():        #do sole, the more specific first
+            if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
+            vote_cnts[speciesid] += _addit(NamedEntities.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+            vote_cnts[speciesid] += _addit(NamedEntities.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
 
-    for speciesid in ne.SpeciesUnspecifiedSkatesRays.NOUN_DICT_ALL.keys():        #do sole, the more specific first
-        if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+    if UnspecifiedKeys.skate_ray in dUnspecified.keys():
+        for speciesid in NamedEntities.SpeciesUnspecifiedSkatesRays.NOUN_DICT_ALL.keys():        #do sole, the more specific first
+            if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
+            vote_cnts[speciesid] += _addit(NamedEntities.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+            vote_cnts[speciesid] += _addit(NamedEntities.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+
 
     hint_types = [HintTypes.species] * len(hints)
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, {'ugc_hint':None}
@@ -286,10 +342,10 @@ def make_month_hints(title, post_text):
     
     vote_cnts = {}
 
-    for monthid in ne.DateTimeMonth.NOUN_DICT_ALL.keys(): #addit processes the list of species under each key
+    for monthid in NamedEntities.DateTimeMonth.NOUN_DICT_ALL.keys(): #addit processes the list of species under each key
         if not vote_cnts.get(monthid): vote_cnts[monthid] = 0
-        vote_cnts[monthid] += _addit(ne.DateTimeMonth.indices(title, monthid), monthid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[monthid] += _addit(ne.DateTimeMonth.indices(title, monthid), monthid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        vote_cnts[monthid] += _addit(NamedEntities.DateTimeMonth.indices(title, monthid), monthid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        vote_cnts[monthid] += _addit(NamedEntities.DateTimeMonth.indices(title, monthid), monthid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
 
     assert isinstance(vote_cnts, dict)
     hint_types = [HintTypes.season_hint] * len(hints)
@@ -308,10 +364,10 @@ def make_season_hints(title, post_text):
     
     vote_cnts = {}
 
-    for seasonid in ne.DateTimeSeason.NOUN_DICT_ALL.keys(): #addit processes the list of species under each key
+    for seasonid in NamedEntities.DateTimeSeason.NOUN_DICT_ALL.keys(): #addit processes the list of species under each key
         if not vote_cnts.get(seasonid): vote_cnts[seasonid] = 0
-        vote_cnts[seasonid] += _addit(ne.DateTimeSeason.indices(title, seasonid), seasonid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[seasonid] += _addit(ne.DateTimeSeason.indices(title, seasonid), seasonid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        vote_cnts[seasonid] += _addit(NamedEntities.DateTimeSeason.indices(title, seasonid), seasonid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        vote_cnts[seasonid] += _addit(NamedEntities.DateTimeSeason.indices(title, seasonid), seasonid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
 
     assert isinstance(vote_cnts, dict)
     hint_types = [HintTypes.season_hint] * len(hints)
@@ -330,24 +386,27 @@ def make_catch_hints(title, post_text):
     
     vote_cnts = {}
     addit_ = {}
-    
-    #yes, we are just looking for a number by a species name anywhere
-    for speciesid, aliass in ne.SpeciesSpecified.NOUN_DICT_ALL.items(): #addit processes the list of species under each key
-        for s in aliass:
-            if title and _nlp.relib.CheckDistanceAnyNumber(title, s, 8):
-                hints += speciesid
-                hint_type += HintTypes.species_catch
-                source_texts += s
-                sources += Sources.title
-                ns += 1
 
-            if post_text and _nlp.relib.CheckDistanceAnyNumber(post_text, s, 8):
-                hints += speciesid
-                hint_type += HintTypes.species_catch
-                source_texts += s
-                sources += Sources.title
-                ns += 1
     
+    def _fillit(SpeciesDict, title, post_text):
+        nonlocal hints, source_texts, sources
+        for speciesid, aliass in SpeciesDict.items(): #addit processes the list of species under each key
+            for s in aliass:
+                if title and _nlp.relib.CheckDistanceAnyNumber(title, s, 8):
+                    hints += speciesid
+                    source_texts += s
+                    sources += Sources.post_text
+
+                if post_text and _nlp.relib.CheckDistanceAnyNumber(post_text, s, 8):
+                    hints += speciesid
+                    hint_type += HintTypes.species_catch
+                    source_texts += s
+                    sources += Sources.title
+
+
+    #yes, we are just looking for a number by a species name anywhere
+    _fillit(NamedEntities.SpeciesSpecified.NOUN_DICT_ALL, title, post_text)
+         
     all_found = set(hints)
     #now we have to deal with unspecifieds
     #we are deleting all the keys in unspecified where
@@ -357,49 +416,38 @@ def make_catch_hints(title, post_text):
     #vote_cnts = {'black bream':1, 'bass':4}, so all found = ['black bream', 'bass']
     #we then delete all keys from dUnspecified which with values in all found
     #we use sets as they are fast
-    dUnspecified = dict(ne.SpeciesUnspecified.NOUN_DICT)
-    for speciesid, species in ne.SpeciesUnspecified.NOUN_DICT:
+    dUnspecified = dict(NamedEntities.SpeciesUnspecified.NOUN_DICT)
+    for speciesid, species in NamedEntities.SpeciesUnspecified.NOUN_DICT:
         if not set(species).isdisjoint(all_found):
             del(dUnspecified[speciesid])
 
     #Udnspecified should now just contain unspecified species
     #where more specific species have not been found
     if UnspecifiedKeys.sole in dUnspecified.keys():
-        for speciesid in ne.SpeciesUnspecifiedSole.NOUN_DICT_ALL.keys():        #do sole, the more specific first
-            if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-            vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-            vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        _fillit(NamedEntities.SpeciesUnspecifiedSole.NOUN_DICT_ALL, title, post_text) 
 
     if UnspecifiedKeys.flatfish in dUnspecified.keys():
-        for speciesid in ne.SpeciesUnspecifiedFlatfish():        #do sole, the more specific first
-            if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-            vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-            vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        _fillit(NamedEntities.SpeciesUnspecifiedFlatfish.NOUN_DICT_ALL, title, post_text) 
 
     if UnspecifiedKeys.bream in dUnspecified.keys():
-        for speciesid in ne.SpeciesUnspecifiedBream.NOUN_DICT_ALL.keys():        #do sole, the more specific first
-            if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-            vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-            vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        _fillit(NamedEntities.SpeciesUnspecifiedBream.NOUN_DICT_ALL, title, post_text) 
 
     if UnspecifiedKeys.mullet in dUnspecified.keys():
-        for speciesid in ne.SpeciesUnspecifiedMullet.NOUN_DICT_ALL.keys():        #do sole, the more specific first
-            if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-            vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-            vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        _fillit(NamedEntities.SpeciesUnspecifiedMullet.NOUN_DICT_ALL, title, post_text) 
 
     if UnspecifiedKeys.skate_ray in dUnspecified.keys():
-    for speciesid in ne.SpeciesUnspecifiedSkatesRays.NOUN_DICT_ALL.keys():        #do sole, the more specific first
-        if not vote_cnts.get(speciesid): vote_cnts[speciesid] = 0
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[speciesid] += _addit(ne.SpeciesUnspecifiedSole.indices(post_text, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        _fillit(NamedEntities.SpeciesUnspecifiedSkatesRays.NOUN_DICT_ALL, title, post_text) 
 
-    hint_types = [HintTypes.species] * len(hints)
-    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, {'ugc_hint':None}
+    ns = [1] * len(hints)
+    pos_lists = [None] * len(hints)
+    poss = [None] * len(hints)
 
-
-
-def make_trip_hints(title, post_text):
+    #if we say we caught a fish, we say it was a trip
+    if hints:
+        ugc_hint = {'ugc_hint': True}
+    else:
+        ugc_hint = {'ugc_hint': False}
+    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
 
 
 
@@ -441,8 +489,8 @@ def main():
     '''main'''
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
     f = lambda s: [str(item) for item in s.split(',')]
-    cmdline.add_argument('-s', '--slice', help='Record slice, eg -l 0,1000', type=f)
-    args = cmdline.parse_args()
+    cmdliNamedEntities.add_argument('-s', '--slice', help='Record slice, eg -l 0,1000', type=f)
+    args = cmdliNamedEntities.parse_args()
 
     offset = int(args.slice[0])
     max_row = int(args.slice[1])
@@ -459,13 +507,13 @@ def main():
     start, stop = window_size * window_idx + offset, window_size * (window_idx + 1) + offset
 
     while True:
-        rows = mmodb.SESSION.query(Ugc).order_by(Ugc.ugcid).slice(start, stop).all()
+        rows = mmodb.SESSION.query(Ugc).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
         if rows is None:
             break
 
         for row in rows:
             assert isinstance(row, Ugc)
-            mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
+            mmodb.SESSION.query(UgcHint).options(load_only('ugcid', 'source', 'title', 'txt_post_sql', 'date_hint', 'platform_hint', 'processed', 'season_hint', 'month_hint')).filter(UgcHint.ugcid == row.ugcid).delete()
             txt_post_sql = _clean(row.txt_post_sql) #the raw text, after running clean sqls separately on sql server
             title = _clean(row.title)
 
@@ -489,6 +537,18 @@ def main():
             #There is no platform hint for species
             write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
 
+            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_catch_hints(title, txt_post_sql)
+            was_catch = ugc_hint.get('ugc_hint')
+            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+
+
+            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_trip_hints(title, txt_post_sql)
+            if not was_catch:
+                row.catch_hint = bool(ugc_hint.get('ugc_hint'))
+            else:
+                row.catch_hint = was_catch
+            row.catch_hint = was_catch
+            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
             
             row.processed = True
             mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
