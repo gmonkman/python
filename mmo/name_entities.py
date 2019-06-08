@@ -66,14 +66,16 @@ class NEBLists(_NamedEntityBase):
     typos=('nouns', 'verbs', 'phrases', 'others')
     force_plural_singular=False
     '''
-    def __init__(self, nouns_proper=None, nouns_common=None, verbs=None, phrases=None, adjectives=None, **kwargs):
+    def __init__(self, nouns_proper=None, nouns_common=None, verbs=None, phrases=None, adjectives=None, add_similiar=False, typos=('nouns_common', 'nouns_proper', 'verbs', 'phrases', 'adjectives')):
         ld = lambda v: set(v) if v else set()
         self.nouns_common = ld(nouns_common)
         self.nouns_proper = ld(nouns_proper)
         self.verbs = ld(verbs)
         self.phrases = ld(phrases)
         self.adjectives = ld(adjectives)
-        super().__init__(**kwargs)
+        self.add_similiar=add_similiar
+        self.typos = typos
+        super().__init__()
 
 
 class _NamedEntityBase():
@@ -87,15 +89,11 @@ class _NamedEntityBase():
     typos are generated for all word types, according to typos argument
     '''
 
-    def __init__(self, add_similiar=False, typos=('nouns_common', 'nouns_proper', 'verbs', 'phrases', 'adjectives')):
+    def __init__(self):
         '''init'''
-        self._force_plural_singular = force_plural_singular
-        self._typos = typos
-        self._force_conjugate = force_conjugate
         self.add_similiar = add_similiar
         self.allwords = set()
         self.all_base_words = set()
-
         self.all_base_words |= self.nouns_common
         self.all_base_words |= self.nouns_proper
         self.all_base_words |= self.verbs
@@ -184,12 +182,14 @@ class _NamedEntityBaseDict():
 
     def __init__(self):
         assert isinstance(nouns, dict)
+        #self.nouns_dict_all = {}
+        #self.nouns_dict = {}
         #self.nouns = nouns  - this IS set by the subclass
         self._setdic()
 
     
     def _setdic(self):
-        '''Sets self.NOUN_DICT_ALL by generating
+        '''Sets self.noun_dict_all by generating
         typos and plurals using NOUN_DICT, where
         NOUN_DICT is set by the inheriting class
         '''
@@ -241,7 +241,7 @@ class _NamedEntityBaseDict():
 
         key: dictionary key text identifying all versions of a word, eg they dictionary key
         'bass', which contains different words for bass. {'bass':['silver', 'bass', 'schoolie' ..]}
-        use_proper: use the list without typos and plurals, otherwise uses NOUN_DICT_ALL
+        use_proper: use the list without typos and plurals, otherwise uses 
         '''
         assert self.nouns_dict, 'nouns_dict was empty'
         assert self.nouns_dict_all, 'nouns_dict was empty'
@@ -267,67 +267,64 @@ class _NamedEntityBaseDict():
 
 
 #region NamedEntity Subclasses
-
-class Afloat(_NamedEntityBase):
-    '''doc'''
-    NOUNS_PROPER = ['pescador']  #kayak and a boat
-    NOUNS_COMMON = ["boat", "tub", "ship", "inflatable", "sail", "onboard", "drift", "anchor", 'slipway', 'tiller', 'starboard', 'aft', 'engine', 'outboard']
-    VERBS = ["launch", "sail", "drift", 'steamed', 'motored', "launched", "sailed", "drifting", "anchored"]
-    OTHER = ['prop']
-    PHRASES = ["seasick", "sea sick", 'puked', 'puke']
+Afloat = NEBLists(
+    adjectives = ['seasick', 'sick'],
+    nouns_proper = ['pescador'],  #kayak and a boat
+    nouns_common = ["boat", "tub", "ship", "inflatable", "sail", "onboard", "drift", "anchor", 'slipway', 'tiller', 'starboard', 'aft', 'engine', 'outboard', 'prop', 'propellor'],
+    verbs = ["launch", "sail", "drift", 'steamed', 'motored', "launched", "sailed", "drifting", "anchored", 'puke'],
+    phrases = ["sea sick"])
 
 
-class AfloatCharterBoat(_NamedEntityBase):
-    '''doc'''
-    NOUNS_PROPER = _clean(["Misty Blue", "Aries II", "Three Sisters", "Amino", "Drakkar", "Amarisa", "Upholder", "Serenity", "Angelus", "Thistle B", "Aquavitesse", "Atlanta", "Atlantic Diver", "Bounty", "Becca-Marie", "Beowulf", "Bessie Vee", "Bite", "Blazer 2", "Bluefin", "Blue Fin", "Blue Thunder", "Blue Turtle", "Peace and Plenty", "Endeavour", "Kimberley", "Providence", "Mistress", "Bootlegger", "Boy Carl", "Grey Viking", "Brighton Diver", "Jay Jay", "Enterprise", "Robert Mark", "Channel Cheiftain 5", "Carrick Lee", "Castaway", "Great Escape", "Celtic Warrior", "Channel Diver", "Channel Warrior", "Charisma", "Aquila", "Chinquita", "Enterprise", "Christyann", "Cloud Nine", "Ali-Cat", "Glad Tidings", "Jessica Hettie", "Wave Cheiftain", "Mermaid II", "Capriole", "Crimson Tide", "Dannyboy II", "Samuel Irvin 3", "Dawn Breaker", "Dawn Raider", "Dawn Tide", "Dawn Venture", "Deep Blue", "Offshore Rebel IV", "Shande III", "Rapid Fisher", "Dentex", "Discovery", "Sha-King", "Dominator", "Final Answer", "Panther", "Emma Kate", "Galloper", "Evelyn-Jane", "Excalibur", "Famous", "Fire Fox", "Grey Fox", "Duke IV", "Suveran", "Jensen", "Mystique", "Folkestone Voyager", "Piscine", "Gemini 3", "Girl Mandy", "Gold-Rush", "Hermit", "Highlander", "Independent", "Jean K", "Jenifers Pride", "Jo-Dan", "Daphne Carole", "Jolly Fisherman", "Telmar", "Manta Ray", "Katie Ann", "Kellys Hero", "Katrina", "Lady Anne", "Lady Essex III", "Lady Mary", "Excel 2", "Lizy", "Louise Jane", "Obsession", "Frances Jane", "Amaretto III", "Kraken", "Marie F", "Neptune", "Boy Richard", "Charlotte Louise", "Margaret Elaine", "Tracy Jane", "Shogun", "M.V. Penetrater", "Penetrater", "Meerkat", "Razorbill 3", "Sovereign", "Venus", "Mistress", "Kaimalino", "Morgan M", "MV Freedom", "Mystique II", "Predator", "Atlantis", "Che Sara Sara", "North Star", "Ocean-Pearl II", "Ocean Warrior 3", "Optimist", "Osprey", "Our Gemma", "Our Joe-L", "Our Joy", "Outlaw", "Out Rage", "Adventuress", "Panther", "Pathfinder", "Celtic Fox", "Chinook 11", "Atlantis", "Piscary", "Size Matters", "C Cheetah", "Secret Star", "Sea Tradar", "Blue Duo", "Danda", "Ruby-D", "Predator", "Starfish", "Private Venture", "Queensferry", "Better Days", "Random Harvest", "Random Harvest II", "Reecer", "Rocket", "Royal Charlotte", "Portia", "Royal Eagle", "Anglo Dawn III", "Sally Ann", "Saltwind", "Sarah JFK", "Scooby Doo Too", "Sea Angler II", "Lady Elsie", "Sea Breeze 3", "Sea Fire ", "Kingfisher", "Voyager", "Waderbay", "Sea Fox", "Dolly P", "White Marlin", "Why Worry", "Wight Huntress", "Sea-Juicer", "Sea Leopard", "Sea Leopard", "Sea-Otter 2", "Sea Searcher", "Sea Spray", "Seeker", "Jo Dan", "Typhoon", "Carrie Jane", "Progress", "Shy-Torque III", "Silver Sea", "Silver Spray", "Skerry Belle", "Sophie Lea", "Emma Jayne", "Bounty Hunter", "Spirit Of Arun", "Supanova", "Susie B", "Purdy and Flamer 2", "San Gina II", "San Gina I", "Tango", "The African Queen", "Chieftain", "Tiger", "Southern Angler", "Tina Dawn", "Last Laugh", "Trot On", "True Blue", "Two Dogs", "Predator", "Unity", "Viking", "Laura III", "Christine Ann", "Dawn Mist", "Wetwheels", "Meerkat", "Never Can Tell A", "Lone Shark", "Sea Urchin II", "White Maiden", "Wight Sapphire", "Wight Spirit", "Lowestoft Provider", "Hvita", "Penetrater", "Trojan Warrior Whitby", "Diablo", "Dulcie T", "Southern Star", "Force 10", "Bonaventure II", "Serenity", "Rachel K", "Lillie May", "Warlord", "Sambe", "On A Promise", "Yorkshireman", "Gloria B11", "Kingfisher II", "In-T-Net", "Malaki", "Rose-Ann", "Kittiwake 3", "Buccaneer", "Mia Jay", "High Flyer", "Bluedawn", "Wight Rebel", "T.J. Gannet", "Danny Boy", "Bachanalian", "Ocean Lass", "Valkyrie", "Lady D", "Cobra 111 (Nab- cat)", "Kayleigh-L", "Lynander", "George Griffiths MBE", "Lead Us", "Cleveland Princess", "Chocolate", "Jozilee", "Challenger 2", "M.F.V. Fulmar", "AlyKat", "Edwin John", "Mary Ellen", "Jo-Jo", "Optimist", "Trio 3", "Missy Moo", "Madonna", "She Likes It 2", "Marlin", "Catch 22", "Sapphire", "Joy Belle", "Anne Clare", "Misty Lady", "Trya II", "Eastern Promise", "Shokwave", "Lady Grace", "Fish On!", "Tiger Lily", "Yorkshire Lass", "Heidi J", "Ocean Crusader", "Bon Amy", "Telmar II", "Starfish", "Torbay Belle", "Lady Ann", "Pace Arrow", "Saxon Lady", "Tuonela", "Hard Labour", "Jolly Roger", "Lady Helen", "Blue Mink", "Crusader 2", "Elegance", "Toplines", "Atlantic Blue", "Lady Lucy II", "Pride and Joy", "Three Sisters", "Lady Sarah", "Red 5", "Lady Of The Lake", "Nemesis", "Patrice II", "Great White", "Adelaide", "Osprey", "Yellowfin", "Mirage", "Aces High", "Kaimalino", "Tamesis", "Reel Action", "Bramblewick", "Flamer IV", "Top Cat III", "Lone Shark III", "Als Spirit", "Ailish", "Racheal Jane", "Swordfish", "Trio III", "Porbeagle", "Freedom", "Joint Venture", "Aldeburgh Angler", "Karyl-Anne", "Julie D", "Barracuda", "Blue Marlin", "Escapade", "Lily Lolo", "Wild Frontier", "Dawn Tide", "Dusk Diver", "Sunrise", "Osprey II", "Stoney Broke", "Natalie Kristen II", "Branscombe Pearl", "Striker", "Morning Breeze", "Oberon", "Moonshine", "Sportsmans Night", "Predator", "Venture", "Senija", "Kingfisher", "Mistress Linda", "Danse De Leau", "Swin Ranger", "M.F.V. Tamesis", "Foxy Lady", "Pioneer", "Restorick III", "Morgan James", "Dakala Mist", "Lady Tina", "Top Cat", "Michelle Mary", "Swallow IV", "Moonraker", "Pegasus", "Miss Patty", "Sea Fever", "She Likes It Rough 2", "Chrisanda", "Jubrae", "Thresher", "Bonwey", "Heartbeat", "Sarah Michelle", "Mac", "Sally Ann", "Duchess II", "Defiant", "Shalimar", "Orca", "Bayside", "Rose-Ann", "Rose Ann", "Caroline"])
-    NOUNS_PROPER = [n.lower() for n in NOUNS_PROPER]
-    VERBS = ["charter", "skipper", "hire"]
-    NOUNS_COMMON = ['charter', 'inflatable']
-    PHRASES = ['charter boat']
+
+l = _clean(["Misty Blue", "Aries II", "Three Sisters", "Amino", "Drakkar", "Amarisa", "Upholder", "Serenity", "Angelus", "Thistle B", "Aquavitesse", "Atlanta", "Atlantic Diver", "Bounty", "Becca-Marie", "Beowulf", "Bessie Vee", "Bite", "Blazer 2", "Bluefin", "Blue Fin", "Blue Thunder", "Blue Turtle", "Peace and Plenty", "Endeavour", "Kimberley", "Providence", "Mistress", "Bootlegger", "Boy Carl", "Grey Viking", "Brighton Diver", "Jay Jay", "Enterprise", "Robert Mark", "Channel Cheiftain 5", "Carrick Lee", "Castaway", "Great Escape", "Celtic Warrior", "Channel Diver", "Channel Warrior", "Charisma", "Aquila", "Chinquita", "Enterprise", "Christyann", "Cloud Nine", "Ali-Cat", "Glad Tidings", "Jessica Hettie", "Wave Cheiftain", "Mermaid II", "Capriole", "Crimson Tide", "Dannyboy II", "Samuel Irvin 3", "Dawn Breaker", "Dawn Raider", "Dawn Tide", "Dawn Venture", "Deep Blue", "Offshore Rebel IV", "Shande III", "Rapid Fisher", "Dentex", "Discovery", "Sha-King", "Dominator", "Final Answer", "Panther", "Emma Kate", "Galloper", "Evelyn-Jane", "Excalibur", "Famous", "Fire Fox", "Grey Fox", "Duke IV", "Suveran", "Jensen", "Mystique", "Folkestone Voyager", "Piscine", "Gemini 3", "Girl Mandy", "Gold-Rush", "Hermit", "Highlander", "Independent", "Jean K", "Jenifers Pride", "Jo-Dan", "Daphne Carole", "Jolly Fisherman", "Telmar", "Manta Ray", "Katie Ann", "Kellys Hero", "Katrina", "Lady Anne", "Lady Essex III", "Lady Mary", "Excel 2", "Lizy", "Louise Jane", "Obsession", "Frances Jane", "Amaretto III", "Kraken", "Marie F", "Neptune", "Boy Richard", "Charlotte Louise", "Margaret Elaine", "Tracy Jane", "Shogun", "M.V. Penetrater", "Penetrater", "Meerkat", "Razorbill 3", "Sovereign", "Venus", "Mistress", "Kaimalino", "Morgan M", "MV Freedom", "Mystique II", "Predator", "Atlantis", "Che Sara Sara", "North Star", "Ocean-Pearl II", "Ocean Warrior 3", "Optimist", "Osprey", "Our Gemma", "Our Joe-L", "Our Joy", "Outlaw", "Out Rage", "Adventuress", "Panther", "Pathfinder", "Celtic Fox", "Chinook 11", "Atlantis", "Piscary", "Size Matters", "C Cheetah", "Secret Star", "Sea Tradar", "Blue Duo", "Danda", "Ruby-D", "Predator", "Starfish", "Private Venture", "Queensferry", "Better Days", "Random Harvest", "Random Harvest II", "Reecer", "Rocket", "Royal Charlotte", "Portia", "Royal Eagle", "Anglo Dawn III", "Sally Ann", "Saltwind", "Sarah JFK", "Scooby Doo Too", "Sea Angler II", "Lady Elsie", "Sea Breeze 3", "Sea Fire ", "Kingfisher", "Voyager", "Waderbay", "Sea Fox", "Dolly P", "White Marlin", "Why Worry", "Wight Huntress", "Sea-Juicer", "Sea Leopard", "Sea Leopard", "Sea-Otter 2", "Sea Searcher", "Sea Spray", "Seeker", "Jo Dan", "Typhoon", "Carrie Jane", "Progress", "Shy-Torque III", "Silver Sea", "Silver Spray", "Skerry Belle", "Sophie Lea", "Emma Jayne", "Bounty Hunter", "Spirit Of Arun", "Supanova", "Susie B", "Purdy and Flamer 2", "San Gina II", "San Gina I", "Tango", "The African Queen", "Chieftain", "Tiger", "Southern Angler", "Tina Dawn", "Last Laugh", "Trot On", "True Blue", "Two Dogs", "Predator", "Unity", "Viking", "Laura III", "Christine Ann", "Dawn Mist", "Wetwheels", "Meerkat", "Never Can Tell A", "Lone Shark", "Sea Urchin II", "White Maiden", "Wight Sapphire", "Wight Spirit", "Lowestoft Provider", "Hvita", "Penetrater", "Trojan Warrior Whitby", "Diablo", "Dulcie T", "Southern Star", "Force 10", "Bonaventure II", "Serenity", "Rachel K", "Lillie May", "Warlord", "Sambe", "On A Promise", "Yorkshireman", "Gloria B11", "Kingfisher II", "In-T-Net", "Malaki", "Rose-Ann", "Kittiwake 3", "Buccaneer", "Mia Jay", "High Flyer", "Bluedawn", "Wight Rebel", "T.J. Gannet", "Danny Boy", "Bachanalian", "Ocean Lass", "Valkyrie", "Lady D", "Cobra 111 (Nab- cat)", "Kayleigh-L", "Lynander", "George Griffiths MBE", "Lead Us", "Cleveland Princess", "Chocolate", "Jozilee", "Challenger 2", "M.F.V. Fulmar", "AlyKat", "Edwin John", "Mary Ellen", "Jo-Jo", "Optimist", "Trio 3", "Missy Moo", "Madonna", "She Likes It 2", "Marlin", "Catch 22", "Sapphire", "Joy Belle", "Anne Clare", "Misty Lady", "Trya II", "Eastern Promise", "Shokwave", "Lady Grace", "Fish On!", "Tiger Lily", "Yorkshire Lass", "Heidi J", "Ocean Crusader", "Bon Amy", "Telmar II", "Starfish", "Torbay Belle", "Lady Ann", "Pace Arrow", "Saxon Lady", "Tuonela", "Hard Labour", "Jolly Roger", "Lady Helen", "Blue Mink", "Crusader 2", "Elegance", "Toplines", "Atlantic Blue", "Lady Lucy II", "Pride and Joy", "Three Sisters", "Lady Sarah", "Red 5", "Lady Of The Lake", "Nemesis", "Patrice II", "Great White", "Adelaide", "Osprey", "Yellowfin", "Mirage", "Aces High", "Kaimalino", "Tamesis", "Reel Action", "Bramblewick", "Flamer IV", "Top Cat III", "Lone Shark III", "Als Spirit", "Ailish", "Racheal Jane", "Swordfish", "Trio III", "Porbeagle", "Freedom", "Joint Venture", "Aldeburgh Angler", "Karyl-Anne", "Julie D", "Barracuda", "Blue Marlin", "Escapade", "Lily Lolo", "Wild Frontier", "Dawn Tide", "Dusk Diver", "Sunrise", "Osprey II", "Stoney Broke", "Natalie Kristen II", "Branscombe Pearl", "Striker", "Morning Breeze", "Oberon", "Moonshine", "Sportsmans Night", "Predator", "Venture", "Senija", "Kingfisher", "Mistress Linda", "Danse De Leau", "Swin Ranger", "M.F.V. Tamesis", "Foxy Lady", "Pioneer", "Restorick III", "Morgan James", "Dakala Mist", "Lady Tina", "Top Cat", "Michelle Mary", "Swallow IV", "Moonraker", "Pegasus", "Miss Patty", "Sea Fever", "She Likes It Rough 2", "Chrisanda", "Jubrae", "Thresher", "Bonwey", "Heartbeat", "Sarah Michelle", "Mac", "Sally Ann", "Duchess II", "Defiant", "Shalimar", "Orca", "Bayside", "Rose-Ann", "Rose Ann", "Caroline"])
+l = [n.lower() for n in l]
+AfloatCharterBoat = NEBLists(
+    nouns_proper = l,
+    verbs = ["charter", "skipper", "hire"],
+    nouns_common = ['charter', 'inflatable'],
+    phrases = ['charter boat'])
 
 
-class AfloatKayak(_NamedEntityBase):
-    '''kayak'''
-    NOUNS_COMMON = ["kayak", "yak", "prowler"]
-    NOUNS_PROPER = ["tarpon", "trident", "scupper", "paddle", "fatyak", "dorado", "teksport", "emotion", 'cuda', 'mirage', 'profish', 'outback', 'sturgeon', 'wilderness', 'aquago', 'juntos', 'malibu', 'huntsman', 'profisha', 'revo 16', 'gosea', 'tetra', 'feelfree', 'hobbie', 'dorado', 'wilderness systems', 'wido', 'riber', 'perception', 'systemx', 'tootega', "kaskazi", 'galaxy', 'viking', 'werner', 'railblaza']
-    PHRASES = ['mirage outback', 'pelican catch', 'lifetime muskie', "fat yak", 'system x', 'jackson cuda', 'cuda 14']
-    VERBS = ['kayaking', 'paddled']
+AfloatKayak = NEBLists(
+    nouns_common = ["kayak", "yak", "prowler"],
+    nouns_proper = ["tarpon", "trident", "scupper", "paddle", "fatyak", "dorado", "teksport", "emotion", 'cuda', 'mirage', 'profish', 'outback', 'sturgeon', 'wilderness', 'aquago', 'juntos', 'malibu', 'huntsman', 'profisha', 'revo 16', 'gosea', 'tetra', 'feelfree', 'hobbie', 'dorado', 'wilderness systems', 'wido', 'riber', 'perception', 'systemx', 'tootega', "kaskazi", 'galaxy', 'viking', 'werner', 'railblaza'],
+    phrases = ['mirage outback', 'pelican catch', 'lifetime muskie', "fat yak", 'system x', 'jackson cuda', 'cuda 14'],
+    verbs = ['kayaking', 'paddled'])
 
 
-class AfloatPrivate(_NamedEntityBase):
-    '''doc'''
-    NOUNS_COMMON = ['rib', 'oar', "dinghy", 'dory', 'outboard']
-    NOUNS_PROPER = ['arvor', 'fibramar', 'treeve', 'quicksilver', 'fastliner', 'strikeline', 'leisurecat', 'mallon', 'beneteau', 'antares', 'reiver', 'saltram', 'colvic', 'navistar']
-    PHRASES = ['Wilson Flyer', 'nord star', 'cougar cat', 'mitchell 22', 'sea line', 'orkney 520']
-    VERBS = ['rowed']
+AfloatPrivate = NEBLists(
+    nouns_common = ['rib', 'oar', "dinghy", 'dory', 'outboard'],
+    nouns_proper = ['arvor', 'fibramar', 'treeve', 'quicksilver', 'fastliner', 'strikeline', 'leisurecat', 'mallon', 'beneteau', 'antares', 'reiver', 'saltram', 'colvic', 'navistar'],
+    phrases = ['Wilson Flyer', 'nord star', 'cougar cat', 'mitchell 22', 'sea line', 'orkney 520'],
+    verbs = ['rowed'])
 
 
-class GearAngling(_NamedEntityBase):
-    '''doc'''
-    NOUNS_COMMON = ["rod", "beachcaster", "beachcasters", "rod", "bait", "plug", 'lure', 'spinner']
-    NOUNS_PROPER = ['redgill']
-    PHRASES = ['beach caster', 'beach casters', 'livebait', 'live bait', 'lrf', 'light rock fishing', 'feathering', 'red gill', 'red gills', 'savage gear']
-    VERBS = ["spinning", 'cast']
+GearAngling = NEBLists(
+    nouns_common = ["rod", "beachcaster", "beachcasters", "rod", "bait", "plug", 'lure', 'spinner'],
+    nouns_proper = ['redgill'],
+    phrases = ['beach caster', 'beach casters', 'livebait', 'live bait', 'lrf', 'light rock fishing', 'feathering', 'red gill', 'red gills', 'savage gear'],
+    verbs = ["spinning", 'cast', 'plugging'])
 
 
-class GearNoneAngling(_NamedEntityBase):
-    '''doc'''
-    NOUNS_COMMON = ['seine']
-    PHRASES = ['spear gun', 'long lines', 'long line', 'purse net']
+GearNoneAngling = NEBLists(
+    nouns_common = ['seine'],
+    verbs = ['netting'],
+    phrases = ['spear gun', 'long lines', 'long line', 'purse net', 'seine net'])
 
 
-class MetrologicalAll(_NamedEntityBase):
-    '''doc'''
-    ADJECTIVES = ['heavy', 'big', 'small', 'huge', 'giant', 'tiny', 'little', 'loads', 'plenty', 'lots']
-    NOUNS_COMMON = ["pound", "pounds", "kilos", "kilo", "kilogram", "kilograms", "grams", "gram", "ounce", "ounces", "lb", "lbs", "ozs", "kg", "kgs", "meter", "meters", "metre", "metres", "cm", "cms", "centimeters", "centimeter", "centimetres", "centimetre", "inch", "inches", "foot", "feet"]
+MetrologicalAll = NEBLists(
+    adjectives = ['heavy', 'big', 'small', 'huge', 'giant', 'tiny', 'little', 'loads', 'plenty', 'lots'],
+    nouns_common = ["pound", "pounds", "kilos", "kilo", "kilogram", "kilograms", "grams", "gram", "ounce", "ounces", "lb", "lbs", "ozs", "kg", "kgs", "meter", "meters", "metre", "metres", "cm", "cms", "centimeters", "centimeter", "centimetres", "centimetre", "inch", "inches", "foot", "feet"],
+    typos=('nouns_common'),
+    add_similiar=False
+    )
 
 
-class Session(_NamedEntityBase):
-    '''doc'''
-    ADJECTIVES = ['early', 'late']
-    NOUNS_COMMON = ['session', 'trip', "hour", "mins", "minutes", "hrs", "minute", "hours", "min", 'morning', 'afternoon', 'noon', 'midday', 'early', 'late', "p.m.", "a.m.", 'pm', 'a.m', 'p.m']
-    PHRASES = ["before low", "after low", "to low", "after high", "to high", "before high", "either side", "around high", "around low", "tide out", "tide down", "tide in", "tide up", "packed up", "went home"]
-    VERBS = ["arrived", "started", "fished", "fishing", "hour", "flood", "ebb", 'caught', 'landed', 'unhooked', 'hooked', 'released', "fished", "fishing", "arrived", "started", "stopped", "ended", "left", 'casting', 'leave', 'trolling']
+Session = NEBLists(
+    adjectives = ['early', 'late'],
+    nouns_common = ['session', 'trip', "hour", "minute", "hour", 'morning', 'afternoon', 'noon', 'midday', 'flood', 'ebb'],
+    phrases = ["before low", "after low", "to low", "after high", "to high", "before high", "either side", "around high", "around low", "tide out", "tide down", "tide in", "tide up", "packed up", "went home", "p.m.", "a.m.", 'pm', 'a.m', 'p.m', "hrs", "mins"],
+    verbs = ['angling', 'arrived', 'casting', 'catch', 'ended', 'fishing', 'hook', 'land', 'leave', 'leave', 'release', 'start', 'stop', 'trolling', 'unhook']
 #endregion
 
 
