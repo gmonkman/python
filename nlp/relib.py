@@ -94,7 +94,7 @@ def CheckDistanceAnyNumber(sentence, word, distance, anyorder=True):
     does word appear within <distance> words of a numberic
     '''
     a = r"\b(?:[1-9](?:\d{0,10})(?:,\d{10})*(?:\.\d*[1-9])?|0?\.\d*[1-9]|0)\W+(?:\w+\W+){0,%s}?%s\b" % (distance, word)
-    print(a)
+    #print(a)
     b = r"\b%s\W+(?:\w+\W+){0,%s}(?:[1-9](?:\d{0,10})(?:,\d{10})*(?:\.\d*[1-9])?|0?\.\d*[1-9]|0)\b" % (word, distance)
     reFL = _re.compile(a, _re.IGNORECASE)
     reLF = _re.compile(b, _re.IGNORECASE)

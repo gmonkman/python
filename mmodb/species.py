@@ -38,14 +38,7 @@ def get_species_as_dict_unspecified():
     Converts to lower() as loaded
     '''
     rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_unspecified')).fetchall()
-    out = {}
-    for r in rows:
-        if out.get(r[0]):
-            out[r[0]] += _clean([r[1]])
-        else:
-            out[r[0]] = _clean([r[1]])
-    return out
-
+    return _read_rows(rows)
 
 def get_species_as_dict_sans_unspecified():
     '''get species as a dict
@@ -55,74 +48,71 @@ def get_species_as_dict_sans_unspecified():
     Converts to lower() as loaded
     '''
     rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_sans_unspecified')).fetchall()
-    out = {}
-    for r in rows:
-        if out.get(r[0]):
-            out[r[0]] += _clean([r[1]])
-        else:
-            out[r[0]] = _clean([r[1]])
-    return out
-
+    return _read_rows(rows)
 
 def get_species_flatfish():
     '''gets the speciesid and aliases of all flatfish'''
-
     rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_flatfish')).fetchall()
-    out = {}
-    for r in rows:
-        if out.get(r[0]):
-            out[r[0]] += _clean([r[1]])
-        else:
-            out[r[0]] = _clean([r[1]])
-    return out
-
+    return _read_rows(rows)
 
 def get_species_skates_rays():
     '''gets the speciesid and aliases of all skates and rays'''
-
     rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_skates_rays')).fetchall()
-    out = {}
-    for r in rows:
-        if out.get(r[0]):
-            out[r[0]] += _clean([r[1]])
-        else:
-            out[r[0]] = _clean([r[1]])
-    return out
+    return _read_rows(rows)
 
 def get_species_sole():
     '''gets the speciesid and aliases of all sole'''
-
     rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_sole')).fetchall()
-    out = {}
-    for r in rows:
-        if out.get(r[0]):
-            out[r[0]] += _clean([r[1]])
-        else:
-            out[r[0]] = _clean([r[1]])
-    return out
-
+    return _read_rows(rows)
 
 def get_species_mullet():
     '''gets the speciesid and aliases of all mullet'''
-
     rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_mullet')).fetchall()
-    out = {}
-    for r in rows:
-        if out.get(r[0]):
-            out[r[0]] += _clean([r[1]])
-        else:
-            out[r[0]] = _clean([r[1]])
-    return out
-
+    return _read_rows(rows)
 
 def get_species_bream():
     '''gets the speciesid and aliases of all mullet'''
-
     rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_bream')).fetchall()
+    return _read_rows(rows)
+
+
+
+def get_species_flatfish_unspecified():
+    '''gets the speciesid and aliases of all flatfish'''
+    rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_flatfish_unspecified')).fetchall()
+    return _read_rows(rows)
+
+def get_species_skates_rays_unspecified():
+    '''gets the speciesid and aliases of all skates and rays'''
+    rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_skates_rays_unspecified')).fetchall()
+    return _read_rows(rows)
+
+def get_species_sole_unspecified():
+    '''gets the speciesid and aliases of all sole'''
+    rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_sole_unspecified')).fetchall()
+    return _read_rows(rows)
+
+def get_species_mullet_unspecified():
+    '''gets the speciesid and aliases of all mullet'''
+    rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_mullet_unspecified')).fetchall()
+    return _read_rows(rows)
+
+def get_species_bream_unspecified():
+    '''gets the speciesid and aliases of all mullet'''
+    rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_bream_unspecified')).fetchall()
+    return _read_rows(rows)
+
+
+
+
+
+def _read_rows(rows):
+    '''read rows'''
     out = {}
     for r in rows:
-        if out.get(r[0]):
-            out[r[0]] += _clean([r[1]])
+        key = r[0].lower()
+        if out.get(key):
+            out[key] += _clean([r[1]])
         else:
-            out[r[0]] = _clean([r[1]])
+            out[key] = _clean([r[1]])
     return out

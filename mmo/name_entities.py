@@ -69,6 +69,15 @@ TYPO_OPTIONS_ALL = set(('nouns_common', 'nouns_proper', 'verbs', 'phrases', 'adj
 
 
 
+class GroupsForUnspecified():
+    '''these are used to determine if we have found a specifc species
+    in write hints.py, if we have not, we then look for group terms'''
+    SOLE_SPECIFIED_KEYS = set(_clean(['Dover Sole', 'Lemon Sole', 'Sand Sole']))
+    SKATE_RAY_SPECIFIED_KEYS = set(_clean(['Common Stingray', 'Ray (Blonde)', 'Ray (Cuckoo)', 'Ray (Eagle)', 'Ray (Electric)', 'Ray (Marbled-Electric)', 'Ray (Sandy)', 'Ray (Shagreen)', 'Ray (Small Eyed)', 'Ray (Spotted)', 'Ray (Starry)', 'Ray (Thornback)', 'Ray (Undulate)']))
+    BREAM_SPECIFIED_KEYS = set(_clean(["Black Bream", "Couch's Seabream", "Gilthead Sea Bream", "Pandora Sea Bream", "Ray's Bream", "Red Sea Bream", "White Sea Bream"]))
+    MULLET_SPECIFIED_KEYS = set(_clean(["Golden-Grey Mullet", "Red Mullet", "Thick Lipped Grey Mullet", "Thin Lipped Grey Mullet"]))
+    FLATFISH_SPECIFIED_KEYS = set(_clean(['Brill', 'Dab', 'Dover Sole', 'Flounder', 'Lemon Sole', 'Long Rough Dab', 'Megrim', 'Plaice', 'Sand Sole', 'Topknot', 'Turbot', 'Witch']))
+
 
 #region LISTS HANDLER
 class _NamedEntityBase():
@@ -105,7 +114,7 @@ class _NamedEntityBase():
         print('Getting typos for %s' % self.dump_name)
         nouns_proper = set(self.nouns_proper); verbs = set(self.verbs); phrases = set(self.phrases); nouns_common = set(self.nouns_common); adjectives = set(self.adjectives)
         if self.typos: #typos can be none
-            if isinstance(self.typos, str): self.typos=(self.typos,)
+            if isinstance(self.typos, str): self.typos = (self.typos,)
             assert set(self.typos).issubset(TYPO_OPTIONS_ALL), 'Invalid typos options. Typos must be in %s. Check subclass initialisation.' % TYPO_OPTIONS_ALL
         nouns_proper = set(self.nouns_proper)
 
@@ -221,8 +230,8 @@ class _NamedEntityBaseDict():
     
     def _setdic(self):
         '''Sets self.noun_dict_all by generating
-        typos and plurals using NOUN_DICT, where
-        NOUN_DICT is set by the inheriting class
+        typos and plurals using noun_dict, where
+        noun_dict is set by the inheriting class
         '''
         assert isinstance(self.nouns_dict, dict), 'nouns_dict was not a dict in %s' % self.dump_name
         assert self.nouns_dict, 'nouns_dict was empty in %s' % self.dump_name
@@ -237,10 +246,11 @@ class _NamedEntityBaseDict():
             assert key_words, 'noun_dict %s was empty' % key
             wds = []            
             for w in key_words:
+                if 'unspecified' in w: continue #TODO temporary kludge to exclude unspecified
                 wds += _nlpbase.plural_sing(w)
 
             if self.typos:
-                wds += _typo.typos(wds, add_v=False, filter_start_n=TYPOS_FIX_FIRST_N_CHARS, min_length=TYPOS_MIN_LENGTH)
+                wds += _typo.typos(wds, filter_start_n=TYPOS_FIX_FIRST_N_CHARS, min_length=TYPOS_MIN_LENGTH)
 
             self.nouns_dict_all[key] = set(wds)
 
@@ -290,8 +300,8 @@ class _NamedEntityBaseDict():
         {'black':[5,11]}
         '''
         out = {}
-        words = self.nouns_dict_all.get([keyid])
-        assert words, 'nouns_all had no items for key %s' % keyid
+        words = self.nouns_dict_all.get(keyid)
+        assert words, 'nouns_dict_all had no items for key %s' % keyid
         for word in words:
             inds = _relib.get_indices(s, word)
             if inds:
@@ -323,8 +333,8 @@ class _NamedEntityBaseDict():
         This is used as a whitelist filter for stopwords
         '''
         assert self.nouns_dict_all, 'self.all was accessed, but self.all was empty.'
-        all = _flat([list(x) for x in self.nouns_dict_all.values()])
-        return set(all)
+        all_ = _flat([list(x) for x in self.nouns_dict_all.values()])
+        return set(all_)
 
 
 
@@ -477,35 +487,35 @@ SpeciesUnspecified = NEBDicts(nouns_dict=d,
                               dump_name='SpeciesUnspecified')
 
 
-d = _species.get_species_sole()
+d = _species.get_species_sole_unspecified()
 assert d, '_species.get_species_sole() failed'
 SpeciesUnspecifiedSole = NEBDicts(nouns_dict=d,
                                   typos=None,
                                   dump_name='SpeciesUnspecifiedSole')
 
 
-d = _species.get_species_flatfish()
+d = _species.get_species_flatfish_unspecified()
 assert d, '_species.get_species_flatfish() failed'
 SpeciesUnspecifiedFlatfish = NEBDicts(nouns_dict=d,
                                       typos=None,
                                       dump_name='SpeciesUnspecifiedFlatfish')
 
 
-d = _species.get_species_mullet()
+d = _species.get_species_mullet_unspecified()
 assert d, '_species.get_species_mullet() failed'
 SpeciesUnspecifiedMullet = NEBDicts(nouns_dict=d,
                                     typos=None,
                                     dump_name='SpeciesUnspecifiedMullet')
 
 
-d = _species.get_species_bream()
+d = _species.get_species_bream_unspecified()
 assert d, '_species.get_species_bream() failed'
 SpeciesUnspecifiedBream = NEBDicts(nouns_dict=d,
                                    typos=None,
                                    dump_name='SpeciesUnspecifiedBream')
 
 
-end = _species.get_species_skates_rays()
+d = _species.get_species_skates_rays_unspecified()
 assert d, '_species.get_species_skates_rays() failed'
 SpeciesUnspecifiedSkatesRays = NEBDicts(nouns_dict=d,
                                         typos=None,

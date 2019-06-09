@@ -34,7 +34,7 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled while debugging")
     def test_species(self):
         '''test'''
-        s = mmo.name_entities.Afloat.allwords
+        #s = mmo.name_entities.Afloat.allwords
         pass
       
 
