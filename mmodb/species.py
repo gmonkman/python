@@ -21,13 +21,7 @@ def get_species_as_dict_all():
     Converts to lower() as loaded
     '''
     rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_all')).fetchall()
-    out = {}
-    for r in rows:
-        if out.get(r[0]):
-            out[r[0]] += _clean([r[1]])
-        else:
-            out[r[0]] = _clean([r[1]])
-    return out
+    return _read_rows(rows)
 
 
 def get_species_as_dict_unspecified():

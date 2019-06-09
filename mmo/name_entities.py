@@ -305,7 +305,7 @@ class _NamedEntityBaseDict():
         for word in words:
             inds = _relib.get_indices(s, word)
             if inds:
-                out['word'] = inds
+                out[word] = inds
         return out
 
 
@@ -473,6 +473,15 @@ DateTimeSeason = NEBDicts(
 DateTimeSeason.get_season = _get_season
 
 
+
+
+d = _species.get_species_as_dict_all()
+assert d, '_species.get_species_as_dict_all() failed'
+SpeciesAll = NEBDicts(nouns_dict=d,
+                            typos=None,
+                            dump_name='SpeciesAll')
+
+
 d = _species.get_species_as_dict_sans_unspecified()
 assert d, '_species.get_species_as_dict_sans_unspecified() failed'
 SpeciesSpecified = NEBDicts(nouns_dict=d,
@@ -521,7 +530,6 @@ SpeciesUnspecifiedSkatesRays = NEBDicts(nouns_dict=d,
                                         typos=None,
                                         dump_name='SpeciesUnspecifiedSkatesRays')
 #endregion
-
 
 
 if __name__ == '__main__':

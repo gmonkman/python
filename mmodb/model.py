@@ -257,6 +257,7 @@ class Species(Base):
     species_type1id = Column(ForeignKey('species_type1.species_type1id'))
     catch_rank = Column(Integer, nullable=False, server_default=text("((0))"))
     target_rank = Column(Integer, nullable=False, server_default=text("((0))"))
+    is_sa2012 = Column(BIT, nullable=False, server_default=text("((0))"))
 
     species_type1 = relationship('SpeciesType1')
 
