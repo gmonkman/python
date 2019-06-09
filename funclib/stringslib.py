@@ -27,7 +27,7 @@ def plus_minus():
 
 def non_breaking_space2space(s, replace_with=' '):
     '''replace non breaking spaces'''
-    return s.replace(s, replace_with)
+    return s.replace('\xc2\xa0', replace_with)
 
 
 class Visible():

@@ -17,7 +17,7 @@ class Book(Base):
     page_num = Column(Integer, nullable=False)
     para_num = Column(Integer, nullable=False)
     para_text = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False)
-    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
+    date_added = Column(DateTime, nullable=False, server_default="text((getdate()))")
     date_modified = Column(DateTime)
 
 
@@ -62,8 +62,18 @@ class Mag(Base):
     block_num = Column(Integer)
     paragraph = Column(Integer)
     text = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False)
-    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
+    date_added = Column(DateTime, nullable=False, server_default="text((getdate()))")
     date_modified = Column(DateTime)
+
+
+t_mag_aggregate = Table(
+    'mag_aggregate', metadata,
+    Column('mag', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('issue', NCHAR(10)),
+    Column('page_num', Integer),
+    Column('group_key', String(20, 'Latin1_General_CI_AS')),
+    Column('csv', Unicode)
+)
 
 
 class SpeciesAliasType(Base):
@@ -96,7 +106,7 @@ class Ugc(Base):
     ugcid = Column(Integer, primary_key=True, index=True)
     source = Column(String(250, 'Latin1_General_CI_AS'), nullable=False)
     published_date = Column(DateTime)
-    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
+    date_added = Column(DateTime, nullable=False, server_default="text((getdate()))")
     date_modified = Column(DateTime)
     board = Column(String(250, 'Latin1_General_CI_AS'))
     content_identifier = Column(String(50, 'Latin1_General_CI_AS'))
@@ -108,8 +118,15 @@ class Ugc(Base):
     date_hint = Column(DateTime)
     txt_post_sql = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False, server_default=text("('')"))
     platform_hint = Column(String(10, 'Latin1_General_CI_AS'))
-    date_fragment_hint = Column(String(10, 'Latin1_General_CI_AS'))
     processed = Column(BIT, nullable=False, server_default=text("((0))"))
+    season_hint = Column(String(10, 'Latin1_General_CI_AS'))
+    month_hint = Column(String(10, 'Latin1_General_CI_AS'))
+    spp1_hint = Column(String(30, 'Latin1_General_CI_AS'))
+    spp2_hint = Column(String(30, 'Latin1_General_CI_AS'))
+    spp3_hint = Column(String(30, 'Latin1_General_CI_AS'))
+    board_type = Column(String(10, 'Latin1_General_CI_AS'))
+    trip_hint = Column(BIT)
+    catch_hint = Column(BIT)
 
 
 t_v_err_species_alias_duplicate_accepted = Table(
@@ -141,6 +158,79 @@ t_v_species_alias_csv_with_rank = Table(
 
 t_v_species_alias_recognised = Table(
     'v_species_alias_recognised', metadata,
+    Column('speciesid', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('catch_rank', Integer, nullable=False),
+    Column('species_alias_speciesid', String(50, 'Latin1_General_CI_AS')),
+    Column('species_aliasid', String(50, 'Latin1_General_CI_AS')),
+    Column('species_alias_typeid', String(50, 'Latin1_General_CI_AS'))
+)
+
+
+t_v_species_all = Table(
+    'v_species_all', metadata,
+    Column('speciesid', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('catch_rank', Integer, nullable=False),
+    Column('species_alias_speciesid', String(50, 'Latin1_General_CI_AS')),
+    Column('species_aliasid', String(50, 'Latin1_General_CI_AS')),
+    Column('species_alias_typeid', String(50, 'Latin1_General_CI_AS'))
+)
+
+
+t_v_species_bream = Table(
+    'v_species_bream', metadata,
+    Column('speciesid', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('species_aliasid', String(50, 'Latin1_General_CI_AS'), nullable=False)
+)
+
+
+t_v_species_flatfish = Table(
+    'v_species_flatfish', metadata,
+    Column('speciesid', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('species_aliasid', String(50, 'Latin1_General_CI_AS'), nullable=False)
+)
+
+
+t_v_species_for_pivot = Table(
+    'v_species_for_pivot', metadata,
+    Column('rowid', BigInteger),
+    Column('speciesid', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('species_aliasid', String(50, 'Latin1_General_CI_AS'))
+)
+
+
+t_v_species_mullet = Table(
+    'v_species_mullet', metadata,
+    Column('speciesid', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('species_aliasid', String(50, 'Latin1_General_CI_AS'), nullable=False)
+)
+
+
+t_v_species_sans_unspecified = Table(
+    'v_species_sans_unspecified', metadata,
+    Column('speciesid', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('catch_rank', Integer, nullable=False),
+    Column('species_alias_speciesid', String(50, 'Latin1_General_CI_AS')),
+    Column('species_aliasid', String(50, 'Latin1_General_CI_AS')),
+    Column('species_alias_typeid', String(50, 'Latin1_General_CI_AS'))
+)
+
+
+t_v_species_skates_rays = Table(
+    'v_species_skates_rays', metadata,
+    Column('speciesid', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('species_aliasid', String(50, 'Latin1_General_CI_AS'), nullable=False)
+)
+
+
+t_v_species_sole = Table(
+    'v_species_sole', metadata,
+    Column('speciesid', String(50, 'Latin1_General_CI_AS'), nullable=False),
+    Column('species_aliasid', String(50, 'Latin1_General_CI_AS'), nullable=False)
+)
+
+
+t_v_species_unspecified = Table(
+    'v_species_unspecified', metadata,
     Column('speciesid', String(50, 'Latin1_General_CI_AS'), nullable=False),
     Column('catch_rank', Integer, nullable=False),
     Column('species_alias_speciesid', String(50, 'Latin1_General_CI_AS')),
@@ -193,7 +283,7 @@ class UgcHint(Base):
     hint = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
     pos = Column(Integer)
     source_text = Column(String(250, 'Latin1_General_CI_AS'))
-    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
+    date_added = Column(DateTime, nullable=False, server_default="text((getdate()))")
     date_modified = Column(DateTime)
     speciesid = Column(ForeignKey('species.speciesid'))
     pos_list = Column(String(collation='Latin1_General_CI_AS'))

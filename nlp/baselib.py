@@ -1,7 +1,7 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unreachable
 '''basic functions'''
 from nltk.corpus import wordnet as _wordnet
-import inflect
+import inflect as _inflect
 
 import funclib.stringslib as _stringslib
 
@@ -78,6 +78,7 @@ def _fixitr(s, type_=list, tolower=True):
 
 def _listadd(list_, list_or_val):
     '''extend/append to a list'''
+    if not list_or_val: return
     if isinstance(list_or_val, list):
         list_.extend(list_or_val)
     else:

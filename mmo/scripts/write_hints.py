@@ -4,6 +4,8 @@ from warnings import warn
 
 
 import sqlalchemy
+from sqlalchemy.orm import load_only
+
 from pysimplelog import Logger
 #import spacy
 #Doc = spacy.load('en_core_web_sm')
@@ -11,6 +13,7 @@ from pysimplelog import Logger
 from funclib.iolib import files_delete2
 import mmo.settings as settings
 import nlp as _nlp
+import nlp.clean as nlpclean
 
 import mmodb
 import mmodb.model as model
@@ -86,25 +89,26 @@ def _get_whitelist_words(dump_list):
         return iolib.unpickle(settings.PATHS.WHITELIST_WORDS)
 
     words = [] + \
-        ne.Afloat.allwords + \
-        ne.AfloatCharterBoat.allwords + \
-        ne.AfloatKayak.allwords + \
-        ne.AfloatPrivate.allwords + \
-        ne.DateTimeDayOfWeek.nouns_dict_all + \
-        ne.DateTimeMonth.nouns_dict_all + \
-        ne.DateTimeSeason.nouns_dict_all + \
-        ne.GearAngling.allwords + \
-        ne.GearNoNamedEntitiesAngling.get(add_similiar=True) + \
-        ne.Metrological.allwords + \
-        ne.Session.allwords + \
-        ne.SpeciesSpecified.nouns_dict_all + \
-        ne.SpeciesUnspecified.nouns_dict_all + \
-        ne.SpeciesUnspecifiedBream.nouns_dict_all + \
-        ne.SpeciesUnspecifiedFlatfish.nouns_dict_all + \
-        ne.SpeciesUnspecifiedMullet.nouns_dict_all + \
-        ne.SpeciesUnspecifiedSole.nouns_dict_all
+        list(ne.Afloat.allwords) + \
+        list(ne.AfloatCharterBoat.allwords) + \
+        list(ne.AfloatKayak.allwords) + \
+        list(ne.AfloatPrivate.allwords) + \
+        list(ne.DateTimeDayOfWeek.nouns_dict_all) + \
+        list(ne.DateTimeMonth.nouns_dict_all) + \
+        list(ne.DateTimeSeason.nouns_dict_all) + \
+        list(ne.GearAngling.allwords) + \
+        list(ne.GearNoneAngling.allwords) + \
+        list(ne.MetrologicalAll.allwords) + \
+        list(ne.Session.allwords) + \
+        list(ne.SpeciesSpecified.get_flat_set()) + \
+        list(ne.SpeciesUnspecified.get_flat_set()) + \
+        list(ne.SpeciesUnspecifiedBream.get_flat_set()) + \
+        list(ne.SpeciesUnspecifiedFlatfish.get_flat_set()) + \
+        list(ne.SpeciesUnspecifiedMullet.get_flat_set()) + \
+        list(ne.SpeciesUnspecifiedSkatesRays.get_flat_set()) + \
+        list(ne.SpeciesUnspecifiedSole.get_flat_set())
 
-    if dump_list:
+    if dump_list or not iolib.file_exists(settings.PATHS.WHITELIST_WORDS):
         iolib.pickle(words, settings.PATHS.WHITELIST_WORDS)
     return words
 
@@ -113,15 +117,16 @@ def _clean(s):
     '''clean open text'''
     #the order of this matters
     assert isinstance(s, str)
-    s = _nlp.clean.strip_urls_list(s)
-    s = _nlp.clean.sep_num_from_words(s)
-    s = _nlp.clean.base_substitutons(s) #base substitutions would make urls unidentifiable
-    s = _nlp.clean.stop_words(s, _get_whitelist_words(False))
+    s = nlpclean.strip_urls_str(s)
+    s = nlpclean.sep_num_from_words(s)
+    s = nlpclean.base_substitutons(s) #base substitutions would make urls unidentifiable
+    #s = nlpclean.stop_words(s, _get_whitelist_words(False))
+    print('Not cleaning stop words. Edit write_hints to change this')
     s = s.replace("'", "")
     s = s.replace('"', '')
-    s = _nlp.clean.non_breaking_space2space(s)
-    s = _nlp.clean.newline_del_multi(s)
-    s = _nlp.clean.txt2nr(s)
+    s = nlpclean.non_breaking_space2space(s)
+    s = nlpclean.newline_del_multi(s)
+    s = nlpclean.txt2nr(s)
     return s
 
 
@@ -244,7 +249,7 @@ def make_platform_hints(title, post_txt):
         ugc_hint = {'ugc_hint': 'shore'}
     else:
         ugc_hint = {'ugc_hint': baselib.dic_key_with_max_val(vote_cnts)}
-    #TODO write platform hint
+
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
 
 
@@ -324,14 +329,14 @@ def make_month_hints(title, post_text):
     for monthid in ne.DateTimeMonth.nouns_dict_all.keys(): #addit processes the list of species under each key
         if not vote_cnts.get(monthid): vote_cnts[monthid] = 0
         vote_cnts[monthid] += _addit(ne.DateTimeMonth.indices(title, monthid), monthid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[monthid] += _addit(ne.DateTimeMonth.indices(title, monthid), monthid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        vote_cnts[monthid] += _addit(ne.DateTimeMonth.indices(post_text, monthid), monthid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
 
     assert isinstance(vote_cnts, dict)
     hint_types = [HintTypes.season_hint] * len(hints)
 
     #NOW Get the month with the most votes, provided something appeared
     if any([x > 0 for x in vote_cnts.values()]):
-        ugc_hint = {'ugc_hint': max(vote_cnts, key=lambda key: max(s, key=lambda key: s[key])[key])}
+        ugc_hint = {'ugc_hint': max(vote_cnts, key=lambda key: vote_cnts[key])}
 
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
 
@@ -346,27 +351,23 @@ def make_season_hints(title, post_text):
     for seasonid in ne.DateTimeSeason.nouns_dict_all.keys(): #addit processes the list of species under each key
         if not vote_cnts.get(seasonid): vote_cnts[seasonid] = 0
         vote_cnts[seasonid] += _addit(ne.DateTimeSeason.indices(title, seasonid), seasonid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
-        vote_cnts[seasonid] += _addit(ne.DateTimeSeason.indices(title, seasonid), seasonid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+        vote_cnts[seasonid] += _addit(ne.DateTimeSeason.indices(post_text, seasonid), seasonid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)
+
 
     assert isinstance(vote_cnts, dict)
     hint_types = [HintTypes.season_hint] * len(hints)
 
     #NOW Get the month with the most votes, provided something appeared
     if any([x > 0 for x in vote_cnts.values()]):
-        ugc_hint = {'ugc_hint': max(vote_cnts, key=lambda key: max(s, key=lambda key: s[key])[key])}
+        ugc_hint = {'ugc_hint': max(vote_cnts, key=lambda key: vote_cnts[key])}
 
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
 
 
 def make_catch_hints(title, post_text):
-    '''catch hints'''
-    
-    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []; speciesids = []
-    
-    vote_cnts = {}
-    addit_ = {}
+    '''catch hints'''    
+    hints = []; source_texts = []; poss = []; pos_lists = []; sources = []; ns = []; speciesids = []    
 
-    
     def _fillit(SpeciesDict, title, post_text):
         nonlocal hints, source_texts, sources
         for speciesid, aliass in SpeciesDict.items(): #addit processes the list of species under each key
@@ -420,7 +421,7 @@ def make_catch_hints(title, post_text):
     ns = [1] * len(hints)
     pos_lists = [None] * len(hints)
     poss = [None] * len(hints)
-
+    hint_types = [HintTypes.species_catch] * len(hints)
     #if we say we caught a fish, we say it was a trip
     if hints:
         ugc_hint = {'ugc_hint': True}
@@ -468,7 +469,7 @@ def main():
     '''main'''
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
     f = lambda s: [str(item) for item in s.split(',')]
-    cmdline.add_argument('-s', '--slice', help='Record slice, eg -l 0,1000', type=f)
+    cmdline.add_argument('-s', '--slice', help='Record slice, eg -s 0,1000', type=f)
     args = cmdline.parse_args()
 
     offset = int(args.slice[0])
@@ -486,13 +487,13 @@ def main():
     start, stop = window_size * window_idx + offset, window_size * (window_idx + 1) + offset
 
     while True:
-        rows = mmodb.SESSION.query(Ugc).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_post_sql', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
         if rows is None:
             break
-
+        
         for row in rows:
             assert isinstance(row, Ugc)
-            mmodb.SESSION.query(UgcHint).options(load_only('ugcid', 'source', 'title', 'txt_post_sql', 'date_hint', 'platform_hint', 'processed', 'season_hint', 'month_hint')).filter(UgcHint.ugcid == row.ugcid).delete()
+            mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
             txt_post_sql = _clean(row.txt_post_sql) #the raw text, after running clean sqls separately on sql server
             title = _clean(row.title)
 

@@ -4,8 +4,8 @@ import unittest
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 import funclib.iolib as iolib
-import mmo
 import mmo.name_entities as ne
+
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''
@@ -34,8 +34,7 @@ class Test(unittest.TestCase):
     #@unittest.skip("Temporaily disabled while debugging")
     def test_species(self):
         '''test'''
-        Sp = ne.SpeciesSpecified()
-        Sp.get_by_key('cod')
+        s = mmo.name_entities.Afloat.allwords
         pass
       
 

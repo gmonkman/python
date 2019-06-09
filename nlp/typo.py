@@ -182,11 +182,12 @@ def getPossibleActions(s, layout='QWERTY'):
     return actions
 
 
-def typos(v, dist=1, exclude=(), add_v=True, filter_start_n=0, filter_end_n=0, min_length=4):
+def typos(v, dist=1, exclude=(), filter_start_n=0, filter_end_n=0, min_length=4):
     '''(iterable|str, float, iterable|str, bool, str, str) -> list
-    generate typos in single list
-    
+    Generate typos in single list.
     filter_start, filter_end: only keep typos which match these strings
+    
+    Returns: List of typos, including original words
     '''
     if isinstance(v, str):
         v = (v, )
@@ -198,8 +199,6 @@ def typos(v, dist=1, exclude=(), add_v=True, filter_start_n=0, filter_end_n=0, m
     for w in v:
         out += [w for w in list(typoGenerator(w, dist)) if len(w) >= min_length or min_length == 0]
 
-    if not add_v:
-        out = [w for w in out if w not in v]
 
     if filter_start_n: out = Filter.starts(out, filter_start_n)
     if filter_end_n: out = Filter.ends(out, filter_end_n)

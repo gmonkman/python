@@ -23,6 +23,16 @@ def strip_urls_list(l, subst=' '):
     return [_re.sub(r'http\S+', '', s) for s in l]
 
 
+def strip_urls_str(s, subst=' '):
+    '''(list, str) -> str
+    strip urls from a string
+    l:list of strings
+    subst:replacement
+    '''
+    if not isinstance(s, str):
+        raise ValueError('Expected str, got %s' % typs(s))
+    return _re.sub(r'http\S+', '', s)
+
 def to_ascii_list(l):
     '''(list, str) -> str
     convert list elements to ascii

@@ -21,7 +21,7 @@ def fix_repeat_spaces(s, tab_and_newlines_are_spaces=False):
     return _re.sub(' +', ' ', s)
 
 
-def fix_repeat_char(s, char, tab_and_newlines_are_spaces=False):
+def fix_repeat_char(s, char):
     '''(str, str) -> str
     remove repeated chars
 
@@ -29,9 +29,7 @@ def fix_repeat_char(s, char, tab_and_newlines_are_spaces=False):
     >>>fix_repeat_char('!!!!', '!')
     !
     '''
-    if tab_and_newlines_are_spaces:
-        return _re.sub(r'\s{2,}', ' ', s)
-    expr = '%s+' % char
+    expr = r'\%s{2,}' % char
     return _re.sub(expr, char, s)
 
 
