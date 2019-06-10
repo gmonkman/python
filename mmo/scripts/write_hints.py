@@ -489,11 +489,11 @@ def main():
             SW.lap(); print('make_month_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
 
-            SW.lap()
-            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_season_hints(title, txt)
-            row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
-            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-            SW.lap(); print('make_season_hints:%s' % SW.pretty_time(SW.event_rate_last))
+            #SW.lap()
+            #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_season_hints(title, txt)
+            #row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
+            #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+            #SW.lap(); print('make_season_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
 
             #TODO Reenable at some point
@@ -508,20 +508,20 @@ def main():
             SW.lap(); print('make_platform_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
             SW.lap()
-            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_catch_hints(title, txt)
-            was_catch = ugc_hint.get('ugc_hint')
-            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-            SW.lap(); print('make_catch_hints:%s' % SW.pretty_time(SW.event_rate_last))
+            #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_catch_hints(title, txt)
+            #was_catch = ugc_hint.get('ugc_hint')
+            #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+            #SW.lap(); print('make_catch_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
             SW.lap()
-            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_trip_hints(title, txt)
-            if not was_catch:
-                row.catch_hint = bool(ugc_hint.get('ugc_hint'))
-            else:
-                row.catch_hint = was_catch
-            row.catch_hint = was_catch
-            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-            SW.lap(); print('make_trip_hints:%s' % SW.pretty_time(SW.event_rate_last))
+            #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_trip_hints(title, txt)
+            #if not was_catch:
+            #    row.catch_hint = bool(ugc_hint.get('ugc_hint'))
+            #else:
+            #    row.catch_hint = was_catch
+            #row.catch_hint = was_catch
+            #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+            #SW.lap(); print('make_trip_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
 
             row.processed = True

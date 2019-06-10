@@ -9,10 +9,6 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "dblib", "..\dblib\dblib.pyp
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "funclib", "..\funclib\funclib.pyproj", "{EC8E1821-0C22-445E-AF07-22BBE247F71E}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "gazetteer", "..\gazetteer\gazetteer.pyproj", "{C7826950-EE7B-4CCD-AA9F-7B202702E661}"
-EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "gazetteerdb", "..\gazetteerdb\gazetteerdb.pyproj", "{CC8BB4D5-4195-4E83-A789-CA3225428CCD}"
-EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "gis", "..\gis\gis.pyproj", "{D6385C55-DEB2-4766-8E61-C58BB211AA87}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "nlp", "..\nlp\nlp.pyproj", "{EC9DEDEE-3C18-4A0B-8E3F-F02317501261}"
@@ -20,6 +16,10 @@ EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "mmodb", "..\mmodb\mmodb.pyproj", "{8CCA8C50-2EA9-44CB-A0F9-C2E0C1FD8393}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "text2digits", "..\text2digits\text2digits.pyproj", "{681010CA-08F7-48CF-9EB3-51475A2F3EE8}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "gazetteerdb", "..\gazetteerdb\gazetteerdb.pyproj", "{CC8BB4D5-4195-4E83-A789-CA3225428CCD}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "gazetteer", "..\gazetteer\gazetteer.pyproj", "{C7826950-EE7B-4CCD-AA9F-7B202702E661}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,10 +33,6 @@ Global
 		{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC8E1821-0C22-445E-AF07-22BBE247F71E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EC8E1821-0C22-445E-AF07-22BBE247F71E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C7826950-EE7B-4CCD-AA9F-7B202702E661}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C7826950-EE7B-4CCD-AA9F-7B202702E661}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC8BB4D5-4195-4E83-A789-CA3225428CCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC8BB4D5-4195-4E83-A789-CA3225428CCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6385C55-DEB2-4766-8E61-C58BB211AA87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D6385C55-DEB2-4766-8E61-C58BB211AA87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC9DEDEE-3C18-4A0B-8E3F-F02317501261}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -45,6 +41,10 @@ Global
 		{8CCA8C50-2EA9-44CB-A0F9-C2E0C1FD8393}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{681010CA-08F7-48CF-9EB3-51475A2F3EE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{681010CA-08F7-48CF-9EB3-51475A2F3EE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC8BB4D5-4195-4E83-A789-CA3225428CCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC8BB4D5-4195-4E83-A789-CA3225428CCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7826950-EE7B-4CCD-AA9F-7B202702E661}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7826950-EE7B-4CCD-AA9F-7B202702E661}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

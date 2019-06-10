@@ -26,7 +26,7 @@ class Test(unittest.TestCase):
     def test_(self):
         '''test'''
         s = 'Southern'
-        gaz.get_by_ifca(s)
+        out = gaz.get_by_ifca(s)
         print(len(s))
         
 

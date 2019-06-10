@@ -32,7 +32,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="model.py" />
-    <Compile Include="gaz.py" />
     <Compile Include="species.py">
       <SubType>Code</SubType>
     </Compile>

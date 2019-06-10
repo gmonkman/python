@@ -19,7 +19,7 @@ from nlp import typo as _typo
 from nlp import relib as _relib
 import funclib.iolib as _iolib
 import mmo.settings as _settings
-from gazetteerdb import gaz as _gaz
+
 
 class UnspecifiedKeys():
     '''dictionary keys for unspecified
