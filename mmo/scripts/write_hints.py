@@ -449,8 +449,8 @@ def main():
     args = cmdline.parse_args()
 
     offset = int(args.slice[0])
-    max_row = int(args.slice[1])
-    if not max_row or max_row in ('max', 'end', 'last'):
+    max_row = args.slice[1]
+    if max_row in ('max', 'end', 'last'):
         max_row = mmodb.SESSION.query(Ugc.ugcid).count()
     else:
         max_row = int(max_row)
@@ -489,11 +489,11 @@ def main():
             SW.lap(); print('make_month_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
 
-            #SW.lap()
+            SW.lap()
             #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_season_hints(title, txt)
             #row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
             #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-            #SW.lap(); print('make_season_hints:%s' % SW.pretty_time(SW.event_rate_last))
+            SW.lap(); print('make_season_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
 
             #TODO Reenable at some point
