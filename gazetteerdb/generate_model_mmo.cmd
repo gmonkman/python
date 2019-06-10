@@ -1,4 +1,4 @@
-C:\Python354x64\Scripts\sqlacodegen --outfile c:/development/python/gazetteerdb/model_gazetteer_sqlacodegen.py mssql+pyodbc://sa:GGM290471@toshiba/gazetteer_no_geom?driver=SQL+Server+Native+Client+11.0
+C:\Python354x64\Scripts\sqlacodegen --outfile c:/development/python/gazetteerdb/model_gazetteer_sqlacodegen.py mssql+pyodbc://sa:GGM290471@s30/gaz_deleteme?driver=SQL+Server+Native+Client+11.0
 pause
 
 REM For this to work, we have to exclude tables with spatial data types

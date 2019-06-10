@@ -22,7 +22,7 @@ from mmo import name_entities as ne
 from nlp import find
 from funclib import baselib
 import funclib.iolib as iolib
-
+from funclib.stopwatch import StopWatch
 
 #if iolib.wait_key('\n\n%s\nPress "Q" to quit\n' % mmodb.ENGINE) == 'q':
     #quit()
@@ -115,6 +115,7 @@ def _get_whitelist_words(dump_list):
 def _clean(s):
     '''clean open text'''
     #the order of this matters
+    if not s: return ''
     assert isinstance(s, str)
     s = nlpclean.non_breaking_space2space(s)
     s = nlpclean.strip_urls_str(s)
@@ -142,15 +143,18 @@ def make_date_hints(title, post_txt):
     hint_types = []; poss = []; source_texts = []; hints = []; speciesids = []; pos_lists = []; ns = []; sources = []; ugc_hint = {}
     dts = find.get_dates(title) #TODO Support multiple dates
     if dts:
-        if dts: ugc_hint = {'ugc_hint':dts[0]} #return this to write the best date to ugc table
-        sources += [Sources.title] * len(dts)
-        hints += dts
+        if not ugc_hint: ugc_hint = {'ugc_hint':dts[0]} #return this to write the best date to ugc table
+        for d in dts:
+            hints += [d]
+            sources += [Sources.title]
 
     dts = find.get_dates(post_txt)
     if dts:
-        if dts and not ugc_hint: ugc_hint = {'date_hint':dts[0]} #return this to write the best date to ugc table if we didnt get it from the title
-        sources += ['post body text'] * len(dts)
-        hints += dts
+        if not ugc_hint: ugc_hint = {'ugc_hint':dts[0]} #return this to write the best date to ugc table
+        for d in dts:
+            hints += [d]
+            sources += [Sources.post_text]
+
     if hints:
         hint_types = [HintTypes.date_hint] * len(hints)
         poss = [None] * len(hints)
@@ -276,8 +280,6 @@ def make_species_hints(title, post_text):
     vote_cnts = {}
     ugc_hint = {'ugc_hint':None}
     for speciesid in ne.SpeciesSpecified.nouns_dict_all.keys(): #addit processes the list of species under each key
-        if speciesid.lower() == "couchs goby":
-            nn = 1 
         _vc(vote_cnts, speciesid, _addit(ne.SpeciesSpecified.indices(title, speciesid), speciesid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
         _vc(vote_cnts, speciesid, _addit(ne.SpeciesSpecified.indices(post_text, speciesid), speciesid, Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
     
@@ -365,15 +367,14 @@ def make_catch_hints(title, post_text):
         for speciesid, aliass in SpeciesDict.items(): #addit processes the list of species under each key
             for s in aliass:
                 if title and _nlp.relib.CheckDistanceAnyNumber(title, s, 8):
-                    hints += speciesid
-                    source_texts += s
-                    sources += Sources.post_text
+                    hints += [speciesid]
+                    source_texts += [s]
+                    sources += [Sources.post_text]
 
                 if post_text and _nlp.relib.CheckDistanceAnyNumber(post_text, s, 8):
-                    hints += speciesid
-                    hint_type += HintTypes.species_catch
-                    source_texts += s
-                    sources += Sources.title
+                    hints += [speciesid]
+                    source_texts += [s]
+                    sources += [Sources.title]
 
 
     #yes, we are just looking for a number by a species name anywhere
@@ -459,44 +460,60 @@ def main():
 
     window_size = 10  # or whatever limit you like
     window_idx = 0
-    start, stop = window_size * window_idx + offset, window_size * (window_idx + 1) + offset
+    
 
     while True:
+        start, stop = window_size * window_idx + offset, window_size * (window_idx + 1) + offset
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
         if rows is None:
             break
-        
+        SW = StopWatch()
         for row in rows:
             assert isinstance(row, Ugc)
             mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
-            txt = _clean(row.txt) #the raw text, after running clean sqls separately on sql server
-            title = _clean(row.title)
-            title = 'November, Cod codling, coddo, Bass Haddock Haddock Haddock, Sole'.lower()
-            txt = "1/12/2010, Bass Bass Bass schoolie, silver, Sole".lower()
-            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt)
-            if not hints: continue #if it doesnt mention species, skip the rest
-            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+            txt = _clean(row.txt); title = _clean(row.title)
+            if not txt: PP.increment(); continue
 
+            SW.lap()
+            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt)
+            if not hints: SW.lap(); PP.increment(); continue #if it doesnt mention species, skip the rest           
+            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+            SW.lap(); print('make_species_hints:%s' % SW.pretty_time(SW.event_rate_last))
+            
+
+            #print('hint_type:\t%s\nhints:\t%s\nsource_texts:\t%s\nnpos_lists:\t%s\nns%s' % (hint_types, hints, source_texts, pos_lists, ns))
+            SW.lap()
             hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_month_hints(title, txt)
             row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
             write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+            SW.lap(); print('make_month_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
+
+            SW.lap()
             hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_season_hints(title, txt)
             row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
             write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+            SW.lap(); print('make_season_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
-            hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_date_hints(title, txt)
-            row.date_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else row.published_date
-            write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns) #order changed from the make call because some are by ref
+
+            #TODO Reenable at some point
+            #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_date_hints(title, txt)
+            #row.date_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else row.published_date
+            #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns) #order changed from the make call because some are by ref
             
+            SW.lap()
             hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_platform_hints(title, txt)
             row.platform_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else 'shore'
             write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+            SW.lap(); print('make_platform_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
+            SW.lap()
             hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_catch_hints(title, txt)
             was_catch = ugc_hint.get('ugc_hint')
             write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+            SW.lap(); print('make_catch_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
+            SW.lap()
             hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_trip_hints(title, txt)
             if not was_catch:
                 row.catch_hint = bool(ugc_hint.get('ugc_hint'))
@@ -504,11 +521,12 @@ def main():
                 row.catch_hint = was_catch
             row.catch_hint = was_catch
             write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-            
+            SW.lap(); print('make_trip_hints:%s' % SW.pretty_time(SW.event_rate_last))
+
+
             row.processed = True
             mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
             PP.increment()
-
         try:
             mmodb.SESSION.commit()
         except Exception as e:
@@ -518,9 +536,7 @@ def main():
 
         if len(rows) < window_size:
             break
-
         window_idx += 1
-        PP.increment(step=window_size, show_time_left=True)
 
 
 

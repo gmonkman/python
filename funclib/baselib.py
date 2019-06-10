@@ -175,7 +175,7 @@ def dic_key_with_max_val(d):
     >>>dic_key_with_max_val({'a':12, 'b':100, 'x':-1})
     'b'
     '''
-    return max(d, key=lambda key: stats[key])
+    return max(d, key=lambda key: d[key])
 
 
 def dic_sort_by_val(d):
