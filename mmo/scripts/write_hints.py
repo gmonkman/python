@@ -507,13 +507,13 @@ def main():
             write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
             SW.lap(); print('make_platform_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
-            SW.lap()
+            #SW.lap()
             #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_catch_hints(title, txt)
             #was_catch = ugc_hint.get('ugc_hint')
             #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
             #SW.lap(); print('make_catch_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
-            SW.lap()
+            #SW.lap()
             #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_trip_hints(title, txt)
             #if not was_catch:
             #    row.catch_hint = bool(ugc_hint.get('ugc_hint'))
