@@ -536,9 +536,6 @@ SpeciesUnspecifiedSkatesRays = NEBDicts(nouns_dict=d,
 
 
 
-if False:
-    d = +_gaz.get_by_ifca(
-
 #endregion
 
 
