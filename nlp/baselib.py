@@ -1,6 +1,8 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unreachable
 '''basic functions'''
+import itertools as _iter
 from nltk.corpus import wordnet as _wordnet
+from nltk.tokenize import word_tokenize as _word_tokenize
 import inflect as _inflect
 
 import funclib.stringslib as _stringslib
@@ -378,3 +380,39 @@ def genhyper(synset, depth=2):
     if depth == 0:
         print('done')
         return
+
+
+#TODO finish sliding window
+class SlidingWindow():
+    def __init__(self, s, windows=(1,2,3)):
+        self._s = s
+        self.tokenized = _word_tokenize(self._s)
+        for sz in windows:
+            for x in range(len(self.tokenized) - 2):
+                words = self.tokenized[x:x+3]
+                y = [ss for ss in _iter.combinations(words, 1)]
+        
+                res = [y for y in _iter.combinations(words,2)]
+
+                return ' '.join(words)
+
+
+            document=['hello','my','world','love']
+
+#https://stackoverflow.com/questions/24682475/python-sliding-window-to-compare-words-in-my-list-with-words-in-the-given-lexic
+#for x in range(len(document)-2):
+#    words = document[x:x+3]
+#    print 'words:', words
+
+#    print "--- 1 ---"
+#    for y in itertools.combinations(words,1):
+#        print ' '.join(y)
+
+#    print "--- 2 ---"
+#    for y in itertools.combinations(words,2):
+#        print ' '.join(y)
+
+#    print "--- 3 ---"
+#    print ' '.join(words)
+
+#    print "-----------------"

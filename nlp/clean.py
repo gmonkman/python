@@ -2,8 +2,7 @@
 '''This module provides routines to expand word lists with alternate versions of words
 '''
 import re as _re
-
-from nltk.tokenize import word_tokenize as _word_tokenize
+from warnings import warn as _warn
 
 from text2digits import text2digits as _t2d
 import funclib.baselib as _baselib
@@ -68,15 +67,6 @@ def base_substitutons(s):
     return s
 
 
-def stop_words(s, not_a_stop_word=('the')):
-    '''(str) -> str
-    clean stop words'''
-    sw = _stopwords.get(not_a_stop_word)
-    word_tokens = _word_tokenize(s)
-    f = [w.lower() for w in word_tokens if not w in sw]
-    return f
-
-
 def txt2nr(s):
     '''convert text to digits'''
     T = _t2d.Text2Digits()
@@ -86,3 +76,24 @@ def txt2nr(s):
 def sep_num_from_words(s):
     '''seperate words from number'''
     return _re.sub(r"([0-9]+(\.[0-9]+)?)",r" \1 ", s).strip()
+
+
+def clean(s, tolower=False):
+    '''str, set|None
+    apply multiple clean funcs to s
+    '''
+    #the order of this matters
+    if not s: return ''
+    assert isinstance(s, str)
+    s = non_breaking_space2space(s)
+    s = strip_urls_str(s)
+    s = sep_num_from_words(s)
+    s = base_substitutons(s) #base substitutions would make urls unidentifiable
+    s = s.replace("'", "")
+    s = s.replace('"', '')
+    s = s.replace('\n ', '\n')
+    s = s.replace(' \n', '\n')    
+    s = nlpclean.newline_del_multi(s)
+    s = nlpclean.txt2nr(s)
+    if tolower: s = s.lower()
+    return s

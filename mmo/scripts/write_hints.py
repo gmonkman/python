@@ -39,12 +39,13 @@ print('\nLogging to %s\n' % settings.PATHS.LOG_WRITE_HINTS)
 
 
 class LogTo():
+    '''log options'''
     console = 'console'
     file_ = 'file'
     both = 'both'
 
 
-def log(msg, output_to=('console', 'file')):
+def log(msg, output_to='both'):
     '''(argparse.parse, str) -> void
     '''
     try:
@@ -79,64 +80,6 @@ class Sources():
     title = 'title'
     post_text = 'post text'
 
-
-def _get_whitelist_words(dump_list):
-    '''(bool) -> list
-    Load whitelist if it exists, otherwise
-    recreate list and redump it. This is used
-    to ensure the stop list doesnt include words
-    we want to keep
-    '''
-    if iolib.file_exists(settings.PATHS.WHITELIST_WORDS) and not dump_list:
-        return iolib.unpickle(settings.PATHS.WHITELIST_WORDS)
-
-    words = [] + \
-        list(ne.Afloat.allwords) + \
-        list(ne.AfloatCharterBoat.allwords) + \
-        list(ne.AfloatKayak.allwords) + \
-        list(ne.AfloatPrivate.allwords) + \
-        list(ne.DateTimeDayOfWeek.nouns_dict_all) + \
-        list(ne.DateTimeMonth.nouns_dict_all) + \
-        list(ne.DateTimeSeason.nouns_dict_all) + \
-        list(ne.GearAngling.allwords) + \
-        list(ne.GearNoneAngling.allwords) + \
-        list(ne.MetrologicalAll.allwords) + \
-        list(ne.Session.allwords) + \
-        list(ne.SpeciesSpecified.get_flat_set()) + \
-        list(ne.SpeciesUnspecified.get_flat_set()) + \
-        list(ne.SpeciesUnspecifiedBream.get_flat_set()) + \
-        list(ne.SpeciesUnspecifiedFlatfish.get_flat_set()) + \
-        list(ne.SpeciesUnspecifiedMullet.get_flat_set()) + \
-        list(ne.SpeciesUnspecifiedSkatesRays.get_flat_set()) + \
-        list(ne.SpeciesUnspecifiedSole.get_flat_set())
-
-    if dump_list or not iolib.file_exists(settings.PATHS.WHITELIST_WORDS):
-        iolib.pickle(words, settings.PATHS.WHITELIST_WORDS)
-    return words
-
-
-def _clean(s):
-    '''clean open text'''
-    #the order of this matters
-    if not s: return ''
-    assert isinstance(s, str)
-    try:
-        s = nlpclean.non_breaking_space2space(s)
-        s = nlpclean.strip_urls_str(s)
-        s = nlpclean.sep_num_from_words(s)
-        s = nlpclean.base_substitutons(s) #base substitutions would make urls unidentifiable
-        #s = nlpclean.stop_words(s, _get_whitelist_words(False))
-        #print('Not cleaning stop words. Edit write_hints to change this')
-        s = s.replace("'", "")
-        s = s.replace('"', '')
-        s = s.replace('\n ', '\n')
-        s = s.replace(' \n', '\n')    
-        s = nlpclean.newline_del_multi(s)
-        s = nlpclean.txt2nr(s)
-    except Exception as e:
-        rs = 'Clean of %s failed. Error\t%s' % (s, e)
-        log(rs)
-        return s
 
 
 def make_date_hints(title, post_txt):
@@ -282,7 +225,7 @@ def make_species_hints(title, post_text):
     hints contains speciesids
     '''
     #This is a little different as we need to add speciesids for the spelling we have found
-    hint_types = []; poss = []; source_texts = []; hints = []; speciesids = []; pos_lists = []; ns = []; sources = []; 
+    hint_types = []; poss = []; source_texts = []; hints = []; speciesids = []; pos_lists = []; ns = []; sources = []
     
     vote_cnts = {}
     ugc_hint = {'ugc_hint':None}
@@ -471,7 +414,7 @@ def main():
 
     while True:
         start, stop = window_size * window_idx + offset, window_size * (window_idx + 1) + offset
-        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
         if rows is None:
             break
         SW = StopWatch()
@@ -479,11 +422,11 @@ def main():
             for row in rows:
                 assert isinstance(row, Ugc)
                 mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
-                txt = _clean(row.txt); title = _clean(row.title)
-                if not txt: PP.increment(); continue
+                txt_cleaned = _clean(row.txt_cleaned); title = nlpclean.clean(row.title)
+                if not txt_cleaned: PP.increment(); continue
 
                 SW.lap()
-                hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt)
+                hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_cleaned)
                 if not hints: SW.lap(); PP.increment(); continue #if it doesnt mention species, skip the rest           
                 write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 SW.lap(); print('make_species_hints:%s' % SW.pretty_time(SW.event_rate_last))
@@ -491,7 +434,7 @@ def main():
 
                 #print('hint_type:\t%s\nhints:\t%s\nsource_texts:\t%s\nnpos_lists:\t%s\nns%s' % (hint_types, hints, source_texts, pos_lists, ns))
                 SW.lap()
-                hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_month_hints(title, txt)
+                hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_month_hints(title, txt_cleaned)
                 row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
                 write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 SW.lap(); print('make_month_hints:%s' % SW.pretty_time(SW.event_rate_last))
@@ -510,7 +453,7 @@ def main():
                 #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns) #order changed from the make call because some are by ref
             
                 SW.lap()
-                hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_platform_hints(title, txt)
+                hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_platform_hints(title, txt_cleaned)
                 row.platform_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else 'shore'
                 write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 SW.lap(); print('make_platform_hints:%s' % SW.pretty_time(SW.event_rate_last))

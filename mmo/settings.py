@@ -13,6 +13,8 @@ BIN_FOLDER = _path.normpath(_path.join(_MODULE_ROOT, 'bin'))
 
 class PATHS():
     '''folder settings'''
-    WHITELIST_WORDS = _path.normpath(_path.join(BIN_FOLDER, 'whitelist.pkl'))
+    NAMED_ENTITIES_ALL = _path.normpath(_path.join(BIN_FOLDER, 'named_entities_all.pkl'))
+    NAMED_ENTITIES_ALL_SINGLE = _path.normpath(_path.join(BIN_FOLDER, 'named_entities_all_single.pkl')) #the whitelist of individual words
     LOG_WRITE_HINTS = _path.normpath('c:/temp/log_write_hints.py.log')
+    LOG_NAMED_ENTITIES = _path.normpath('c:/temp/log_named_entities.py.log') #currently unused
     NAMED_ENTITIES_DUMP_FOLDER = BIN_FOLDER

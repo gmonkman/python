@@ -28,6 +28,7 @@
   <ItemGroup>
     <Compile Include="gaz.py" />
     <Compile Include="ini.py" />
+    <Compile Include="model.py" />
     <Compile Include="test\test_gaz.py">
       <SubType>Code</SubType>
     </Compile>

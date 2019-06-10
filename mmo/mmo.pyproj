@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{8487daab-6561-4c06-b75c-81a067f9315a}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\write_hints.py</StartupFile>
+    <StartupFile>name_entities.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -27,6 +27,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="name_entities.py" />
+    <Compile Include="scripts\clean_ugc_and_gaz.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts\write_hints.py">
       <SubType>Code</SubType>
     </Compile>
