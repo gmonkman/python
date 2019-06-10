@@ -67,6 +67,16 @@ TYPOS_MIN_LENGTH = 5
 TYPOS_FIX_FIRST_N_CHARS = 2
 TYPO_OPTIONS_ALL = set(('nouns_common', 'nouns_proper', 'verbs', 'phrases', 'adjectives')) #these match the allowed word types in NEBLists, they arnt relevant for the dict classes because they are all nouns
 
+class Typos():
+    '''This are for the 
+    list handler. The dict
+    based stuff accepts true or false'''
+    phrases = 'phrases'
+    verbs = 'verbs'
+    nouns_proper = 'nouns_proper'
+    nouns_common ='nouns_common'
+    adjectives = 'adjectives'
+
 
 
 class GroupsForUnspecified():
@@ -362,7 +372,7 @@ Afloat = NEBLists(
     nouns_common=["boat", "tub", "ship", "inflatable", "sail", "onboard", "drift", "anchor", 'slipway', 'tiller', 'starboard', 'aft', 'engine', 'outboard', 'prop', 'propellor'],
     verbs=["launch", "sail", "drift", 'steamed', 'motored', "launched", "sailed", "drifting", "anchored", 'puke'],
     phrases=["sea sick"],
-    typos=None
+    typos=(Typos.verbs, Typos.nouns_proper)
     )
 
 
@@ -374,7 +384,8 @@ AfloatCharterBoat = NEBLists(
     verbs=["charter", "skipper", "hire"],
     nouns_common=['charter', 'inflatable'],
     phrases=['charter boat'],
-    typos=None)
+    typos=(Typos.nouns_common, Typos.verbs)
+    )
 
 
 AfloatKayak = NEBLists(
@@ -464,7 +475,7 @@ DateTimeMonth = NEBDicts(
     nouns_dict={'january':['january', 'jan'], 'february':['february', 'feb'], 'march':['march', 'mar'], 'april':['april', 'apr'], 'may':['may'],
      'june':['june', 'jun'], 'july':['july', 'jul'], 'august':['august', 'aug'],
      'september':['september', 'sep', 'sept'], 'october':['october', 'oct'], 'november':['november', 'nov'], 'december':['december', 'dec']},
-    typos=None,
+    typos=True,
     dump_name='DateTimeMonth')
 DateTimeMonth.get_season = _get_season #append the getseason function for convieniance
 
@@ -478,60 +489,60 @@ DateTimeSeason.get_season = _get_season
 
 
 
-
+print('Loading all species ...')
 d = _species.get_species_as_dict_all()
 assert d, '_species.get_species_as_dict_all() failed'
 SpeciesAll = NEBDicts(nouns_dict=d,
-                            typos=None,
+                            typos=True,
                             dump_name='SpeciesAll')
 
-
+print('Loading all species sans unspecified...')
 d = _species.get_species_as_dict_sans_unspecified()
 assert d, '_species.get_species_as_dict_sans_unspecified() failed'
 SpeciesSpecified = NEBDicts(nouns_dict=d,
-                            typos=None,
+                            typos=True,
                             dump_name='SpeciesSpecified')
 
-
+print('Loading specified species...')
 d = _species.get_species_as_dict_unspecified()
 assert d, '_species.get_species_as_dict_unspecified() failed'
 SpeciesUnspecified = NEBDicts(nouns_dict=d,
-                              typos=None,
+                              typos=True,
                               dump_name='SpeciesUnspecified')
 
-
+print('Loading sole unspecified...')
 d = _species.get_species_sole_unspecified()
 assert d, '_species.get_species_sole() failed'
 SpeciesUnspecifiedSole = NEBDicts(nouns_dict=d,
                                   typos=None,
                                   dump_name='SpeciesUnspecifiedSole')
 
-
+print('Loading flatfish ...')
 d = _species.get_species_flatfish_unspecified()
 assert d, '_species.get_species_flatfish() failed'
 SpeciesUnspecifiedFlatfish = NEBDicts(nouns_dict=d,
-                                      typos=None,
+                                      typos=True,
                                       dump_name='SpeciesUnspecifiedFlatfish')
 
-
+print('Loading mullet ...')
 d = _species.get_species_mullet_unspecified()
 assert d, '_species.get_species_mullet() failed'
 SpeciesUnspecifiedMullet = NEBDicts(nouns_dict=d,
                                     typos=None,
                                     dump_name='SpeciesUnspecifiedMullet')
 
-
+print('Loading bream ...')
 d = _species.get_species_bream_unspecified()
 assert d, '_species.get_species_bream() failed'
 SpeciesUnspecifiedBream = NEBDicts(nouns_dict=d,
-                                   typos=None,
+                                   typos=True,
                                    dump_name='SpeciesUnspecifiedBream')
 
-
+print('Loading skates and rays ...')
 d = _species.get_species_skates_rays_unspecified()
 assert d, '_species.get_species_skates_rays() failed'
 SpeciesUnspecifiedSkatesRays = NEBDicts(nouns_dict=d,
-                                        typos=None,
+                                        typos=True,
                                         dump_name='SpeciesUnspecifiedSkatesRays')
 
 
