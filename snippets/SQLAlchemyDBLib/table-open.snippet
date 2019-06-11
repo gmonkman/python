@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>table-open</Title>
+      <Shortcut>to</Shortcut>
+      <Description>Open table (view) and iterate/Description>
+      <Author>Graham Monkman</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="Python"><![CDATA[
+import <ORMTABLE>
+
+    cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
+    f = lambda s: [str(item) for item in s.split(',')]
+    cmdline.add_argument('-s', '--slice', help='Record slice, eg -s 0,1000', type=f)
+    args = cmdline.parse_args()
+
+    OFFSET = int(args.slice[0])
+    max_row = args.slice[1]
+    if max_row in ('max', 'end', 'last'):
+        max_row = gazetteerdb.SESSION.query(T).count()
+    else:
+        max_row = int(max_row)
+
+    
+    row_cnt = gazetteerdb.SESSION.query(T).order_by(T.columns.gazetteerid).slice(OFFSET, max_row).count()
+    PP = PrintProgress(row_cnt, bar_length=20)
+
+    WINDOW_SIZE = 1000; WINDOW_IDX = 0
+
+    while True:
+        start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
+        rows = gazetteerdb.SESSION.query(T).order_by(T.columns.gazetteerid).slice(start, stop).all()
+        
+        if rows is None: break
+
+        try:
+            for row in rows:
+                #do work
+                _addit(row.n, row.name_cleaned) 
+                PP.increment(show_time_left=True)
+        except Exception as e:
+            log('Error in loop:\t%s' % e, 'both')
+
+        if len(rows) < WINDOW_SIZE:
+            break
+        WINDOW_IDX += 1
+
+                
+
+]]></Code>
+    </Snippet>  
+  </CodeSnippet>
+</CodeSnippets>

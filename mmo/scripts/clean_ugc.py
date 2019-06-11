@@ -11,7 +11,7 @@ import nlp.stopwords as stopwords
 import nlp.clean as clean
 from funclib.iolib import PrintProgress
 import mmo.name_entities as NE
-from warnings import warn
+#from warnings import warn
 import mmo.settings as settings
 
 #region setup log
@@ -67,8 +67,8 @@ def main():
     
     
 
-    sql = "select count(*) as n from gazetteer where cast(txt_cleaned as varchar) <> ''"
-    rows = _gazetteerdb.SESSION.execute(_text(sql)).fetchall() 
+    sql = "select count(*) as n from ugc where cast(txt_cleaned as varchar) <> ''"
+    rows = mmodb.SESSION.execute(_text(sql)).fetchall() 
     PP = PrintProgress(rows[0], bar_length=20)
 
     Stop = stopwords.StopWords(whitelist=NE.all_single)

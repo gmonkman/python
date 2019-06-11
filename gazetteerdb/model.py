@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Index, Integer, LargeBinary, NCHAR, String, TEXT, Table, Unicode, text, Float
+from sqlalchemy import BigInteger, Column, DateTime, Float, Integer, String, Table, Unicode, text
 from sqlalchemy.dialects.mssql import BIT
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -13,7 +13,7 @@ class Gazetteer(Base):
     gazetteerid = Column(BigInteger, primary_key=True)
     id = Column(BigInteger, nullable=False)
     source = Column(String(15, 'Latin1_General_CI_AS'), nullable=False)
-    name = Column(String(255))
+    name = Column(Unicode(255))
     feature_class = Column(Unicode(50), nullable=False)
     feature_class1 = Column(String(250, 'Latin1_General_CI_AS'), nullable=False)
     x = Column(Float(53))
@@ -25,4 +25,25 @@ class Gazetteer(Base):
     shape = Column(String(10, 'Latin1_General_CI_AS'))
     x_rnd = Column(Float(53))
     y_rnd = Column(Float(53))
-    name_cleaned = Column(String(255))
+    name_cleaned = Column(String(255, 'Latin1_General_CI_AS'))
+
+
+class UgcGaz(Base):
+    __tablename__ = 'ugc_gaz'
+
+    gazid = Column(BigInteger, primary_key=True)
+    ugcid = Column(Integer, nullable=False)
+    name = Column(String(255, 'Latin1_General_CI_AS'), nullable=False)
+    ifca = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
+    processed = Column(BIT, nullable=False, server_default=text("((0))"))
+    date_modified = Column(DateTime)
+    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
+
+
+t_v_gazetteer_word_count = Table(
+    'v_gazetteer_word_count', metadata,
+    Column('gazetteerid', BigInteger, nullable=False),
+    Column('ifca', String(50, 'Latin1_General_CI_AS')),
+    Column('name_cleaned', String(255, 'Latin1_General_CI_AS')),
+    Column('n', Integer)
+)

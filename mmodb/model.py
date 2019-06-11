@@ -50,6 +50,12 @@ class Cb(Base):
     boat_noquote = Column(String(100, 'Latin1_General_CI_AS'))
 
 
+class Ifca(Base):
+    __tablename__ = 'ifca'
+
+    ifcaid = Column(String(50, 'Latin1_General_CI_AS'), primary_key=True)
+
+
 class Mag(Base):
     __tablename__ = 'mag'
 
@@ -116,6 +122,9 @@ class Sysdiagram(Base):
 
 class Ugc(Base):
     __tablename__ = 'ugc'
+    __table_args__ = (
+        Index('IX_ugc_1', 'board', 'source'),
+    )
 
     ugcid = Column(Integer, primary_key=True, index=True)
     source = Column(String(250, 'Latin1_General_CI_AS'), nullable=False)
@@ -128,11 +137,9 @@ class Ugc(Base):
     txt = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False, server_default='text("('')")')
     url = Column(String(500, 'Latin1_General_CI_AS'))
     title = Column(String(500, 'Latin1_General_CI_AS'))
-    title_cleaned = Column(String(500, 'Latin1_General_CI_AS'), server_default='text("('')")')
     date_hint = Column(DateTime)
     platform_hint = Column(String(10, 'Latin1_General_CI_AS'))
-    processed = Column(BIT, nullable=False, server_default=text("((0))"))
-    cleaned = Column(BIT, nullable=False, server_default=text("((0))"))
+    processed = Column(BIT, nullable=False, index=True, server_default=text("((0))"))
     season_hint = Column(String(10, 'Latin1_General_CI_AS'))
     month_hint = Column(String(10, 'Latin1_General_CI_AS'))
     spp1_hint = Column(String(30, 'Latin1_General_CI_AS'))
@@ -142,6 +149,8 @@ class Ugc(Base):
     trip_hint = Column(BIT)
     catch_hint = Column(BIT)
     txt_cleaned = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), server_default='text("('')")')
+    cleaned = Column(BIT)
+    title_cleaned = Column(String(500, 'Latin1_General_CI_AS'), server_default='text("('')")')
 
 
 t_v_err_species_alias_duplicate_accepted = Table(
@@ -298,6 +307,21 @@ class SpeciesType1(Base):
     species_typeid = Column(ForeignKey('species_type.species_typeid'), nullable=False)
 
     species_type = relationship('SpeciesType')
+
+
+class UgcGaz(Base):
+    __tablename__ = 'ugc_gaz'
+
+    gazid = Column(BigInteger, primary_key=True)
+    ugcid = Column(ForeignKey('ugc.ugcid'), nullable=False)
+    name = Column(String(255, 'Latin1_General_CI_AS'), nullable=False)
+    ifcaid = Column(ForeignKey('ifca.ifcaid'), nullable=False, index=True)
+    processed = Column(BIT, nullable=False, server_default=text("((0))"))
+    date_modified = Column(DateTime)
+    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
+
+    ifca = relationship('Ifca')
+    ugc = relationship('Ugc')
 
 
 class Species(Base):

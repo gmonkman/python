@@ -20,3 +20,5 @@ class PATHS():
     NAMED_ENTITIES_DUMP_FOLDER = BIN_FOLDER
     LOG_CLEAN_UGC = _path.normpath('c:/temp/clean_ugc.py.log')
     LOG_CLEAN_GAZ = _path.normpath('c:/temp/clean_gaz.py.log')
+    LOG_MAKE_GAZ_WORDCOUNTS = _path.normpath('c:/temp/make_gaz_wordcounts.py.log')
+    GAZ_WORDS_BY_WORD_COUNT = _path.normpath(_path.join(BIN_FOLDER, 'gaz_words_by_word_count.pkl'))

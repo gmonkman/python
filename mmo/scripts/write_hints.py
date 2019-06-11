@@ -1,11 +1,7 @@
 '''run some SQLS to fix common text mistakes'''
 import argparse
-from warnings import warn
 
-
-import sqlalchemy
 from sqlalchemy.orm import load_only
-
 
 #import spacy
 #Doc = spacy.load('en_core_web_sm')
@@ -16,7 +12,7 @@ import nlp as _nlp
 import nlp.clean as nlpclean
 
 import mmodb
-import mmodb.model as model
+
 from mmodb.model import Ugc, UgcHint
 from mmo import name_entities as ne
 from nlp import find

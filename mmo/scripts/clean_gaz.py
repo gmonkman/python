@@ -10,7 +10,7 @@ import nlp.stopwords as stopwords
 import nlp.clean as clean
 from funclib.iolib import PrintProgress
 import mmo.name_entities as NE
-from warnings import warn
+#from warnings import warn
 import mmo.settings as settings
 
 #region setup log

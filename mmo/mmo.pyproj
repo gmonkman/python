@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{8487daab-6561-4c06-b75c-81a067f9315a}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\write_hints.py</StartupFile>
+    <StartupFile>scripts\make_gaz_wordcounts.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -28,6 +28,7 @@
   <ItemGroup>
     <Compile Include="name_entities.py" />
     <Compile Include="scripts\clean_gaz.py" />
+    <Compile Include="scripts\make_gaz_wordcounts.py" />
     <Compile Include="scripts\clean_ugc.py">
       <SubType>Code</SubType>
     </Compile>
