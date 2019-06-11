@@ -87,14 +87,20 @@ def main():
 
                 if row.title:
                     s = row.title
-                    s = clean.clean(s, tolower=True)
-                    s = Stop.purge(s)
+                    try:
+                        s = clean.clean(s, tolower=True)
+                        s = Stop.purge(s)
+                    except:
+                        if not s: s = row.title
                     row.title_cleaned = s
 
                 if row.txt:
                     s = row.txt
-                    s = clean.clean(s, tolower=True)
-                    s = Stop.purge(s)
+                    try:
+                        s = clean.clean(s, tolower=True)
+                        s = Stop.purge(s)
+                    except:
+                        if not s: s = row.txt
                     row.txt_cleaned = s
 
                 PP.increment(show_time_left=True)
@@ -102,9 +108,9 @@ def main():
                 mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
                 PP.increment(show_time_left=True)
 
-            mmodb.SESSION.commit()
+                mmodb.SESSION.commit() #commit everytime, sod it
         except Exception as e:
-            s = 'Rolling back because of error:\t' % e
+            s = 'Rolling back because of error:\t%s' % e
             log(s, 'both')
             mmodb.SESSION.rollback()
 

@@ -81,12 +81,15 @@ def main():
         try:
             for row in rows:
                 #do work
-                s = clean.clean(row.name, tolower=True)
-                s = Stop.purge(s)
+                try:
+                    s = clean.clean(row.name, tolower=True)
+                    s = Stop.purge(s)
+                except:
+                    if not s: s = row.name
                 row.name_cleaned = s
                 row.processed = True
                 PP.increment(show_time_left=True)
-            gazetteerdb.SESSION.commit()
+                gazetteerdb.SESSION.commit() #commit every time
         except Exception as e:
             s = 'Rolling back because of error:\t%s' % e
             log(s, 'both')
