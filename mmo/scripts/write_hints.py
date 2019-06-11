@@ -402,7 +402,9 @@ def main():
     else:
         max_row = int(max_row)
 
-    row_cnt = mmodb.SESSION.query(Ugc.ugcid).filter_by(processed=0).order_by(Ugc.ugcid).slice(offset, max_row).count()
+    #filters with slice don't work if we are filtering on a thing that gets edited in the loop
+    #row_cnt = mmodb.SESSION.query(Ugc.ugcid).filter_by(processed=0).order_by(Ugc.ugcid).slice(offset, max_row).count()
+    row_cnt = mmodb.SESSION.query(Ugc.ugcid).order_by(Ugc.ugcid).slice(offset, max_row).count()
     PP = iolib.PrintProgress(row_cnt, bar_length=20)
 
     window_size = 10  # or whatever limit you like
@@ -411,37 +413,39 @@ def main():
 
     while True:
         start, stop = window_size * window_idx + offset, window_size * (window_idx + 1) + offset
-        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
-        if rows is None:
-            break
-        SW = StopWatch()
-        try:
-            for row in rows:
-                assert isinstance(row, Ugc)
+        #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).order_by(Ugc.ugcid).slice(start, stop).all()
+
+
+        for row in rows:
+            assert isinstance(row, Ugc)
+            try:
+                if row.processed:
+                    PP.increment(show_time_left=True)
+                    continue
+
                 mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
                 txt_cleaned = row.txt_cleaned; title = nlpclean.clean(row.title)
                 if not txt_cleaned: PP.increment(show_time_left=True); continue
 
-                SW.lap()
                 hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_cleaned)
-                if not hints: SW.lap(); PP.increment(show_time_left=True); continue #if it doesnt mention species, skip the rest           
+                
+                #TOOO Toggle this later - we will want all activity
+                if not hints:
+                    PP.increment(show_time_left=True)
+                    continue #if it doesnt mention species, skip the rest           
                 write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-                SW.lap(); print('make_species_hints:%s' % SW.pretty_time(SW.event_rate_last))
             
 
                 #print('hint_type:\t%s\nhints:\t%s\nsource_texts:\t%s\nnpos_lists:\t%s\nns%s' % (hint_types, hints, source_texts, pos_lists, ns))
-                SW.lap()
                 hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_month_hints(title, txt_cleaned)
                 row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
                 write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-                SW.lap(); print('make_month_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
 
-                SW.lap()
                 #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_season_hints(title, txt)
                 #row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
                 #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-                SW.lap(); print('make_season_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
 
                 #TODO Reenable at some point
@@ -449,11 +453,9 @@ def main():
                 #row.date_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else row.published_date
                 #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns) #order changed from the make call because some are by ref
             
-                SW.lap()
                 hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_platform_hints(title, txt_cleaned)
                 row.platform_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else 'shore'
                 write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-                SW.lap(); print('make_platform_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
                 #SW.lap()
                 #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_catch_hints(title, txt)
@@ -473,15 +475,18 @@ def main():
 
 
                 row.processed = True
-                mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
-                PP.increment(show_time_left=True)
-
                 mmodb.SESSION.commit()
-        except Exception as e:
-            s = 'Rolling back because of error:\t%s' % e
-            log(s, 'both')
-            mmodb.SESSION.rollback()
-
+            except Exception as e:
+                try:
+                    mmodb.SESSION.rollback()
+                    s = 'Error:\t%s' % e
+                    log(s, 'both')
+                except Exception as _:
+                    pass
+            finally:
+                PP.increment(show_time_left=True)
+            
+            
 
         if len(rows) < window_size:
             break
