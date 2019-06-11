@@ -424,11 +424,11 @@ def main():
                 assert isinstance(row, Ugc)
                 mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
                 txt_cleaned = row.txt_cleaned; title = nlpclean.clean(row.title)
-                if not txt_cleaned: PP.increment(); continue
+                if not txt_cleaned: PP.increment(show_time_left=True); continue
 
                 SW.lap()
                 hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_cleaned)
-                if not hints: SW.lap(); PP.increment(); continue #if it doesnt mention species, skip the rest           
+                if not hints: SW.lap(); PP.increment(show_time_left=True); continue #if it doesnt mention species, skip the rest           
                 write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 SW.lap(); print('make_species_hints:%s' % SW.pretty_time(SW.event_rate_last))
             
@@ -478,7 +478,7 @@ def main():
 
                 row.processed = True
                 mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
-                PP.increment()
+                PP.increment(show_time_left=True)
 
                 mmodb.SESSION.commit()
         except Exception as e:

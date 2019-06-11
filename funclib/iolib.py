@@ -1141,7 +1141,7 @@ class PrintProgress():
         self._max_suffix_len = 0
 
 
-    def increment(self, step=1, suffix='', show_time_left=False):
+    def increment(self, step=1, suffix='', show_time_left=True):
         '''(int, str, bool) -> void
         Advance the counter step ticks.
 
