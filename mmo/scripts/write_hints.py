@@ -406,7 +406,7 @@ def main():
     else:
         max_row = int(max_row)
 
-    row_cnt = mmodb.SESSION.query(Ugc.ugcid).slice(offset, max_row).count()
+    row_cnt = mmodb.SESSION.query(Ugc.ugcid).filter_by(processed=0).order_by(Ugc.ugcid).slice(offset, max_row).count()
     PP = iolib.PrintProgress(row_cnt, bar_length=20)
 
     window_size = 10  # or whatever limit you like
