@@ -1,3 +1,5 @@
+from warnings import warn as _warn
+
 UNITS = [
     'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
     'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
@@ -158,83 +160,89 @@ class Text2Digits():
         total_words = len(textnum.split())
 
         for word in textnum.split():
-            word_count += 1
-            word = word.lower()
-            if word in ORDINAL_WORDS:
-                scale, increment = (1, ORDINAL_WORDS[word])
-                current = current * scale + increment
-                if scale > 100:
-                    result += current
-                    current = 0
-                onnumber = True
-                lastunit = lastscale = is_tens = False
-
-            else:
-                # Handle endings
-                for ending, replacement in ORDINAL_ENDINGS:
-                    if word.endswith(ending) and (word[:-len(ending)] in UNITS or word[:-len(ending)] in TENS):
-                        word = "%s%s" % (word[:-len(ending)], replacement)
-
-                # Handle misspelt words
-                if spell_check:
-                    matched_num = TextPreprocessor.get_match(word, self.numwords.keys(), self.threshold)
-                    if matched_num is not None:
-                        word = matched_num
-
-                # Is not a number word
-                if (not self.is_numword(word)) or (word == 'and' and not lastscale):
-                    if onnumber:
-                        # Flush the current number we are building
-                        curstring += repr(result + current) + " "
-                    curstring += word
-
-                    if word_count != total_words:
-                        curstring += " "
-
-                    result = current = 0
-                    onnumber = False
-                    lastunit = False
-                    lastscale = False
-                    is_tens = False
-
-                # Is a number word
-                else:
-                    scale, increment = self.from_numword(word)
-                    onnumber = True
-
-                    # For cases such as twenty ten -> 2010, twenty nineteen -> 2019
-                    if is_tens and (word not in UNITS or word == "ten") and (word not in SCALES):
-                        curstring += repr(result + current)
-                        result = current = 0
-
-                    if lastunit and (word not in SCALES):
-                        # Assume this is part of a string of individual numbers to
-                        # be flushed, such as a zipcode "one two three four five"
-                        curstring += repr(result + current)
-                        result = current = 0
-
-                    if scale > 1:
-                        current = max(1, current)
-
+            try:
+                word_count += 1
+                word = word.lower()
+                if word in ORDINAL_WORDS:
+                    scale, increment = (1, ORDINAL_WORDS[word])
                     current = current * scale + increment
                     if scale > 100:
                         result += current
                         current = 0
+                    onnumber = True
+                    lastunit = lastscale = is_tens = False
 
-                    lastscale = False
-                    lastunit = False
-                    if word in SCALES:
-                        lastscale = True
-                    elif word in UNITS:
-                        lastunit = True
-                    elif word in TENS:
-                        is_tens = True
+                else:
+                    # Handle endings
+                    for ending, replacement in ORDINAL_ENDINGS:
+                        if word.endswith(ending) and (word[:-len(ending)] in UNITS or word[:-len(ending)] in TENS):
+                            word = "%s%s" % (word[:-len(ending)], replacement)
+
+                    # Handle misspelt words
+                    if spell_check:
+                        matched_num = TextPreprocessor.get_match(word, self.numwords.keys(), self.threshold)
+                        if matched_num is not None:
+                            word = matched_num
+
+                    # Is not a number word
+                    if (not self.is_numword(word)) or (word == 'and' and not lastscale):
+                        if onnumber:
+                            # Flush the current number we are building
+                            curstring += repr(result + current) + " "
+                        curstring += word
+
+                        if word_count != total_words:
+                            curstring += " "
+
+                        result = current = 0
+                        onnumber = False
+                        lastunit = False
+                        lastscale = False
+                        is_tens = False
+
+                    # Is a number word
+                    else:
+                        scale, increment = self.from_numword(word)
+                        onnumber = True
+
+                        # For cases such as twenty ten -> 2010, twenty nineteen -> 2019
+                        if is_tens and (word not in UNITS or word == "ten") and (word not in SCALES):
+                            curstring += repr(result + current)
+                            result = current = 0
+
+                        if lastunit and (word not in SCALES):
+                            # Assume this is part of a string of individual numbers to
+                            # be flushed, such as a zipcode "one two three four five"
+                            curstring += repr(result + current)
+                            result = current = 0
+
+                        if scale > 1:
+                            current = max(1, current)
+
+                        current = current * scale + increment
+                        if scale > 100:
+                            result += current
+                            current = 0
+
+                        lastscale = False
+                        lastunit = False
+                        if word in SCALES:
+                            lastscale = True
+                        elif word in UNITS:
+                            lastunit = True
+                        elif word in TENS:
+                            is_tens = True
+            except Exception as e:
+                _warn('Exception:\t%s' % e)
+                return word
 
 
         if onnumber:
             curstring += repr(result + current)
 
         return curstring
+
+
 
     def is_numword(self, x):
         if self.is_number(x):
@@ -245,12 +253,9 @@ class Text2Digits():
 
     def from_numword(self, x):
         if self.is_number(x):
-            try:
-                scale = 0
-                increment = int(x.replace(',', ''))
-                return scale, increment
-            except Exception as _:
-                return self.numwords[x]
+            scale = 0
+            increment = int(x.replace(',', ''))
+            return scale, increment
         return self.numwords[x]
 
 

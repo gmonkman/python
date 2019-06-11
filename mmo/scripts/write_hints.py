@@ -482,7 +482,7 @@ def main():
 
                 mmodb.SESSION.commit()
         except Exception as e:
-            s = 'Rolling back because of error:\t' % e
+            s = 'Rolling back because of error:\t%s' % e
             log(s, 'both')
             mmodb.SESSION.rollback()
 
