@@ -62,8 +62,8 @@ def main():
         max_row = gazetteerdb.SESSION.query(Gazetteer.gazetteerid).count()
     else:
         max_row = int(max_row)
-
-    row_cnt = gazetteerdb.SESSION.query(Gazetteer.gazetteerid).slice(OFFSET, max_row).count()
+    
+    row_cnt = gazetteerdb.SESSION.query(Gazetteer.gazetteerid).filter_by(name_cleaned='').order_by(Gazetteer.gazetteerid).slice(OFFSET, max_row).count()
     PP = PrintProgress(row_cnt, bar_length=20)
  
     Stop = stopwords.StopWords(whitelist=NE.all_single)
