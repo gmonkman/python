@@ -5,7 +5,7 @@ from inspect import getsourcefile as _getsourcefile
 import os.path as _path
 import funclib.iolib as iolib
 import mmo.name_entities as ne
-
+import mmo
 
 class Test(unittest.TestCase):
     '''unittest for keypoints'''

@@ -3,6 +3,7 @@
 import itertools as _iter
 from nltk.corpus import wordnet as _wordnet
 from nltk.tokenize import word_tokenize as _word_tokenize
+
 import inflect as _inflect
 
 import funclib.stringslib as _stringslib
@@ -381,6 +382,10 @@ def genhyper(synset, depth=2):
         print('done')
         return
 
+    
+
+
+
 
 #TODO finish sliding window
 class SlidingWindow():
@@ -416,3 +421,5 @@ class SlidingWindow():
 #    print ' '.join(words)
 
 #    print "-----------------"
+
+

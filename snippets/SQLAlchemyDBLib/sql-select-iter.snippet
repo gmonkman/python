@@ -12,13 +12,64 @@
     </Header>
     <Snippet>
       <Code Language="Python"><![CDATA[
-    #this creates a dict from the rows  
-    rows = _mmodb.SESSION.query(_text('select speciesid, species_aliasid from v_species_all')).fetchall()
-    out = {}
-    for r in rows:
-        out[r[0]] = r[1]
-    return out
 
+'''loop over rows'''
+import argparse
+from warnings import warn
+
+
+def main():
+    cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
+    
+    cmdline.add_argument('-s', '--slice', help='Record slice, eg -s 0,1000', type=f)
+    args = cmdline.parse_args()
+
+    offset = int(args.slice[0])
+    max_row = args.slice[1]
+    if max_row in ('max', 'end', 'last'):
+        max_row = mmodb.SESSION.query(Ugc.ugcid).count()
+    else:
+        max_row = int(max_row)
+
+    row_cnt = mmodb.SESSION.query(Ugc.ugcid).slice(offset, max_row).count()
+    PP = iolib.PrintProgress(row_cnt, bar_length=20)
+
+    window_size = 10  # or whatever limit you like
+    window_idx = 0
+
+
+    while True:
+        start, stop = window_size * window_idx + offset, window_size * (window_idx + 1) + offset
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
+        if rows is None:
+            break
+
+        try:
+            for row in rows:
+                #do work
+                
+                
+                row.processed = True
+                mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
+                PP.increment(show_time_left=True) 
+
+            mmodb.SESSION.commit()
+        except Exception as e:
+            s = 'Rolling back because of error:\t' % e
+            log(s, 'both')
+            mmodb.SESSION.rollback()
+
+
+        if len(rows) < window_size:
+            break
+        window_idx += 1
+
+
+
+
+if __name__ == "__main__":
+    main()
+                
 
 ]]></Code>
     </Snippet>  

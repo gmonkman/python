@@ -6,7 +6,7 @@ from warnings import warn
 import sqlalchemy
 from sqlalchemy.orm import load_only
 
-from pysimplelog import Logger
+
 #import spacy
 #Doc = spacy.load('en_core_web_sm')
 
@@ -32,6 +32,7 @@ SHORE_VOTE_THRESH = 2
 
 
 #region setup log
+from pysimplelog import Logger
 files_delete2(settings.PATHS.LOG_WRITE_HINTS)
 Log = Logger(name='train', logToStdout=False, logToFile=True, logFileMaxSize=1)
 Log.set_log_file(settings.PATHS.LOG_WRITE_HINTS)
@@ -49,10 +50,10 @@ def log(msg, output_to='both'):
     '''(argparse.parse, str) -> void
     '''
     try:
-        if s in ['file', 'both']:
+        if output_to in ['file', 'both']:
             Log.info(msg)
 
-        if s in ['console', 'both']:
+        if output_to in ['console', 'both']:
             print(msg)
     except Exception as _:
         try:
@@ -422,7 +423,7 @@ def main():
             for row in rows:
                 assert isinstance(row, Ugc)
                 mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
-                txt_cleaned = _clean(row.txt_cleaned); title = nlpclean.clean(row.title)
+                txt_cleaned = row.txt_cleaned; title = nlpclean.clean(row.title)
                 if not txt_cleaned: PP.increment(); continue
 
                 SW.lap()
@@ -479,7 +480,7 @@ def main():
                 mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
                 PP.increment()
 
-                mmodb.SESSION.commit()
+            mmodb.SESSION.commit()
         except Exception as e:
             s = 'Rolling back because of error:\t' % e
             log(s, 'both')

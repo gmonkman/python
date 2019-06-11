@@ -18,3 +18,5 @@ class PATHS():
     LOG_WRITE_HINTS = _path.normpath('c:/temp/log_write_hints.py.log')
     LOG_NAMED_ENTITIES = _path.normpath('c:/temp/log_named_entities.py.log') #currently unused
     NAMED_ENTITIES_DUMP_FOLDER = BIN_FOLDER
+    LOG_CLEAN_UGC = _path.normpath('c:/temp/clean_ugc.py.log')
+    LOG_CLEAN_GAZ = _path.normpath('c:/temp/clean_gaz.py.log')

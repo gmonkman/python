@@ -66,6 +66,10 @@ def replace_whole_word(s, find_, replacement_):
     return _re.sub(r'\b' + find_ + r'\b', replacement_, s)
 
 
+def replace_all_punctuation_with_char(s, char):
+    '''replace all punc with fullstop'''
+    return _re.sub(r'[^\w\s]', char, s)
+
 def SentenceHasTextAndNumber(sentence, word, no_left_boudary=True, no_right_boundary=True):
     '''str, str->bool
     Does word appear in sentence with a number

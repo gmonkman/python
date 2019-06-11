@@ -42,30 +42,6 @@ def to_ascii_list(l):
     return [to_ascii(s) for s in l]
 
 
-def base_substitutons(s):
-    '''a set of base substitutions to improve sentence detection
-    This includes substituting sentence delimiters to the full stop
-    and then removing repeated full stops'''
-    #careful with urls
-    s = non_breaking_space2space(s)
-    s = s.replace('/', ' or ')
-    s = s.replace('\\', ' or ') #escaped
-    s = s.replace('|', ' or ') #escaped
-    s = s.replace(' & ', ' and ')
-    s = s.replace('+', ' plus ')
-    s = s.replace('@', ' at ')
-
-    #sentence delimiters
-    s = s.replace(';', '. ')
-    s = s.replace('?', '. ')
-    s = s.replace(',', '. ')
-    s = s.replace('!', '. ')
-    s = s.replace(':', '. ')
-
-    s = _relib.fix_repeat_spaces(s)
-    s = _relib.fix_repeat_char(s, '.')
-    return s
-
 
 def txt2nr(s):
     '''convert text to digits'''
@@ -88,12 +64,28 @@ def clean(s, tolower=False):
     s = non_breaking_space2space(s)
     s = strip_urls_str(s)
     s = sep_num_from_words(s)
-    s = base_substitutons(s) #base substitutions would make urls unidentifiable
     s = s.replace("'", "")
-    s = s.replace('"', '')
+    s = s.replace('?', '.')
+    s = s.replace('!', '.')
+    s = s.replace(':', '.')
+    s = s.replace(';', '.')
+    s = _relib.replace_all_punctuation_with_char(s, ' ')
     s = s.replace('\n ', '\n')
-    s = s.replace(' \n', '\n')    
-    s = nlpclean.newline_del_multi(s)
-    s = nlpclean.txt2nr(s)
+    s = s.replace(' \n', '\n')
+    s = clean_xml_reserved(s)
+    s = newline_del_multi(s)
+    s = _relib.fix_repeat_spaces(s)
+    s = _relib.fix_repeat_char(s, '.')
+    s = txt2nr(s)
     if tolower: s = s.lower()
+    return s
+
+
+
+def clean_xml_reserved(s, replace_with=' '):
+    '''clean xml reserved characters'''
+    s = s.replace('<', replace_with)
+    s = s.replace('>', replace_with)  
+    s = s.replace('@', ' at ')
+    s = s.replace('&', ' and ')
     return s

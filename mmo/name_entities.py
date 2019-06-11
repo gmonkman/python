@@ -11,7 +11,7 @@
 
 import os.path as _path
 import funclib.stringslib as _stringslib
-import dblib.mssql as _mssql
+
 from funclib.baselib import list_flatten as _flat
 import gazetteerdb.gaz as _gaz
 from mmodb import species as _species
@@ -20,7 +20,7 @@ from nlp import typo as _typo
 from nlp import relib as _relib
 import funclib.iolib as _iolib
 import mmo.settings as _settings
-from funclib.baselib import list_flatten as _flt
+
 
 
 all_ = set()
@@ -365,8 +365,8 @@ class _NamedEntityBaseDict():
         This is used as a whitelist filter for stopwords
         '''
         assert self.nouns_dict_all, 'self.all was accessed, but self.all was empty.'
-        all_ = _flat([list(x) for x in self.nouns_dict_all.values()])
-        return set(all_)
+        a = _flat([list(x) for x in self.nouns_dict_all.values()])
+        return set(a)
 
 
 
@@ -507,7 +507,7 @@ DateTimeMonth.get_season = _get_season #append the getseason function for convie
 
 
 DateTimeSeason = NEBDicts(
-    nouns_dict={'spring':['spring'], 'winter':['winter', 'wntr'], 'autumn':['autumn', 'aut', 'atmn']},
+    nouns_dict={'spring':['spring'], 'winter':['winter', 'wntr'], 'autumn':['autumn', 'aut', 'atmn'], 'summer':['summer']},
     typos=None,
     dump_name='DateTimeSeason'
     )
@@ -586,7 +586,7 @@ def _bld_global_sets(force_dump):
     def _bld(word_set):
         '''build whitelist of words for nlp.stopwords'''
         global all_; global all_single
-        ss = {w for w in _flt([v.split() for v in word_set])}
+        ss = {w for w in _flat([v.split() for v in word_set])}
         all_single |= ss  #every single word as a single word, eg 'to high' will be split to 'to', 'high'
         all_ |= word_set #all words and phrases as they appear, e.g. 'to high' will still be 'to high'
 
@@ -595,7 +595,7 @@ def _bld_global_sets(force_dump):
         print('Loaded named_entities.all from file system')
 
     if _iolib.file_exists(_settings.PATHS.NAMED_ENTITIES_ALL_SINGLE) and not force_dump:
-        all_single = _iolib.unpickle(_settings.PATHS.NAMED_ENTITIES_ALL)
+        all_single = _iolib.unpickle(_settings.PATHS.NAMED_ENTITIES_ALL_SINGLE)
         print('Loaded named_entities.all_single from file system')
 
     if all_ and all_single: return

@@ -7,7 +7,7 @@ import dblib.alchemylib as _alc
 
 import mmodb.ini as ini
 
-__all__ = ['ini', 'mag', 'model']
+__all__ = ['ini', 'model']
 
 print('Trying to connect to database %s.%s ....' % (ini.server, ini.dbname))
 cnnstr = _alc.ConnectionString(ini.server, ini.dbname, ini.user, ini.password, use_integrated=ini.is_integrated).mssql_connection_string()
