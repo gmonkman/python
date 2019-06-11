@@ -64,6 +64,7 @@ def main():
         max_row = int(max_row)
     
     row_cnt = gazetteerdb.SESSION.query(Gazetteer.gazetteerid).filter_by(name_cleaned='').order_by(Gazetteer.gazetteerid).slice(OFFSET, max_row).count()
+    print('OFFSET:\t%s\tmax_row:\t%s\trow_cnt:\t%s' % (OFFSET, max_row, row_cnt))
     PP = PrintProgress(row_cnt, bar_length=20)
  
     Stop = stopwords.StopWords(whitelist=NE.all_single)
@@ -74,8 +75,7 @@ def main():
 
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
-        rows = gazetteerdb.SESSION.query(Gazetteer).options(load_only('gazetteerid', 'name', 'name_cleaned')).filter_by(name_cleaned='').order_by(Gazetteer.gazetteerid).slice(start, stop).all()
-        
+        rows = gazetteerdb.SESSION.query(Gazetteer).options(load_only('gazetteerid', 'name', 'name_cleaned')).filter_by(name_cleaned='').order_by(Gazetteer.gazetteerid).slice(start, stop).all()        
         if rows is None: break
 
         try:
@@ -88,12 +88,13 @@ def main():
                     if not s: s = row.name
                 row.name_cleaned = s
                 row.processed = True
-                PP.increment(show_time_left=True)
                 gazetteerdb.SESSION.commit() #commit every time
         except Exception as e:
             s = 'Rolling back because of error:\t%s' % e
             log(s, 'both')
             gazetteerdb.SESSION.rollback()
+        finally:
+            PP.increment(show_time_left=True)
 
 
         if len(rows) < WINDOW_SIZE:
