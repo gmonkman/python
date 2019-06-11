@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ec9dedee-3c18-4a0b-8e3f-f02317501261}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test\test_baselib.py</StartupFile>
+    <StartupFile>baselib.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

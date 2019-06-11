@@ -2,6 +2,7 @@
 '''clean the ugc text field and write to txt_cleaned'''
 import argparse
 from sqlalchemy.orm import load_only
+from sqlalchemy.sql import text as _text
 
 import mmodb
 from mmodb.model import Ugc
@@ -63,11 +64,13 @@ def main():
     else:
         max_row = int(max_row)
 
-    row_cnt = mmodb.SESSION.query(Ugc.ugcid).slice(OFFSET, max_row).count()
-    PP = PrintProgress(row_cnt, bar_length=20)
+    
+    
 
-    
-    
+    sql = "select count(*) as n from gazetteer where cast(txt_cleaned as varchar) <> ''"
+    rows = _gazetteerdb.SESSION.execute(_text(sql)).fetchall() 
+    PP = PrintProgress(rows[0], bar_length=20)
+
     Stop = stopwords.StopWords(whitelist=NE.all_single)
 
 
@@ -103,8 +106,7 @@ def main():
                         if not s: s = row.txt
                     row.txt_cleaned = s
 
-                PP.increment(show_time_left=True)
-                row.processed = True
+                #row.processed = True
                 mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
                 PP.increment(show_time_left=True)
 

@@ -480,7 +480,7 @@ def main():
                 mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
                 PP.increment()
 
-            mmodb.SESSION.commit()
+                mmodb.SESSION.commit()
         except Exception as e:
             s = 'Rolling back because of error:\t' % e
             log(s, 'both')

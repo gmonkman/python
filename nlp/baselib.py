@@ -390,36 +390,21 @@ def genhyper(synset, depth=2):
 #TODO finish sliding window
 class SlidingWindow():
     def __init__(self, s, windows=(1,2,3)):
+        winds = {}
+        for sz in windows:
+            winds[sz] = set()
+
         self._s = s
         self.tokenized = _word_tokenize(self._s)
+
+
         for sz in windows:
-            for x in range(len(self.tokenized) - 2):
-                words = self.tokenized[x:x+3]
-                y = [ss for ss in _iter.combinations(words, 1)]
-        
-                res = [y for y in _iter.combinations(words,2)]
-
-                return ' '.join(words)
+            for x in range(0, len(self.tokenized) - sz + 1):
+                winds[sz] |= set([' '.join(self.tokenized[x:x + sz])])
+            
+        self.windowed = winds
 
 
-            document=['hello','my','world','love']
-
-#https://stackoverflow.com/questions/24682475/python-sliding-window-to-compare-words-in-my-list-with-words-in-the-given-lexic
-#for x in range(len(document)-2):
-#    words = document[x:x+3]
-#    print 'words:', words
-
-#    print "--- 1 ---"
-#    for y in itertools.combinations(words,1):
-#        print ' '.join(y)
-
-#    print "--- 2 ---"
-#    for y in itertools.combinations(words,2):
-#        print ' '.join(y)
-
-#    print "--- 3 ---"
-#    print ' '.join(words)
-
-#    print "-----------------"
-
-
+if __name__ == '__main__':
+    s = ' '.join([str(s) for s in range(10)])
+    W = SlidingWindow(s)
