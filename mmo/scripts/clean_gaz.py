@@ -88,7 +88,7 @@ def main():
                 PP.increment(show_time_left=True)
             gazetteerdb.SESSION.commit()
         except Exception as e:
-            s = 'Rolling back because of error:\t' % e
+            s = 'Rolling back because of error:\t%s' % e
             log(s, 'both')
             gazetteerdb.SESSION.rollback()
 

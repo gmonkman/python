@@ -245,10 +245,14 @@ class Text2Digits():
 
     def from_numword(self, x):
         if self.is_number(x):
-            scale = 0
-            increment = int(x.replace(',', ''))
-            return scale, increment
+            try:
+                scale = 0
+                increment = int(x.replace(',', ''))
+                return scale, increment
+            except Exception as _:
+                return self.numwords[x]
         return self.numwords[x]
+
 
     def is_number(self, x):
         if type(x) == str:
