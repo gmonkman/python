@@ -25,5 +25,4 @@ class Gazetteer(Base):
     shape = Column(String(10, 'Latin1_General_CI_AS'))
     x_rnd = Column(Float(53))
     y_rnd = Column(Float(53))
-    cleaned = Column(BIT, nullable=False, server_default=text("((0))"))
     name_cleaned = Column(String(255))
