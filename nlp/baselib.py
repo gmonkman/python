@@ -389,6 +389,16 @@ def genhyper(synset, depth=2):
 
 #TODO finish sliding window
 class SlidingWindow():
+    '''Generate dict of text with
+    the windows windows.
+
+    Leafs (word itearables) are sets
+    
+    Example:
+    >>>SlidingWindow('one two three four five', (2,3))
+    {2: {'one two', 'two three', 'three four', 'four five'},
+    3: {'one two three', 'three four five'}}
+    '''
     def __init__(self, s, windows=(1,2,3)):
         winds = {}
         for sz in windows:
@@ -403,6 +413,11 @@ class SlidingWindow():
                 winds[sz] |= set([' '.join(self.tokenized[x:x + sz])])
             
         self.windowed = winds
+ 
+
+    def get(self):
+        '''return it'''
+        return self.windowed
 
 
 if __name__ == '__main__':

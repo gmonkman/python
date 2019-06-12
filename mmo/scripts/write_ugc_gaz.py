@@ -5,14 +5,15 @@ with wordcounts
 '''
 import argparse
 
-#from sqlalchemy.sql import text as _text
-
-
-import gazetteerdb
-from gazetteerdb.model import t_v_gazetteer_word_count as T
+from sqlalchemy.orm import load_only
+import mmodb
+from mmodb.model import UgcGaz, Ugc
 
 import funclib.iolib as iolib
 from funclib.iolib import PrintProgress
+
+import nlp.baselib as nlpbase
+import mmo.name_entities as NE
 
 import mmo.settings as settings
 
@@ -20,12 +21,10 @@ import mmo.settings as settings
 from pysimplelog import Logger
 from funclib.iolib import files_delete2
 
-
-
-files_delete2(settings.PATHS.LOG_MAKE_GAZ_WORDCOUNTS)
+files_delete2(settings.PATHS.LOG_WRITE_UGC_GAZ)
 Log = Logger(name='train', logToStdout=False, logToFile=True, logFileMaxSize=1)
-Log.set_log_file(settings.PATHS.LOG_MAKE_GAZ_WORDCOUNTS)
-print('\nLogging to %s\n' % settings.PATHS.LOG_MAKE_GAZ_WORDCOUNTS)
+Log.set_log_file(settings.PATHS.LOG_WRITE_UGC_GAZ)
+print('\nLogging to %s\n' % settings.PATHS.LOG_WRITE_UGC_GAZ)
 
 class LogTo():
     '''log options'''
@@ -56,19 +55,17 @@ MAX_WORDS = 4 #only consider places with 4 or fewer words
 
 VALID_IFCAS = ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex']
 
-
 #D will look like:
 #   {'cornwall':                A DICT
 #       {1:                     A DICT
 #           {'a', 'b' ..}       A SET
 #   }, ...
+GAZ = iolib.unpickle(settings.PATHS.GAZ_WORDS_BY_WORD_COUNT)
+assert isinstance(GAZ, dict), 'Expected dict for GAZ. Use make_gaz_wordcounts.py if %s does not exists.' % settings.PATHS.GAZ_WORDS_BY_WORD_COUNT
+
+
+
     
-     
-D = {}
-for s in VALID_IFCAS:
-    D[s] = {}
-
-
 def _addit(ifca, k, v):
     '''(dict, int|str|iter, any) -> None
 
@@ -84,9 +81,6 @@ def _addit(ifca, k, v):
 
 
 
-
-
-
 def main():
     '''main'''
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
@@ -97,33 +91,59 @@ def main():
     OFFSET = int(args.slice[0])
     max_row = args.slice[1]
     if max_row in ('max', 'end', 'last'):
-        max_row = gazetteerdb.SESSION.query(T).count()
+        max_row = gazetteerdb.SESSION.query(Ugc).count()
     else:
         max_row = int(max_row)
 
     
-    row_cnt = gazetteerdb.SESSION.query(T).order_by(T.columns.gazetteerid).slice(OFFSET, max_row).count()
+    row_cnt = gazetteerdb.SESSION.query(Ugc).order_by(Ugc.columns.gazetteerid).slice(OFFSET, max_row).count()
     PP = PrintProgress(row_cnt, bar_length=20)
 
-    WINDOW_SIZE = 1000; WINDOW_IDX = 0
+    WINDOW_SIZE = 10; WINDOW_IDX = 0
 
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
-        rows = gazetteerdb.SESSION.query(T).order_by(T.columns.gazetteerid).slice(start, stop).all()
         
-        if rows is None: break
+        #remember, filters don't work with slice if we are updating the records we filter on
+        rows = gazetteerdb.SESSION.query(Ugc).add_columns(Ugc.board, Ugc.ugcid, Ugc.processed_gaz, Ugc.title_cleaned, Ugc.txt_cleaned).order_by(Ugc.columns.gazetteerid).slice(start, stop).all()
 
-        try:
-            for row in rows:
-                if row.n > MAX_WORDS:
-                    print('skipped %s' % row.name_cleaned)
-                    continue
-                assert row.ifca in VALID_IFCAS, 'IFCA %s not found' % row.ifca
-                #do work
-                _addit(row.ifca, row.n, row.name_cleaned) 
+        for row in rows:
+            assert isinstance(row, Ugc)
+            try:
+                if Ugc.processed_gaz:
+                    PP.increment(show_time_left=True)
+                    return
+                txt = ' '.join([row.title_cleaned, row.txt_cleaned])
+                win = nlpbase.SlidingWindow(s, tuple(i for i in range(1, MAX_WORDS+1))).get()
+
+#GAZ will look like:
+#   {'cornwall':                A DICT
+#       {1:                     A DICT
+#           {'a', 'b' ..}       A SET
+#   }, ...
+                for num_key, ugc_words in win:
+                    assert isinstance(ugc_words, set)
+                    for ifcaid in NE.FORUM_IFCA[row.board]:
+                        wds = GAZ.get([ifcaid], {}).get([num_key])
+                        if not wds:
+                            log('Failed to get places for ifca %s, num_key %s', (ifcaid, num_key), 'both')
+                            PP.increment()
+                            continue
+
+                        words = ugc_words.intersection(GAZ[ifcaid][num_key])
+                        if not words: PP.increment(); continue
+                        gazs = []
+                        for word in words:
+                            gazs.append(UgcGaz(ugcid=row.ugcid, name=word, ifcaid=ifcaid))
+                mmodb.SESSION.commit()       
+            except Exception as e:
+                try:
+                    log('Error in loop:\t%s' % e, 'both')
+                except Exception as _:
+                    pass
+            finally:
                 PP.increment(show_time_left=True)
-        except Exception as e:
-            log('Error in loop:\t%s' % e, 'both')
+
 
         if len(rows) < WINDOW_SIZE:
             break
@@ -137,6 +157,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-    iolib.pickle(D, settings.GAZ_WORDS_BY_WORD_COUNT)
-    print('\nDone. Saved to %s' % settings.GAZ_WORDS_BY_WORD_COUNT)  
+
               
