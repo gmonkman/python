@@ -421,6 +421,7 @@ def main():
             assert isinstance(row, Ugc)
             try:
                 if row.processed:
+                    print('ugcid:\t%s skipped (processed=True)' % row.ugcid)
                     PP.increment(show_time_left=True)
                     continue
 
@@ -476,15 +477,16 @@ def main():
 
                 row.processed = True
                 mmodb.SESSION.commit()
+                PP.increment(show_time_left=True)
             except Exception as e:
                 try:
+                    PP.increment(show_time_left=True)
                     mmodb.SESSION.rollback()
                     s = 'Error:\t%s' % e
                     log(s, 'both')
                 except Exception as _:
                     pass
-            finally:
-                PP.increment(show_time_left=True)
+                
             
             
 

@@ -111,22 +111,22 @@ def main():
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         rows = gazetteerdb.SESSION.query(T).order_by(T.columns.gazetteerid).slice(start, stop).all()
         
-        if rows is None: break
-
-        try:
-            for row in rows:
+        for row in rows:
+            try:
                 if row.n > MAX_WORDS:
                     print('skipped %s' % row.name_cleaned)
                     continue
                 assert row.ifca in VALID_IFCAS, 'IFCA %s not found' % row.ifca
-                #do work
                 _addit(row.ifca, row.n, row.name_cleaned) 
                 PP.increment(show_time_left=True)
-        except Exception as e:
-            log('Error in loop:\t%s' % e, 'both')
+            except Exception as e:
+                try:
+                    log(e)
+                    PP.increment(show_time_left=True)
+                except:
+                    pass
 
-        if len(rows) < WINDOW_SIZE:
-            break
+        if len(rows) < WINDOW_SIZE: break
         WINDOW_IDX += 1
 
 

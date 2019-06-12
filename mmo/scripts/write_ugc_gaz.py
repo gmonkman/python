@@ -121,15 +121,16 @@ def main():
                             for word in words:
                                 gazs.append(UgcGaz(ugcid=row.ugcid, name=word, ifcaid=ifcaid))
                 row.processed_gaz = True
-                mmodb.SESSION.commit()       
+                mmodb.SESSION.commit()
+                PP.increment(show_time_left=True)
             except Exception as e:
                 try:
+                    PP.increment(show_time_left=True)
                     log('Error in loop:\t%s' % e, 'both')
                     mmodb.SESSION.rollback()
                 except Exception as _:
                     pass
-            finally:
-                PP.increment(show_time_left=True)
+
 
 
         if len(rows) < WINDOW_SIZE:
