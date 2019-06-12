@@ -407,7 +407,7 @@ def main():
     row_cnt = mmodb.SESSION.query(Ugc.ugcid).order_by(Ugc.ugcid).slice(offset, max_row).count()
     PP = iolib.PrintProgress(row_cnt, bar_length=20)
 
-    window_size = 10  # or whatever limit you like
+    window_size = 100  # or whatever limit you like
     window_idx = 0
     
 
@@ -430,14 +430,11 @@ def main():
                 if not txt_cleaned: PP.increment(show_time_left=True); continue
 
                 hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_cleaned)
-                
-                
+                           
                 if not hints: continue #if it doesnt mention species, skip the rest           
-
 
                 write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
             
-
                 #print('hint_type:\t%s\nhints:\t%s\nsource_texts:\t%s\nnpos_lists:\t%s\nns%s' % (hint_types, hints, source_texts, pos_lists, ns))
                 hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_month_hints(title, txt_cleaned)
                 row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
@@ -475,29 +472,26 @@ def main():
                 #SW.lap(); print('make_trip_hints:%s' % SW.pretty_time(SW.event_rate_last))
             except Exception as e:
                 try:
-                    was_err = True
                     log('Final commit failed. Error was %s' % e)
                 except:
                     pass
             finally:
                 try:
-                    if not was_err:
-                        row.processed = True
-                        mmodb.SESSION.commit()
-                    else:
-                        mmodb.SESSION.rollback()
+                    row.processed = True
+                    mmodb.SESSION.flush()
                     PP.increment(show_time_left=True)
                 except:
                     try:
                         PP.increment(show_time_left=True)
-                        try:
-                            mmodb.SESSION.rollback()
-                        except:
-                            pass
                     except:
                         pass
-
-                
+        try:
+            mmodb.SESSION.commit()
+        except:
+            try:
+                mmodb.SESSION.rollback()
+            except:
+                pass
             
             
 
