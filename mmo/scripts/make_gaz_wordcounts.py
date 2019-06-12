@@ -137,6 +137,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-    iolib.pickle(D, settings.GAZ_WORDS_BY_WORD_COUNT)
-    print('\nDone. Saved to %s' % settings.GAZ_WORDS_BY_WORD_COUNT) 
+    iolib.pickle(D, settings.PATHS.GAZ_WORDS_BY_WORD_COUNT)
+    print('\nDone. Saved to %s' % settings.PATHS.GAZ_WORDS_BY_WORD_COUNT) 
                
