@@ -420,9 +420,9 @@ def main():
         for row in rows:
             assert isinstance(row, Ugc)
             try:
+                was_err = False
                 if row.processed:
                     print('ugcid:\t%s skipped (processed=True)' % row.ugcid)
-                    PP.increment(show_time_left=True)
                     continue
 
                 mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
@@ -431,10 +431,10 @@ def main():
 
                 hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_cleaned)
                 
-                #TOOO Toggle this later - we will want all activity
-                if not hints:
-                    PP.increment(show_time_left=True)
-                    continue #if it doesnt mention species, skip the rest           
+                
+                if not hints: continue #if it doesnt mention species, skip the rest           
+
+
                 write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
             
 
@@ -473,19 +473,30 @@ def main():
                 #row.catch_hint = was_catch
                 #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #SW.lap(); print('make_trip_hints:%s' % SW.pretty_time(SW.event_rate_last))
-
-
-                row.processed = True
-                mmodb.SESSION.commit()
-                PP.increment(show_time_left=True)
             except Exception as e:
                 try:
-                    PP.increment(show_time_left=True)
-                    mmodb.SESSION.rollback()
-                    s = 'Error:\t%s' % e
-                    log(s, 'both')
-                except Exception as _:
+                    was_err = True
+                    log('Final commit failed. Error was %s' % e)
+                except:
                     pass
+            finally:
+                try:
+                    if not was_err:
+                        row.processed = True
+                        mmodb.SESSION.commit()
+                    else:
+                        mmodb.SESSION.rollback()
+                    PP.increment(show_time_left=True)
+                except:
+                    try:
+                        PP.increment(show_time_left=True)
+                        try:
+                            mmodb.SESSION.rollback()
+                        except:
+                            pass
+                    except:
+                        pass
+
                 
             
             
