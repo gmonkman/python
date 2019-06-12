@@ -65,21 +65,6 @@ assert isinstance(GAZ, dict), 'Expected dict for GAZ. Use make_gaz_wordcounts.py
 
 
 
-    
-def _addit(ifca, k, v):
-    '''(dict, int|str|iter, any) -> None
-
-    Byref: add value v to dictionary d with key k
-    '''
-    if not k or k == 0: return
-    global D
-    assert ifca in VALID_IFCAS, 'IFCA "%s" not found' % ifca
-    if not D[ifca].get(k): D[ifca][k] = set()    
-    D[ifca][k] |= set([v])
-
-
-
-
 
 def main():
     '''main'''
@@ -91,12 +76,12 @@ def main():
     OFFSET = int(args.slice[0])
     max_row = args.slice[1]
     if max_row in ('max', 'end', 'last'):
-        max_row = gazetteerdb.SESSION.query(Ugc).count()
+        max_row = mmodb.SESSION.query(Ugc).count()
     else:
         max_row = int(max_row)
 
     
-    row_cnt = gazetteerdb.SESSION.query(Ugc).order_by(Ugc.columns.gazetteerid).slice(OFFSET, max_row).count()
+    row_cnt = mmodb.SESSION.query(Ugc).order_by(Ugc.ugcid).slice(OFFSET, max_row).count()
     PP = PrintProgress(row_cnt, bar_length=20)
 
     WINDOW_SIZE = 10; WINDOW_IDX = 0
@@ -105,40 +90,42 @@ def main():
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         
         #remember, filters don't work with slice if we are updating the records we filter on
-        rows = gazetteerdb.SESSION.query(Ugc).add_columns(Ugc.board, Ugc.ugcid, Ugc.processed_gaz, Ugc.title_cleaned, Ugc.txt_cleaned).order_by(Ugc.columns.gazetteerid).slice(start, stop).all()
-
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
-            assert isinstance(row, Ugc)
             try:
-                if Ugc.processed_gaz:
+                if row.processed_gaz:
                     PP.increment(show_time_left=True)
                     return
                 txt = ' '.join([row.title_cleaned, row.txt_cleaned])
-                win = nlpbase.SlidingWindow(s, tuple(i for i in range(1, MAX_WORDS+1))).get()
+                SW = nlpbase.SlidingWindow(txt, tuple(i for i in range(1, MAX_WORDS+1)))
+                win = SW.get()
+
 
 #GAZ will look like:
 #   {'cornwall':                A DICT
 #       {1:                     A DICT
 #           {'a', 'b' ..}       A SET
 #   }, ...
-                for num_key, ugc_words in win:
+                for num_key, ugc_words in win.items():
                     assert isinstance(ugc_words, set)
                     for ifcaid in NE.FORUM_IFCA[row.board]:
-                        wds = GAZ.get([ifcaid], {}).get([num_key])
+                        wds = GAZ.get(ifcaid, {}).get(num_key)
                         if not wds:
-                            log('Failed to get places for ifca %s, num_key %s', (ifcaid, num_key), 'both')
+                            log('Failed to get places for ifca "%s", num_key "%s"', (ifcaid, num_key), 'both')
                             PP.increment()
                             continue
 
-                        words = ugc_words.intersection(GAZ[ifcaid][num_key])
-                        if not words: PP.increment(); continue
-                        gazs = []
-                        for word in words:
-                            gazs.append(UgcGaz(ugcid=row.ugcid, name=word, ifcaid=ifcaid))
+                        words = ugc_words.intersection(wds)
+                        if words:
+                            gazs = []
+                            for word in words:
+                                gazs.append(UgcGaz(ugcid=row.ugcid, name=word, ifcaid=ifcaid))
+                row.processed_gaz = True
                 mmodb.SESSION.commit()       
             except Exception as e:
                 try:
                     log('Error in loop:\t%s' % e, 'both')
+                    mmodb.SESSION.rollback()
                 except Exception as _:
                     pass
             finally:
