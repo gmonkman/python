@@ -13,7 +13,7 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
-    <CommandLineArguments>-s 0,1000</CommandLineArguments>
+    <CommandLineArguments>-s 0,10</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />

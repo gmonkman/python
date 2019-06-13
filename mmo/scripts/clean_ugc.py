@@ -65,25 +65,23 @@ def main():
         max_row = int(max_row)
 
     
-    
-
-    sql = "select count(*) as n from ugc where cast(txt_cleaned as varchar) = ''"
-    rows = mmodb.SESSION.execute(_text(sql)).fetchall() 
-    PP = PrintProgress(rows[0][0], bar_length=20)
+   
+    rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid')).order_by(Ugc.ugcid).slice(OFFSET, max_row).count()
+    PP = PrintProgress(rows, bar_length=20)
 
     Stop = stopwords.StopWords(whitelist=NE.all_single)
 
 
-    WINDOW_SIZE = 10; WINDOW_IDX = 0
+    WINDOW_SIZE = 5; WINDOW_IDX = 0
     #region Ug
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
-        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).filter_by(txt_cleaned='').order_by(Ugc.ugcid).slice(start, stop).all()
-        #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
-        try:
-            for row in rows:
-                #do work
+        #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).filter_by(txt_cleaned='').order_by(Ugc.ugcid).slice(start, stop).all()
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
+        for row in rows:
+            try:
                 s = '%s\n%s' % (row.title, row.txt)
+                if row.txt_cleaned != '': continue
 
                 if row.title:
                     s = row.title
@@ -102,20 +100,27 @@ def main():
                     except:
                         if not s: s = row.txt
                     row.txt_cleaned = s
-                mmodb.SESSION.commit() #commit everytime, sod it
-        except Exception as e:
+            except:
+                try:
+                    s = 'Rolling back because of error:\t%s' % e
+                    log(s, 'both')
+                    mmodb.SESSION.rollback()
+                except:
+                    pass
+            else:
+                mmodb.SESSION.flush() #commit everytime, sod it
+            finally:
+                PP.increment(show_time_left=True)
+
+        try:
+            mmodb.SESSION.commit()
+        except:
             try:
-                s = 'Rolling back because of error:\t%s' % e
-                log(s, 'both')
                 mmodb.SESSION.rollback()
             except:
                 pass
-        finally:
-            PP.increment(show_time_left=True)
 
-
-        if len(rows) < WINDOW_SIZE:
-            break
+        if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
         WINDOW_IDX += 1
 
     #endregion

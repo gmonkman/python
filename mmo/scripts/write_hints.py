@@ -546,10 +546,7 @@ def main():
             except:
                 pass
             
-            
-
-        if len(rows) < window_size:
-            break
+        if len(rows) < window_size or PP.iteration >= PP.max: break
         window_idx += 1
 
 
