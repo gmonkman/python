@@ -67,9 +67,9 @@ def main():
     
     
 
-    sql = "select count(*) as n from ugc where cast(txt_cleaned as varchar) <> ''"
+    sql = "select count(*) as n from ugc where cast(txt_cleaned as varchar) = ''"
     rows = mmodb.SESSION.execute(_text(sql)).fetchall() 
-    PP = PrintProgress(rows[0], bar_length=20)
+    PP = PrintProgress(rows[0][0], bar_length=20)
 
     Stop = stopwords.StopWords(whitelist=NE.all_single)
 
@@ -78,8 +78,8 @@ def main():
     #region Ug
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
-        #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).filter_by(txt_cleaned='').order_by(Ugc.ugcid).slice(start, stop).all()
-        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).filter_by(txt_cleaned='').order_by(Ugc.ugcid).slice(start, stop).all()
+        #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
         try:
             for row in rows:
                 #do work
