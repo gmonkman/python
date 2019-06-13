@@ -13,7 +13,8 @@ def get_dates(s, fmt='%Y%m%d %H:%M'):
     default format is ISO - ready for SQL Server
     '''
     D = _search_dates(s, languages=['en'], settings={'DATE_ORDER': 'DMY', 'languages':['en'], 'locales':['en-GB']})
-    return [_dt.strftime(d[1], fmt) for d in D]
+    if D:
+        return [_dt.strftime(d[1], fmt) for d in D if d[1].month != _dt.now().month and d[1].year != _dt.now().year and d[1].year > 1900]
     #for dstr, dt in D:
      #   for mth in _ne.DateTimeMonth.nouns_dict:
       #      if mth in dstr:

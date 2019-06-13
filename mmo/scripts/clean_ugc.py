@@ -78,11 +78,8 @@ def main():
     #region Ug
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
-        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).filter_by(txt_cleaned='').order_by(Ugc.ugcid).slice(start, stop).all()
-        
-        if rows is None:
-            break
-
+        #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).filter_by(txt_cleaned='').order_by(Ugc.ugcid).slice(start, stop).all()
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
         try:
             for row in rows:
                 #do work
@@ -105,16 +102,16 @@ def main():
                     except:
                         if not s: s = row.txt
                     row.txt_cleaned = s
-
-                #row.processed = True
-                mmodb.SESSION.flush() #this sends the local changes cached in SQLAlchemy to the open transaction on the SQL Server
-                PP.increment(show_time_left=True)
-
                 mmodb.SESSION.commit() #commit everytime, sod it
         except Exception as e:
-            s = 'Rolling back because of error:\t%s' % e
-            log(s, 'both')
-            mmodb.SESSION.rollback()
+            try:
+                s = 'Rolling back because of error:\t%s' % e
+                log(s, 'both')
+                mmodb.SESSION.rollback()
+            except:
+                pass
+        finally:
+            PP.increment(show_time_left=True)
 
 
         if len(rows) < WINDOW_SIZE:
@@ -123,6 +120,8 @@ def main():
 
     #endregion
     
+
+
 
 if __name__ == "__main__":
     main()

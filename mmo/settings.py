@@ -23,3 +23,16 @@ class PATHS():
     LOG_MAKE_GAZ_WORDCOUNTS = _path.normpath('c:/temp/make_gaz_wordcounts.py.log')
     GAZ_WORDS_BY_WORD_COUNT = _path.normpath(_path.join(BIN_FOLDER, 'gaz_words_by_word_count.pkl'))
     LOG_WRITE_UGC_GAZ = _path.normpath('c:/temp/write_ugc_gaz.py.log')
+
+
+
+class UgcHintSettings():
+    '''control what hints to run'''
+    run_species_catch_hints = False     #very slow
+    run_month_hints = False
+    run_season_hints = True
+    run_platform_hints = False
+    run_trip_hints = True
+    run_date_hints = True
+    run_species_hints = False
+    unprocessed_only = False #obey the processed database flag, if unprocessed_only = false and run a hint is true, that hint will be run

@@ -20,6 +20,8 @@ from funclib import baselib
 import funclib.iolib as iolib
 from funclib.stopwatch import StopWatch
 
+from mmo.settings import UgcHintSettings
+
 #if iolib.wait_key('\n\n%s\nPress "Q" to quit\n' % mmodb.ENGINE) == 'q':
     #quit()
 
@@ -416,63 +418,111 @@ def main():
         #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).order_by(Ugc.ugcid).slice(start, stop).all()
 
-
         for row in rows:
             assert isinstance(row, Ugc)
             try:
                 was_err = False
-                if row.processed:
-                    print('ugcid:\t%s skipped (processed=True)' % row.ugcid)
-                    continue
 
-                mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
                 txt_cleaned = row.txt_cleaned; title = nlpclean.clean(row.title)
-                if not txt_cleaned: PP.increment(show_time_left=True); continue
+                if not txt_cleaned: continue
+                
+                #ignore processed if we want to update a single hint_type
+                Sts = settings.UgcHintSettings
+                if any(list([getattr(Sts, attr) for attr in dir(Sts) if not callable(getattr(Sts, attr)) and not attr.startswith("__")])):
+                    delete_hints(row.ugcid)
+                else:
+                    if row.processed:
+                        print('ugcid:\t%s skipped (processed=True)' % row.ugcid)
+                        continue
+                    else:
+                        mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
 
-                hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_cleaned)
-                           
-                if not hints: continue #if it doesnt mention species, skip the rest           
-
-                write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-            
-                #print('hint_type:\t%s\nhints:\t%s\nsource_texts:\t%s\nnpos_lists:\t%s\nns%s' % (hint_types, hints, source_texts, pos_lists, ns))
-                hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_month_hints(title, txt_cleaned)
-                row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
-                write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-
-
-                #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_season_hints(title, txt)
-                #row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
-                #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                #region SPECIES
+                if UgcHintSettings.run_species_hints:
+                    if row.processed and UgcHintSettings.unprocessed_only:
+                        pass
+                    else:
+                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_cleaned)
+                        if not hints: continue #if it doesnt mention species, skip the rest           
+                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                #endregion
 
 
-                #TODO Reenable at some point
-                #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_date_hints(title, txt)
-                #row.date_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else row.published_date
-                #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns) #order changed from the make call because some are by ref
-            
-                hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_platform_hints(title, txt_cleaned)
-                row.platform_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else 'shore'
-                write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                #region MONTH HINTS
+                if UgcHintSettings.run_month_hints:
+                    if row.processed and UgcHintSettings.unprocessed_only:
+                        pass
+                    else:
+                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_month_hints(title, txt_cleaned)
+                        row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
+                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                #endregion
 
-                #SW.lap()
-                #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_catch_hints(title, txt)
-                #was_catch = ugc_hint.get('ugc_hint')
-                #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-                #SW.lap(); print('make_catch_hints:%s' % SW.pretty_time(SW.event_rate_last))
 
-                #SW.lap()
-                #hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_trip_hints(title, txt)
-                #if not was_catch:
-                #    row.catch_hint = bool(ugc_hint.get('ugc_hint'))
-                #else:
-                #    row.catch_hint = was_catch
-                #row.catch_hint = was_catch
-                #write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
-                #SW.lap(); print('make_trip_hints:%s' % SW.pretty_time(SW.event_rate_last))
+
+                #region SEASON HINTS
+                if UgcHintSettings.run_season_hints:
+                    if row.processed and UgcHintSettings.unprocessed_only:
+                        pass
+                    else:
+                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_season_hints(title, txt_cleaned)
+                        row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
+                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                #endregion
+
+
+                #region DATE HINTS - was disabled
+                if UgcHintSettings.run_date_hints:
+                    if row.processed and UgcHintSettings.unprocessed_only:
+                        pass
+                    else:
+                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_date_hints(title, txt_cleaned)
+                        row.date_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else row.published_date
+                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                #endregion
+
+                
+                #region PLATFORM                
+                if UgcHintSettings.run_platform_hints:
+                    if row.processed and UgcHintSettings.unprocessed_only:
+                        pass
+                    else:
+                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_platform_hints(title, txt_cleaned)
+                        row.platform_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else 'shore'
+                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                #endregion
+
+
+                was_catch = False
+                #region CATCH HINTS - SLOW
+                if UgcHintSettings.run_species_catch_hints:
+                    if row.processed and UgcHintSettings.unprocessed_only:
+                        pass
+                    else:
+                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_catch_hints(title, txt_cleaned)
+                        was_catch = ugc_hint.get('ugc_hint')
+                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                #endregion
+
+                
+                #TRIP HINTS
+                if UgcHintSettings.run_trip_hints:
+                    if row.processed and UgcHintSettings.unprocessed_only:
+                        pass
+                    else:
+                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_trip_hints(title, txt_cleaned)
+                        if not was_catch:
+                            row.catch_hint = bool(ugc_hint.get('ugc_hint'))
+                        else:
+                            row.catch_hint = was_catch
+                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                #endregion
+
+
             except Exception as e:
                 try:
-                    log('Final commit failed. Error was %s' % e)
+                    log('Row skipped because of error:\t%s' % e)
+                    mmodb.SESSION.rollback()
                 except:
                     pass
             finally:
@@ -483,12 +533,15 @@ def main():
                 except:
                     try:
                         PP.increment(show_time_left=True)
+                        mmodb.SESSION.rollback()
                     except:
                         pass
+
         try:
             mmodb.SESSION.commit()
-        except:
-            try:
+        except Exception as e:
+            try :
+                log('Final commit failed. Error was %s' % e)
                 mmodb.SESSION.rollback()
             except:
                 pass
@@ -499,6 +552,39 @@ def main():
             break
         window_idx += 1
 
+
+def delete_hints(ugcid):
+    '''delete hints using settngs'''
+    if settings.UgcHintSettings.run_species_catch_hints:
+        _delete_hint(ugcid, HintTypes.species_catch)
+
+    if settings.UgcHintSettings.run_month_hints:
+        _delete_hint(ugcid, HintTypes.month_hint)
+
+    if settings.UgcHintSettings.run_season_hints:
+        _delete_hint(ugcid, HintTypes.season_hint)
+
+    if settings.UgcHintSettings.run_platform_hints:
+        _delete_hint(ugcid, HintTypes.platform)
+
+    if settings.UgcHintSettings.run_trip_hints:
+        _delete_hint(ugcid, HintTypes.trip)
+
+    if settings.UgcHintSettings.run_date_hints:
+        _delete_hint(ugcid, HintTypes.date_hint)    
+
+    if settings.UgcHintSettings.run_species_hints:
+        _delete_hint(ugcid, HintTypes.species)
+
+
+
+def _delete_hint(ugcid, hint_type):
+    '''(int, str)
+    delete hints by ugc record and hint_type
+    '''
+    assert hint_type in list([getattr(HintTypes, attr) for attr in dir(HintTypes) if not callable(getattr(HintTypes, attr)) and not attr.startswith("__")]), 'hint_type %s not a member of HintTypes' % hint_type
+    #sql = 'delete from ugc_hint where ugcid=%s and hint_type=%s' % (ugcid, hint_type)
+    mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid==ugcid, UgcHint.hint_type==hint_type).delete()
 
 
 
