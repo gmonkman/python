@@ -28,17 +28,6 @@ class Gazetteer(Base):
     name_cleaned = Column(String(255, 'Latin1_General_CI_AS'))
 
 
-class UgcGaz(Base):
-    __tablename__ = 'ugc_gaz'
-
-    gazid = Column(BigInteger, primary_key=True)
-    ugcid = Column(Integer, nullable=False)
-    name = Column(String(255, 'Latin1_General_CI_AS'), nullable=False)
-    ifca = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
-    processed = Column(BIT, nullable=False, server_default=text("((0))"))
-    date_modified = Column(DateTime)
-    date_added = Column(DateTime, nullable=False, server_default=text("(getdate())"))
-
 
 t_v_gazetteer_word_count = Table(
     'v_gazetteer_word_count', metadata,

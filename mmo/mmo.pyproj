@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{8487daab-6561-4c06-b75c-81a067f9315a}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\clean_ugc.py</StartupFile>
+    <StartupFile>scripts\lookup_places.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -28,6 +28,9 @@
   <ItemGroup>
     <Compile Include="name_entities.py" />
     <Compile Include="scripts\clean_gaz.py" />
+    <Compile Include="scripts\lookup_places.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="scripts\write_ugc_gaz.py" />
     <Compile Include="scripts\make_gaz_wordcounts.py" />
     <Compile Include="scripts\clean_ugc.py">

@@ -13,6 +13,7 @@ dbo.ukho_seacover_wgs84
 import sqlalchemy
 from sqlalchemy import and_, or_
 
+from gazetteerdb.model import Gazetteer
 
 import funclib.iolib as _iolib
 import gazetteerdb as _gazetteerdb
@@ -23,7 +24,7 @@ import gazetteer.name_entities as _name_entities
 assert isinstance(_gazetteerdb.SESSION, sqlalchemy.orm.Session)
 
 
-def lookup(ModelObj, name, ifca=''):
+def lookup(name, ifca=''):
     '''Model -> None|Query
     lookup on a Model class
 
@@ -31,10 +32,11 @@ def lookup(ModelObj, name, ifca=''):
     >>>lookup(_model.t_v_geograph, name='My Place', ifca='Southern')
     '''
     if ifca:
-        assert ifca in _name_entities.VALID_IFCAS
-        rows = _gazetteerdb.SESSION.query(ModelObj).filter_by(ifca=ifca, name=name)
+        assert ifca.lower() in _name_entities.VALID_IFCAS
+        rows = _gazetteerdb.SESSION.query(Gazetteer).filter_by(ifca=ifca, name=name)
+        
     else:
-        rows = _gazetteerdb.SESSION.query(ModelObj).filter_by(name=name)
+        rows = _gazetteerdb.SESSION.query(Gazetteer).filter_by(name=name)
     return rows
 
 

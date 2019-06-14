@@ -31,7 +31,7 @@ class UgcHintSettings():
     run_species_catch_hints = False     #very slow
     run_month_hints = False
     run_season_hints = True
-    run_platform_hints = False
+    run_platform_hints = True
     run_trip_hints = True
     run_date_hints = True
     run_species_hints = False
