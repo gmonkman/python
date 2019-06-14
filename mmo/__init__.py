@@ -13,3 +13,9 @@ __all__ = ['name_entities', 'settings']
 def clean(lst):
     '''clean list'''
     return  [_stringslib.filter_alphanumeric1(s, strict=True, remove_double_quote=True, remove_single_quote=True).lower() for s in lst]
+
+
+def totextfile(s, fname):
+    '''to text'''
+    with open(fname, "w") as text_file:
+        text_file.write(s)
