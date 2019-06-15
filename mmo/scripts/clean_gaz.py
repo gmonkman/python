@@ -64,7 +64,7 @@ def main():
         max_row = int(max_row)
     
     row_cnt = gazetteerdb.SESSION.query(Gazetteer.gazetteerid).order_by(Gazetteer.gazetteerid).slice(OFFSET, max_row).count()
-    print('OFFSET:\t%s\tmax_row:\t%s\trow_cnt:\t%s' % (OFFSET, max_row, row_cnt))
+
     PP = PrintProgress(row_cnt, bar_length=20)
  
     Stop = stopwords.StopWords(whitelist=NE.all_single)
@@ -77,33 +77,39 @@ def main():
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         #rows = gazetteerdb.SESSION.query(Gazetteer).options(load_only('gazetteerid', 'name', 'name_cleaned')).filter_by(name_cleaned='').order_by(Gazetteer.gazetteerid).slice(start, stop).all()
         rows = gazetteerdb.SESSION.query(Gazetteer).options(load_only('gazetteerid', 'name', 'name_cleaned')).order_by(Gazetteer.gazetteerid).slice(start, stop).all()
-
-        try:
-            for row in rows:
-                #do work
+        for row in rows:
+            #do work
+            try:
+                if row.name_cleaned: continue
+                s = clean.clean(row.name, tolower=True)
+                s = Stop.purge(s)
+                row.name_cleaned = s
+                row.processed = True
+            except Exception as e:
                 try:
-                    if row.name_cleaned: #already done
-                        PP.increment(show_time_left=True)
-                        continue
-
-                    s = clean.clean(row.name, tolower=True)
-                    s = Stop.purge(s)
-                    row.name_cleaned = s
-                    row.processed = True
+                    log(e, 'both')
+                    if not s:
+                        row.name_cleaned = row.name
+                    else:
+                        row.name_cleaned = s
                 except:
-                    if not s: s = row.name
-                finally:
-                    PP.increment(show_time_left=True)
+                    pass
+            finally:
+                PP.increment(show_time_left=True)
+            
 
+            
+        try:
             gazetteerdb.SESSION.commit() #commit every time
-        except Exception as e:
-            s = 'Rolling back because of error:\t%s' % e
-            log(s, 'both')
-            gazetteerdb.SESSION.rollback()
+        except:
+            try:
+                gazetteerdb.SESSION.rollback()
+            except:
+                pass
 
-
-        if len(rows) < WINDOW_SIZE:
+        if len(rows) < WINDOW_SIZE or PP.iteration >= row_cnt:
             break
+
         WINDOW_IDX += 1
 
 

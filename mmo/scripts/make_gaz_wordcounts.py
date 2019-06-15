@@ -118,15 +118,15 @@ def main():
                     continue
                 assert row.ifca in VALID_IFCAS, 'IFCA %s not found' % row.ifca
                 _addit(row.ifca, row.n, row.name_cleaned) 
-                PP.increment(show_time_left=True)
             except Exception as e:
                 try:
                     log(e)
-                    PP.increment(show_time_left=True)
                 except:
                     pass
+            finally:
+                PP.increment(show_time_left=True)
 
-        if len(rows) < WINDOW_SIZE: break
+        if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
         WINDOW_IDX += 1
 
 
