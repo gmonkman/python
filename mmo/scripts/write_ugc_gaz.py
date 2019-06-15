@@ -105,36 +105,48 @@ def main():
 #   {'cornwall':                A DICT
 #       {1:                     A DICT
 #           {'a', 'b' ..}       A SET
-#   }, ...
-                for num_key, ugc_words in win.items():
-                    assert isinstance(ugc_words, set)
-                    for ifcaid in NE.FORUM_IFCA[row.board]:
-                        wds = GAZ.get(ifcaid, {}).get(num_key)
+#   }, ...      
+                for ifcaid in NE.FORUM_IFCA[row.board]: #loop through each ifca associated with the board given in row.board, i set this up manually
+                    all_found_words = {}                       
+                    for num_key, ugc_words in sorted(list(win.items()), key=lambda x:x[0].lower(), reverse=True):  #loop over word windows in the post in reverse, 4 word matches, then three etc
+                        assert isinstance(ugc_words, set)
+                        if not ugc_words: continue
+                        if not all_found_words.get(num_key): all_found_words[numkey] = [] #create dict item if doesnt exist
+
+                        wds = GAZ.get(ifcaid, {}).get(num_key) #get all the place names <num_key in length, ie 4, 3, 2 1...
                         if not wds:
-                            log('Failed to get places for ifca "%s", num_key "%s"', (ifcaid, num_key), 'both')
-                            PP.increment()
+                            log('Failed to get places for ifca "%s", num_key "%s"', (ifcaid, num_key), 'both')    
                             continue
 
-                        words = ugc_words.intersection(wds)
-                        if words:
-                            gazs = []
-                            for word in words:
-                                gazs.append(UgcGaz(ugcid=row.ugcid, name=word, ifcaid=ifcaid))
+                        #we now want to loop through all previously found word windows of greater kernel size
+                        #and only add shorter phrases which dont match longer phrases, e.g. dont add Llandudno if we have already added Llandudno Pier
+                        new_words = set()
+                        for w in ugc_words.intersection(wds):
+                            for found_key, found_list in all_found_words.items():
+                                if found_key <= num_key: continue
+                                if not w in found_list: new_words |= w
+
+                        all_found_words[num_key] = found_words
+  
+                    for num_key, words in all_found_words.items():
+                        for w in words:
+                            gazs.append(UgcGaz(ugcid=row.ugcid, name=word, ifcaid=ifcaid))
+
+
+
                 row.processed_gaz = True
                 mmodb.SESSION.commit()
-                PP.increment(show_time_left=True)
             except Exception as e:
                 try:
-                    PP.increment(show_time_left=True)
                     log('Error in loop:\t%s' % e, 'both')
                     mmodb.SESSION.rollback()
                 except Exception as _:
                     pass
+            finally:
+                PP.increment()
 
 
-
-        if len(rows) < WINDOW_SIZE:
-            break
+        if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
         WINDOW_IDX += 1
 
 

@@ -70,7 +70,7 @@ def main():
     Stop = stopwords.StopWords(whitelist=NE.all_single)
 
 
-    WINDOW_SIZE = 10; WINDOW_IDX = 0
+    WINDOW_SIZE = 100; WINDOW_IDX = 0
 
     
     while True:
