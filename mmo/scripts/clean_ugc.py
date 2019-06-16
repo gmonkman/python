@@ -66,8 +66,8 @@ def main():
 
     
    
-    rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid')).order_by(Ugc.ugcid).slice(OFFSET, max_row).count()
-    PP = PrintProgress(rows, bar_length=20)
+    row_cnt = mmodb.SESSION.query(Ugc).options(load_only('ugcid')).order_by(Ugc.ugcid).slice(OFFSET, max_row).count()
+    PP = PrintProgress(row_cnt, bar_length=20)
 
     Stop = stopwords.StopWords(whitelist=NE.all_single)
 
@@ -78,8 +78,8 @@ def main():
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).filter_by(txt_cleaned='').order_by(Ugc.ugcid).slice(start, stop).all()
-        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
-        for row in rows:
+        row_cnt = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
+        for row in row_cnt:
             try:
                 s = '%s\n%s' % (row.title, row.txt)
                 if row.txt_cleaned != '': continue
@@ -121,7 +121,7 @@ def main():
             except:
                 pass
 
-        if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
+        if len(row_cnt) < WINDOW_SIZE or PP.iteration >= PP.max: break
         WINDOW_IDX += 1
 
     #endregion

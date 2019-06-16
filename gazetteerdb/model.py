@@ -9,7 +9,7 @@ metadata = Base.metadata
 
 class Gazetteer(Base):
     __tablename__ = 'gazetteer'
-
+    __table_args__ = {'implicit_returning':False}
     gazetteerid = Column(BigInteger, primary_key=True)
     id = Column(BigInteger, nullable=False)
     source = Column(String(15, 'Latin1_General_CI_AS'), nullable=False)

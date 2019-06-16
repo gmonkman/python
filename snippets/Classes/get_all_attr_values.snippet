@@ -21,10 +21,8 @@
 		</Literal>
 	</Declarations>
       <Code Language="Python" Delimiter="$"><![CDATA[
-    @property
-    def $property$(self):
-        '''$property$ getter'''
-        return self._$property$
+    list([getattr(Sts, attr) for attr in dir(Sts) if not callable(getattr(Sts, attr)) and not attr.startswith("__")])
+
 
 ]]></Code>
     </Snippet>

@@ -10,6 +10,8 @@ dbo.os_open_name
 dbo.ukho_gazetteer
 dbo.ukho_seacover_wgs84
 '''
+from warnings import warn as _warn
+
 import sqlalchemy
 from sqlalchemy import and_, or_
 from sqlalchemy import text as _text
@@ -49,38 +51,56 @@ def lookup(name, ifca='', as_str=False, include_any_ifca=False):
     
     if as_str:
         if rows.count() > 0:
-            f = [(w.gazetteerid, w.name, w.ifca).__repr__() for w in rows]
+            f = [(w.gazetteerid, w.name, _rnd(w.x,4), _rnd(w.y, 4), w.ifca).__repr__() for w in rows]
             return '\t'.join(f)
-        else:
-            return 'NOT FOUND'
-    return rows
+        return 'NOT FOUND'
 
-
-def lookup_LK(name, ifca=''):
-    '''-> None|Query
-    lookup on v_LK'''
-    if not ifca: ifca = True
-
-    if ifca:
-        rows = _gazetteerdb.SESSION.query(_model.t_v_LK).filter_by(ifca=ifca, name=name)
-    else:
-        rows = _gazetteerdb.SESSION.query(_model.t_v_geograph).filter_by(name=name)
-    assert isinstance(rows, (None, sqlalchemy.orm.query.Query))
     return rows
 
 
 
-def add(source, name, feature_class, x, y):
-    '''add an entry to the gazetteer'''
+def add(source, name, x, y, feature_class='', feature_class1='', unique_only=False):
+    '''(str, str, str, float, float, bool) -> int|None
+    add an entry to the gazetteer, returns the added id
+    otherwise returns none if nothing added
+
+    Example:
+    >>>add('GGM', 'Hartley Skier', -1.4572, 55.0745, unique_only=True)
+    123534
+    '''
     #an sql server trigger assigns the ifca automatically and adds a record to the gazetteer_geog table
-    row = _gazetterdb.SESSION.query(_text('select max(id) + 1 as id from gazetteer')).fetchall()
     cln = _clean.clean(name)
-    G = Gazetteer(source=source, name=name, feature_class='', feature_class1='', x=x, y=y, x_rnd=_rnd(x,1), y_rnd=_rnd(y,1), id=row[0], name_cleaned=cln)
-    _gazetterdb.SESSION.add(G)
-    _gazetteerdb.SESSION.commit()
+    sql = "select 1 as one from gazetteer where name='%s'" % cln
+    
+    if unique_only:
+        row = _gazetteerdb.SESSION.execute(_text(sql)).fetchall()
+        if row: return None
+
+    row = _gazetteerdb.SESSION.execute(_text('select max(id) + 1 as id from gazetteer')).fetchall()
+    
+    G = Gazetteer(source=source, name=name, feature_class=feature_class, feature_class1=feature_class1, x=x, y=y, x_rnd=_rnd(x, 1), y_rnd=_rnd(y, 1), id=row[0][0], name_cleaned=cln)
+    _gazetteerdb.SESSION.add(G)
+    try:
+        _gazetteerdb.SESSION.commit()
+    except Exception as e:
+        try:
+            _warn('Add failed, error:\t%s' % e)
+            _gazetteerdb.SESSION.rollback()
+        except:
+            pass
+    else:
+        try:
+            row = _gazetteerdb.SESSION.execute(_text("select max(gazetteerid) AS 'Identity' from gazetteer")).fetchall()
+        except:
+            return None
+
+    return row[0][0]
+    
 
 
 if __name__ == '__main__':
-    lookup('sutton', as_str=True)
-    lookup('chilling spit', 'eastern', as_str=True)
+    #lookup('sutton', as_str=True)
+    #lookup('chilling spit', 'eastern', as_str=True)
+    id = add('GGM', 'Hartley Skier', -1.4572, 55.0745, unique_only=True)
+    print(id)
     pass

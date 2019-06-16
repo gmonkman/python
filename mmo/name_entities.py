@@ -27,6 +27,23 @@ all_ = set()
 all_single = set()
 
 
+class Substitutions():
+    '''known substitutions used to expand the gazetteer'''
+    scars = ['scar', 'scars', 'skier', 'skiers', 'skeer', 'skeers']
+    docks = ['dock', 'docks']
+    beach = ['beach', 'sand', 'sands']
+    prom = ['prom', 'promenade', 'esplanade']
+    breakwater = ['breakwater', 'breaky', 'breakey', 'breakie']
+    marsh = ['marsh', 'marshes', 'marshs']
+    rock = ['rock', 'rocks']
+    ledge = ['ledge', 'ledges']
+    platform = ['platform', 'platforms']
+    jetty = ['jetty', 'quay']
+    headland = ['headland', 'promontory', 'ness']
+
+
+
+
 class UnspecifiedKeys():
     '''dictionary keys for unspecified
     dicts. for convieniance'''

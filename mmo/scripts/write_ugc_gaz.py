@@ -111,7 +111,7 @@ def main():
                     for num_key, ugc_words in sorted(list(win.items()), key=lambda x:x[0].lower(), reverse=True):  #loop over word windows in the post in reverse, 4 word matches, then three etc
                         assert isinstance(ugc_words, set)
                         if not ugc_words: continue
-                        if not all_found_words.get(num_key): all_found_words[numkey] = [] #create dict item if doesnt exist
+                        if not all_found_words.get(num_key): all_found_words[num_key] = [] #create dict item if doesnt exist
 
                         wds = GAZ.get(ifcaid, {}).get(num_key) #get all the place names <num_key in length, ie 4, 3, 2 1...
                         if not wds:
@@ -130,7 +130,7 @@ def main():
   
                     for num_key, words in all_found_words.items():
                         for w in words:
-                            gazs.append(UgcGaz(ugcid=row.ugcid, name=word, ifcaid=ifcaid))
+                            gazs.append(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid))
 
 
 

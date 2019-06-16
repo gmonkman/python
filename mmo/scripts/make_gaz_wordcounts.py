@@ -2,6 +2,12 @@
 '''
 make dictionary arrays of place names
 with wordcounts
+
+Dictionary will look like:
+   {'cornwall':                A DICT
+       {1:                     A DICT
+           {'a', 'b' ..}       A SET
+   }, ...
 '''
 import argparse
 
@@ -106,7 +112,7 @@ def main():
     PP = PrintProgress(row_cnt, bar_length=20)
 
     WINDOW_SIZE = 1000; WINDOW_IDX = 0
-
+    if WINDOW_SIZE > row_cnt: WINDOW_SIZE = row_cnt
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         rows = gazetteerdb.SESSION.query(T).order_by(T.columns.gazetteerid).slice(start, stop).all()
