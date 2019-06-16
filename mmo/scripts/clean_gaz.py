@@ -82,7 +82,6 @@ def main():
             try:
                 if row.name_cleaned: continue
                 s = clean.clean(row.name, tolower=True)
-                s = Stop.purge(s)
                 row.name_cleaned = s
                 row.processed = True
             except Exception as e:

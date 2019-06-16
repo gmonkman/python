@@ -23,10 +23,10 @@ results = ""
 PP = PrintProgress(len(sites))
 
 for i, site in enumerate(sites):
-    results += gazlib.lookup(site, ifcas[i], True)
+    results += [gazlib.lookup(site, ifcas[i], True)]
     PP.increment()
 
-
+results = '\n'.join(results)
 totextfile(results, 'C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/data/Data sources and sites/books+mags/map_sites_lookup.csv')
 print('Done')
 folder_open('C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/data/Data sources and sites/books+mags')

@@ -31,7 +31,7 @@ def get_by_ifca(ifca):
 
 
 def get_all_as_set():
-    sql = 'select distinct(name) from gazetteer where coast_dist_m > 1000 and eng_dist_m=0'
+    sql = 'select distinct(name_cleaned) from gazetteer'
     rows = _gazetteerdb.SESSION.execute(_text(sql)).fetchall()
     out = {row[0] for row in rows}
     return out

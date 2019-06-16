@@ -12,6 +12,7 @@ dbo.ukho_seacover_wgs84
 '''
 import sqlalchemy
 from sqlalchemy import and_, or_
+from sqlalchemy import text as _text
 
 from gazetteerdb.model import Gazetteer
 
@@ -19,12 +20,12 @@ import funclib.iolib as _iolib
 import gazetteerdb as _gazetteerdb
 import gazetteerdb.model as _model
 import gazetteer.name_entities as _name_entities
-
-
+from funclib.numericslib import round_normal as _rnd
+import nlp.clean as _clean
 assert isinstance(_gazetteerdb.SESSION, sqlalchemy.orm.Session)
 
 
-def lookup(name, ifca='', as_list=False, include_any_ifca=False):
+def lookup(name, ifca='', as_str=False, include_any_ifca=False):
     '''Model -> None|Query
     lookup on a Model class.
 
@@ -35,19 +36,23 @@ def lookup(name, ifca='', as_list=False, include_any_ifca=False):
     Example:
     >>>lookup(_model.t_v_geograph, name='My Place', ifca='Southern', include_any_ifca=False)
     '''
+    name = name.lower()
+
     if ifca:
-        assert ifca.lower() in _name_entities.VALID_IFCAS
+        ifca = ifca.lower()
+        assert ifca in _name_entities.VALID_IFCAS
         rows = _gazetteerdb.SESSION.query(Gazetteer).filter_by(ifca=ifca, name=name)
         if rows.count() == 0:
             rows = _gazetteerdb.SESSION.query(Gazetteer).filter_by(name=name)
     else:
         rows = _gazetteerdb.SESSION.query(Gazetteer).filter_by(name=name)
     
-    if as_list:
+    if as_str:
         if rows.count() > 0:
-            return '\n' + '\t'.join(['#%s %s: %s\t' % (w.gazetteerid, w.name, w.ifca) for w in rows])
+            f = [(w.gazetteerid, w.name, w.ifca).__repr__() for w in rows]
+            return '\t'.join(f)
         else:
-            return '\nNOT FOUND'
+            return 'NOT FOUND'
     return rows
 
 
@@ -62,3 +67,20 @@ def lookup_LK(name, ifca=''):
         rows = _gazetteerdb.SESSION.query(_model.t_v_geograph).filter_by(name=name)
     assert isinstance(rows, (None, sqlalchemy.orm.query.Query))
     return rows
+
+
+
+def add(source, name, feature_class, x, y):
+    '''add an entry to the gazetteer'''
+    #an sql server trigger assigns the ifca automatically and adds a record to the gazetteer_geog table
+    row = _gazetterdb.SESSION.query(_text('select max(id) + 1 as id from gazetteer')).fetchall()
+    cln = _clean.clean(name)
+    G = Gazetteer(source=source, name=name, feature_class='', feature_class1='', x=x, y=y, x_rnd=_rnd(x,1), y_rnd=_rnd(y,1), id=row[0], name_cleaned=cln)
+    _gazetterdb.SESSION.add(G)
+    _gazetteerdb.SESSION.commit()
+
+
+if __name__ == '__main__':
+    lookup('sutton', as_str=True)
+    lookup('chilling spit', 'eastern', as_str=True)
+    pass

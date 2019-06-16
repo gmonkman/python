@@ -79,6 +79,7 @@ IFCAS = {'cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and
 
 
 
+
 class Typos():
     '''This are for the 
     list handler. The dict
@@ -227,6 +228,20 @@ class _NamedEntityBase():
         return out
 
 
+    def lookup(self, s):
+        '''simple lookup for word s'''
+        m = []
+        if s in self.nouns_common: m += ['nouns_common']
+        if s in self.nouns_common: m += ['nouns_proper']
+        if s in self.nouns_common: m += ['verb']
+        if s in self.nouns_common: m += ['adjective']
+        if s in self.nouns_common: m += ['phrase']
+        if s in self.all_words: m += ['phrase']
+        print(' '.join(s))
+                
+
+
+
 class NEBLists(_NamedEntityBase):
     '''Create an list of words based on kwarg options
 
@@ -369,6 +384,18 @@ class _NamedEntityBaseDict():
         assert self.nouns_dict_all, 'self.all was accessed, but self.all was empty.'
         a = _flat([list(x) for x in self.nouns_dict_all.values()])
         return set(a)
+
+    
+    def lookup(self, s):
+        '''simple lookup for words'''
+        m = []
+
+        for k, it in self.nouns_dict_all():
+            if s in it: m += [k]
+        if m:
+            print(' '.join(m))
+                
+
 
 
 

@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{c7826950-ee7b-4ccd-aa9f-7b202702e661}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test\test_gazlib.py</StartupFile>
+    <StartupFile>gazlib.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
