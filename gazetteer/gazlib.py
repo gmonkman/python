@@ -24,19 +24,30 @@ import gazetteer.name_entities as _name_entities
 assert isinstance(_gazetteerdb.SESSION, sqlalchemy.orm.Session)
 
 
-def lookup(name, ifca=''):
+def lookup(name, ifca='', as_list=False, include_any_ifca=False):
     '''Model -> None|Query
-    lookup on a Model class
+    lookup on a Model class.
+
+    ifca:lookup on ifca, if empty, any ifca is matched
+    as_list: return a formatted list, not an SQLAlchemy rows object
+    include_any_ifca: if there is no match with an ifca lookup, try any match
 
     Example:
-    >>>lookup(_model.t_v_geograph, name='My Place', ifca='Southern')
+    >>>lookup(_model.t_v_geograph, name='My Place', ifca='Southern', include_any_ifca=False)
     '''
     if ifca:
         assert ifca.lower() in _name_entities.VALID_IFCAS
         rows = _gazetteerdb.SESSION.query(Gazetteer).filter_by(ifca=ifca, name=name)
-        
+        if rows.count() == 0:
+            rows = _gazetteerdb.SESSION.query(Gazetteer).filter_by(name=name)
     else:
         rows = _gazetteerdb.SESSION.query(Gazetteer).filter_by(name=name)
+    
+    if as_list:
+        if rows.count() > 0:
+            return '\n' + '\t'.join(['#%s %s: %s\t' % (w.gazetteerid, w.name, w.ifca) for w in rows])
+        else:
+            return '\nNOT FOUND'
     return rows
 
 
