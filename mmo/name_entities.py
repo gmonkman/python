@@ -614,7 +614,7 @@ def _bld_global_sets(force_dump):
     
     def _bld(word_set):
         '''build whitelist of words for nlp.stopwords'''
-        global all_; global all_single
+        global all_; global all_single       
         ss = {w for w in _flat([v.split() for v in word_set])}
         all_single |= ss  #every single word as a single word, eg 'to high' will be split to 'to', 'high'
         all_ |= word_set #all words and phrases as they appear, e.g. 'to high' will still be 'to high'
@@ -644,7 +644,10 @@ def _bld_global_sets(force_dump):
     _bld(SpeciesAll.get_flat_set())
 
     #now try the gazetteer
-    _bld(_gaz.get_all_as_set())
+    try:
+        _bld(_gaz.get_all_as_set())
+    except AttributeError as e:
+        print('Failed to load the gazetter. This will happen if name_cleaned is empty or blank for all gazetter records.\n\nRun mmo.clean_gaz.py.')
 
     if force_dump or not _iolib.file_exists(_settings.PATHS.NAMED_ENTITIES_ALL):
         _iolib.pickle(all_, _settings.PATHS.NAMED_ENTITIES_ALL)

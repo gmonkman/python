@@ -409,12 +409,11 @@ def main():
     row_cnt = mmodb.SESSION.query(Ugc.ugcid).order_by(Ugc.ugcid).slice(offset, max_row).count()
     PP = iolib.PrintProgress(row_cnt, bar_length=20)
 
-    window_size = 100  # or whatever limit you like
+    WINDOW_SIZE = 100  # or whatever limit you like
     window_idx = 0
-    
-
+    if WINDOW_SIZE > row_cnt: WINDOW_SIZE = row_cnt
     while True:
-        start, stop = window_size * window_idx + offset, window_size * (window_idx + 1) + offset
+        start, stop = WINDOW_SIZE * window_idx + offset, WINDOW_SIZE * (window_idx + 1) + offset
         #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).order_by(Ugc.ugcid).slice(start, stop).all()
 
@@ -546,7 +545,7 @@ def main():
             except:
                 pass
             
-        if len(rows) < window_size or PP.iteration >= PP.max: break
+        if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
         window_idx += 1
 
 

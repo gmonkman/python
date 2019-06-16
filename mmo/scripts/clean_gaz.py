@@ -5,11 +5,8 @@ from sqlalchemy.orm import load_only
 
 import gazetteerdb
 from gazetteerdb.model import Gazetteer
-
-import nlp.stopwords as stopwords
 import nlp.clean as clean
 from funclib.iolib import PrintProgress
-import mmo.name_entities as NE
 #from warnings import warn
 import mmo.settings as settings
 
@@ -66,13 +63,9 @@ def main():
     row_cnt = gazetteerdb.SESSION.query(Gazetteer.gazetteerid).order_by(Gazetteer.gazetteerid).slice(OFFSET, max_row).count()
 
     PP = PrintProgress(row_cnt, bar_length=20)
- 
-    Stop = stopwords.StopWords(whitelist=NE.all_single)
-
 
     WINDOW_SIZE = 100; WINDOW_IDX = 0
-
-    
+    if WINDOW_SIZE > row_cnt: WINDOW_SIZE = row_cnt
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         #rows = gazetteerdb.SESSION.query(Gazetteer).options(load_only('gazetteerid', 'name', 'name_cleaned')).filter_by(name_cleaned='').order_by(Gazetteer.gazetteerid).slice(start, stop).all()

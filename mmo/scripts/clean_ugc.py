@@ -73,6 +73,7 @@ def main():
 
 
     WINDOW_SIZE = 5; WINDOW_IDX = 0
+    if WINDOW_SIZE > row_cnt: WINDOW_SIZE = row_cnt
     #region Ug
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
