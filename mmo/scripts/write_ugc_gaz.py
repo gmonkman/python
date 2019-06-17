@@ -61,7 +61,7 @@ class SourceRank():
     '''priority ranking for sources, lower is better'''
     sources = ['lk', 'lk additional', 'ukho_constructs', 'os_open_name', 'os_gazetteer', 'ukho_seacover', 'ukho_gazetteer', 'medin', 'substitutions', 'geonames', 'geonames_alias', 'geograph']
     ranks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-
+    assert len(sources) == len(ranks), 'SourceRank sources and ranks must be of equal length'
 
 
 #D will look like:
@@ -69,19 +69,25 @@ class SourceRank():
 #       {1:                     A DICT
 #           {'a', 'b' ..}       A SET
 #   }, ...
-
-def _addit(d, ifca, name, gazid):
+def _addit(d, ifca, name, source, gazid):
+    ifca = ifca.lower()
     if not d.get(ifca):
         d[ifca] = {}
     if not d[ifca].get(name):
-        d[ifca][name] = []
-    d[ifca][name] += [gazid]
+        d[ifca][name] = {}
+    if not d[ifca][name].get(source):
+        d[ifca][name][source] = []
+    d[ifca][name][source] += [gazid]
 
 
 GAZ = iolib.unpickle(settings.PATHS.GAZ_WORDS_BY_WORD_COUNT)
 assert isinstance(GAZ, dict), 'Expected dict for GAZ. Use make_gaz_wordcounts.py if %s does not exists.' % settings.PATHS.GAZ_WORDS_BY_WORD_COUNT
 
 
+#GAZIDS_BY_NAME
+#   {'mostyn':
+#       {'southern':
+#           {'os_open_name': [423,876...], .... }
 buildit = True
 try:
     GAZIDS_BY_NAME = iolib.unpickle(settings.PATHS.GAZETTEERIDS_BY_NAME)
@@ -94,11 +100,11 @@ except:
 if buildit:
     GAZIDS_BY_NAME = {}
     print('Building gazetterid-name dict....')
-    sql = "SELECT gazetteerid, name_cleaned, ifca from gazetteer where isnull(name_cleaned, '') <> ''"
+    sql = "SELECT ifca, name_cleaned, source, gazetteerid from gazetteer where isnull(name_cleaned, '') <> ''"
     rows = gazetteerdb.SESSION.execute(text(sql)).fetchall()
     assert rows, 'Building gazetterid-name dict failed - No records returned'
     for row in rows:
-        _addit(GAZIDS_BY_NAME, row[2], row[1], row[0])
+        _addit(GAZIDS_BY_NAME, row[0], row[1], row[2], row[3])
     assert GAZIDS_BY_NAME, 'gazetterid-name dict was empty. Do you need to run clean_gaz.py?'
     iolib.pickle(GAZIDS_BY_NAME, settings.PATHS.GAZETTEERIDS_BY_NAME)
     print('Built and saved gazetterid-name dict')
@@ -134,8 +140,7 @@ def main():
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
             try:
-                if row.processed_gaz: continue
-                   
+                if row.processed_gaz: continue  
                 txt = ' '.join([row.title_cleaned, row.txt_cleaned])
                 SW = nlpbase.SlidingWindow(txt, tuple(i for i in range(1, MAX_WORDS+1)))
                 win = SW.get()
@@ -163,7 +168,7 @@ def main():
                         for w in ugc_words.intersection(wds):
                             addit = True
                             for found_key, found_list in all_found_words.items():
-                                if found_key <= num_key: continue
+                                if found_key <= num_key: continue #only consider place names with m
                                 if w in found_list:
                                     addit = False
                                     break
@@ -173,8 +178,11 @@ def main():
   
                     for num_key, words in all_found_words.items():
                         for w in words:
-                            for gazid in GAZIDS_BY_NAME[ifcaid][w]:
-                                mmodb.SESSION.append(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteerid=gazid, gaz_rank=SourceRank[row.source.lower()], gaz_source=row.source.lower(), word_cnt=wordcnt(w)))
+                            for source, gazids in GAZIDS_BY_NAME[ifcaid][w].items():
+                                for gazid in gazids:
+                                    mmodb.SESSION.add(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteerid=gazid,
+                                                                gaz_rank=SourceRank.ranks[SourceRank.sources.index(source)],
+                                                                gaz_source=source, word_cnt=wordcnt(w)))
 
                 row.processed_gaz = True
                 mmodb.SESSION.flush()

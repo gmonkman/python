@@ -313,7 +313,7 @@ class SpeciesType1(Base):
 class UgcGaz(Base):
     __tablename__ = 'ugc_gaz'
 
-    gazid = Column(BigInteger, primary_key=True)
+    ugc_gazid = Column(BigInteger, primary_key=True)
     ugcid = Column(ForeignKey('ugc.ugcid'), nullable=False)
     name = Column(String(255, 'Latin1_General_CI_AS'), nullable=False)
     ifcaid = Column(ForeignKey('ifca.ifcaid'), nullable=False, index=True)
