@@ -122,7 +122,7 @@ def main():
                 if row.n > MAX_WORDS:
                     print('skipped %s' % row.name_cleaned)
                     continue
-                assert row.ifca in VALID_IFCAS, 'IFCA %s not found' % row.ifca
+                assert row.ifca.lower() in VALID_IFCAS, 'IFCA %s not found' % row.ifca
                 _addit(row.ifca, row.n, row.name_cleaned) 
             except Exception as e:
                 try:

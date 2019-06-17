@@ -126,7 +126,7 @@ def main():
                                 if found_key <= num_key: continue
                                 if not w in found_list: new_words |= w
 
-                        all_found_words[num_key] = found_words
+                        all_found_words[num_key] = new_words
   
                     for num_key, words in all_found_words.items():
                         for w in words:
