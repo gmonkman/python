@@ -74,7 +74,7 @@ def main():
             #do work
             try:
                 if row.name_cleaned: continue
-                s = clean.clean(row.name, tolower=True)
+                s = clean.clean(row.name, tolower=True, skip_txt2nr=True)
                 row.name_cleaned = s
                 row.processed = True
             except Exception as e:

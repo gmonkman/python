@@ -507,9 +507,9 @@ Session = NEBLists(
     dump_name='Session',
     adjectives=['early', 'late'],
     nouns_common=['session', 'trip', "hour", "minute", "hour", 'morning', 'afternoon', 'noon', 'midday', 'flood', 'ebb'],
-    phrases=["before low", "after low", "to low", "after high", "to high", "before high", "either side",
+    phrases=["before low", "after low", "to low", "after high", "to high", "before high", "either side", 'upto low', 'upto high', 'the flood', 'the ebb',
              "around high", "around low", "tide out", "tide down", "tide in", "tide up", "packed up", "went home", "p.m.", "a.m.", 'pm', 'a.m', 'p.m', "hrs", "mins"],
-    verbs=['angling', 'arrived', 'casting', 'catch', 'ended', 'fishing', 'hook', 'land', 'leave', 'leave', 'release', 'start', 'stop', 'trolling', 'unhook'],
+    verbs=['angling', 'arrived', 'casting', 'catch', 'ended', 'fishing', 'hook', 'land', 'leave', 'leave', 'release', 'start', 'stop', 'trolling', 'unhook', 'blanked'],
     typos=None
     )
 

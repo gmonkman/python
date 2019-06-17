@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Index, Integer, LargeBinary, NCHAR, String, TEXT, Table, Unicode, text
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Index, Integer, SmallInteger, LargeBinary, NCHAR, String, TEXT, Table, Unicode, text
 from sqlalchemy.dialects.mssql import BIT
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -320,9 +320,13 @@ class UgcGaz(Base):
     processed = Column(BIT, nullable=False, server_default=text("((0))"))
     date_modified = Column(DateTime)
     date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
-
+    gazetteerid = Column(BigInteger)
+    word_cnt = Column(SmallInteger)
+    gaz_source = Column(String(15, 'Latin1_General_CI_AS'))
+    gaz_rank = Column(SmallInteger)
     ifca = relationship('Ifca')
     ugc = relationship('Ugc')
+
 
 
 class Species(Base):

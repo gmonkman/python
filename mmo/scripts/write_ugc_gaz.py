@@ -6,12 +6,13 @@ with wordcounts
 import argparse
 
 from sqlalchemy.orm import load_only
+from sqlalchemy import text
 import mmodb
 from mmodb.model import UgcGaz, Ugc
-
+import gazetteerdb
 import funclib.iolib as iolib
 from funclib.iolib import PrintProgress
-
+from funclib.stringslib import wordcnt
 import nlp.baselib as nlpbase
 import mmo.name_entities as NE
 
@@ -55,13 +56,53 @@ MAX_WORDS = 4 #only consider places with 4 or fewer words
 
 VALID_IFCAS = ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex']
 
+
+class SourceRank():
+    '''priority ranking for sources, lower is better'''
+    sources = ['lk', 'lk additional', 'ukho_constructs', 'os_open_name', 'os_gazetteer', 'ukho_seacover', 'ukho_gazetteer', 'medin', 'substitutions', 'geonames', 'geonames_alias', 'geograph']
+    ranks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+
+
 #D will look like:
 #   {'cornwall':                A DICT
 #       {1:                     A DICT
 #           {'a', 'b' ..}       A SET
 #   }, ...
+
+def _addit(d, ifca, name, gazid):
+    if not d.get(ifca):
+        d[ifca] = {}
+    if not d[ifca].get(name):
+        d[ifca][name] = []
+    d[ifca][name] += [gazid]
+
+
 GAZ = iolib.unpickle(settings.PATHS.GAZ_WORDS_BY_WORD_COUNT)
 assert isinstance(GAZ, dict), 'Expected dict for GAZ. Use make_gaz_wordcounts.py if %s does not exists.' % settings.PATHS.GAZ_WORDS_BY_WORD_COUNT
+
+
+buildit = True
+try:
+    GAZIDS_BY_NAME = iolib.unpickle(settings.PATHS.GAZETTEERIDS_BY_NAME)
+    if GAZIDS_BY_NAME:
+        print('Loaded gazetterid-name dict from filesystem')
+        buildit = False
+except:
+    buildit = True
+
+if buildit:
+    GAZIDS_BY_NAME = {}
+    print('Building gazetterid-name dict....')
+    sql = "SELECT gazetteerid, name_cleaned, ifca from gazetteer where isnull(name_cleaned, '') <> ''"
+    rows = gazetteerdb.SESSION.execute(text(sql)).fetchall()
+    assert rows, 'Building gazetterid-name dict failed - No records returned'
+    for row in rows:
+        _addit(GAZIDS_BY_NAME, row[2], row[1], row[0])
+    assert GAZIDS_BY_NAME, 'gazetterid-name dict was empty. Do you need to run clean_gaz.py?'
+    iolib.pickle(GAZIDS_BY_NAME, settings.PATHS.GAZETTEERIDS_BY_NAME)
+    print('Built and saved gazetterid-name dict')
+
 
 
 
@@ -85,21 +126,19 @@ def main():
     PP = PrintProgress(row_cnt, bar_length=20)
 
     WINDOW_SIZE = 10; WINDOW_IDX = 0
+    if WINDOW_SIZE >= row_cnt: WINDOW_SIZE = row_cnt
 
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
-        
         #remember, filters don't work with slice if we are updating the records we filter on
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
             try:
-                if row.processed_gaz:
-                    PP.increment(show_time_left=True)
-                    return
+                if row.processed_gaz: continue
+                   
                 txt = ' '.join([row.title_cleaned, row.txt_cleaned])
                 SW = nlpbase.SlidingWindow(txt, tuple(i for i in range(1, MAX_WORDS+1)))
                 win = SW.get()
-
 
 #GAZ will look like:
 #   {'cornwall':                A DICT
@@ -108,7 +147,7 @@ def main():
 #   }, ...      
                 for ifcaid in NE.FORUM_IFCA[row.board]: #loop through each ifca associated with the board given in row.board, i set this up manually
                     all_found_words = {}                       
-                    for num_key, ugc_words in sorted(list(win.items()), key=lambda x:x[0].lower(), reverse=True):  #loop over word windows in the post in reverse, 4 word matches, then three etc
+                    for num_key, ugc_words in sorted(list(win.items()), key=lambda x:x[0], reverse=True):  #loop over word windows in the post in reverse, 4 word matches, then three etc
                         assert isinstance(ugc_words, set)
                         if not ugc_words: continue
                         if not all_found_words.get(num_key): all_found_words[num_key] = [] #create dict item if doesnt exist
@@ -122,28 +161,39 @@ def main():
                         #and only add shorter phrases which dont match longer phrases, e.g. dont add Llandudno if we have already added Llandudno Pier
                         new_words = set()
                         for w in ugc_words.intersection(wds):
+                            addit = True
                             for found_key, found_list in all_found_words.items():
                                 if found_key <= num_key: continue
-                                if not w in found_list: new_words |= w
+                                if w in found_list:
+                                    addit = False
+                                    break
+                            if addit: new_words |= set([w])
 
                         all_found_words[num_key] = new_words
   
                     for num_key, words in all_found_words.items():
                         for w in words:
-                            gazs.append(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid))
-
-
+                            for gazid in GAZIDS_BY_NAME[ifcaid][w]:
+                                mmodb.SESSION.append(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteerid=gazid, gaz_rank=SourceRank[row.source.lower()], gaz_source=row.source.lower(), word_cnt=wordcnt(w)))
 
                 row.processed_gaz = True
-                mmodb.SESSION.commit()
+                mmodb.SESSION.flush()
             except Exception as e:
                 try:
                     log('Error in loop:\t%s' % e, 'both')
-                    mmodb.SESSION.rollback()
                 except Exception as _:
                     pass
             finally:
                 PP.increment()
+
+        try:
+            mmodb.SESSION.commit()
+        except Exception as e:
+            try:
+                log('Error in loop:\t%s' % e, 'both')
+                mmodb.SESSION.rollback()
+            except:
+                pass
 
 
         if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break

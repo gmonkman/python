@@ -54,7 +54,7 @@ def sep_num_from_words(s):
     return _re.sub(r"([0-9]+(\.[0-9]+)?)",r" \1 ", s).strip()
 
 
-def clean(s, tolower=False):
+def clean(s, tolower=False, skip_txt2nr=True):
     '''str, set|None
     apply multiple clean funcs to s
     '''
@@ -78,7 +78,7 @@ def clean(s, tolower=False):
     s = newline_del_multi(s)
     s = _relib.fix_repeat_spaces(s)
     s = _relib.fix_repeat_char(s, '.')
-    s = txt2nr(s)
+    if not skip_txt2nr: s = txt2nr(s)
     if tolower: s = s.lower()
     return s
 

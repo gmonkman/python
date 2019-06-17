@@ -48,4 +48,3 @@ def _read_rows(rows):
             out[key] = [r[2].lower()]
     return out
 
-

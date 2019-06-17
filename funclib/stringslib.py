@@ -349,6 +349,12 @@ def re_place(s, find_, with_):
     return _re.sub(find_, with_, s)
 
 
+def wordcnt(s):
+    '''count of words in s'''
+    tokens = s.split()
+    return len(tokens)
+
+
 def index_all(s, substr, overlap=False):
     '''return indexes of all occurences
     of substr in s

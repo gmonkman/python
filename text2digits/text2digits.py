@@ -9,7 +9,7 @@ TENS = [
     'ten', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
 ]
 SCALES = ['hundred', 'thousand', 'million', 'billion', 'trillion']
-ORDINAL_WORDS = {'zero':0, 'nought':0, 'nowt':0, 'nothing':0, 'nil':0, 'zippo':0, 'zip':0, 'naught':0, 'nada':0, 'zilch':0, 'blanked':0, 'blankety':0,
+ORDINAL_WORDS = {'zero':0, 'nought':0, 'nowt':0, 'nothing':0, 'nil':0, 'zippo':0, 'zip':0, 'naught':0, 'nada':0, 'zilch':0,
                  'first':1, 'single':1, 'lone':1, 'solitary':1, 'another':1, 'final':1, '1st':1, 'a':1,
                  'second': 2, 'few':2, 'couple':2, 'ii':2, 'pair':2, 'deuce':2, 'brace':2, 'duo':2, '2nd':2, 'dual': 2,
                  'third': 3, 'iii': 3, '3rd':3, 'trio':3, 'triplet':3, 'threesome':3, 'triad':3,
@@ -29,11 +29,11 @@ ORDINAL_WORDS = {'zero':0, 'nought':0, 'nowt':0, 'nothing':0, 'nil':0, 'zippo':0
                  'seventeenth': 17, 'xvii': 17,
                  'eighteenth': 18, 'xviii': 18,
                  'nineteenth': 19, 'xix': 19,
-                 'quarter':0.25,
-                 'half':0.5,
-                 'three quarters': 0.75,
-                 'two thirds': 0.667, 'two-thirds': 0.667,
-                 'one third': 0.333, 'one-third': 0.333,
+                 #'quarter':0.25,
+                 #'half':0.5,
+                 #'three quarters': 0.75,
+                 #'two thirds': 0.667, 'two-thirds': 0.667,
+                 #'one third': 0.333, 'one-third': 0.333,
                  'tens': 20,
                  'hundreds': 200,
                  'thousands': 2000,
