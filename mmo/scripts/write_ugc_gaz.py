@@ -104,7 +104,6 @@ if buildit:
     rows = gazetteerdb.SESSION.execute(text(sql)).fetchall()
     assert rows, 'Building gazetterid-name dict failed - No records returned'
     for row in rows:
-        print(row)
         _addit(GAZIDS_BY_NAME, row[0], row[1], row[2], row[3])
     assert GAZIDS_BY_NAME, 'gazetterid-name dict was empty. Do you need to run clean_gaz.py?'
     iolib.pickle(GAZIDS_BY_NAME, settings.PATHS.GAZETTEERIDS_BY_NAME)
