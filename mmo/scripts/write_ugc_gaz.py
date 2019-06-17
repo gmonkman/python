@@ -100,7 +100,7 @@ except:
 if buildit:
     GAZIDS_BY_NAME = {}
     print('Building gazetterid-name dict....')
-    sql = "SELECT ifca, name_cleaned, source, gazetteerid from gazetteer where isnull(name_cleaned, '') <> ''"
+    sql = "SELECT ifca, name_cleaned, source, gazetteerid from gazetteer where isnull(name_cleaned, '') <> '' and isnull(ifca, '') <> ''"
     rows = gazetteerdb.SESSION.execute(text(sql)).fetchall()
     assert rows, 'Building gazetterid-name dict failed - No records returned'
     for row in rows:
