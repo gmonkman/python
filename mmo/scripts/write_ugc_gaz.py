@@ -140,8 +140,14 @@ def main():
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
             try:
-                if row.processed_gaz: continue  
-                txt = ' '.join([row.title_cleaned, row.txt_cleaned])
+                if row.processed_gaz: continue
+
+                try:  
+                    txt = ' '.join([row.title_cleaned, row.txt_cleaned])
+                except:
+                    print('row.txt_cleaned or row.title_cleaned empty. Have you run clean_ugc.py?')
+                    continue
+                     
                 SW = nlpbase.SlidingWindow(txt, tuple(i for i in range(1, MAX_WORDS+1)))
                 win = SW.get()
 

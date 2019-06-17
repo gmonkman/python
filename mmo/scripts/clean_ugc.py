@@ -79,7 +79,7 @@ def main():
         for row in row_cnt:
             try:
                 s = '%s\n%s' % (row.title, row.txt)
-                if row.txt_cleaned != '': continue
+                if row.txt_cleaned: continue
 
                 if row.title:
                     s = row.title
