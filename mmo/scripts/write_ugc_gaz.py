@@ -100,10 +100,18 @@ except:
 if buildit:
     GAZIDS_BY_NAME = {}
     print('Building gazetterid-name dict....')
-    sql = "SELECT ifca, name_cleaned, source, gazetteerid from gazetteer where isnull(name_cleaned, '') <> '' and isnull(ifca, '') <> ''"
+    sql = "SELECT ifca, name_cleaned, source, gazetteerid, coast_dist_m, feature_class1 from gazetteer where isnull(name_cleaned, '') <> '' and isnull(ifca, '') <> ''"
     rows = gazetteerdb.SESSION.execute(text(sql)).fetchall()
     assert rows, 'Building gazetterid-name dict failed - No records returned'
     for row in rows:
+        if row[4]:
+            if row[5] in ['section of named road', 'named road'] and row[4] > 100:
+                print('skipped #%s' % row.gazetteerid)
+                continue
+
+        if row[4] > 1000:
+            print('skipped %s' % row.name_cleaned)
+            continue
         _addit(GAZIDS_BY_NAME, row[0], row[1], row[2], row[3])
     assert GAZIDS_BY_NAME, 'gazetterid-name dict was empty. Do you need to run clean_gaz.py?'
     iolib.pickle(GAZIDS_BY_NAME, settings.PATHS.GAZETTEERIDS_BY_NAME)
