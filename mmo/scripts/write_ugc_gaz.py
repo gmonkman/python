@@ -154,7 +154,6 @@ def main():
                 try:  
                     txt = ' '.join([row.title_cleaned, row.txt_cleaned])
                 except:
-                    print('row.txt_cleaned or row.title_cleaned empty. Have you run clean_ugc.py?')
                     continue
                      
                 SW = nlpbase.SlidingWindow(txt, tuple(i for i in range(1, MAX_WORDS+1)))
@@ -194,6 +193,7 @@ def main():
                     for num_key, words in all_found_words.items():
                         for w in words:
                             for source, gazids in GAZIDS_BY_NAME[ifcaid][w].items():
+                                source = source.lower()
                                 for gazid in gazids:
                                     mmodb.SESSION.add(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteerid=gazid,
                                                                 gaz_rank=SourceRank.ranks[SourceRank.sources.index(source)],
