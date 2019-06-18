@@ -102,22 +102,23 @@ if buildit:
     print('Building gazetterid-name dict....')
     sql = "SELECT ifca, name_cleaned, source, gazetteerid, coast_dist_m, feature_class1 from gazetteer where isnull(name_cleaned, '') <> '' and isnull(ifca, '') <> ''"
     rows = gazetteerdb.SESSION.execute(text(sql)).fetchall()
+    PP = PrintProgress(len(rows))
     assert rows, 'Building gazetterid-name dict failed - No records returned'
+    skipped = 0
     for row in rows:
+        PP.increment()
         if row[4]:
             if row[5] in ['section of named road', 'named road'] and row[4] > 100:
-                print('skipped #%s' % row.gazetteerid)
+                skipped += 1
                 continue
 
-        if row[4] > 1000:
-            print('skipped %s' % row.name_cleaned)
-            continue
+            if row[4] > 1000:
+                skipped += 1
+                continue
         _addit(GAZIDS_BY_NAME, row[0], row[1], row[2], row[3])
     assert GAZIDS_BY_NAME, 'gazetterid-name dict was empty. Do you need to run clean_gaz.py?'
     iolib.pickle(GAZIDS_BY_NAME, settings.PATHS.GAZETTEERIDS_BY_NAME)
-    print('Built and saved gazetterid-name dict')
-
-
+    print('Built and saved gazetterid-name dict. Skipped %s of %s.' % (skipped, len(row)))
 
 
 

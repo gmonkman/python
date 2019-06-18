@@ -114,6 +114,7 @@ def main():
 
     WINDOW_SIZE = 1000; WINDOW_IDX = 0
     if WINDOW_SIZE > row_cnt: WINDOW_SIZE = row_cnt
+    skipped = 0
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         rows = gazetteerdb.SESSION.query(T).order_by(T.columns.gazetteerid).slice(start, stop).all()
@@ -121,15 +122,16 @@ def main():
         for row in rows:
             try:
                 if row.n > MAX_WORDS:
-                    print('skipped %s' % row.name_cleaned)
+                    skipped += 1
                     continue
+
                 if row.coast_dist_m:
                     if row.feature_class1 in ['section of named road', 'named road'] and row.coast_dist_m > 100:
-                        print('skipped #%s' % row.gazetteerid)
+                        skipped += 1
                         continue
 
                     if row.coast_dist_m > 1000:
-                        print('skipped %s' % row.name_cleaned)
+                        skipped += 1
                         continue
 
                 _addit(row.ifca.lower(), row.n, row.name_cleaned) 
@@ -144,6 +146,7 @@ def main():
         if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
         WINDOW_IDX += 1
 
+    print('Skipped %s of %s' % (skipped, PP.max))
 
 
 
