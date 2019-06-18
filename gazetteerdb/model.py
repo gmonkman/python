@@ -34,5 +34,8 @@ t_v_gazetteer_word_count = Table(
     Column('gazetteerid', BigInteger, nullable=False),
     Column('ifca', String(50, 'Latin1_General_CI_AS')),
     Column('name_cleaned', String(255, 'Latin1_General_CI_AS')),
-    Column('n', Integer)
+    Column('n', Integer),
+    Column('feature_class1',  String(250, 'Latin1_General_CI_AS')),
+    Column('coast_dist_m', Float)
+
 )

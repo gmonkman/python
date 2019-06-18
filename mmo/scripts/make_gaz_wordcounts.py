@@ -123,6 +123,15 @@ def main():
                 if row.n > MAX_WORDS:
                     print('skipped %s' % row.name_cleaned)
                     continue
+                if row.coast_dist_m:
+                    if row.feature_class1 in ['section of named road', 'named road'] and row.coast_dist_m > 100:
+                        print('skipped #%s' % row.gazetteerid)
+                        continue
+
+                    if row.coast_dist_m > 1000:
+                        print('skipped %s' % row.name_cleaned)
+                        continue
+
                 _addit(row.ifca.lower(), row.n, row.name_cleaned) 
             except Exception as e:
                 try:
