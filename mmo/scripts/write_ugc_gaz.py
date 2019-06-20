@@ -59,8 +59,8 @@ VALID_IFCAS = ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'ke
 
 class SourceRank():
     '''priority ranking for sources, lower is better'''
-    sources = ['lk', 'lk additional', 'ukho_constructs', 'os_open_name', 'os_gazetteer', 'ukho_seacover', 'ukho_gazetteer', 'medin', 'substitutions', 'geonames', 'geonames_alias', 'geograph']
-    ranks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    sources = ['lk', 'lk additional', 'ukho_constructs', 'ukho_act_lic', 'os_open_name', 'os_gazetteer', 'ukho_seacover', 'ukho_gazetteer', 'medin', 'substitutions', 'geonames', 'geonames_alias', 'geograph']
+    ranks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     assert len(sources) == len(ranks), 'SourceRank sources and ranks must be of equal length'
 
 
@@ -142,14 +142,16 @@ def main():
 
     WINDOW_SIZE = 10; WINDOW_IDX = 0
     if WINDOW_SIZE >= row_cnt: WINDOW_SIZE = row_cnt
-
+    already_processed = 0; added = 0
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         #remember, filters don't work with slice if we are updating the records we filter on
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
             try:
-                if row.processed_gaz: continue
+                if row.processed_gaz:
+                    already_processed += 1
+                    continue
 
                 try:  
                     txt = ' '.join([row.title_cleaned, row.txt_cleaned])
@@ -198,6 +200,7 @@ def main():
                                     mmodb.SESSION.add(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteerid=gazid,
                                                                 gaz_rank=SourceRank.ranks[SourceRank.sources.index(source)],
                                                                 gaz_source=source, word_cnt=wordcnt(w)))
+                                    added += 1
 
                 row.processed_gaz = True
                 mmodb.SESSION.flush()
@@ -222,7 +225,7 @@ def main():
         if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
         WINDOW_IDX += 1
 
-
+    print('%s skipped (flagged as added); %s  added' % (already_processed, added))
 
 
 
