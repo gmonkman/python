@@ -64,6 +64,8 @@ def add(source, name, x, y, feature_class='', feature_class1='', unique_only=Fal
     add an entry to the gazetteer, returns the added id
     otherwise returns none if nothing added
 
+    NB:IFCA is set automatically
+
     Example:
     >>>add('GGM', 'Hartley Skier', -1.4572, 55.0745, unique_only=True)
     123534

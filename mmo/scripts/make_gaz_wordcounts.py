@@ -146,7 +146,7 @@ def main():
         if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
         WINDOW_IDX += 1
 
-    print('Skipped %s of %s' % (skipped, PP.max))
+    print('Skipped %s of %s. ' % (skipped, PP.max))
 
 
 

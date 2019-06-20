@@ -16,7 +16,8 @@ class Book(Base):
     publication_date = Column(DateTime)
     page_num = Column(Integer, nullable=False)
     para_num = Column(Integer, nullable=False)
-    para_text = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False)
+    para_text = Column(String(2147483647, 'Latin1_General_CI_AS'), nullable=False)
+    para_text_cleaned = Column(String(2147483647, 'Latin1_General_CI_AS'), nullable=False)
     date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
     date_modified = Column(DateTime)
 
@@ -61,16 +62,16 @@ class Mag(Base):
 
     magid = Column(BigInteger, primary_key=True)
     mag = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
-    issue = Column(NCHAR(10))
+    issue = Column(String(10))
     issue_date = Column(DateTime)
     page_num = Column(Integer)
     group_key = Column(String(20, 'Latin1_General_CI_AS'))
     block_num = Column(Integer)
     paragraph = Column(Integer)
-    text = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), nullable=False)
+    text = Column(String(2147483647, 'Latin1_General_CI_AS'), nullable=False)
     date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
     date_modified = Column(DateTime)
-    text_cleaned = Column(TEXT(2147483647, 'Latin1_General_CI_AS'), server_default='text("('')")')
+    text_cleaned = Column(String(2147483647, 'Latin1_General_CI_AS'), server_default='text("('')")')
 
 
 t_mag_aggregate = Table(

@@ -437,7 +437,7 @@ Afloat = NEBLists(
     nouns_proper=['pescador'],  #kayak and a boat
     nouns_common=["boat", "tub", "ship", "inflatable", "sail", "onboard", "drift", "anchor", 'slipway', 'tiller', 'starboard', 'aft', 'engine', 'outboard', 'prop', 'propellor'],
     verbs=["launch", "sail", "drift", 'steamed', 'motored', "launched", "sailed", "drifting", "anchored", 'puke'],
-    phrases=["sea sick"],
+    phrases=["sea sick", "dropped anchor"],
     typos=(Typos.verbs, Typos.nouns_proper)
     )
 
@@ -507,8 +507,8 @@ Session = NEBLists(
     dump_name='Session',
     adjectives=['early', 'late'],
     nouns_common=['session', 'trip', "hour", "minute", "hour", 'morning', 'afternoon', 'noon', 'midday', 'flood', 'ebb'],
-    phrases=["before low", "after low", "to low", "after high", "to high", "before high", "either side", 'upto low', 'upto high', 'the flood', 'the ebb',
-             "around high", "around low", "tide out", "tide down", "tide in", "tide up", "packed up", "went home", "p.m.", "a.m.", 'pm', 'a.m', 'p.m', "hrs", "mins"],
+    phrases=["before low", "after low", "to low", "after high", "to high", "before high", "either side", 'upto low', 'upto high', 'the flood', 'the ebb', 'incoming tide',
+             "around high", "around low", "tide out", "tide down", "tide in", "tide up", "packed up", "went home", "p.m.", "a.m.", 'pm', 'a.m', 'p.m', "hrs", "mins", "pound mark","way back"],
     verbs=['angling', 'arrived', 'casting', 'catch', 'ended', 'fishing', 'hook', 'land', 'leave', 'leave', 'release', 'start', 'stop', 'trolling', 'unhook', 'blanked'],
     typos=None
     )
