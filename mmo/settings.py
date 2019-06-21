@@ -30,10 +30,11 @@ class PATHS():
 class UgcHintSettings():
     '''control what hints to run'''
     run_species_catch_hints = False     #very slow
-    run_month_hints = False
+    run_month_hints = True
     run_season_hints = True
-    run_platform_hints = True
-    run_trip_hints = True
-    run_date_hints = True
+    run_platform_hints = False
+    run_trip_hints = False
+    run_date_hints = False
     run_species_hints = False
-    unprocessed_only = False #obey the processed database flag, if unprocessed_only = false and run a hint is true, that hint will be run
+    unprocessed_only = False #obey the processed database flag, if unprocessed_only = False and run a hint is true, that hint will be run
+    TEST_MODE = False #no deletes or writes or processed checks

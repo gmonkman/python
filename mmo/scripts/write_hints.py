@@ -386,7 +386,9 @@ def write_hints(ugcid, hint_types, hints, sources=None, source_texts=None, poss=
         if pos_lists: Item.pos_list = str(pos_lists[i])
         if sources: Item.source = sources[i]
         if ns: Item.n = ns[i]
-        mmodb.SESSION.add(Item)
+
+        if not settings.UgcHintSettings.TEST_MODE:
+            mmodb.SESSION.add(Item)
 
 
 
@@ -423,14 +425,15 @@ def main():
                 was_err = False
 
                 txt_cleaned = row.txt_cleaned; title = nlpclean.clean(row.title)
-                if not txt_cleaned: continue
+                if not txt_cleaned and not settings.UgcHintSettings.TEST_MODE : continue
                 
                 #ignore processed if we want to update a single hint_type
                 Sts = settings.UgcHintSettings
                 if any(list([getattr(Sts, attr) for attr in dir(Sts) if not callable(getattr(Sts, attr)) and not attr.startswith("__")])):
-                    delete_hints(row.ugcid)
+                    if not settings.UgcHintSettings.TEST_MODE:
+                        delete_hints(row.ugcid)
                 else:
-                    if row.processed:
+                    if row.processed and not settings.UgcHintSettings.TEST_MODE:
                         print('ugcid:\t%s skipped (processed=True)' % row.ugcid)
                         continue
                     else:
@@ -442,7 +445,6 @@ def main():
                         pass
                     else:
                         hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_cleaned)
-                        if not hints: continue #if it doesnt mention species, skip the rest           
                         write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #endregion
 
@@ -521,13 +523,15 @@ def main():
             except Exception as e:
                 try:
                     log('Row skipped because of error:\t%s' % e)
+                    #rollback even in test mode, jic
                     mmodb.SESSION.rollback()
                 except:
                     pass
             finally:
                 try:
-                    row.processed = True
-                    mmodb.SESSION.flush()
+                    if not settings.UgcHintSettings.TEST_MODE:
+                        row.processed = True
+                        mmodb.SESSION.flush()
                     PP.increment(show_time_left=True)
                 except:
                     try:
@@ -537,7 +541,8 @@ def main():
                         pass
 
         try:
-            mmodb.SESSION.commit()
+            if not settings.UgcHintSettings.TEST_MODE:
+                mmodb.SESSION.commit()
         except Exception as e:
             try :
                 log('Final commit failed. Error was %s' % e)
