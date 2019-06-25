@@ -119,7 +119,7 @@ class SolentFishingForumsSpider(Spider):
 class SolentFishingForumsBoatSpider(Spider):
     '''scrape reports from angling addicts forum
     '''
-    name = "solentfishingforums"
+    name = "solentfishingforums-boat"
     source = 'www.solent-fishing-forums.co.uk'
     allowed_domains = ['solent-fishing-forums.co.uk']
     start_urls = ['http://www.solent-fishing-forums.co.uk'] #just a place holder to kick stuff off
