@@ -10,13 +10,13 @@ import imgscrape.items as _items
 
 
 
-class AnglersNetSpider(Spider):
+class AnglersNetSpiderKayak(Spider):
     '''scrape reports from angling addicts forum
     '''
-    name = "anglersnet"
+    name = "anglersnet-kayak"
     source = 'www.anglersnet.co.uk'
     allowed_domains = ['anglersnet.co.uk']
-    start_urls = ['http://www.anglersnet.co.uk/forums/index.php?/forum/4-sea-fishing/'] #just a place holder to kick stuff off
+    start_urls = ['https://www.anglersnet.co.uk/forums/index.php?/forum/26-kayak-fishing/'] #just a place holder to kick stuff off
     base_url = 'https://www.anglersnet.co.uk'
 
     custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter'}
@@ -25,9 +25,9 @@ class AnglersNetSpider(Spider):
         '''generate links to pages in a board        '''
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
 
-        BOARDS = ['Sea Fishing']
-        URLS = ['http://www.anglersnet.co.uk/forums/index.php?/forum/4-sea-fishing/']
-        PAGES = [400]
+        BOARDS = ['Kayak Fishing']
+        URLS = ['https://www.anglersnet.co.uk/forums/index.php?/forum/26-kayak-fishing/']
+        PAGES = [103]
         assert len(BOARDS) == len(URLS) == len(PAGES), 'Setup list lengths DO NOT match'
 
         for i, root_url in enumerate(URLS):
@@ -83,3 +83,7 @@ class AnglersNetSpider(Spider):
 
             I = l.load_item()
             yield I
+
+
+
+
