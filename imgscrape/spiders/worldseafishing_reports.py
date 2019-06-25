@@ -97,7 +97,7 @@ class worldseafishingReportsSpider(Spider):
 class worldseafishingAfloatSpider(Spider):
     '''scrape reports from angling addicts forum
     '''
-    name = "worldseafishing-reports-forum"
+    name = "worldseafishing-boat"
     source = 'worldseafishing.com/forum'
     allowed_domains = ['worldseafishing.com']
     start_urls = ['https://www.worldseafishing.com/forums/forums/boat-angling-angling-afloat.31/', 'https://www.worldseafishing.com/forums/forums/kayak-angling-forum.131/']
