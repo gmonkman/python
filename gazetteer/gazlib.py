@@ -27,7 +27,7 @@ import nlp.clean as _clean
 assert isinstance(_gazetteerdb.SESSION, sqlalchemy.orm.Session)
 
 
-def lookup(name, ifca='', as_str=False, include_any_ifca=False):
+def lookup(name, ifca='', as_str=False, include_any_ifca=False, include_name_in_output=False):
     '''Model -> None|Query
     lookup on a Model class.
 
@@ -51,8 +51,13 @@ def lookup(name, ifca='', as_str=False, include_any_ifca=False):
     
     if as_str:
         if rows.count() > 0:
-            f = [(w.gazetteerid, w.name, _rnd(w.x,4), _rnd(w.y, 4), w.ifca).__repr__() for w in rows]
+            if include_name_in_output:
+                f = [(name, w.gazetteerid, w.name, _rnd(w.x,4), _rnd(w.y, 4), w.ifca).__repr__() for w in rows]
+            else:
+                f = [(w.gazetteerid, w.name, _rnd(w.x,4), _rnd(w.y, 4), w.ifca).__repr__() for w in rows]
             return '\t'.join(f)
+        if include_name_in_output:
+            return '%s NOT FOUND' % name
         return 'NOT FOUND'
 
     return rows

@@ -153,7 +153,7 @@ class Ugc(Base):
     cleaned = Column(BIT)
     title_cleaned = Column(String(500, 'Latin1_General_CI_AS'), server_default='text("('')")')
     processed_gaz = Column(BIT, nullable=False, server_default=text("((0))"))
-
+    month_hint_nr = Column(Integer)
 
 t_v_err_species_alias_duplicate_accepted = Table(
     'v_err_species_alias_duplicate_accepted', metadata,
