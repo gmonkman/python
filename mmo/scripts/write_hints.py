@@ -445,7 +445,7 @@ def main():
 
                 if skip and row.processed and not settings.UgcHintSettings.TEST_MODE:
                     skipped += 1
-                    if skipped % 1000 and skipped > 0:
+                    if skipped % 1000 == 0 and skipped > 0:
                         print('%s skipped: flagged as processed' % skipped)
                     continue
 
