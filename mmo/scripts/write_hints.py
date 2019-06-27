@@ -413,7 +413,7 @@ def main():
     row_cnt = mmodb.SESSION.query(Ugc.ugcid).order_by(Ugc.ugcid).slice(offset, max_row).count()
     PP = iolib.PrintProgress(row_cnt, bar_length=20)
 
-    WINDOW_SIZE = 100  # or whatever limit you like
+    WINDOW_SIZE = 200  # or whatever limit you like
     window_idx = 0
     if WINDOW_SIZE > row_cnt: WINDOW_SIZE = row_cnt
     skipped = 0

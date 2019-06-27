@@ -141,7 +141,7 @@ def main():
     row_cnt = mmodb.SESSION.query(Ugc).order_by(Ugc.ugcid).slice(OFFSET, max_row).count()
     PP = PrintProgress(row_cnt, bar_length=20)
 
-    WINDOW_SIZE = 10; WINDOW_IDX = 0
+    WINDOW_SIZE = 1000; WINDOW_IDX = 0
     if WINDOW_SIZE >= row_cnt: WINDOW_SIZE = row_cnt
     already_processed = 0; added = 0; skipped_platform = 0
     while True:
