@@ -80,7 +80,7 @@ def main():
 
     Stop = stopwords.StopWords(whitelist=NE.all_single)
 
-    WINDOW_SIZE = 5; WINDOW_IDX = 0
+    WINDOW_SIZE = 1000; WINDOW_IDX = 0
     if WINDOW_SIZE > row_cnt: WINDOW_SIZE = row_cnt
     #region Ug
     while True:
@@ -89,8 +89,8 @@ def main():
         row_cnt = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned', 'source_platform')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in row_cnt:
             try:
-                s = '%s\n%s' % (row.title, row.txt)
                 if row.txt_cleaned: continue
+                s = '%s\n%s' % (row.title, row.txt)
                 if row.source_platform and args.platforms:
                     sp = set(ast.literal_eval(row.source_platform))
                     if not sp.intersection(set(args.platforms)): continue
