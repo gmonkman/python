@@ -177,7 +177,7 @@ def main():
                 
                 brd = ''
                 if row.board: brd = row.board.lower()
-                for ifcaid in NE.FORUM_IFCA[row.board]: #loop through each ifca associated with the board given in row.board, i set this up manually
+                for ifcaid in NE.FORUM_IFCA[brd]: #loop through each ifca associated with the board given in row.board, i set this up manually
                     all_found_words = {}                       
                     for num_key, ugc_words in sorted(list(win.items()), key=lambda x:x[0], reverse=True):  #loop over word windows in the post in reverse, 4 word matches, then three etc
                         assert isinstance(ugc_words, set)
