@@ -1,6 +1,7 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''clean the ugc text field and write to txt_cleaned'''
 import argparse
+import ast
 from sqlalchemy.orm import load_only
 from sqlalchemy.sql import text as _text
 
@@ -48,6 +49,13 @@ def log(msg, output_to='both'):
 #endregion
 
 
+class Platforms():
+    charter = 'charter'
+    private = 'private'
+    shore = 'shore'
+    kayak = 'kayak'
+
+
 
 
 def main():
@@ -55,10 +63,13 @@ def main():
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
     f = lambda s: [str(item) for item in s.split(',')]
     cmdline.add_argument('-s', '--slice', help='Record slice, eg -s 0,1000', type=f)
+    cmdline.add_argument('-p', '--platforms', help='Platforms to consider, this is a comma seperated list in [all,charter,private,kayak,shore]. It looks up on ugc.source_platform', type=f)
     args = cmdline.parse_args()
 
     OFFSET = int(args.slice[0])
     max_row = args.slice[1]
+
+
     if max_row in ('max', 'end', 'last'):
         max_row = mmodb.SESSION.query(Ugc.ugcid).count()
     else:
@@ -75,11 +86,15 @@ def main():
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).filter_by(txt_cleaned='').order_by(Ugc.ugcid).slice(start, stop).all()
-        row_cnt = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
+        row_cnt = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned', 'source_platform')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in row_cnt:
             try:
                 s = '%s\n%s' % (row.title, row.txt)
                 if row.txt_cleaned: continue
+                if row.source_platform and args.platforms:
+                    sp = set(ast.literal_eval(row.source_platform))
+                    if not sp.intersection(set(args.platforms)): continue
+                
 
                 if row.title:
                     s = row.title

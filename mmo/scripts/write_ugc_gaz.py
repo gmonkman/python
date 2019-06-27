@@ -4,7 +4,7 @@ make dictionary arrays of place names
 with wordcounts
 '''
 import argparse
-
+import ast
 from sqlalchemy.orm import load_only
 from sqlalchemy import text
 import mmodb
@@ -127,6 +127,7 @@ def main():
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
     f = lambda s: [str(item) for item in s.split(',')]
     cmdline.add_argument('-s', '--slice', help='Record slice, eg -s 0,1000', type=f)
+    cmdline.add_argument('-p', '--platforms', help="Process platforms which match this comma seperated list. Platforms for each forum board are in ugc.source_platform. platforms in ['private','shore','charter','kayak','all']", type=f)
     args = cmdline.parse_args()
 
     OFFSET = int(args.slice[0])
@@ -142,16 +143,23 @@ def main():
 
     WINDOW_SIZE = 10; WINDOW_IDX = 0
     if WINDOW_SIZE >= row_cnt: WINDOW_SIZE = row_cnt
-    already_processed = 0; added = 0
+    already_processed = 0; added = 0; skipped_platform = 0
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         #remember, filters don't work with slice if we are updating the records we filter on
-        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz', 'title_cleaned')).order_by(Ugc.ugcid).slice(start, stop).all()
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz', 'title_cleaned', 'source_platform')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
             try:
                 if row.processed_gaz:
                     already_processed += 1
                     continue
+
+                if row.source_platform and args.platforms:
+                    if not 'all' in args.platforms:
+                        sp = set(ast.literal_eval(row.source_platform))
+                        if not sp.intersection(set(args.platforms)): 
+                            skipped_platform += 1
+                            continue
 
                 try:  
                     txt = ' '.join([row.title_cleaned, row.txt_cleaned])
@@ -225,7 +233,7 @@ def main():
         if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
         WINDOW_IDX += 1
 
-    print('%s skipped (flagged as added); %s  added' % (already_processed, added))
+    print('%s skipped (flagged as added);  %s  skipped unmatch platform;  %s  added' % (already_processed, skipped_platform, added))
 
 
 

@@ -3,7 +3,7 @@
 import itertools as _iter
 from nltk.corpus import wordnet as _wordnet
 from nltk.tokenize import word_tokenize as _word_tokenize
-
+from nltk.corpus.reader.wordnet import Synset as _Synset
 import inflect as _inflect
 
 import funclib.stringslib as _stringslib
@@ -73,7 +73,7 @@ def _clean(s):
 def _fixitr(s, type_=list, tolower=True):
     if not s: return s
     if isinstance(s, str): was_string = True
-    if isinstance(s, (str, int, float, _wordnet.Synset)):
+    if isinstance(s, (str, int, float, _Synset)):
         s = type_(s)
     if tolower and was_string:
         s = [w.lower() for w in s]

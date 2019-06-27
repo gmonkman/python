@@ -1,6 +1,6 @@
 '''run some SQLS to fix common text mistakes'''
 import argparse
-
+import ast
 from sqlalchemy.orm import load_only
 
 #import spacy
@@ -397,6 +397,8 @@ def main():
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
     f = lambda s: [str(item) for item in s.split(',')]
     cmdline.add_argument('-s', '--slice', help='Record slice, eg -s 0,1000', type=f)
+    cmdline.add_argument('-p', '--platforms', help="Process platforms which match this comma seperated list. Platforms for each forum board are in ugc.source_platform. platforms in ['private','shore','charter','kayak','all'].\ne.g. -p charter,shore", type=f)
+    
     args = cmdline.parse_args()
 
     offset = int(args.slice[0])
@@ -414,109 +416,95 @@ def main():
     WINDOW_SIZE = 100  # or whatever limit you like
     window_idx = 0
     if WINDOW_SIZE > row_cnt: WINDOW_SIZE = row_cnt
+    skipped = 0
     while True:
         start, stop = WINDOW_SIZE * window_idx + offset, WINDOW_SIZE * (window_idx + 1) + offset
         #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
-        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).order_by(Ugc.ugcid).slice(start, stop).all()
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint', 'source_platform')).order_by(Ugc.ugcid).slice(start, stop).all()
 
         for row in rows:
             assert isinstance(row, Ugc)
             try:
                 was_err = False
 
+                if row.source_platform and args.platforms:
+                    if not 'all' in args.platforms:
+                        sp = set(ast.literal_eval(row.source_platform))
+                        if not sp.intersection(set(args.platforms)): continue
+
                 txt_cleaned = row.txt_cleaned; title = nlpclean.clean(row.title)
                 if not txt_cleaned and not settings.UgcHintSettings.TEST_MODE : continue
                 
                 #ignore processed if we want to update a single hint_type
+                skip = True
                 Sts = settings.UgcHintSettings
-                if any(list([getattr(Sts, attr) for attr in dir(Sts) if not callable(getattr(Sts, attr)) and not attr.startswith("__")])):
+                if any(list([getattr(Sts, attr) for attr in dir(Sts) if not callable(getattr(Sts, attr)) and attr.startswith("force")])):
                     if not settings.UgcHintSettings.TEST_MODE:
                         delete_hints(row.ugcid)
-                else:
-                    if row.processed and not settings.UgcHintSettings.TEST_MODE:
-                        print('ugcid:\t%s skipped (processed=True)' % row.ugcid)
-                        continue
-                    else:
-                        mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == row.ugcid).delete()
+                        skip = False
+
+                if skip and row.processed and not settings.UgcHintSettings.TEST_MODE:
+                    skipped += 1
+                    if skipped % 1000 and skipped > 0:
+                        print('%s skipped: flagged as processed' % skipped)
+                    continue
 
                 #region SPECIES
-                if UgcHintSettings.run_species_hints:
-                    if row.processed and UgcHintSettings.unprocessed_only:
-                        pass
-                    else:
-                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_cleaned)
-                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                if UgcHintSettings.force_run_species_hints or (not row.processed and settings.UgcHintSettings.run_species_hints):
+                    hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_species_hints(title, txt_cleaned)
+                    write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #endregion
 
 
                 #region MONTH HINTS
-                if UgcHintSettings.run_month_hints:
-                    if row.processed and UgcHintSettings.unprocessed_only:
-                        pass
-                    else:
-                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_month_hints(title, txt_cleaned)
-                        row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
-                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                if UgcHintSettings.force_run_month_hints or (not row.processed and settings.UgcHintSettings.run_month_hints):
+                    hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_month_hints(title, txt_cleaned)
+                    row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
+                    write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #endregion
 
 
-
                 #region SEASON HINTS
-                if UgcHintSettings.run_season_hints:
-                    if row.processed and UgcHintSettings.unprocessed_only:
-                        pass
-                    else:
-                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_season_hints(title, txt_cleaned)
-                        row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
-                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                if UgcHintSettings.force_run_season_hints or (not row.processed and settings.UgcHintSettings.run_season_hints):
+                    hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_season_hints(title, txt_cleaned)
+                    row.month_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else None
+                    write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #endregion
 
 
                 #region DATE HINTS - was disabled
-                if UgcHintSettings.run_date_hints:
-                    if row.processed and UgcHintSettings.unprocessed_only:
-                        pass
-                    else:
-                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_date_hints(title, txt_cleaned)
-                        row.date_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else row.published_date #use publised date if we havent found a date
-                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                if UgcHintSettings.force_run_date_hints or (not row.processed and settings.UgcHintSettings.run_date_hints):
+                    hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_date_hints(title, txt_cleaned)
+                    row.date_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else row.published_date #use publised date if we havent found a date
+                    write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #endregion
 
                 
                 #region PLATFORM                
-                if UgcHintSettings.run_platform_hints:
-                    if row.processed and UgcHintSettings.unprocessed_only:
-                        pass
-                    else:
-                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_platform_hints(title, txt_cleaned)
-                        row.platform_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else 'shore'
-                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                if UgcHintSettings.force_run_platform_hints or (not row.processed and settings.UgcHintSettings.run_platform_hints):
+                    hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_platform_hints(title, txt_cleaned)
+                    row.platform_hint = ugc_hint.get('ugc_hint') if ugc_hint.get('ugc_hint') else 'shore'
+                    write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #endregion
 
 
                 was_catch = False
                 #region CATCH HINTS - SLOW
-                if UgcHintSettings.run_species_catch_hints:
-                    if row.processed and UgcHintSettings.unprocessed_only:
-                        pass
-                    else:
-                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_catch_hints(title, txt_cleaned)
-                        was_catch = ugc_hint.get('ugc_hint')
-                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                if UgcHintSettings.force_species_catch_hints or (not row.processed and settings.UgcHintSettings.run_species_catch_hints):
+                    hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_catch_hints(title, txt_cleaned)
+                    was_catch = ugc_hint.get('ugc_hint')
+                    write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #endregion
 
                 
                 #TRIP HINTS
-                if UgcHintSettings.run_trip_hints:
-                    if row.processed and UgcHintSettings.unprocessed_only:
-                        pass
+                if UgcHintSettings.force_run_trip_hints  or (not row.processed and settings.UgcHintSettings.run_trip_hints):
+                    hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_trip_hints(title, txt_cleaned)
+                    if not was_catch:
+                        row.catch_hint = bool(ugc_hint.get('ugc_hint'))
                     else:
-                        hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_trip_hints(title, txt_cleaned)
-                        if not was_catch:
-                            row.catch_hint = bool(ugc_hint.get('ugc_hint'))
-                        else:
-                            row.catch_hint = was_catch
-                        write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+                        row.catch_hint = was_catch
+                    write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #endregion
 
 
@@ -556,25 +544,25 @@ def main():
 
 def delete_hints(ugcid):
     '''delete hints using settngs'''
-    if settings.UgcHintSettings.run_species_catch_hints:
+    if settings.UgcHintSettings.force_species_catch_hints:
         _delete_hint(ugcid, HintTypes.species_catch)
 
-    if settings.UgcHintSettings.run_month_hints:
+    if settings.UgcHintSettings.force_run_month_hints:
         _delete_hint(ugcid, HintTypes.month_hint)
 
-    if settings.UgcHintSettings.run_season_hints:
+    if settings.UgcHintSettings.force_run_season_hints:
         _delete_hint(ugcid, HintTypes.season_hint)
 
-    if settings.UgcHintSettings.run_platform_hints:
+    if settings.UgcHintSettings.force_run_platform_hints:
         _delete_hint(ugcid, HintTypes.platform)
 
-    if settings.UgcHintSettings.run_trip_hints:
+    if settings.UgcHintSettings.force_run_trip_hints:
         _delete_hint(ugcid, HintTypes.trip)
 
-    if settings.UgcHintSettings.run_date_hints:
+    if settings.UgcHintSettings.force_run_date_hints:
         _delete_hint(ugcid, HintTypes.date_hint)    
 
-    if settings.UgcHintSettings.run_species_hints:
+    if settings.UgcHintSettings.force_run_species_hints:
         _delete_hint(ugcid, HintTypes.species)
 
 

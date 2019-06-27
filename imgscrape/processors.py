@@ -171,3 +171,9 @@ def lst2val(l):
     if isinstance(l, list):
         return l[0]
     return l
+
+
+if __name__ == '__main__':
+    S = HTML2Txt()
+    ss = S(["this weren't good"])
+    
