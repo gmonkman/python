@@ -10,9 +10,18 @@ import nlp.relib as relib
 
 from funclib.iolib import PrintProgress
 import mmo.name_entities as NE
-#from warnings import warn
-import mmo.settings as settings
 
+
+mackerel = ['mackeerel', 'makey', 'mackkrel', 'mackkeral', 'macrel', 'makeral', 'maackie',
+                'maccarel', 'macarrel', 'mackrell', 'makey', 'mackrrell', 'makerell', 'mackerall', 'maceral', 'maacky',
+                'makerrel', 'maackerel', 'maackrel', 'mackie', 'mackks', 'mackiee', 'macarell', 'macckerel', 'mackerell',
+                'mackkerel', 'mackky', 'mackerral', 'makrell', 'maackrell',
+                'mackerrel', 'maackey', 'mack', 'makerel', 'mackeraal', 'maakerel', 'makrel', 'maccky',
+                'macckrel', 'mackey', 'macki', 'macckey', 'macck', 'makeal', 'mackkie',
+                'makie', 'mackrrel', 'makereel', 'mackrl', 'mackyy', 'mackrel', 'mackeral',
+                'maackeral', 'mackkey', 'macareel', 'maerel', 'macerel', 'makeels', 'mackreel',
+                'mackral', 'mackreell', 'maack', 'mackerel', 'macky', 'mackrll', 'mackereel',
+                'mackkrell', 'makeraal', 'mackeeral', 'makkerel', 'makerral']
 
 
 

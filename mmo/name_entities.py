@@ -393,6 +393,7 @@ class _NamedEntityBaseDict():
         except Exception as _:
             return False
 
+
     def _dump_dump(self):
         s = self._dump_get_name('nouns_dict_all')
         _iolib.pickle(self.nouns_dict_all, s)
@@ -568,16 +569,6 @@ Session = NEBLists(
 MackerelAsBait = NEBLists(
     dump_name='MackerelAsBait',
     adjectives=['frozen'],
-    mackerel=['mackeerel', 'makey', 'mackkrel', 'mackkeral', 'macrel', 'makeral', 'maackie',
-                 'maccarel', 'macarrel', 'mackrell', 'makey', 'mackrrell', 'makerell', 'mackerall', 'maceral', 'maacky',
-                 'makerrel', 'maackerel', 'maackrel', 'mackie', 'mackks', 'mackiee', 'macarell', 'macckerel', 'mackerell',
-                 'mackkerel', 'mackky', 'mackerral', 'makrell', 'maackrell',
-                 'mackerrel', 'maackey', 'mack', 'makerel', 'mackeraal', 'maakerel', 'makrel', 'maccky',
-                 'macckrel', 'mackey', 'macki', 'macckey', 'macck', 'makeal', 'mackkie',
-                 'makie', 'mackrrel', 'makereel', 'mackrl', 'mackyy', 'mackrel', 'mackeral',
-                 'maackeral', 'mackkey', 'macareel', 'maerel', 'macerel', 'makeels', 'mackreel',
-                 'mackral', 'mackreell', 'maack', 'mackerel', 'macky', 'mackrll', 'mackereel',
-                 'mackkrell', 'makeraal', 'mackeeral', 'makkerel', 'makerral'],
     verbs=['baited', 'livebaited', 'deadbaited', 'tipped', 'using'], 
     nouns_common=['fillet', 'side', 'head', 'belly', 'chunk', 'sliver', 'bait', 'flapper', 'strip', 'cocktail', 'head'],
     phrases=['on mackerel', 'on mack', 'on mackeral', 'on mackie', 'on mackey', 'on macky', 'whole mackerel', 'whole mackie', 'whole macky', 'whole mackey', '0.5 mackerel', '0.5 mackey',
@@ -588,10 +579,10 @@ MackerelAsBait = NEBLists(
 
 BaitSpecies = NEBLists(
     dump_name='BaitSpecies',
-    nouns_common=['worm', 'black', 'squid', 'lug', 'sewie', 'prawn', 'crab', 'peeler', 'softies', 'softys', 'softy', 'bluey',
-                'sandeel', 'rag', 'ragworm', 'clam', 'mussel', 'mussle', 'runnydown', 'maddies'
+    nouns_common=['worm', 'black', 'squid', 'lug', 'sewie', 'prawn', 'crab', 'peeler', 'softie', 'softy', 'bluey',
+                'sandeel', 'rag', 'ragworm', 'clam', 'mussel', 'mussle', 'muscle', 'razorclam', 'runnydown'],
+    phrases=['maddies']
                 )
-    
 #endregion
 
 
@@ -742,7 +733,7 @@ def _bld_global_sets(force_dump):
     #now try the gazetteer
     try:
         _bld(_gaz.get_all_as_set())
-    except AttributeError as e:
+    except AttributeError as _:
         print('Failed to load the gazetter. This will happen if name_cleaned is empty or blank for all gazetter records.\n\nRun mmo.clean_gaz.py.')
 
     if force_dump or not _iolib.file_exists(_settings.PATHS.NAMED_ENTITIES_ALL):

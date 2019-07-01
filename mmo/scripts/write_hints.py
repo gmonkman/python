@@ -18,7 +18,7 @@ from mmo import name_entities as ne
 from nlp import find
 from funclib import baselib
 import funclib.iolib as iolib
-from funclib.stopwatch import StopWatch
+
 
 from mmo.settings import UgcHintSettings
 
@@ -425,15 +425,13 @@ def main():
         for row in rows:
             assert isinstance(row, Ugc)
             try:
-                was_err = False
-
                 if row.source_platform and args.platforms:
                     if not 'all' in args.platforms:
                         sp = set(ast.literal_eval(row.source_platform))
                         if not sp.intersection(set(args.platforms)): continue
 
                 txt_cleaned = row.txt_cleaned; title = nlpclean.clean(row.title)
-                if not txt_cleaned and not settings.UgcHintSettings.TEST_MODE : continue
+                if not txt_cleaned and not settings.UgcHintSettings.TEST_MODE: continue
                 
                 #ignore processed if we want to update a single hint_type
                 skip = True
@@ -532,7 +530,7 @@ def main():
             if not settings.UgcHintSettings.TEST_MODE:
                 mmodb.SESSION.commit()
         except Exception as e:
-            try :
+            try:
                 log('Final commit failed. Error was %s' % e)
                 mmodb.SESSION.rollback()
             except:
@@ -573,7 +571,7 @@ def _delete_hint(ugcid, hint_type):
     '''
     assert hint_type in list([getattr(HintTypes, attr) for attr in dir(HintTypes) if not callable(getattr(HintTypes, attr)) and not attr.startswith("__")]), 'hint_type %s not a member of HintTypes' % hint_type
     #sql = 'delete from ugc_hint where ugcid=%s and hint_type=%s' % (ugcid, hint_type)
-    mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid==ugcid, UgcHint.hint_type==hint_type).delete()
+    mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid==ugcid, UgcHint.hint_type == hint_type).delete()
 
 
 

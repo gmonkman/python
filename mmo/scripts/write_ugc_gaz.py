@@ -101,24 +101,24 @@ if buildit:
     GAZIDS_BY_NAME = {}
     print('Building gazetterid-name dict....')
     sql = "SELECT ifca, name_cleaned, source, gazetteerid, coast_dist_m, feature_class1 from gazetteer where isnull(name_cleaned, '') <> '' and isnull(ifca, '') <> ''"
-    rows = gazetteerdb.SESSION.execute(text(sql)).fetchall()
-    PP = PrintProgress(len(rows))
-    assert rows, 'Building gazetterid-name dict failed - No records returned'
+    rs = gazetteerdb.SESSION.execute(text(sql)).fetchall()
+    PP1 = PrintProgress(len(rs))
+    assert rs, 'Building gazetterid-name dict failed - No records returned'
     skipped = 0
-    for row in rows:
-        PP.increment()
-        if row[4]:
-            if row[5] in ['section of named road', 'named road'] and row[4] > 100:
+    for r in rs:
+        PP1.increment()
+        if r[4]:
+            if r[5] in ['section of named road', 'named road'] and r[4] > 100:
                 skipped += 1
                 continue
 
-            if row[4] > 1000:
+            if r[4] > 1000:
                 skipped += 1
                 continue
-        _addit(GAZIDS_BY_NAME, row[0], row[1], row[2], row[3])
+        _addit(GAZIDS_BY_NAME, r[0], r[1], r[2], r[3])
     assert GAZIDS_BY_NAME, 'gazetterid-name dict was empty. Do you need to run clean_gaz.py?'
     iolib.pickle(GAZIDS_BY_NAME, settings.PATHS.GAZETTEERIDS_BY_NAME)
-    print('Built and saved gazetterid-name dict. Skipped %s of %s.' % (skipped, len(row)))
+    print('Built and saved gazetterid-name dict. Skipped %s of %s.' % (skipped, len(rs)))
 
 
 
@@ -186,7 +186,7 @@ def main():
 
                         wds = GAZ.get(ifcaid, {}).get(num_key) #get all the place names <num_key in length, ie 4, 3, 2 1...
                         if not wds:
-                            log('Failed to get places for ifca "%s", num_key "%s"', (ifcaid, num_key), 'both')    
+                            log('Failed to get places for ifca "%s", num_key "%s"' % (ifcaid, num_key), 'both')    
                             continue
 
                         #we now want to loop through all previously found word windows of greater kernel size
@@ -244,5 +244,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
               

@@ -3,7 +3,7 @@
 import argparse
 import ast
 from sqlalchemy.orm import load_only
-from sqlalchemy.sql import text as _text
+
 
 import mmodb
 from mmodb.model import Ugc
@@ -50,6 +50,7 @@ def log(msg, output_to='both'):
 
 
 class Platforms():
+    '''platforms'''
     charter = 'charter'
     private = 'private'
     shore = 'shore'
