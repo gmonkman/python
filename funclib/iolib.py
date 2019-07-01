@@ -900,20 +900,26 @@ def notepadpp_open_file(filename):
         _subprocess.Popen(openpth)
 
 
-def write_to_file(results, prefix='', open_in_npp=True, full_file_path=''):
+def write_to_file(results, prefix='', open_in_npp=True, full_file_path='', sep='\n'):
     '''
-    (str|iterable,bool,str) -> str
+    (str|iterable, str, bool, str, str) -> str
     Takes result_text and writes it to a file in the cwd.
     Prints out the file name at the end and opens the folder location
-
-    Returns the fully qualified filename written
-
-    Use to quickly right single results set to a file
 
     If results is a _string then it writes out the _string, otherwise it iterates through
     results writing all elements to the file.
 
-    If full_file_path is defined, saves the file as this, otherwise creates it in CWD with a datetime stamp
+    results: a string or iterable
+    prefix: prefix for file
+    open_in_npp: open full_file_path in notepad++  
+    full_file_path: saves the file as this, otherwise creates it in CWD with a datetime stamp
+    sep: seperator if results is iterable
+
+    Returns: the fully qualified filename
+
+  
+    Example:
+    >>>write_to_file(List, prefix='', open_in_npp=True, full_file_path='c:\temp\results.txt')
     '''
     if full_file_path == '':
         filename = _os.getcwd() + '\\RESULT' + prefix + \
@@ -930,7 +936,7 @@ def write_to_file(results, prefix='', open_in_npp=True, full_file_path=''):
             f.write(results)
         else:
             for s in results:
-                f.write(str(s))
+                f.write('%s%s' % (s, sep))
 
     #print(results)
     #print(filename)

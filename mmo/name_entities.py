@@ -564,6 +564,34 @@ Session = NEBLists(
     typos=None
     )
 
+
+MackerelAsBait = NEBLists(
+    dump_name='MackerelAsBait',
+    adjectives=['frozen'],
+    mackerel=['mackeerel', 'makey', 'mackkrel', 'mackkeral', 'macrel', 'makeral', 'maackie',
+                 'maccarel', 'macarrel', 'mackrell', 'makey', 'mackrrell', 'makerell', 'mackerall', 'maceral', 'maacky',
+                 'makerrel', 'maackerel', 'maackrel', 'mackie', 'mackks', 'mackiee', 'macarell', 'macckerel', 'mackerell',
+                 'mackkerel', 'mackky', 'mackerral', 'makrell', 'maackrell',
+                 'mackerrel', 'maackey', 'mack', 'makerel', 'mackeraal', 'maakerel', 'makrel', 'maccky',
+                 'macckrel', 'mackey', 'macki', 'macckey', 'macck', 'makeal', 'mackkie',
+                 'makie', 'mackrrel', 'makereel', 'mackrl', 'mackyy', 'mackrel', 'mackeral',
+                 'maackeral', 'mackkey', 'macareel', 'maerel', 'macerel', 'makeels', 'mackreel',
+                 'mackral', 'mackreell', 'maack', 'mackerel', 'macky', 'mackrll', 'mackereel',
+                 'mackkrell', 'makeraal', 'mackeeral', 'makkerel', 'makerral'],
+    verbs=['baited', 'livebaited', 'deadbaited', 'tipped', 'using'], 
+    nouns_common=['fillet', 'side', 'head', 'belly', 'chunk', 'sliver', 'bait', 'flapper', 'strip', 'cocktail', 'head'],
+    phrases=['on mackerel', 'on mack', 'on mackeral', 'on mackie', 'on mackey', 'on macky', 'whole mackerel', 'whole mackie', 'whole macky', 'whole mackey', '0.5 mackerel', '0.5 mackey',
+                '0.5 macky', '0.5 mackie', 'loaded with mackerel', 'loaded with mackie', 'loaded with mack', 'loaded with macky'],
+    typos=None
+    )
+
+
+BaitSpecies = NEBLists(
+    dump_name='BaitSpecies',
+    nouns_common=['worm', 'black', 'squid', 'lug', 'sewie', 'prawn', 'crab', 'peeler', 'softies', 'softys', 'softy', 'bluey',
+                'sandeel', 'rag', 'ragworm', 'clam', 'mussel', 'mussle', 'runnydown', 'maddies'
+                )
+    
 #endregion
 
 

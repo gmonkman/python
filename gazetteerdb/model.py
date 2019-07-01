@@ -27,7 +27,7 @@ class Gazetteer(Base):
     y_rnd = Column(Float(53))
     name_cleaned = Column(String(255, 'Latin1_General_CI_AS'))
     intertidalfid = Column(Integer)
-    intertidalfiddistance = Column(Float(53))
+    intertidalfid_distance = Column(Float(53))
 
 
 t_v_gazetteer_word_count = Table(

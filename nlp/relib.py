@@ -70,6 +70,7 @@ def replace_all_punctuation_with_char(s, char):
     '''replace all punc with fullstop'''
     return _re.sub(r'[^\w\s]', char, s)
 
+
 def SentenceHasTextAndNumber(sentence, word, no_left_boudary=True, no_right_boundary=True):
     '''str, str->bool
     Does word appear in sentence with a number
@@ -83,13 +84,18 @@ def SentenceHasTextAndNumber(sentence, word, no_left_boudary=True, no_right_boun
     mtc = reg.search(sentence)
     return True if mtc else False
 
+
 def SentenceIsMatchAndHasNumeric(sentence, word, otherwords=(), no_left_boudary=True, no_right_boundary=True):
     '''check if sentence has number, thetext and any of otherwords'''
     if not any([has_word(sentence, w) for w in otherwords]):
         return False
     return SentenceHasTextAndNumber(sentence, word, no_left_boudary, no_right_boundary)
 
+
 def SentenceHasTextMulti(sentence, words):
+    '''(str, iter) -> bool
+
+    does sentence contain any of words'''
     return any([has_word(sentence, w) for w in words])
 
 
