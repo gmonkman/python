@@ -4,6 +4,8 @@ import itertools as _iter
 from nltk.corpus import wordnet as _wordnet
 from nltk.tokenize import word_tokenize as _word_tokenize
 from nltk.corpus.reader.wordnet import Synset as _Synset
+import pattern.en as _pattern
+
 import inflect as _inflect
 
 import funclib.stringslib as _stringslib
@@ -108,6 +110,13 @@ def plural_sing(word):
     return final
 
 
+def conjugate(word):
+    '''(str) -> list
+    conjugate word'''
+    if not word: return ''
+    word = word.lstrip().rstrip()
+    return _pattern.lexeme(word)
+
 
 def synonym_lemma_bag(s):
     '''(str)->list
@@ -178,7 +187,8 @@ def lemma_bag_all(word, lexname='', no_underscored=True, force_plural=False, for
                 _listadd(final, _inflect.engine().plural(w))
                 _listadd(final, _inflect.engine().singular_noun(w))
         elif Synset.lexname().lower() in WordnetLexnames.all_verbs or force_conjugate:
-            final.append(w)
+            for w in Synset.lemma_names():
+                final.append(w)
             _listadd(final, _pattern.lexeme(w))
         else:
             final.append(w)
@@ -386,8 +396,6 @@ def genhyper(synset, depth=2):
 
 
 
-
-#TODO finish sliding window
 class SlidingWindow():
     '''Generate dict of text with
     the windows windows.
@@ -419,7 +427,3 @@ class SlidingWindow():
         '''return it'''
         return self.windowed
 
-
-if __name__ == '__main__':
-    s = ' '.join([str(s) for s in range(10)])
-    W = SlidingWindow(s)

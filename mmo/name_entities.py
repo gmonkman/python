@@ -201,6 +201,12 @@ class _NamedEntityBase():
         self.all_base_words |= self.verbs
         self.all_base_words |= self.adjectives
         self.all_base_words |= self.phrases
+
+        self.nouns_common_expanded = set()
+        self.verbs_expanded = set()
+        self.adjectives_expanded = set()
+        self.nouns_proper_expanded = set()
+        self.phrases_expanded = set()
         self._get()
         
     
@@ -231,6 +237,20 @@ class _NamedEntityBase():
                 wds.append(w)
                 wds.extend(_nlpbase.lemma_bag_all(w)) #lamma_bag_all obeys verb and nouns plural/conjugation by default
             verbs |= set(wds)
+        elif self.simple_expansion:
+            wds = []
+            for w in self.nouns_common:
+                wds.append(w)
+                wds.extend(_nlpbase.plural_sing(w))
+            nouns_common |= set(wds)
+            
+            wds = []
+            for w in verbs:
+                wds.append(w)
+                wds.extend(_nlpbase.conjugate(w)) #lamma_bag_all obeys verb and nouns plural/conjugation by default
+            verbs |= set(wds)
+
+
         if self.typos:
             if 'phrases' in self.typos: phrases |= set(_typo.typos(phrases, filter_start_n=TYPOS_FIX_FIRST_N_CHARS, min_length=TYPOS_MIN_LENGTH))
             if 'verbs' in self.typos: verbs |= set(_typo.typos(verbs, filter_start_n=TYPOS_FIX_FIRST_N_CHARS, min_length=TYPOS_MIN_LENGTH))
@@ -242,6 +262,14 @@ class _NamedEntityBase():
         self.allwords |= phrases 
         self.allwords |= nouns_common 
         self.allwords |= adjectives
+        
+
+        self.nouns_common_expanded = nouns_common
+        self.verbs_expanded = verbs
+        self.adjectives_expanded = adjectives
+        self.nouns_proper_expanded = nouns_proper
+        self.phrases_expanded = phrases
+
         try:
             self._dump_dump()
             print('Dumped allwords for %s' % self.dump_name) 
@@ -314,13 +342,12 @@ class NEBLists(_NamedEntityBase):
     '''Create an list of words based on kwarg options
 
     Supported kwargs are:
-    add_similiar=False
-    force_conjugate=False
-    typos=('nouns', 'verbs', 'phrases', 'others')
-    force_plural_singular=False
+    add_similiar: use wordnet to find similiar words and pluralise and conjugate
+    typos: add typos for words, typos in('nouns', 'verbs', 'phrases', 'others')
     '''
-    def __init__(self, dump_name, nouns_proper=None, nouns_common=None, verbs=None, phrases=None, adjectives=None, add_similiar=False, typos=('nouns_common', 'nouns_proper', 'verbs', 'phrases', 'adjectives')):
+    def __init__(self, dump_name, nouns_proper=None, nouns_common=None, verbs=None, phrases=None, adjectives=None, simple_expansion=False, add_similiar=False, typos=('nouns_common', 'nouns_proper', 'verbs', 'phrases', 'adjectives')):
         ld = lambda v: set(v) if v else set()
+        assert not (simple_expansion and add_similiar), 'simple_expansion and add_similiar should not both be true'
         self.nouns_common = ld(nouns_common)
         self.nouns_proper = ld(nouns_proper)
         self.dump_name = dump_name
@@ -329,6 +356,7 @@ class NEBLists(_NamedEntityBase):
         self.adjectives = ld(adjectives)
         self.add_similiar = add_similiar
         self.typos = typos
+        self.simple_expansion = simple_expansion
         super().__init__()
 #endregion
 
@@ -487,10 +515,12 @@ Afloat = NEBLists(
     dump_name='Afloat',
     adjectives=['seasick', 'sick'],
     nouns_proper=['pescador'],  #kayak and a boat
-    nouns_common=["boat", "tub", "ship", "inflatable", "sail", "onboard", "drift", "anchor", 'slipway', 'tiller', 'starboard', 'aft', 'engine', 'outboard', 'prop', 'propellor'],
-    verbs=["launch", "sail", "drift", 'steamed', 'motored', "launched", "sailed", "drifting", "anchored", 'puke'],
+    nouns_common=["boat", "tub", "ship", "inflatable", "sail", "onboard", "anchor", 'slipway', 'tiller', 'starboard', 'aft', 'engine', 'outboard', 'prop', 'propellor'],
+    verbs=["launch", "sail", "drift", 'steamed', 'motored', "launched", "sailed", "drifting", "anchored", 'puke', 'boat'],
     phrases=["sea sick", "dropped anchor"],
-    typos=(Typos.verbs, Typos.nouns_proper)
+    typos=(Typos.verbs, Typos.nouns_proper),
+    add_similiar=False,
+    simple_expansion=True
     )
 
 
@@ -503,7 +533,9 @@ AfloatCharterBoat = NEBLists(
     verbs=["charter", "skipper", "hire"],
     nouns_common=['charter', 'inflatable'],
     phrases=['charter boat'],
-    typos=(Typos.nouns_common, Typos.verbs)
+    typos=(Typos.nouns_common, Typos.verbs),
+    add_similiar=False,
+    simple_expansion=True
     )
 
 
@@ -513,7 +545,8 @@ AfloatKayak = NEBLists(
     nouns_proper=["tarpon", "trident", "scupper", "paddle", "fatyak", "dorado", "teksport", "emotion", 'cuda', 'mirage', 'profish', 'outback', 'sturgeon', 'wilderness', 'aquago', 'juntos', 'malibu', 'huntsman', 'profisha', 'revo 16', 'gosea', 'tetra', 'feelfree', 'hobbie', 'dorado', 'wilderness systems', 'wido', 'riber', 'perception', 'systemx', 'tootega', "kaskazi", 'galaxy', 'viking', 'werner', 'railblaza'],
     phrases=['mirage outback', 'pelican catch', 'lifetime muskie', "fat yak", 'system x', 'jackson cuda', 'cuda 14'],
     verbs=['kayaking', 'paddled'],
-    typos=None)
+    typos=None,
+    add_similiar=True)
 
 
 AfloatPrivate = NEBLists(
@@ -522,7 +555,9 @@ AfloatPrivate = NEBLists(
     nouns_proper=['arvor', 'fibramar', 'treeve', 'quicksilver', 'fastliner', 'strikeline', 'leisurecat', 'mallon', 'beneteau', 'antares', 'reiver', 'saltram', 'colvic', 'navistar'],
     phrases=['wilson flyer', 'nord star', 'cougar cat', 'mitchell 22', 'sea line', 'orkney 520'],
     verbs=['rowed'],
-    typos=None)
+    typos=None,
+    add_similiar=False,
+    simple_expansion=True)
 
 
 GearAngling = NEBLists(
@@ -531,7 +566,9 @@ GearAngling = NEBLists(
     nouns_proper=['redgill'],
     phrases=['beach caster', 'beach casters', 'livebait', 'live bait', 'lrf', 'light rock fishing', 'feathering', 'red gill', 'red gills', 'savage gear'],
     verbs=["spinning", 'cast', 'plugging'],
-    typos=None)
+    typos=None,
+    add_similiar=False,
+    simple_expansion=True)
 
 
 
@@ -540,7 +577,10 @@ GearNoneAngling = NEBLists(
     nouns_common=['seine'],
     verbs=['netting'],
     phrases=['spear gun', 'long lines', 'long line', 'purse net', 'seine net'],
-    typos=None)
+    typos=None,
+    add_similiar=False,
+    simple_expansion=True
+    )
 
 
 MetrologicalAll = NEBLists(
@@ -550,7 +590,8 @@ MetrologicalAll = NEBLists(
                   "lbs", "ozs", "kg", "kgs", "meter", "meters", "metre", "metres", "cm", "cms", "centimeters",
                   "centimeter", "centimetres", "centimetre", "inch", "inches", "foot", "feet"],
     add_similiar=False,
-    typos=None
+    typos=None,
+    simple_expansion=True
     )
 
 
@@ -561,8 +602,9 @@ Session = NEBLists(
     nouns_common=['session', 'trip', "hour", "minute", "hour", 'morning', 'afternoon', 'noon', 'midday', 'flood', 'ebb'],
     phrases=["before low", "after low", "to low", "after high", "to high", "before high", "either side", 'upto low', 'upto high', 'the flood', 'the ebb', 'incoming tide',
              "around high", "around low", "tide out", "tide down", "tide in", "tide up", "packed up", "went home", "p.m.", "a.m.", 'pm', 'a.m', 'p.m', "hrs", "mins", "pound mark","way back"],
-    verbs=['angling', 'arrived', 'casting', 'catch', 'ended', 'fishing', 'hook', 'land', 'leave', 'leave', 'release', 'start', 'stop', 'trolling', 'unhook', 'blanked'],
-    typos=None
+    verbs=['angling', 'arrived', 'casting', 'catch', 'ended', 'fishing', 'hook', 'land', 'leave', 'leave', 'release', 'start', 'stop', 'trolling', 'unhook', 'blanked', 'ebb', 'flood'],
+    typos=None,
+    simple_expansion=True
     )
 
 
@@ -573,7 +615,9 @@ MackerelAsBait = NEBLists(
     nouns_common=['fillet', 'side', 'head', 'belly', 'chunk', 'sliver', 'bait', 'flapper', 'strip', 'cocktail', 'head'],
     phrases=['on mackerel', 'on mack', 'on mackeral', 'on mackie', 'on mackey', 'on macky', 'whole mackerel', 'whole mackie', 'whole macky', 'whole mackey', '0.5 mackerel', '0.5 mackey',
                 '0.5 macky', '0.5 mackie', 'loaded with mackerel', 'loaded with mackie', 'loaded with mack', 'loaded with macky'],
-    typos=None
+    typos=None,
+    add_similiar=False,
+    simple_expansion=True
     )
 
 
@@ -581,8 +625,11 @@ BaitSpecies = NEBLists(
     dump_name='BaitSpecies',
     nouns_common=['worm', 'black', 'squid', 'lug', 'sewie', 'prawn', 'crab', 'peeler', 'softie', 'softy', 'bluey',
                 'sandeel', 'rag', 'ragworm', 'clam', 'mussel', 'mussle', 'muscle', 'razorclam', 'runnydown'],
-    phrases=['maddies']
-                )
+    phrases=['maddies'],
+    typos=None,
+    add_similiar=False,
+    simple_expansion=True
+    )
 #endregion
 
 

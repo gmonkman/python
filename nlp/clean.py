@@ -54,7 +54,7 @@ def sep_num_from_words(s):
     return _re.sub(r"([0-9]+(\.[0-9]+)?)",r" \1 ", s).strip()
 
 
-def clean(s, tolower=False, skip_txt2nr=True):
+def clean(s, tolower=False, skip_txt2nr=True, replace_punctuation_with=''):
     '''str, set|None
     apply multiple clean funcs to s
     '''
@@ -63,8 +63,8 @@ def clean(s, tolower=False, skip_txt2nr=True):
     assert isinstance(s, str)
     s = non_breaking_space2space(s)
     s = strip_urls_str(s)
-    s = sep_num_from_words(s)
     s = to_ascii(s)
+    s = sep_num_from_words(s)
     s = s.replace("'", "")
     s = s.replace('"', '')
     s = s.replace('?', '.')
@@ -72,7 +72,8 @@ def clean(s, tolower=False, skip_txt2nr=True):
     s = s.replace(':', '.')
     s = s.replace(';', '.')
     s = clean_xml_reserved(s)
-    s = _relib.replace_all_punctuation_with_char(s, ' ')
+    if replace_punctuation_with:
+        s = _relib.replace_all_punctuation_with_char(s, replace_punctuation_with)
     s = s.replace('\n ', '\n')
     s = s.replace(' \n', '\n')
     s = newline_del_multi(s)

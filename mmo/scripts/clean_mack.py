@@ -31,26 +31,26 @@ def main():
     PP = PrintProgress(row_cnt, bar_length=20)
 
     #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned')).filter_by(txt_cleaned='').order_by(Ugc.ugcid).slice(start, stop).all()
-    rows = mmodb.SESSION.query(UgcHint).filter_by(hint='mackerel').order_by(Ugc.ugcid).all()
+    rows = mmodb.SESSION.query(UgcHint).filter_by(hint='mackerel').order_by(UgcHint.ugcid).all()
     for row in rows:
         assert isinstance(row, UgcHint)
         try:
-            if row.pos_list: continue
+            if not row.pos_list: continue
             inds = list(ast.literal_eval(row.pos_list))
             if not inds: continue
             is_bait = []
             for i in inds:
-                sql = "select substring(txt, %s - 25, 25 + 30) from ugc where ugcid=%s" % (row.ugcid, i) #i.e. 25 chars to left of mackerel, and 30 chars to right m of mackerel
+                sql = "select substring(txt_cleaned, %s - 15, 25 + 35) from ugc where ugcid=%s" % (i, row.ugcid) #i.e. 25 chars to left of mackerel, and 30 chars to right m of mackerel
                 ugc_row = mmodb.ENGINE.execute(_text(sql)).first()
-                if not ugc_rw: continue
-                txt = ugc_row[0][0]
+                if not ugc_row: continue
+                txt = ugc_row[0]
                 
                 if relib.SentenceHasTextMulti(txt, NE.MackerelAsBait.allwords):
                     is_bait.append([True])
                 elif relib.SentenceHasTextMulti(txt, NE.BaitSpecies.allwords):
-                    is_bait.append([True])
+                    is_bait += [True]
                 else:
-                    is_bait.append([False])
+                    is_bait += [False]
 
             row.is_bait = all(is_bait)
         except:
