@@ -776,6 +776,8 @@ def _bld_global_sets(force_dump):
     _bld(DateTimeMonth.get_flat_set())
     _bld(DateTimeSeason.get_flat_set())
     _bld(SpeciesAll.get_flat_set())
+    _bld(MackerelAsBait.allwords)
+    _bld(BaitSpecies.allwords)
 
     #now try the gazetteer
     try:

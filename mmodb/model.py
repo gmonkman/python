@@ -155,6 +155,7 @@ class Ugc(Base):
     processed_gaz = Column(BIT, nullable=False, server_default=text("((0))"))
     month_hint_nr = Column(Integer)
     source_platform = Column(String(20, 'Latin1_General_CI_AS'))
+    boat = Column(String(100, 'Latin1_General_CI_AS'))
 
 
 

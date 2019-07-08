@@ -20,7 +20,7 @@ def get_species_as_dict_all():
 
     Converts to lower() as loaded
     '''
-    rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_all')).fetchall()
+    rows = _mmodb.SESSION.execute(_text('select speciesid, species_aliasid from v_species_all where is_sa2012=1')).fetchall()
     return _read_rows(rows)
 
 

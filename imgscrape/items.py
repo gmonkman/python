@@ -47,6 +47,8 @@ class ForumUGC(_Item):
     txt = _Field()
     url = _Field()
     title = _Field()
+    boat = _Field()
+
 
 class AnglingAddictsMMOLdr(_loader.ItemLoader):
     '''item loader
@@ -195,6 +197,24 @@ class AnglersNetLdr(_loader.ItemLoader):
     who_out = _myprocs.ListToValue()
     title_in = _myprocs.Clean2Ascii()
     title_out = _myprocs.ListToValue()
+
+
+class CharterBoatUKLdr(_loader.ItemLoader):
+    '''item loader
+    '''
+    default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst
+    default_output_processor = _myprocs.ListToValue()
+
+    txt_in = _myprocs.HTML2Txt()
+    txt_out = _myprocs.ListToValue()
+
+    published_date_in = _processors.Identity()  #Cleaned in the scraper
+    published_date_out = _myprocs.ListToValue()
+
+    title_in = _myprocs.Clean2Ascii()
+    title_out = _myprocs.ListToValue()
+    
+
 
 
 class NESALdr(_loader.ItemLoader):
