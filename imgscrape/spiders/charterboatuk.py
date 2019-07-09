@@ -4,7 +4,7 @@
 '''spiders'''
 import scrapy
 from scrapy.spiders import Spider
-from scrapy.linkextractors import LinkExtractor
+
 import imgscrape.items as _items
 
 
@@ -51,15 +51,19 @@ class CharterBoatUKSpider(Spider):
             l = _items.CharterBoatUKLdr(item=_items.ForumUGC(), response=response)
             l.add_value('board', curboard)
             l.add_value('content_identifier', str(i))
-            l.add_value('source',  CharterBoatUKSpider.source)
+            l.add_value('source', CharterBoatUKSpider.source)
             l.add_value('url', response.url)
             l.add_value('title', '')
+            l.add_value('platform_hint', 'charter')
 
             pub_date, where = post.xpath('./a[@class="title"]/span/text()').extract() #'2016-04-12T14:40:52'
-            assert pub_date.count('/') in (1, 2), 'Expected pub_date to contain 1 or 2 forward slashes. pub_date=%s' % pubdate
+            assert pub_date.count('/') in (1, 2), 'Expected pub_date to contain 1 or 2 forward slashes. pub_date=%s' % pub_date
             if pub_date.count('/') == 1:
                 pub_date = '01/' + pub_date #31/12/2019
             l.add_value('published_date', pub_date)
+
+            charter_port = where.replace('(','').replace(')','').split(',')[0].lstrip().rstrip()
+            l.add_value('charter_port', charter_port)
 
             txt = post.xpath('.//div[contains(@class, "col-md-18")]/p/text()').extract()
             txt = ['\n'.join(txt)]
@@ -70,8 +74,10 @@ class CharterBoatUKSpider(Spider):
 
             boat = post.xpath('./a[@class="title"]/text()').extract()
             assert boat, 'boat was empty'
-            boat = boat[0].split(' on ')[1]
+            boat = ' '.join(boat)
+            boat = boat.split(' on ')[1].lstrip().rstrip()
             assert boat, 'boat was empty after split'
             l.add_value('boat', boat)
+            l.add_value('source_platform', '["charter"]')
             I = l.load_item()
             yield I

@@ -156,7 +156,7 @@ class Ugc(Base):
     month_hint_nr = Column(Integer)
     source_platform = Column(String(20, 'Latin1_General_CI_AS'))
     boat = Column(String(100, 'Latin1_General_CI_AS'))
-
+    charter_port = Column(String(100, 'Latin1_General_CI_AS'))
 
 
 t_v_err_species_alias_duplicate_accepted = Table(

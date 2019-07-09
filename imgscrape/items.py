@@ -28,6 +28,7 @@ class itmMPDetails(_Item):
 
 
 class Ports(_Item):
+    '''ports'''
     name = _Field()
     latitude = _Field()
     longitude = _Field()
@@ -48,7 +49,9 @@ class ForumUGC(_Item):
     url = _Field()
     title = _Field()
     boat = _Field()
-
+    platform_hint = _Field()
+    source_platform = _Field()
+    charter_port = _Field()
 
 class AnglingAddictsMMOLdr(_loader.ItemLoader):
     '''item loader

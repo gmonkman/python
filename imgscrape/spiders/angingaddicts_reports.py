@@ -108,7 +108,7 @@ class AnglingAddictsBoatYakReportsSpider(Spider):
     name = "anglingaddicts-boatyak"
     source = 'anglingaddicts.co.uk'
     allowed_domains = ['anglingaddicts.co.uk']
-    start_urls=['http://www.anglingaddicts.co.uk/forum/kayak-fishing-reports.html','http://www.anglingaddicts.co.uk/forum/boat-fishing-reports.html']
+    start_urls = ['http://www.anglingaddicts.co.uk/forum/kayak-fishing-reports.html', 'http://www.anglingaddicts.co.uk/forum/boat-fishing-reports.html']
     base_url = _ini.AnglingAddictsReportsIni.BASE_URL
 
     def parse(self, response):

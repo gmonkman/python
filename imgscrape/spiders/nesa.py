@@ -106,7 +106,7 @@ class NESASpiderShoreExtraAfloat(Spider):
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
 
         BOARDS = ['Shore Catch Reports NESA', 'Lure Fishing NESA', 'Lure Catch Reports NESA', 'Boat Catch Reports NESA', 'Boat Fishing NESA'] #I didnt spot the rest of the pages on shore fishing - see above
-        URLS = ['https://www.nesa.co.uk/forums/shore-catch-reports/', 'https://www.nesa.co.uk/forums/lure-fishing/', 'https://www.nesa.co.uk/forums/lure-catch-reports/',  'https://www.nesa.co.uk/forums/boat-catch-reports/', 'https://www.nesa.co.uk/forums/boat-fishing/']
+        URLS = ['https://www.nesa.co.uk/forums/shore-catch-reports/', 'https://www.nesa.co.uk/forums/lure-fishing/', 'https://www.nesa.co.uk/forums/lure-catch-reports/', 'https://www.nesa.co.uk/forums/boat-catch-reports/', 'https://www.nesa.co.uk/forums/boat-fishing/']
         PAGES = [506, 15, 6, 126, 282]
 
         assert len(BOARDS) == len(URLS) == len(PAGES), 'Setup list lengths DO NOT match'
