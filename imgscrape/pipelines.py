@@ -53,9 +53,12 @@ class UGCWriter():
         try:
             _mmodb.SESSION.commit()
         except Exception as e:
-            _warn(e)
-            _mmodb.SESSION.expunge_all()
-
+            try:
+                _warn(e)
+                _mmodb.SESSION.rollback()
+                _mmodb.SESSION.expunge_all()
+            except:
+                pass
         return item
 
 

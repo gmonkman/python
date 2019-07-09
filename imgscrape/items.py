@@ -211,7 +211,7 @@ class CharterBoatUKLdr(_loader.ItemLoader):
     txt_in = _myprocs.HTML2Txt()
     txt_out = _myprocs.ListToValue()
 
-    published_date_in = _processors.Identity()  #Cleaned in the scraper
+    published_date_in = _myprocs.PostDateAsISO(date_fmt='%d/%m/%Y') #'Sat Jan 12, 2019 06:54 PM' see http://strftime.org/, the processor removes ,  #Cleaned in the scraper
     published_date_out = _myprocs.ListToValue()
 
     title_in = _myprocs.Clean2Ascii()
