@@ -141,7 +141,9 @@ FORUM_IFCA = {'sea fishing and venue questions': ['north west'],
                 'kayak fishing': ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'],
                 'kayak': ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'],
                 'boat owners forum': ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'],
-                'south coast': ['southern', 'sussex'], 'whitby, holderness & the humber catch reports': ['north east', 'eastern']}
+                'south coast': ['southern', 'sussex'], 'whitby, holderness & the humber catch reports': ['north east', 'eastern'],
+                'latest fishing reports england': ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'] #charterboat uk
+                }
 
 IFCAS = {'cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'}
 
@@ -736,7 +738,6 @@ SpeciesUnspecifiedSkatesRays = NEBDicts(nouns_dict=d,
                                         dump_name='SpeciesUnspecifiedSkatesRays')
 #endregion
  
-
 
 
 
