@@ -33,7 +33,7 @@ class Gazetteer(Base):
 class GazetteerAfloat(Base):
     __tablename__ = 'gazetteer_afloat'
     __table_args__ = {'implicit_returning':False}
-    gazetteer_floatid = Column(BigInteger, primary_key=True)
+    gazetteer_afloatid = Column(BigInteger, primary_key=True)
     id = Column(BigInteger, nullable=False)
     source = Column(String(15, 'Latin1_General_CI_AS'), nullable=False)
     name = Column(Unicode(255))
