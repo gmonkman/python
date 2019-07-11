@@ -19,8 +19,7 @@ class AnglersNetSpider(Spider):
     start_urls = ['https://www.anglersnet.co.uk/forums/index.php?/forum/4-sea-fishing/'] #just a place holder to kick stuff off
     base_url = 'https://www.anglersnet.co.uk'
 
-    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter'}
-
+    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter', 'ITEM_PIPELINES': {'imgscrape.pipelines.UGCWriter': 10}}
     def parse(self, response):
         '''generate links to pages in a board        '''
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
@@ -95,8 +94,7 @@ class AnglersNetSpiderKayak(Spider):
     start_urls = ['https://www.anglersnet.co.uk/forums/index.php?/forum/26-kayak-fishing/'] #just a place holder to kick stuff off
     base_url = 'https://www.anglersnet.co.uk'
 
-    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter'}
-
+    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter', 'ITEM_PIPELINES': {'imgscrape.pipelines.UGCWriter': 10}}
     def parse(self, response):
         '''generate links to pages in a board        '''
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)

@@ -31,9 +31,6 @@
     <Compile Include="scripts\clean_mack.py" />
     <Compile Include="scripts\gaz_subst.py" />
     <Compile Include="scripts\clean_gaz.py" />
-    <Compile Include="scripts\lookup_places.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="scripts\make_gaz_afloat_wordcounts.py" />
     <Compile Include="scripts\write_ugc_gaz_afloat.py" />
     <Compile Include="scripts\write_ugc_gaz.py" />

@@ -6,20 +6,23 @@ import scrapy
 from scrapy.spiders import Spider
 
 import imgscrape.items as _items
+from gazetteerdb.model import Gazetteer as Gazetteer
+from mmodb.model import Cb
+import gazetteerdb
+from funclib import stringslib
 
 
 
-
-class CharterBoatUKSpider(Spider):
+class CharterBoatUKReportsSpider(Spider):
     '''scrape reports from charterboat UK reports
     '''
-    name = "charterboatuk"
+    name = "charterboatukreports"
     source = 'www.charterboats-uk.co.uk'
     allowed_domains = ['www.charterboats-uk.co.uk']
     start_urls = ['https://www.charterboats-uk.co.uk/fishingreports/?locationid=688'] #just a place holder to kick stuff off
     base_url = 'https://www.charterboats-uk.co.uk'
 
-    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter'}
+    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter', 'ITEM_PIPELINES': {'imgscrape.pipelines.UGCWriter': 10}}
 
     def parse(self, response):
         '''generate links to pages in a board        '''
@@ -51,7 +54,7 @@ class CharterBoatUKSpider(Spider):
             l = _items.CharterBoatUKLdr(item=_items.ForumUGC(), response=response)
             l.add_value('board', curboard)
             l.add_value('content_identifier', str(i))
-            l.add_value('source', CharterBoatUKSpider.source)
+            l.add_value('source', CharterBoatUKReportsSpider.source)
             l.add_value('url', response.url)
             l.add_value('title', '')
             l.add_value('platform_hint', 'charter')
@@ -81,3 +84,185 @@ class CharterBoatUKSpider(Spider):
             l.add_value('source_platform', '["charter"]')
             I = l.load_item()
             yield I
+
+
+
+class CharterBoatUKBoatDetailsSpider(Spider):
+    '''scrape specific boat details and add/edit to cb table
+    '''
+    name = "charterboatukdetails"
+    source = 'www.charterboats-uk.co.uk'
+    allowed_domains = ['www.charterboats-uk.co.uk']
+    start_urls = ['http://www.charterboats-uk.co.uk/england/'] #just a place holder to kick stuff off
+    base_url = 'https://www.charterboats-uk.co.uk'
+
+    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter', 'ITEM_PIPELINES': {'imgscrape.pipelines.CBWriter': 10}}
+
+    def parse(self, response):
+        '''generate links to pages in a board        '''
+        assert isinstance(response, scrapy.http.response.html.HtmlResponse)
+
+        BOARDS = ['charterboatuk boats']
+        URLS = ['http://www.charterboats-uk.co.uk/england/']
+        #page18 http://www.charterboats-uk.co.uk/england?page=18
+        PAGES = [18]
+        assert len(BOARDS) == len(URLS) == len(PAGES), 'Setup list lengths DO NOT match'
+
+        for i, root_url in enumerate(URLS):
+            curboard = BOARDS[i]
+            urls = [root_url] #first page is just the base post url
+            for x in range(2, PAGES[i] + 1):
+                urls.append('%s&page=%s' % (urls[0], x))  #&page=2
+
+            for url in urls:
+                yield scrapy.Request(url, callback=self.crawl_boats, dont_filter=True, meta={'curboard':curboard})
+
+
+
+    def crawl_boats(self, response):
+        '''each page with links to 10 boats details
+        '''
+        curboard = response.meta.get('curboard')
+        boats = response.selector.xpath('//div[@id="boat_list"]/table/tbody/tr')
+        for boat in boats:
+            url = boat.selector.xpath('./td[@class="first"]/a/@href').extract()
+            url = response.urljoin(url)[0]
+            boat_name = boat.xpath('./td[@class="first"]/a/text()').extract()[0]
+            location = boat.xpath('(.//div[@class="port_and_location"]/a)[1]/text()').extract()[0]
+            location = get_port_name(location)
+            yield scrapy.Request(url, callback=self.boat_details, dont_filter=True, meta={'curboard':curboard, 'boat_name':boat_name, 'location':location})
+
+
+    def boat_details(self, response):
+        '''crawl'''
+        curboard = response.meta.get('curboard')
+        location = response.meta.get('location')
+        boat_name = response.meta.get('boat_name')
+        assert isinstance(response, scrapy.http.response.html.HtmlResponse)
+
+        
+
+        l = _items.CBUKBoatLdr(item=_items.CBUKBoat(), response=response)
+        l.add_value('board', curboard)
+        l.add_value('harbour', location)
+        l.add_value('boat', boat_name)
+
+        distance = response.selector.xpath('(//div[@id="boat_additional_info"]/div)[2]/text()').extract()[0]
+        ns = stringslib.numbers_in_str(distance) #this will be nautical miles, a nautical mile of 1852 metres
+        if ns:
+            if ns[0] > 2: #3 is smallest
+                ns = ns[0]
+            else:
+                ns = None
+        else:
+            ns = None
+        l.add_value('distance', distance)
+
+        passengers = response.selector.xpath('(//div[@id="boat_additional_info"]/div)[1]/text()').extract()[0]
+        if 'passengers' in passengers:
+            ns = stringslib.numbers_in_str(passengers)
+            passengers = ns[0] if ns else None
+        else:
+            passengers = None
+        l.add_value('passengers', passengers)
+
+
+        I = l.load_item()
+        yield I
+
+
+
+def get_port_name(port):
+    '''try and get the port name'''
+    ext = ['harbour', 'marina']
+
+    G = gazetteerdb.SESSION.query(Gazetteer).filter_by(name=port).first()
+    assert isinstance
+    if not G:
+        for h in ext:
+            p = '%s %s' % (port.lstrip().rstrip(), h)
+            G = gazetteerdb.SESSION.query(Gazetteer).filter_by(name=p).first()
+            if G: continue
+    if G:
+        return G.name
+
+
+
+class CharterBoatUKBoatTextSpider(Spider):
+    '''scrape all the text in on the boat details tab to write to ugc
+    '''
+    name = "charterboatukboattext"
+    source = 'www.charterboats-uk.co.uk'
+    allowed_domains = ['www.charterboats-uk.co.uk']
+    start_urls = ['http://www.charterboats-uk.co.uk/england/'] #just a place holder to kick stuff off
+    base_url = 'https://www.charterboats-uk.co.uk'
+
+    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter', 'ITEM_PIPELINES': {'imgscrape.pipelines.UGCWriter': 10}}
+
+    def parse(self, response):
+        '''generate links to pages in a board        '''
+        assert isinstance(response, scrapy.http.response.html.HtmlResponse)
+
+        BOARDS = ['charterboatuk boats']
+        URLS = ['http://www.charterboats-uk.co.uk/england/']
+        #page18 http://www.charterboats-uk.co.uk/england?page=18
+        PAGES = [18]
+        assert len(BOARDS) == len(URLS) == len(PAGES), 'Setup list lengths DO NOT match'
+
+        for i, root_url in enumerate(URLS):
+            curboard = BOARDS[i]
+            urls = [root_url] #first page is just the base post url
+            for x in range(2, PAGES[i] + 1):
+                urls.append('%s&page=%s' % (urls[0], x))  #&page=2
+
+            for url in urls:
+                yield scrapy.Request(url, callback=self.crawl_boats, dont_filter=True, meta={'curboard':curboard})
+
+
+
+    def crawl_boats(self, response):
+        '''each page with links to 10 boats details
+        '''
+        curboard = response.meta.get('curboard')
+        boats = response.selector.xpath('//div[@id="boat_list"]/table/tbody/tr')
+        for boat in boats:
+            url = boat.selector.xpath('./td[@class="first"]/a/@href').extract()
+            url = response.urljoin(url)[0]
+            boat_name = boat.xpath('./td[@class="first"]/a/text()').extract()[0]
+            location = boat.xpath('(.//div[@class="port_and_location"]/a)[1]/text()').extract()[0]
+            location = get_port_name(location)
+            yield scrapy.Request(url, callback=self.boat_details, dont_filter=True, meta={'curboard':curboard, 'boat_name':boat_name, 'location':location})
+
+
+    def boat_details(self, response):
+        '''crawl'''
+        location = response.meta.get('location')
+        
+        l = _items.CharterBoatUKLdr(item=_items.ForumUGC(), response=response)
+
+        boat_name = response.meta.get('boat_name')
+        l.add_value('boat', boat_name)
+        
+        curboard = response.meta.get('curboard')
+        l.add_value('board', curboard)
+
+        l.add_value('source', CharterBoatUKBoatTextSpider.source)
+        l.add_value('url', response.url)
+        l.add_value('title', '')
+        l.add_value('platform_hint', 'charter')
+
+        pub_date = '01/01/1900'
+        l.add_value('published_date', pub_date)
+
+        l.add_value('charter_port', charter_port)
+
+        txt = response.selector.xpath('//section[@id="details-tab"]//text()').extract()
+        txt = ['\n'.join(txt)]
+        l.add_value('txt', txt)
+
+        author = 'charterboatuk'
+        l.add_value('who', author)
+        l.add_value('source_platform', '["charter"]')
+
+        I = l.load_item()
+        yield I

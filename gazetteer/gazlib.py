@@ -13,14 +13,11 @@ dbo.ukho_seacover_wgs84
 from warnings import warn as _warn
 
 import sqlalchemy
-from sqlalchemy import and_, or_
 from sqlalchemy import text as _text
 
-from gazetteerdb.model import Gazetteer
 
-import funclib.iolib as _iolib
+from gazetteerdb.model import Gazetteer
 import gazetteerdb as _gazetteerdb
-import gazetteerdb.model as _model
 import gazetteer.name_entities as _name_entities
 from funclib.numericslib import round_normal as _rnd
 import nlp.clean as _clean
@@ -52,15 +49,16 @@ def lookup(name, ifca='', as_str=False, include_any_ifca=False, include_name_in_
     if as_str:
         if rows.count() > 0:
             if include_name_in_output:
-                f = [(name, w.gazetteerid, w.name, _rnd(w.x,4), _rnd(w.y, 4), w.ifca).__repr__() for w in rows]
+                f = [','.join((name, str(w.gazetteerid), w.name, str(_rnd(w.x, 4)), str(_rnd(w.y, 4)), w.ifca)) for w in rows]
             else:
-                f = [(w.gazetteerid, w.name, _rnd(w.x,4), _rnd(w.y, 4), w.ifca).__repr__() for w in rows]
+                f = [','.join((str(w.gazetteerid), w.name, str(_rnd(w.x, 4)), str(_rnd(w.y, 4)), w.ifca)) for w in rows]
             return '\t'.join(f)
         if include_name_in_output:
-            return '%s NOT FOUND' % name
+            return '%s,NOT FOUND' % name
         return 'NOT FOUND'
 
     return rows
+
 
 
 
@@ -108,6 +106,6 @@ def add(source, name, x, y, feature_class='', feature_class1='', unique_only=Fal
 if __name__ == '__main__':
     #lookup('sutton', as_str=True)
     #lookup('chilling spit', 'eastern', as_str=True)
-    id = add('GGM', 'Hartley Skier', -1.4572, 55.0745, unique_only=True)
-    print(id)
+    #id_ = add('GGM', 'Hartley Skier', -1.4572, 55.0745, unique_only=True)
+    #print(id)
     pass

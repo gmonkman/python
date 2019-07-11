@@ -53,6 +53,31 @@ class ForumUGC(_Item):
     source_platform = _Field()
     charter_port = _Field()
 
+
+
+class CBUKBoat(_Item):
+    '''item for cbuk boat details page 
+    e.g. http://www.charterboats-uk.co.uk/england/
+    '''
+    boat = _Field()
+    harbour = _Field()
+    distance = _Field()
+    passengers = _Field()
+    
+
+class CBUKBoatLdr(_loader.ItemLoader):
+    '''item ldr'''
+    default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst
+    default_output_processor = _myprocs.ListToValue()
+
+    txt_in = _myprocs.HTML2Txt()
+    txt_out = _myprocs.ListToValue()
+
+    title_in = _myprocs.Clean2Ascii()
+    title_out = _myprocs.ListToValue()
+
+
+
 class AnglingAddictsMMOLdr(_loader.ItemLoader):
     '''item loader
     '''

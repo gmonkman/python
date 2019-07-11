@@ -31,7 +31,7 @@ class Cb(Base):
     skipper = Column(String(50, 'Latin1_General_CI_AS'))
     website = Column(String(50, 'Latin1_General_CI_AS'))
     boat_size = Column(String(50, 'Latin1_General_CI_AS'))
-    passengers = Column(String(50, 'Latin1_General_CI_AS'))
+    passengers = Column(Integer)
     type_of_fishing = Column(String(336, 'Latin1_General_CI_AS'))
     species_targetted = Column(String(902, 'Latin1_General_CI_AS'))
     hours_of_availability = Column(String(71, 'Latin1_General_CI_AS'))
@@ -49,6 +49,8 @@ class Cb(Base):
     code = Column(String(182, 'Latin1_General_CI_AS'))
     notes1 = Column(String(176, 'Latin1_General_CI_AS'))
     boat_noquote = Column(String(100, 'Latin1_General_CI_AS'))
+    distance = Column(Integer)
+
 
 
 class Ifca(Base):

@@ -16,6 +16,7 @@
     <CommandLineArguments>
     </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <Environment>kml_lookup.py "C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/backup/charter_mmo.kml" -a</Environment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -33,6 +34,7 @@
     <Compile Include="scripts\kml_lookup.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts\lookup_places.py" />
     <Compile Include="test\test_gazlib.py">
       <SubType>Code</SubType>
     </Compile>

@@ -17,6 +17,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "nlp", "..\nlp\nlp.pyproj", 
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "dblib", "..\dblib\dblib.pyproj", "{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "gazetteerdb", "..\gazetteerdb\gazetteerdb.pyproj", "{CC8BB4D5-4195-4E83-A789-CA3225428CCD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,8 @@ Global
 		{EC9DEDEE-3C18-4A0B-8E3F-F02317501261}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC8BB4D5-4195-4E83-A789-CA3225428CCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC8BB4D5-4195-4E83-A789-CA3225428CCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

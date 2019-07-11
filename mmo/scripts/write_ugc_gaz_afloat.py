@@ -24,10 +24,10 @@ import mmo.settings as settings
 from pysimplelog import Logger
 from funclib.iolib import files_delete2
 
-files_delete2(settings.PATHS.LOG_WRITE_UGC_GAZ)
+files_delete2(settings.PathsUGCGazAfloat.LOG_WRITE_UGC_GAZ)
 Log = Logger(name='train', logToStdout=False, logToFile=True, logFileMaxSize=1)
-Log.set_log_file(settings.PATHS.LOG_WRITE_UGC_GAZ)
-print('\nLogging to %s\n' % settings.PATHS.LOG_WRITE_UGC_GAZ)
+Log.set_log_file(settings.PathsUGCGazAfloat.LOG_WRITE_UGC_GAZ)
+print('\nLogging to %s\n' % settings.PathsUGCGazAfloat.LOG_WRITE_UGC_GAZ)
 
 class LogTo():
     '''log options'''
@@ -82,8 +82,8 @@ def _addit(d, ifca, name, source, gazid):
     d[ifca][name][source] += [gazid]
 
 
-GAZ = iolib.unpickle(settings.PATHS.GAZ_WORDS_BY_WORD_COUNT)
-assert isinstance(GAZ, dict), 'Expected dict for GAZ. Use make_gaz_wordcounts.py if %s does not exists.' % settings.PATHS.GAZ_WORDS_BY_WORD_COUNT
+GAZ = iolib.unpickle(settings.PathsUGCGazAfloat.GAZ_WORDS_BY_WORD_COUNT)
+assert isinstance(GAZ, dict), 'Expected dict for GAZ. Use make_gaz_wordcounts.py if %s does not exists.' % settings.PathsUGCGazAfloat.GAZ_WORDS_BY_WORD_COUNT
 
 
 #GAZIDS_BY_NAME
@@ -92,7 +92,7 @@ assert isinstance(GAZ, dict), 'Expected dict for GAZ. Use make_gaz_wordcounts.py
 #           {'os_open_name': [423,876...], .... }
 buildit = True
 try:
-    GAZIDS_BY_NAME = iolib.unpickle(settings.PATHS.GAZETTEERIDS_BY_NAME)
+    GAZIDS_BY_NAME = iolib.unpickle(settings.PathsUGCGazAfloat.GAZETTEERIDS_BY_NAME)
     if GAZIDS_BY_NAME:
         print('Loaded gazetterid-name dict from filesystem')
         buildit = False
@@ -119,7 +119,7 @@ if buildit:
                 continue
         _addit(GAZIDS_BY_NAME, r[0], r[1], r[2], r[3])
     assert GAZIDS_BY_NAME, 'gazetterid-name dict was empty. Do you need to run clean_gaz.py?'
-    iolib.pickle(GAZIDS_BY_NAME, settings.PATHS.GAZETTEERIDS_BY_NAME)
+    iolib.pickle(GAZIDS_BY_NAME, settings.PathsUGCGazAfloat.GAZETTEERIDS_BY_NAME)
     print('Built and saved gazetterid-name dict. Skipped %s of %s.' % (skipped, len(rs)))
 
 

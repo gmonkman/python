@@ -71,7 +71,7 @@ class HintTypes():
     month_hint = 'month_hint'
     season_hint = 'season_hint'
     trip = 'trip' #does it look like a trip
-
+    ground = 'ground'
 
 
 class Sources():
@@ -178,7 +178,30 @@ def make_trip_hints(title, post_txt):
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
 
 
+def make_ground_hints(title, post_txt):
+    '''ground type - really for charter reports'''
+    hint_types = []; poss = []; source_texts = []; hints = []; speciesids = []; pos_lists = []; ns = []; sources = []; ugc_hint = {}
+    ugc_hint = {'ugc_hint':None}
 
+    #args after Sources.title are BYREF
+    _vc(vote_cnts, 'wreck', _addit(ne.Afloat.indices(title), 'wreck', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)) 
+    _vc(vote_cnts, 'ground', _addit(ne.AfloatCharterBoat.indices(title), 'ground', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'banks', _addit(ne.AfloatKayak.indices(title), 'banks', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'rough', _addit(ne.AfloatPrivate.indices(title), 'rough', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'shark', _addit(ne.AfloatPrivate.indices(title), 'shark', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'estuary', _addit(ne.AfloatPrivate.indices(title), 'estuary', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+
+    _vc(vote_cnts, 'wreck', _addit(ne.Afloat.indices(post_txt), 'wreck', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'ground', _addit(ne.AfloatCharterBoat.indices(post_txt), 'ground', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'banks', _addit(ne.AfloatKayak.indices(post_txt), 'banks', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'rough', _addit(ne.AfloatPrivate.indices(post_txt), 'rough', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'shark', _addit(ne.AfloatPrivate.indices(post_txt), 'shark', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'estuary', _addit(ne.AfloatPrivate.indices(post_txt), 'estuary', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    assert isinstance(vote_cnts, dict)
+    hint_types = [HintTypes.platform] * len(hints)
+    votes = sum([x for x in vote_cnts.values()])
+
+    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
 
 
 def make_platform_hints(title, post_txt):
@@ -503,6 +526,13 @@ def main():
                     else:
                         row.catch_hint = was_catch
                     write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+
+
+                #TRIP HINTS
+                if UgcHintSettings.force_run_ground_hints  or (not row.processed and settings.UgcHintSettings.force_run_ground_hints):
+                    hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_ground_hints(title, txt_cleaned)
+                    write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+
                 #endregion
 
 
@@ -540,6 +570,8 @@ def main():
         window_idx += 1
 
 
+
+
 def delete_hints(ugcid):
     '''delete hints using settngs'''
     if settings.UgcHintSettings.force_species_catch_hints:
@@ -562,6 +594,9 @@ def delete_hints(ugcid):
 
     if settings.UgcHintSettings.force_run_species_hints:
         _delete_hint(ugcid, HintTypes.species)
+
+    if settings.UgcHintSettings.force_run_ground_hints:
+        _delete_hint(ugcid, HintTypes.ground)
 
 
 

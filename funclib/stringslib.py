@@ -363,3 +363,21 @@ def index_all(s, substr, overlap=False):
         return [m.start() for m in _re.finditer('(?=%s)' % substr, s)]
 
     return [m.start() for m in _re.finditer(substr, s)]
+
+
+def numbers_in_str(s, type_=float):
+    '''(str) -> list
+
+    Return list of numbers in s
+    s: the string
+    type_: type to convert number to (e.g. float)
+    
+    Example:
+    >>>numbers_in_str('asda 1.23 ssad', type_=float)
+    1.23
+
+    >>>numbers_in_str('asda 1.23 ssad', type_=int)
+    1
+    '''
+    if not s: return []
+    return [type_(s) for s in str.split() if s.isdigit()]

@@ -14,6 +14,7 @@ import funclib.stringslib as _stringslib
 
 from funclib.baselib import list_flatten as _flat
 import gazetteerdb.gaz as _gaz
+
 from mmodb import species as _species
 from nlp import baselib as _nlpbase
 from nlp import typo as _typo
@@ -137,12 +138,13 @@ FORUM_IFCA = {'sea fishing and venue questions': ['north west'],
                 'boat fishing reports': ['north east', 'north west', 'northumberland'],
                 'boat talk': ['cornwall', 'devon and severn', 'southern'],
                 'general boat fishing talk': ['cornwall', 'devon and severn', 'southern'],
-                'fishing kayaks': ['cornwall', 'devon and severn', 'southern'],
+                'fishing kayaks': ['cornwall', 'devon and severn', 'southern', ''],
                 'kayak fishing': ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'],
                 'kayak': ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'],
                 'boat owners forum': ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'],
                 'south coast': ['southern', 'sussex'], 'whitby, holderness & the humber catch reports': ['north east', 'eastern'],
-                'latest fishing reports england': ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'] #charterboat uk
+                'latest fishing reports england': ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'], #charterboat uk
+                'charterboatuk boats': ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'] #charterboat uk
                 }
 
 IFCAS = {'cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex'}
@@ -649,6 +651,16 @@ BaitSpecies = NEBLists(
 #These are all entities which require a lookup under a key
 #for examples, we need to know that codling and coddo
 #are both cod
+
+AfloatAnglingMethod = NEBDicts(
+    nouns_dict={'wreck':['wreck', 'hulk', 'wrecking'],
+                'ground':['anchor', 'ground', 'general', 'anchored', 'inshore'],
+                'banks':['banks', 'sand bank', 'sandbank', 'bank'],
+                'rough':['reef', 'pinnacle', 'patchy', 'rough', 'broken', 'hard ground'],
+                'shark':['shark'],
+                'estuary':['estuary', 'mudflat', 'mud flats', 'esturine', 'river']},  #river e.g. mersey
+    dump_name='AfloatAnglingMethod'
+    ,typos=False)
 
 
 DateTimeDayOfWeek = NEBDicts(

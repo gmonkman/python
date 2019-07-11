@@ -34,6 +34,10 @@ def get_all_as_set():
     sql = 'select distinct(name_cleaned) from gazetteer'
     rows = _gazetteerdb.SESSION.execute(_text(sql)).fetchall()
     out = {row[0] for row in rows}
+
+    sql = 'select distinct(name_cleaned) from gazetteer_afloat'
+    rows = _gazetteerdb.SESSION.execute(_text(sql)).fetchall()
+    out |= {row[0] for row in rows}
     return out
 
 

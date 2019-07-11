@@ -17,6 +17,7 @@ class AnglingAddictsReportsSpider(Spider):
     allowed_domains = ['anglingaddicts.co.uk']
     start_urls = _ini.AnglingAddictsReportsIni.START_URLS
     base_url = _ini.AnglingAddictsReportsIni.BASE_URL
+    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter', 'ITEM_PIPELINES': {'imgscrape.pipelines.UGCWriter': 10}}
 
     def parse(self, response):
         '''generate links to pages in a board
@@ -110,6 +111,7 @@ class AnglingAddictsBoatYakReportsSpider(Spider):
     allowed_domains = ['anglingaddicts.co.uk']
     start_urls = ['http://www.anglingaddicts.co.uk/forum/kayak-fishing-reports.html', 'http://www.anglingaddicts.co.uk/forum/boat-fishing-reports.html']
     base_url = _ini.AnglingAddictsReportsIni.BASE_URL
+    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter', 'ITEM_PIPELINES': {'imgscrape.pipelines.UGCWriter': 10}}
 
     def parse(self, response):
         '''generate links to pages in a board
