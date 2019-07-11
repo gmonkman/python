@@ -181,15 +181,18 @@ def get_port_name(port_):
     if port == 'harwich harbour': return 'felixstowe'
     if port == 'southend-on-sea': return 'Two Tree Island Slipway'
 
-    G = gazetteerdb.SESSION.query(Gazetteer).filter_by(name=port).first()
     assert isinstance
-    if not G:
-        for h in ext:
-            p = '%s %s' % (port.lstrip().rstrip(), h)
-            G = gazetteerdb.SESSION.query(Gazetteer).filter_by(name=p).first()
-            if G: continue
+    for h in ext:
+        p = '%s %s' % (port.lstrip().rstrip(), h)
+        G = gazetteerdb.SESSION.query(Gazetteer).filter_by(name=p).first()
+        if G: return G
+    
     if G:
         return G.name
+
+    G = gazetteerdb.SESSION.query(Gazetteer).filter_by(name=port).first()
+    if G: return G.name
+
     return port_
 
 
@@ -209,7 +212,7 @@ class CharterBoatUKBoatTextSpider(Spider):
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
 
         BOARDS = ['charterboatuk boats']
-        URLS = ['http://www.charterboats-uk.co.uk/england/']
+        URLS = ['http://www.charterboats-uk.co.uk/england']
         #page18 http://www.charterboats-uk.co.uk/england?page=18
         PAGES = [18]
         assert len(BOARDS) == len(URLS) == len(PAGES), 'Setup list lengths DO NOT match'
@@ -231,7 +234,7 @@ class CharterBoatUKBoatTextSpider(Spider):
         curboard = response.meta.get('curboard')
         boats = response.selector.xpath('//div[@id="boat_list"]/table/tbody/tr')
         for boat in boats:
-            url = boat.selector.xpath('./td[@class="first"]/a/@href').extract()
+            url = boat.xpath('./td[@class="first"]/a/@href').extract()
             url = response.urljoin(url[0])
             boat_name = boat.xpath('./td[@class="first"]/a/text()').extract()[0]
             location = boat.xpath('(.//div[@class="port_and_location"]/a)[1]/text()').extract()[0]
@@ -263,6 +266,7 @@ class CharterBoatUKBoatTextSpider(Spider):
 
         txt = response.selector.xpath('//section[@id="details-tab"]//text()').extract()
         txt = ['\n'.join(txt)]
+
         l.add_value('txt', txt)
 
         author = 'charterboatuk'
