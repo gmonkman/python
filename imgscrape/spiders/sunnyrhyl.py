@@ -91,4 +91,3 @@ class SunnyRhylSpider(Spider):
         img = PostedImages()
         img['image_urls'] = response.xpath('//div[@class="postbody"]//img/@src').extract()
         return img
-

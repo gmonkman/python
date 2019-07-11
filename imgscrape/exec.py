@@ -22,6 +22,7 @@ from scrapy.utils.project import get_project_settings
 #import imgscrape.spiders.solentfishingforums as solentfishingforums
 import imgscrape.spiders.charterboatuk as cbuk
 
+
 process = CrawlerProcess(get_project_settings())
 
 #c = sai.SeaAnglingIrelandArchives()
@@ -37,8 +38,8 @@ process = CrawlerProcess(get_project_settings())
 #c = anglersnet.AnglersNetSpider()
 #c = solentfishingforums.SolentFishingForumsSpider()
 #c = wirralseafishing.WirralSeaFishingVenuesSpider()
-c = cbuk.CharterBoatUKReportsSpider()
-
+#c = cbuk.CharterBoatUKReportsSpider()
+c = cbuk.CharterBoatUKBoatDetailsSpider()
 
 process.crawl(c, chkdup=True)
 process.start()

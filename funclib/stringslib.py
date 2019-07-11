@@ -380,4 +380,4 @@ def numbers_in_str(s, type_=float):
     1
     '''
     if not s: return []
-    return [type_(s) for s in str.split() if s.isdigit()]
+    return [type_(ss) for ss in s.split() if ss.isdigit()]

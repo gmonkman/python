@@ -64,6 +64,7 @@ class UGCWriter():
 
 
 class CBWriter():
+    '''cbwriter'''
     def open_spider(self, spider):
         '''open'''
         pass
@@ -82,21 +83,15 @@ class CBWriter():
             else:
                 _warn('UGCWriter Warning: URL was empty')
 
-        if not item.get('txt'):
-            raise _DropItem('CBWriter Warning: No body text for url "%s"' % item['url'][0])
-
-        if len(item['txt']) < _settings.MIN_BODY_LENGTH:
-            raise _DropItem('CBWriter Pipeline: Dropped item, body length < %s' % _settings.MIN_BODY_LENGTH)
-
-        assert isinstance(item, _items.CbUKBoat)
-        CB = _mmodb.SESSION.query(_Cb).filter_by(boat=item.boat).first()
+        assert isinstance(item, _items.CBUKBoat)
+        CB = _mmodb.SESSION.query(_Cb).filter_by(boat=item['boat']).first()
         if CB:
-            CB.passengers = item.passenger
-            CB.distance = item.distance
-            CB.harbour = item.harbour
+            CB.passengers = item['passengers'] if isinstance(item.get('passengers'), (int,float)) else CB.passengers
+            CB.distance = item['distance'] if isinstance(item.get('distance'), (int,float)) else CB.distance
+            CB.harbour = item['harbour']
         else:
             CB = _Cb(**dict(item))
-            _mmodb.SESSION.add(UGC)
+            _mmodb.SESSION.add(CB)
 
         try:
             _mmodb.SESSION.commit()

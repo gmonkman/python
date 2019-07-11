@@ -6,8 +6,7 @@ import scrapy
 from scrapy.spiders import Spider
 
 import imgscrape.items as _items
-from gazetteerdb.model import Gazetteer as Gazetteer
-from mmodb.model import Cb
+from gazetteerdb.model import Gazetteer
 import gazetteerdb
 from funclib import stringslib
 
@@ -65,7 +64,7 @@ class CharterBoatUKReportsSpider(Spider):
                 pub_date = '01/' + pub_date #31/12/2019
             l.add_value('published_date', pub_date)
 
-            charter_port = where.replace('(','').replace(')','').split(',')[0].lstrip().rstrip()
+            charter_port = where.replace('(', '').replace(')', '').split(',')[0].lstrip().rstrip()
             l.add_value('charter_port', charter_port)
 
             txt = post.xpath('.//div[contains(@class, "col-md-18")]/p/text()').extract()
@@ -88,7 +87,8 @@ class CharterBoatUKReportsSpider(Spider):
 
 
 class CharterBoatUKBoatDetailsSpider(Spider):
-    '''scrape specific boat details and add/edit to cb table
+    '''scrape specific boat details and add/edit to cb table.
+    THIS USES A DIFFERENT PIPELINE. IT DOESNT GO INTO ugc
     '''
     name = "charterboatukdetails"
     source = 'www.charterboats-uk.co.uk'
@@ -103,7 +103,7 @@ class CharterBoatUKBoatDetailsSpider(Spider):
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
 
         BOARDS = ['charterboatuk boats']
-        URLS = ['http://www.charterboats-uk.co.uk/england/']
+        URLS = ['http://www.charterboats-uk.co.uk/england']
         #page18 http://www.charterboats-uk.co.uk/england?page=18
         PAGES = [18]
         assert len(BOARDS) == len(URLS) == len(PAGES), 'Setup list lengths DO NOT match'
@@ -112,7 +112,7 @@ class CharterBoatUKBoatDetailsSpider(Spider):
             curboard = BOARDS[i]
             urls = [root_url] #first page is just the base post url
             for x in range(2, PAGES[i] + 1):
-                urls.append('%s&page=%s' % (urls[0], x))  #&page=2
+                urls.append('%s?page=%s' % (urls[0], x))  #&page=2
 
             for url in urls:
                 yield scrapy.Request(url, callback=self.crawl_boats, dont_filter=True, meta={'curboard':curboard})
@@ -125,8 +125,8 @@ class CharterBoatUKBoatDetailsSpider(Spider):
         curboard = response.meta.get('curboard')
         boats = response.selector.xpath('//div[@id="boat_list"]/table/tbody/tr')
         for boat in boats:
-            url = boat.selector.xpath('./td[@class="first"]/a/@href').extract()
-            url = response.urljoin(url)[0]
+            url = boat.xpath('./td[@class="first"]/a/@href').extract()
+            url = response.urljoin(url[0])
             boat_name = boat.xpath('./td[@class="first"]/a/text()').extract()[0]
             location = boat.xpath('(.//div[@class="port_and_location"]/a)[1]/text()').extract()[0]
             location = get_port_name(location)
@@ -137,18 +137,17 @@ class CharterBoatUKBoatDetailsSpider(Spider):
         '''crawl'''
         curboard = response.meta.get('curboard')
         location = response.meta.get('location')
+        location = get_port_name(location)
         boat_name = response.meta.get('boat_name')
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
-
         
-
         l = _items.CBUKBoatLdr(item=_items.CBUKBoat(), response=response)
-        l.add_value('board', curboard)
+
         l.add_value('harbour', location)
         l.add_value('boat', boat_name)
 
         distance = response.selector.xpath('(//div[@id="boat_additional_info"]/div)[2]/text()').extract()[0]
-        ns = stringslib.numbers_in_str(distance) #this will be nautical miles, a nautical mile of 1852 metres
+        ns = stringslib.numbers_in_str(distance, int) #this will be nautical miles, a nautical mile of 1852 metres
         if ns:
             if ns[0] > 2: #3 is smallest
                 ns = ns[0]
@@ -156,11 +155,11 @@ class CharterBoatUKBoatDetailsSpider(Spider):
                 ns = None
         else:
             ns = None
-        l.add_value('distance', distance)
+        l.add_value('distance', ns)
 
         passengers = response.selector.xpath('(//div[@id="boat_additional_info"]/div)[1]/text()').extract()[0]
         if 'passengers' in passengers:
-            ns = stringslib.numbers_in_str(passengers)
+            ns = stringslib.numbers_in_str(passengers, int)
             passengers = ns[0] if ns else None
         else:
             passengers = None
@@ -172,9 +171,15 @@ class CharterBoatUKBoatDetailsSpider(Spider):
 
 
 
-def get_port_name(port):
+def get_port_name(port_):
     '''try and get the port name'''
-    ext = ['harbour', 'marina']
+    ext = ['harbour', 'marina', 'moorings']
+    port = port_.lower()
+    
+    if port == 'bournemouth': return 'Poole Harbour'
+    if port == 'eastbourne': return 'sovereign harbour'
+    if port == 'harwich harbour': return 'felixstowe'
+    if port == 'southend-on-sea': return 'Two Tree Island Slipway'
 
     G = gazetteerdb.SESSION.query(Gazetteer).filter_by(name=port).first()
     assert isinstance
@@ -185,7 +190,7 @@ def get_port_name(port):
             if G: continue
     if G:
         return G.name
-
+    return port_
 
 
 class CharterBoatUKBoatTextSpider(Spider):
@@ -213,7 +218,7 @@ class CharterBoatUKBoatTextSpider(Spider):
             curboard = BOARDS[i]
             urls = [root_url] #first page is just the base post url
             for x in range(2, PAGES[i] + 1):
-                urls.append('%s&page=%s' % (urls[0], x))  #&page=2
+                urls.append('%s?page=%s' % (urls[0], x))  #&page=2
 
             for url in urls:
                 yield scrapy.Request(url, callback=self.crawl_boats, dont_filter=True, meta={'curboard':curboard})
@@ -227,7 +232,7 @@ class CharterBoatUKBoatTextSpider(Spider):
         boats = response.selector.xpath('//div[@id="boat_list"]/table/tbody/tr')
         for boat in boats:
             url = boat.selector.xpath('./td[@class="first"]/a/@href').extract()
-            url = response.urljoin(url)[0]
+            url = response.urljoin(url[0])
             boat_name = boat.xpath('./td[@class="first"]/a/text()').extract()[0]
             location = boat.xpath('(.//div[@class="port_and_location"]/a)[1]/text()').extract()[0]
             location = get_port_name(location)
@@ -254,7 +259,7 @@ class CharterBoatUKBoatTextSpider(Spider):
         pub_date = '01/01/1900'
         l.add_value('published_date', pub_date)
 
-        l.add_value('charter_port', charter_port)
+        l.add_value('charter_port', location)
 
         txt = response.selector.xpath('//section[@id="details-tab"]//text()').extract()
         txt = ['\n'.join(txt)]
