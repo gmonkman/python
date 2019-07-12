@@ -145,8 +145,10 @@ class CharterBoatUKBoatDetailsSpider(Spider):
 
         l.add_value('harbour', location)
         l.add_value('boat', boat_name)
-
-        distance = response.selector.xpath('(//div[@id="boat_additional_info"]/div)[2]/text()').extract()[0]
+        try:
+            distance = response.selector.xpath('(//div[@id="boat_additional_info"]/div)[2]/text()').extract()[0]
+        except:
+            distance = ''
         ns = stringslib.numbers_in_str(distance, int) #this will be nautical miles, a nautical mile of 1852 metres
         if ns:
             if ns[0] > 2: #3 is smallest
@@ -157,7 +159,10 @@ class CharterBoatUKBoatDetailsSpider(Spider):
             ns = None
         l.add_value('distance', ns)
 
-        passengers = response.selector.xpath('(//div[@id="boat_additional_info"]/div)[1]/text()').extract()[0]
+        try:
+            passengers = response.selector.xpath('(//div[@id="boat_additional_info"]/div)[1]/text()').extract()[0]
+        except:
+            passengers = ''
         if 'passengers' in passengers:
             ns = stringslib.numbers_in_str(passengers, int)
             passengers = ns[0] if ns else None
@@ -175,7 +180,7 @@ def get_port_name(port_):
     '''try and get the port name'''
     ext = ['harbour', 'marina', 'moorings']
     port = port_.lower()
-    
+    port = port.lstrip().rstrip()
     if port == 'bournemouth': return 'Poole Harbour'
     if port == 'eastbourne': return 'sovereign harbour'
     if port == 'harwich harbour': return 'felixstowe'
@@ -183,12 +188,9 @@ def get_port_name(port_):
 
     assert isinstance
     for h in ext:
-        p = '%s %s' % (port.lstrip().rstrip(), h)
+        p = '%s %s' % (port, h)
         G = gazetteerdb.SESSION.query(Gazetteer).filter_by(name=p).first()
         if G: return G.name
-    
-    if G:
-        return G.name
 
     G = gazetteerdb.SESSION.query(Gazetteer).filter_by(name=port).first()
     if G: return G.name
