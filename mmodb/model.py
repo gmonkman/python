@@ -50,7 +50,8 @@ class Cb(Base):
     notes1 = Column(String(176, 'Latin1_General_CI_AS'))
     boat_noquote = Column(String(100, 'Latin1_General_CI_AS'))
     distance = Column(Integer)
-
+    date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
+    date_modified = Column(DateTime)
 
 
 class Ifca(Base):

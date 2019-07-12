@@ -185,7 +185,7 @@ def get_port_name(port_):
     for h in ext:
         p = '%s %s' % (port.lstrip().rstrip(), h)
         G = gazetteerdb.SESSION.query(Gazetteer).filter_by(name=p).first()
-        if G: return G
+        if G: return G.name
     
     if G:
         return G.name
