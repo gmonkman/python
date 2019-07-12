@@ -440,6 +440,7 @@ def main():
     window_idx = 0
     if WINDOW_SIZE > row_cnt: WINDOW_SIZE = row_cnt
     skipped = 0
+    nr_cleaned = 0
     while True:
         start, stop = WINDOW_SIZE * window_idx + offset, WINDOW_SIZE * (window_idx + 1) + offset
         #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
@@ -462,7 +463,9 @@ def main():
                         if not sp.intersection(set(args.platforms)): continue
 
                 txt_cleaned = row.txt_cleaned; title = nlpclean.clean(row.title)
-                if not txt_cleaned and not settings.UgcHintSettings.TEST_MODE: continue
+                if not txt_cleaned and not settings.UgcHintSettings.TEST_MODE:
+                    nr_cleaned += 1
+                    continue
                 
                 #ignore processed if we want to update a single hint_type
                 Sts = settings.UgcHintSettings
@@ -567,7 +570,11 @@ def main():
             except:
                 pass
             
-        if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
+        if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max:
+            msg = 'Skipped (txt_cleaned=""): %s\n' \
+                    'Skipped (already processed): %s'
+            print(s)
+            break
         window_idx += 1
 
 

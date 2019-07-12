@@ -379,7 +379,7 @@ class UgcHint(Base):
     pos_list = Column(String(collation='Latin1_General_CI_AS'))
     n = Column(Integer)
     source = Column(String(50, 'Latin1_General_CI_AS'))
-    is_bait = Column(BIT)
+    is_bait = Column(BIT, server_default=text("((0))"))
 
     species = relationship('Species')
     ugc = relationship('Ugc')
