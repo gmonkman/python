@@ -3,8 +3,6 @@
 make dictionary arrays of place names
 with wordcounts
 '''
-raise NotImplementedError
-
 import argparse
 import ast
 from sqlalchemy.orm import load_only
@@ -129,7 +127,7 @@ def main():
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
     f = lambda s: [str(item) for item in s.split(',')]
     cmdline.add_argument('-s', '--slice', help='Record slice, eg -s 0,1000', type=f)
-    cmdline.add_argument('-p', '--platforms', help="Process platforms which match this comma seperated list. Platforms for each forum board are in ugc.source_platform. platforms in ['private','shore','charter','kayak','all']", type=f)
+    cmdline.add_argument('-p', '--platforms', help="Process platforms which match this comma seperated list. Platforms for each forum board are in ugc.source_platform. platforms in ['private','shore','charter','kayak','all']", type=f, default='all')
     args = cmdline.parse_args()
 
     OFFSET = int(args.slice[0])

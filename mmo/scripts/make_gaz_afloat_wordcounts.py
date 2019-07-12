@@ -121,6 +121,8 @@ def main():
         
         for row in rows:
             try:
+                #if row.n is None, then you need to run clean_gaz_afloat.py
+                assert row.n, 'No word counts in view. Run clean_gaz_afloat.py'
                 if row.n > MAX_WORDS:
                     skipped += 1
                     continue
