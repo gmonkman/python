@@ -182,21 +182,21 @@ def make_ground_hints(title, post_txt):
     '''ground type - really for charter reports'''
     hint_types = []; poss = []; source_texts = []; hints = []; speciesids = []; pos_lists = []; ns = []; sources = []; ugc_hint = {}
     ugc_hint = {'ugc_hint':None}
-
+    vote_cnts = {}
     #args after Sources.title are BYREF
-    _vc(vote_cnts, 'wreck', _addit(ne.Afloat.indices(title), 'wreck', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)) 
-    _vc(vote_cnts, 'ground', _addit(ne.AfloatCharterBoat.indices(title), 'ground', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
-    _vc(vote_cnts, 'banks', _addit(ne.AfloatKayak.indices(title), 'banks', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
-    _vc(vote_cnts, 'rough', _addit(ne.AfloatPrivate.indices(title), 'rough', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
-    _vc(vote_cnts, 'shark', _addit(ne.AfloatPrivate.indices(title), 'shark', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
-    _vc(vote_cnts, 'estuary', _addit(ne.AfloatPrivate.indices(title), 'estuary', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'wreck', _addit(ne.AfloatAnglingMethod.indices(title, 'wreck'), 'wreck', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids)) 
+    _vc(vote_cnts, 'ground', _addit(ne.AfloatAnglingMethod.indices(title, 'ground'), 'ground', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'banks', _addit(ne.AfloatAnglingMethod.indices(title, 'banks'), 'banks', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'rough', _addit(ne.AfloatAnglingMethod.indices(title, 'rough'), 'rough', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'shark', _addit(ne.AfloatAnglingMethod.indices(title, 'shark'), 'shark', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'estuary', _addit(ne.AfloatAnglingMethod.indices(title, 'estuary'), 'estuary', Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
 
-    _vc(vote_cnts, 'wreck', _addit(ne.Afloat.indices(post_txt), 'wreck', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
-    _vc(vote_cnts, 'ground', _addit(ne.AfloatCharterBoat.indices(post_txt), 'ground', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
-    _vc(vote_cnts, 'banks', _addit(ne.AfloatKayak.indices(post_txt), 'banks', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
-    _vc(vote_cnts, 'rough', _addit(ne.AfloatPrivate.indices(post_txt), 'rough', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
-    _vc(vote_cnts, 'shark', _addit(ne.AfloatPrivate.indices(post_txt), 'shark', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
-    _vc(vote_cnts, 'estuary', _addit(ne.AfloatPrivate.indices(post_txt), 'estuary', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'wreck', _addit(ne.AfloatAnglingMethod.indices(post_txt, 'wreck'), 'wreck', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'ground', _addit(ne.AfloatAnglingMethod.indices(post_txt, 'ground'), 'ground', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'banks', _addit(ne.AfloatAnglingMethod.indices(post_txt, 'banks'), 'banks', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'rough', _addit(ne.AfloatAnglingMethod.indices(post_txt, 'rough'), 'rough', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'shark', _addit(ne.AfloatAnglingMethod.indices(post_txt, 'shark'), 'shark', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    _vc(vote_cnts, 'estuary', _addit(ne.AfloatAnglingMethod.indices(post_txt, 'estuary'), 'estuary', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
     assert isinstance(vote_cnts, dict)
     hint_types = [HintTypes.platform] * len(hints)
     votes = sum([x for x in vote_cnts.values()])
@@ -420,7 +420,7 @@ def main():
     cmdline = argparse.ArgumentParser(description=__doc__) #use the module __doc__
     f = lambda s: [str(item) for item in s.split(',')]
     cmdline.add_argument('-s', '--slice', help='Record slice, eg -s 0,1000', type=f)
-    cmdline.add_argument('-p', '--platforms', help="Process platforms which match this comma seperated list. Platforms for each forum board are in ugc.source_platform. platforms in ['private','shore','charter','kayak','all'].\ne.g. -p charter,shore", type=f)
+    cmdline.add_argument('-p', '--platforms', help="Process platforms which match this comma seperated list. Platforms for each forum board are in ugc.source_platform. platforms in ['private','shore','charter','kayak','all'].\ne.g. -p charter,shore\nDefaults to 'all'", type=f, default='all')
     
     args = cmdline.parse_args()
 
@@ -448,6 +448,14 @@ def main():
         for row in rows:
             assert isinstance(row, Ugc)
             try:
+                skip = True
+
+                if skip and row.processed and not settings.UgcHintSettings.TEST_MODE:
+                    skipped += 1
+                    if skipped % 1000 == 0 and skipped > 0:
+                        print('%s skipped: flagged as processed' % skipped)
+                    continue
+
                 if row.source_platform and args.platforms:
                     if not 'all' in args.platforms:
                         sp = set(ast.literal_eval(row.source_platform))
@@ -457,18 +465,11 @@ def main():
                 if not txt_cleaned and not settings.UgcHintSettings.TEST_MODE: continue
                 
                 #ignore processed if we want to update a single hint_type
-                skip = True
                 Sts = settings.UgcHintSettings
                 if any(list([getattr(Sts, attr) for attr in dir(Sts) if not callable(getattr(Sts, attr)) and attr.startswith("force")])):
                     if not settings.UgcHintSettings.TEST_MODE:
                         delete_hints(row.ugcid)
                         skip = False
-
-                if skip and row.processed and not settings.UgcHintSettings.TEST_MODE:
-                    skipped += 1
-                    if skipped % 1000 == 0 and skipped > 0:
-                        print('%s skipped: flagged as processed' % skipped)
-                    continue
 
                 #region SPECIES
                 if UgcHintSettings.force_run_species_hints or (not row.processed and settings.UgcHintSettings.run_species_hints):
@@ -528,8 +529,8 @@ def main():
                     write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
 
 
-                #TRIP HINTS
-                if UgcHintSettings.force_run_ground_hints  or (not row.processed and settings.UgcHintSettings.force_run_ground_hints):
+                #GROUND HINTS
+                if UgcHintSettings.force_run_ground_hints  or (not row.processed and settings.UgcHintSettings.run_ground_hints):
                     hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_ground_hints(title, txt_cleaned)
                     write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
 
