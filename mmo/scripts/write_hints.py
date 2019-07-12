@@ -572,7 +572,7 @@ def main():
             
         if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max:
             msg = 'Skipped (txt_cleaned=""): %s\n' \
-                    'Skipped (already processed): %s'
+                    'Skipped (already processed): %s', (nr_cleaned, skipped)
             print(msg)
             break
         window_idx += 1

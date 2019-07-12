@@ -334,6 +334,7 @@ class UgcGaz(Base):
     gaz_rank = Column(SmallInteger)
     ifca = relationship('Ifca')
     ugc = relationship('Ugc')
+    gazetteer_afloatid = Column(BigInteger)
 
 
 

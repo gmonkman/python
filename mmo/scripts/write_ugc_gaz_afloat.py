@@ -92,7 +92,7 @@ buildit = True
 try:
     GAZIDS_BY_NAME = iolib.unpickle(settings.PathsUGCGazAfloat.GAZETTEERIDS_BY_NAME)
     if GAZIDS_BY_NAME:
-        print('Loaded gazetterid-name dict from filesystem')
+        print('Loaded gazetter_afloatid-name dict from filesystem')
         buildit = False
 except:
     buildit = True
@@ -100,7 +100,7 @@ except:
 if buildit:
     GAZIDS_BY_NAME = {}
     print('Building gazetterid-name dict....')
-    sql = "SELECT ifca, name_cleaned, source, gazetteerid, coast_dist_m, feature_class1 from gazetteer where isnull(name_cleaned, '') <> '' and isnull(ifca, '') <> ''"
+    sql = "SELECT ifca, name_cleaned, source, gazetteer_afloatid, coast_dist_m, feature_class1 from gazetteer_afloat where isnull(name_cleaned, '') <> '' and isnull(ifca, '') <> ''"
     rs = gazetteerdb.SESSION.execute(text(sql)).fetchall()
     PP1 = PrintProgress(len(rs))
     assert rs, 'Building gazetterid-name dict failed - No records returned'
@@ -112,11 +112,11 @@ if buildit:
                 skipped += 1
                 continue
 
-            if r[4] > 1000:
-                skipped += 1
-                continue
+            #if r[4] > 1000:
+             #   skipped += 1
+              #  continue
         _addit(GAZIDS_BY_NAME, r[0], r[1], r[2], r[3])
-    assert GAZIDS_BY_NAME, 'gazetterid-name dict was empty. Do you need to run clean_gaz.py?'
+    assert GAZIDS_BY_NAME, 'gazetter_afloatid-name dict was empty. Do you need to run clean_gaz.py?'
     iolib.pickle(GAZIDS_BY_NAME, settings.PathsUGCGazAfloat.GAZETTEERIDS_BY_NAME)
     print('Built and saved gazetterid-name dict. Skipped %s of %s.' % (skipped, len(rs)))
 
@@ -160,11 +160,9 @@ def main():
                         if not sp.intersection(set(args.platforms)): 
                             skipped_platform += 1
                             continue
-
-                try:  
-                    txt = ' '.join([row.title_cleaned, row.txt_cleaned])
-                except:
-                    continue
+                title_cleaned = row.title_cleaned if row.title_cleaned else ''
+                txt_cleaned = row.txt_cleaned if row.txt_cleaned else ''
+                txt = ' '.join([title_cleaned, txt_cleaned])
                      
                 SW = nlpbase.SlidingWindow(txt, tuple(i for i in range(1, MAX_WORDS+1)))
                 win = SW.get()
@@ -208,7 +206,7 @@ def main():
                             for source, gazids in GAZIDS_BY_NAME[ifcaid][w].items():
                                 source = source.lower()
                                 for gazid in gazids:
-                                    mmodb.SESSION.add(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteerid=gazid,
+                                    mmodb.SESSION.add(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteer_afloatid=gazid,
                                                                 gaz_rank=SourceRank.ranks[SourceRank.sources.index(source)],
                                                                 gaz_source=source, word_cnt=wordcnt(w)))
                                     added += 1
