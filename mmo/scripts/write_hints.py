@@ -198,7 +198,7 @@ def make_ground_hints(title, post_txt):
     _vc(vote_cnts, 'shark', _addit(ne.AfloatAnglingMethod.indices(post_txt, 'shark'), 'shark', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
     _vc(vote_cnts, 'estuary', _addit(ne.AfloatAnglingMethod.indices(post_txt, 'estuary'), 'estuary', Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
     assert isinstance(vote_cnts, dict)
-    hint_types = [HintTypes.platform] * len(hints)
+    hint_types = [HintTypes.ground] * len(hints)
     votes = sum([x for x in vote_cnts.values()])
 
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
@@ -573,7 +573,7 @@ def main():
         if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max:
             msg = 'Skipped (txt_cleaned=""): %s\n' \
                     'Skipped (already processed): %s'
-            print(s)
+            print(msg)
             break
         window_idx += 1
 

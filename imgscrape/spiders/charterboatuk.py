@@ -102,7 +102,7 @@ class CharterBoatUKBoatDetailsSpider(Spider):
         '''generate links to pages in a board        '''
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
 
-        BOARDS = ['charterboatuk boats']
+        BOARDS = ['charterboatuk boat details']  #this SHOULD NOT BE WRITTEN
         URLS = ['http://www.charterboats-uk.co.uk/england']
         #page18 http://www.charterboats-uk.co.uk/england?page=18
         PAGES = [18]
