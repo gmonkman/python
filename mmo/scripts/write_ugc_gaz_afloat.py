@@ -59,7 +59,7 @@ VALID_IFCAS = ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'ke
 
 class SourceRank():
     '''priority ranking for sources, lower is better'''
-    sources = ['ukho_seacover', 'ukho_gazetteer', 'os_open_name', 'medin', 'geonames']
+    sources = ['ukho_seacover', 'ukho_gazetteer', 'os_open_name', 'medin', 'geonames', 'geonames_alias']
     ranks = [1, 2, 3, 4, 5]
     assert len(sources) == len(ranks), 'SourceRank sources and ranks must be of equal length'
 
@@ -108,7 +108,7 @@ if buildit:
     for r in rs:
         PP1.increment()
         if r[4]:
-            if r[5] in ['section of named road', 'named road'] and r[4] > 100:
+            if r[5] in ['section of named road', 'named road']:
                 skipped += 1
                 continue
 
