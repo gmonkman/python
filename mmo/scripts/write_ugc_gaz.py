@@ -143,7 +143,10 @@ def main():
 
     WINDOW_SIZE = 1000; WINDOW_IDX = 0
     if WINDOW_SIZE >= row_cnt: WINDOW_SIZE = row_cnt
-    already_processed = 0; added = 0; skipped_platform = 0
+    already_processed = 0; added = 0; skipped_platform = 0; skipped_board = 0
+    
+    VALID_BOARDS = {**NE.FORUM_IFCA_SHORE, **NE.FORUM_IFCA_KAYAK}
+    
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         #remember, filters don't work with slice if we are updating the records we filter on
@@ -160,6 +163,10 @@ def main():
                         if not sp.intersection(set(args.platforms)): 
                             skipped_platform += 1
                             continue
+                
+                if not row.board in VALID_BOARDS.keys():
+                    skipped_board += 1
+                    continue
 
                 try:  
                     txt = ' '.join([row.title_cleaned, row.txt_cleaned])
@@ -236,7 +243,7 @@ def main():
         if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
         WINDOW_IDX += 1
 
-    print('%s skipped (flagged as added);  %s  skipped unmatch platform;  %s  added' % (already_processed, skipped_platform, added))
+    print('[SKIPPED: %s processed; %s platform; %s board] %s ADDED %s' % (already_processed, skipped_platform, skipped_board, added))
 
 
 
