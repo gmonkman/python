@@ -60,7 +60,7 @@ VALID_IFCAS = ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'ke
 class SourceRank():
     '''priority ranking for sources, lower is better'''
     sources = ['ukho_seacover', 'ukho_gazetteer', 'os_open_name', 'medin', 'geonames', 'geonames_alias']
-    ranks = [1, 2, 3, 4, 5]
+    ranks = [1, 2, 3, 4, 5, 6]
     assert len(sources) == len(ranks), 'SourceRank sources and ranks must be of equal length'
 
 
