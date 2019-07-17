@@ -5,9 +5,10 @@ from sqlalchemy.orm import load_only
 
 import gazetteerdb
 from gazetteerdb.model import GazetteerAfloat
+from gazetteer import name_entities as gaz_ne
 import nlp.clean as clean
 from funclib.iolib import PrintProgress
-#from warnings import warn
+
 import mmo.settings as settings
 
 #region setup log
@@ -75,6 +76,8 @@ def main():
             try:
                 if row.name_cleaned: continue
                 s = clean.clean(row.name, tolower=True, skip_txt2nr=True)
+                if s in gaz_ne.EXCLUDE_FROM_GAZETTEERS:
+                    s = gaz_ne.EXCLUDED_GAZ_CLEANED_TXT
                 row.name_cleaned = s
                 row.processed = True
             except Exception as e:

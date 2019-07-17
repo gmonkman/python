@@ -92,3 +92,29 @@ def clean_xml_reserved(s, replace_with=' '):
     s = s.replace('@', ' at ')
     s = s.replace('&', ' and ')
     return s
+
+
+
+def substitute_phrases(txt, phrase_dict, pad=False):
+    '''(str, dict, bool) -> txt
+
+    Find phrases txt specified in list items in phrase_dict where the
+    dict key is the replacement text.
+    phrase_dict: key/values pairs, e.g. {'rod': ['bass rod']}
+    pad: left and right pads the "bad" terms with spaces
+    Example:
+    >>>substitute_phrases('my bass rod', {'rod': ['bass rod']}, pad=False)
+    'my rod'
+
+    Not replaced as we only match on " bass rod "
+    >>>substitute_phrases('my bass rod', {'rod': ['bass rod']}, pad=True)
+    'my bass rod'
+
+    '''
+    assert isinstance(txt, str)
+    for k, v in phrase_dict.items():
+        for s in v:
+            if pad:
+                s = ' ' + s.lstrip().rstrip() + ' '
+            txt = txt.replace(s, k)
+    return txt

@@ -42,7 +42,7 @@ class UgcHintSettings():
     force_run_platform_hints = False
     force_run_trip_hints = False
     force_run_date_hints = False
-    force_run_species_hints = False
+    force_run_species_hints = True
     force_run_ground_hints = False
 
     run_species_catch_hints = False     #very slow
@@ -52,6 +52,14 @@ class UgcHintSettings():
     run_trip_hints = True
     run_date_hints = True
     run_species_hints = True
-    run_ground_hints = True
+    run_ground_hints = False
 
     TEST_MODE = False #no deletes or writes or processed checks
+
+
+class UgcGazSettings():
+    TEST_MODE = True
+
+
+class UgcGazAfloatSettings():
+    TEST_MODE = True

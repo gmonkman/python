@@ -57,6 +57,7 @@ MAX_WORDS = 4 #only consider places with 4 or fewer words
 VALID_IFCAS = ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'kent and essex', 'north east', 'north west', 'northumberland', 'southern', 'sussex']
 
 
+
 class SourceRank():
     '''priority ranking for sources, lower is better'''
     sources = ['ukho_seacover', 'ukho_gazetteer', 'os_open_name', 'medin', 'geonames', 'geonames_alias']
@@ -153,7 +154,7 @@ def main():
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz', 'title_cleaned', 'source_platform')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
             try:
-                if row.processed_gaz:
+                if row.processed_gaz and not settings.UgcGazAfloatSettings.TEST_MODE:
                     already_processed += 1
                     continue
 
@@ -214,13 +215,14 @@ def main():
                             for source, gazids in GAZIDS_BY_NAME[ifcaid][w].items():
                                 source = source.lower()
                                 for gazid in gazids:
-                                    mmodb.SESSION.add(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteer_afloatid=gazid,
-                                                                gaz_rank=SourceRank.ranks[SourceRank.sources.index(source)],
-                                                                gaz_source=source, word_cnt=wordcnt(w)))
+                                    if not settings.UgcGazAfloatSettings.TEST_MODE:
+                                        mmodb.SESSION.add(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteer_afloatid=gazid,
+                                                                    gaz_rank=SourceRank.ranks[SourceRank.sources.index(source)],
+                                                                    gaz_source=source, word_cnt=wordcnt(w)))
                                     added += 1
-
-                row.processed_gaz = True
-                mmodb.SESSION.flush()
+                if not settings.UgcGazAfloatSettings.TEST_MODE:
+                    row.processed_gaz = True
+                    mmodb.SESSION.flush()
             except Exception as e:
                 try:
                     log('Error in loop:\t%s' % e, 'both')
@@ -230,7 +232,13 @@ def main():
                 PP.increment()
 
         try:
-            mmodb.SESSION.commit()
+            if not settings.UgcGazAfloatSettings.TEST_MODE:
+                mmodb.SESSION.commit()
+            else:
+                try: #JIC
+                    mmodb.SESSION.rollback()
+                except:
+                    pass
         except Exception as e:
             try:
                 log('Error in loop:\t%s' % e, 'both')

@@ -102,6 +102,7 @@ def main():
                     try:
                         s = clean.clean(s, tolower=True)
                         s = Stop.purge(s)
+                        s = clean.substitute_phrases(s, NE.UGC_PHRASE_SUBSTITUTION_DICT)
                     except:
                         if not s: s = row.title
                     row.title_cleaned = s
@@ -111,6 +112,7 @@ def main():
                     try:
                         s = clean.clean(s, tolower=True)
                         s = Stop.purge(s)
+                        s = clean.substitute_phrases(s, NE.UGC_PHRASE_SUBSTITUTION_DICT)
                     except:
                         if not s: s = row.txt
                     row.txt_cleaned = s

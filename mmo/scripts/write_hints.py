@@ -439,8 +439,7 @@ def main():
     WINDOW_SIZE = 200  # or whatever limit you like
     window_idx = 0
     if WINDOW_SIZE > row_cnt: WINDOW_SIZE = row_cnt
-    skipped = 0
-    nr_cleaned = 0
+    skipped = 0; nr_not_cleaned = 0
     while True:
         start, stop = WINDOW_SIZE * window_idx + offset, WINDOW_SIZE * (window_idx + 1) + offset
         #rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt_cleaned', 'platform_hint', 'processed', 'season_hint', 'month_hint', 'trip_hint', 'catch_hint')).filter_by(processed=0).order_by(Ugc.ugcid).slice(start, stop).all()
@@ -451,12 +450,6 @@ def main():
             try:
                 skip = True
 
-                if skip and row.processed and not settings.UgcHintSettings.TEST_MODE:
-                    skipped += 1
-                    if skipped % 1000 == 0 and skipped > 0:
-                        print('%s skipped: flagged as processed' % skipped)
-                    continue
-
                 if row.source_platform and args.platforms:
                     if not 'all' in args.platforms:
                         sp = set(ast.literal_eval(row.source_platform))
@@ -464,15 +457,21 @@ def main():
 
                 txt_cleaned = row.txt_cleaned; title = nlpclean.clean(row.title)
                 if not txt_cleaned and not settings.UgcHintSettings.TEST_MODE:
-                    nr_cleaned += 1
+                    nr_not_cleaned += 1
                     continue
                 
-                #ignore processed if we want to update a single hint_type
+                #ignore processed if we want to force any individual hint_type
                 Sts = settings.UgcHintSettings
                 if any(list([getattr(Sts, attr) for attr in dir(Sts) if not callable(getattr(Sts, attr)) and attr.startswith("force")])):
                     if not settings.UgcHintSettings.TEST_MODE:
                         delete_hints(row.ugcid)
                         skip = False
+
+                if skip and row.processed and not settings.UgcHintSettings.TEST_MODE:
+                    skipped += 1
+                    if skipped % 1000 == 0 and skipped > 0:
+                        print('%s skipped: flagged as processed' % skipped)
+                    continue
 
                 #region SPECIES
                 if UgcHintSettings.force_run_species_hints or (not row.processed and settings.UgcHintSettings.run_species_hints):
@@ -572,7 +571,7 @@ def main():
             
         if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max:
             msg = 'Skipped (txt_cleaned=""): %s\n' \
-                    'Skipped (already processed): %s', (nr_cleaned, skipped)
+                    'Skipped (already processed): %s', (nr_not_cleaned, skipped)
             print(msg)
             break
         window_idx += 1

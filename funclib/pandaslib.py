@@ -326,6 +326,20 @@ def df_fromstring(str_, sep=',', header=0, names=None, **args):
     return df
 
 
+def df_from_dict(d):
+    '''(dict) -> pandas.dataframe
+    Build a datafrom from a dict. Keys are col headings, values are entries.
+    Supports unequal length values, and values in (set, list, tuple)
+    
+    d: dictionary
+
+    Example:
+    >>>df_from_dict({'a':[1], 'b':[1,2]})
+        a   b
+    0   1   1
+    1   NaN 2
+    '''
+    return _pd.DataFrame(dict([(k,pandas.Series(list(v))) for k,v in d.items()]))
 
 
 

@@ -1268,6 +1268,7 @@ def pickle(obj, fname):
 
     Also see unpickle
     '''
+    fname = _os.path.normpath(fname)
     d, _, _ = get_file_parts2(fname)
     create_folder(d)
     with open(fname, 'wb') as f:
@@ -1281,6 +1282,7 @@ def unpickle(path):
     attempts to load a pickled object named path
     Returns None if file doesnt exist
     '''
+    path = _os.path.normpath(path)
     if file_exists(path):
         with open(path, 'rb') as myfile:
             return _pickle.load(myfile)

@@ -29,7 +29,7 @@ class Gazetteer(Base):
     intertidalfid = Column(Integer)
     intertidalfid_distance = Column(Float(53))
     mpa = Column(String(50, 'Latin1_General_CI_AS'))
-
+    source_rank = Column(Integer)
 
 class GazetteerAfloat(Base):
     __tablename__ = 'gazetteer_afloat'
@@ -51,7 +51,7 @@ class GazetteerAfloat(Base):
     y_rnd = Column(Float(53))
     name_cleaned = Column(String(255, 'Latin1_General_CI_AS'))
     mpa = Column(String(50, 'Latin1_General_CI_AS'))
-
+    source_rank = Column(Integer)
 
 
 t_v_gazetteer_word_count = Table(

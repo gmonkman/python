@@ -59,7 +59,8 @@ VALID_IFCAS = ['cornwall', 'devon and severn', 'eastern', 'isles of scilly', 'ke
 
 class SourceRank():
     '''priority ranking for sources, lower is better'''
-    sources = ['lk', 'lk additional', 'ukho_constructs', 'ukho_act_lic', 'os_open_name', 'os_gazetteer', 'ukho_seacover', 'ukho_gazetteer', 'medin', 'substitutions', 'geonames', 'geonames_alias', 'geograph']
+    #just got these from "select distinct source from gazetteer_shore.dbo.gazetteer_afloat"
+    sources = ['lk', 'ukho_constructs', 'ukho_act_lic', 'os_gazetteer', 'os_open_name', 'ukho_seacover', 'ukho_gazetteer', 'medin', 'geonames', 'geonames_alias', 'geograph', 'charter_mmo.kml', 'substitutions']
     ranks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     assert len(sources) == len(ranks), 'SourceRank sources and ranks must be of equal length'
 
@@ -153,7 +154,7 @@ def main():
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz', 'title_cleaned', 'source_platform')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
             try:
-                if row.processed_gaz:
+                if row.processed_gaz and not settings.UgcGazSettings.TEST_MODE:
                     already_processed += 1
                     continue
 
@@ -172,7 +173,8 @@ def main():
                     txt = ' '.join([row.title_cleaned, row.txt_cleaned])
                 except:
                     continue
-                     
+                
+                txt = 'this is a test with st marys bay which should detect the 3 word version only'    
                 SW = nlpbase.SlidingWindow(txt, tuple(i for i in range(1, MAX_WORDS+1)))
                 win = SW.get()
 
@@ -199,10 +201,10 @@ def main():
                         #we now want to loop through all previously found word windows of greater kernel size
                         #and only add shorter phrases which dont match longer phrases, e.g. dont add Llandudno if we have already added Llandudno Pier
                         new_words = set()
-                        for w in ugc_words.intersection(wds):
+                        for w in ugc_words.intersection(wds):   #test if ugc_words (our source content) matches our gazetteer for a given phrase length
                             addit = True
-                            for found_key, found_list in all_found_words.items():
-                                if found_key <= num_key: continue #only consider place names with m
+                            for found_key, found_list in all_found_words.items():   #found_key is the word count, found list is the matched place names of length = found_key
+                                if found_key <= num_key: continue #only chek place names with more words
                                 if w in found_list:
                                     addit = False
                                     break
@@ -215,13 +217,16 @@ def main():
                             for source, gazids in GAZIDS_BY_NAME[ifcaid][w].items():
                                 source = source.lower()
                                 for gazid in gazids:
-                                    mmodb.SESSION.add(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteerid=gazid,
-                                                                gaz_rank=SourceRank.ranks[SourceRank.sources.index(source)],
-                                                                gaz_source=source, word_cnt=wordcnt(w)))
+                                    if not settings.UgcGazSettings.TEST_MODE:
+                                        mmodb.SESSION.add(UgcGaz(ugcid=row.ugcid, name=w, ifcaid=ifcaid, gazetteerid=gazid,
+                                                                    gaz_rank=SourceRank.ranks[SourceRank.sources.index(source)],
+                                                                    gaz_source=source, word_cnt=wordcnt(w)))
                                     added += 1
 
-                row.processed_gaz = True
-                mmodb.SESSION.flush()
+                if not settings.UgcGazSettings.TEST_MODE:
+                    row.processed_gaz = True
+                    mmodb.SESSION.flush()
+
             except Exception as e:
                 try:
                     log('Error in loop:\t%s' % e, 'both')
@@ -231,7 +236,13 @@ def main():
                 PP.increment()
 
         try:
-            mmodb.SESSION.commit()
+            if not settings.UgcGazSettings.TEST_MODE:
+                mmodb.SESSION.commit()
+            else: #just in case
+                try:
+                    mmodb.SESSION.rollback()
+                except:
+                    pass
         except Exception as e:
             try:
                 log('Error in loop:\t%s' % e, 'both')

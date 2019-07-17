@@ -10,9 +10,14 @@
 ##################################################################################
 
 import os.path as _path
+
+from xlwings import view as _view
+
 import funclib.stringslib as _stringslib
 
 from funclib.baselib import list_flatten as _flat
+import funclib.pandaslib as _pd
+
 import gazetteerdb.gaz as _gaz
 
 from mmodb import species as _species
@@ -90,6 +95,16 @@ def _get_season(month_key):
 TYPOS_MIN_LENGTH = 5
 TYPOS_FIX_FIRST_N_CHARS = 2
 TYPO_OPTIONS_ALL = set(('nouns_common', 'nouns_proper', 'verbs', 'phrases', 'adjectives')) #these match the allowed word types in NEBLists, they arnt relevant for the dict classes because they are all nouns
+
+
+#this is used in clean_ugc.py as search replace on ugc content before writing to txt_cleaned and title_cleaned
+UGC_PHRASE_SUBSTITUTION_DICT = {
+                'rod': ['bass rod', 'seabass rod', 'flatty rod', 'flattie rod', 'flatfish rod', 'shark rod', 'mackerel rod', 'mackeral rod', 'mackie rod', 'boat rod', 'salmon rod', 'trout rod', 'seatrout rod'], 
+                'feathers': ['mackerel feathers', 'mackeral feathers', 'mackie feathers', 'herring feathers'],
+                'fly': ['mullet fly', 'seatrout fly', 'trout fly', 'salmon fly'],
+                'flies': ['mullet flies', 'seatrout flies', 'trout flies', 'salmon flies']
+                }
+
 
 #also see spreadsheet sources_master.xlsx
 FORUM_IFCA_AFLOAT = {
@@ -409,8 +424,13 @@ class _NamedEntityBaseDict():
 
             if self.typos:
                 wds += _typo.typos(wds, filter_start_n=TYPOS_FIX_FIRST_N_CHARS, min_length=TYPOS_MIN_LENGTH)
+            
+            s_wds = set(wds)
+            if self.exclude:
+                s_exclude = set(self.exclude)
+                s_wds = s_wds.difference(s_exclude)
 
-            self.nouns_dict_all[key] = set(wds)
+            self.nouns_dict_all[key] = s_wds
 
         try:
             self._dump_dump()
@@ -425,6 +445,7 @@ class _NamedEntityBaseDict():
 
 
     def _dump_load(self):
+        '''dump load'''
         try:
             self.nouns_dict_all = _iolib.unpickle(self._dump_get_name('nouns_dict_all'))
             if not self.nouns_dict_all:
@@ -434,11 +455,14 @@ class _NamedEntityBaseDict():
         except Exception as _:
             return False
 
-
     def _dump_dump(self):
+        '''dump'''
         s = self._dump_get_name('nouns_dict_all')
         _iolib.pickle(self.nouns_dict_all, s)
 
+    def view(self):
+        '''view the dict in excel'''
+        _view(_pd.df_from_dict(self.nouns_dict_all))
 
     def indices(self, s, keyid):
         '''(str, str)
@@ -513,11 +537,12 @@ class NEBDicts(_NamedEntityBaseDict):
     '''class to hand dicts of words
     '''
 
-    def __init__(self, nouns_dict, dump_name, typos=True):
+    def __init__(self, nouns_dict, dump_name, typos=True, exclude=None):
         self.nouns_dict = nouns_dict
         assert isinstance(nouns_dict, dict), 'Unexpected type %s' % type(nouns_dict)
         self.typos = typos
         self.dump_name = dump_name
+        self.exclude = exclude
         self.nouns_dict_all = set()
         super().__init__()
 #endregion
@@ -660,14 +685,14 @@ BaitSpecies = NEBLists(
 #These are all entities which require a lookup under a key
 #for examples, we need to know that codling and coddo
 #are both cod
-
+#Grounds
 AfloatAnglingMethod = NEBDicts(
-    nouns_dict={'wreck':['wreck', 'hulk', 'wrecking'],
-                'ground':['anchor', 'ground', 'general', 'anchored', 'inshore'],
+    nouns_dict={'wreck':['wreck', 'wrecking'],
+                'ground':['anchor', 'ground', 'general', 'anchored', 'inshore', 'clean ground',  'clear ground'],
                 'banks':['banks', 'sand bank', 'sandbank', 'bank'],
-                'rough':['reef', 'pinnacle', 'patchy', 'rough', 'broken', 'hard ground'],
+                'rough':['reef', 'pinnacle', 'patchy ground', 'rough ground', 'broken ground', 'hard ground'],
                 'shark':['shark'],
-                'estuary':['estuary', 'mudflat', 'mud flats', 'esturine', 'river']},  #river e.g. mersey
+                'estuary':['estuary', 'mudflat', 'mud flats', 'mud flats', 'esturine', 'estuarine', 'river']},  #river e.g. mersey
     dump_name='AfloatAnglingMethod'
     ,typos=False)
 
@@ -700,13 +725,15 @@ DateTimeSeason = NEBDicts(
 DateTimeSeason.get_season = _get_season
 
 
-
+#common words to exclude
+exclude = ['turbo', 'turbos', 'dog', 'dogs', 'coner', 'cobers', 'cober', 'ba', 'bases', 'black bras']
 
 d = _species.get_species_as_dict_all()
 assert d, '_species.get_species_as_dict_all() failed'
 SpeciesAll = NEBDicts(nouns_dict=d,
                             typos=True,
-                            dump_name='SpeciesAll')
+                            dump_name='SpeciesAll',
+                            exclude=exclude)
 
 
 
@@ -714,49 +741,56 @@ d = _species.get_species_as_dict_sans_unspecified()
 assert d, '_species.get_species_as_dict_sans_unspecified() failed'
 SpeciesSpecified = NEBDicts(nouns_dict=d,
                             typos=True,
-                            dump_name='SpeciesSpecified')
+                            dump_name='SpeciesSpecified',
+                            exclude=exclude)
 
 
 d = _species.get_species_as_dict_unspecified()
 assert d, '_species.get_species_as_dict_unspecified() failed'
 SpeciesUnspecified = NEBDicts(nouns_dict=d,
                               typos=True,
-                              dump_name='SpeciesUnspecified')
+                              dump_name='SpeciesUnspecified',
+                              exclude=exclude)
 
 
 
 assert d, '_species.get_species_sole() failed'
 SpeciesUnspecifiedSole = NEBDicts(nouns_dict=d,
                                   typos=None,
-                                  dump_name='SpeciesUnspecifiedSole')
+                                  dump_name='SpeciesUnspecifiedSole',
+                                  exclude=exclude)
 
 
 d = _species.get_species_flatfish_unspecified()
 assert d, '_species.get_species_flatfish() failed'
 SpeciesUnspecifiedFlatfish = NEBDicts(nouns_dict=d,
                                       typos=True,
-                                      dump_name='SpeciesUnspecifiedFlatfish')
+                                      dump_name='SpeciesUnspecifiedFlatfish',
+                                      exclude=exclude)
 
 
 d = _species.get_species_mullet_unspecified()
 assert d, '_species.get_species_mullet() failed'
 SpeciesUnspecifiedMullet = NEBDicts(nouns_dict=d,
                                     typos=None,
-                                    dump_name='SpeciesUnspecifiedMullet')
+                                    dump_name='SpeciesUnspecifiedMullet',
+                                    exclude=exclude)
 
 
 d = _species.get_species_bream_unspecified()
 assert d, '_species.get_species_bream() failed'
 SpeciesUnspecifiedBream = NEBDicts(nouns_dict=d,
                                    typos=True,
-                                   dump_name='SpeciesUnspecifiedBream')
+                                   dump_name='SpeciesUnspecifiedBream',
+                                   exclude=exclude)
 
 
 d = _species.get_species_skates_rays_unspecified()
 assert d, '_species.get_species_skates_rays() failed'
 SpeciesUnspecifiedSkatesRays = NEBDicts(nouns_dict=d,
                                         typos=True,
-                                        dump_name='SpeciesUnspecifiedSkatesRays')
+                                        dump_name='SpeciesUnspecifiedSkatesRays',
+                                        exclude=exclude)
 #endregion
  
 
