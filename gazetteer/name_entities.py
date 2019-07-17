@@ -9,6 +9,6 @@ VALID_COUNTIES = clean(['Barking and Dagenham', 'Bath and North East Somerset', 
 #from counties_wgs84
 UK_COUNTRIES = clean(['England', 'Northern Ireland', 'Scotland', 'Wales'])
 
-EXCLUDE_FROM_GAZETTEERS = ['little ledge', 'little pool', 'little bay', 'higher ledge', 'flat rock', 'fennel', 'samson', 'shoals of mackerel', 'the green', 'nags head', 'day mark', 'the calf', 'rush hour', northward, 'take-off', 'cones']
+EXCLUDE_FROM_GAZETTEERS = ['little ledge', 'little pool', 'little bay', 'higher ledge', 'flat rock', 'fennel', 'samson', 'shoals of mackerel', 'the green', 'nags head', 'day mark', 'the calf', 'rush hour', 'northward', 'take-off', 'cones']
 
 EXCLUDED_GAZ_CLEANED_TXT = '_EXCLUDED_CLEAN_GAZ.PY_'

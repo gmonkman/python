@@ -65,6 +65,7 @@ def clean(s, tolower=False, skip_txt2nr=True, replace_punctuation_with=''):
     s = strip_urls_str(s)
     s = to_ascii(s)
     s = sep_num_from_words(s)
+    s = s.replace('`', "'")
     s = s.replace("'", "")
     s = s.replace('"', '')
     s = s.replace('?', '.')
