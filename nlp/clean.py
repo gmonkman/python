@@ -18,7 +18,7 @@ def HTML2Txt(s):
     '''turn html to text, turning <br> to newlines
     '''
     s = _Soup(s, 'html.parser').get_text('\n')
-    s = _clean.strip_urls_list((s,))
+    s = strip_urls_list((s,))
     return s
 
 
@@ -75,6 +75,7 @@ def clean(s, tolower=False, skip_txt2nr=True):
     assert isinstance(s, str)
     s = non_breaking_space2space(s)
     s = HTML2Txt(s)
+    if isinstance(s, list): s = ' '.join(s)
     s = to_ascii(s)
     s = s.replace('?', '.')
     s = s.replace('!', '.')

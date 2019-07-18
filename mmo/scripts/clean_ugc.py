@@ -90,8 +90,8 @@ def main():
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned', 'source_platform')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
             try:
-                if row.txt_cleaned: continue
-                s = '%s\n%s' % (row.title, row.txt)
+                #if row.txt_cleaned: continue
+
                 if row.source_platform and args.platforms:
                     sp = set(ast.literal_eval(row.source_platform))
                     if not sp.intersection(set(args.platforms)): continue
@@ -103,7 +103,8 @@ def main():
                         s = clean.clean(s, tolower=True)
                         s = Stop.purge(s)
                         s = clean.substitute_phrases(s, NE.UGC_PHRASE_SUBSTITUTION_DICT)
-                    except:
+                    except Exception as e:
+                        print(e)
                         if not s: s = row.title
                     row.title_cleaned = s
 
@@ -113,7 +114,8 @@ def main():
                         s = clean.clean(s, tolower=True)
                         s = Stop.purge(s)
                         s = clean.substitute_phrases(s, NE.UGC_PHRASE_SUBSTITUTION_DICT)
-                    except:
+                    except Exception as e:
+                        print(e)
                         if not s: s = row.txt
                     row.txt_cleaned = s
             except:
