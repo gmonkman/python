@@ -81,9 +81,12 @@ def clean(s, tolower=False, skip_txt2nr=True):
     s = s.replace('!', '.')
     s = s.replace(':', '.')
     s = s.replace(';', '.')
+    s = s.replace('`', '')
+    s = s.replace("'", "")
     #s = sep_num_from_words(s)
 
-    s = _relib.replace_all_punctuation_with_char(s, ' ')
+    s = filter_punctuation(s, exclude=['.', '/'], replace=' ')
+    #s = _relib.replace_all_punctuation_with_char(s, ' ')
 
     s = s.replace('\n ', '\n')
     s = s.replace(' \n', '\n')
