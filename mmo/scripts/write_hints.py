@@ -550,12 +550,12 @@ def main():
                 try:
                     if not settings.UgcHintSettings.TEST_MODE:
                         row.processed = True
-                        mmodb.SESSION.flush()
+                        #mmodb.SESSION.flush()
                     PP.increment(show_time_left=True)
                 except:
                     try:
                         PP.increment(show_time_left=True)
-                        mmodb.SESSION.rollback()
+                        #mmodb.SESSION.rollback()
                     except:
                         pass
 
