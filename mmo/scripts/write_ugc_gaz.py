@@ -174,7 +174,7 @@ def main():
                 except:
                     continue
                 
-                txt = 'this is a test with st marys bay which should detect the 3 word version only'    
+                #txt = 'this is a test with st marys bay which should detect the 3 word version only'    
                 SW = nlpbase.SlidingWindow(txt, tuple(i for i in range(1, MAX_WORDS+1)))
                 win = SW.get()
 
