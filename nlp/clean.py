@@ -4,11 +4,22 @@
 import re as _re
 from warnings import warn as _warn
 
+
+from bs4 import BeautifulSoup as _Soup
+
 from text2digits import text2digits as _t2d
 import funclib.baselib as _baselib
-from funclib.stringslib import to_ascii, newline_del_multi, filter_alphanumeric1, non_breaking_space2space
+from funclib.stringslib import to_ascii, newline_del_multi, filter_alphanumeric1, non_breaking_space2space, filter_punctuation
 import nlp.relib as _relib
 import nlp.stopwords as _stopwords
+
+
+def HTML2Txt(s):
+    '''turn html to text, turning <br> to newlines
+    '''
+    s = _Soup(s, 'html.parser').get_text('\n')
+    s = _clean.strip_urls_list((s,))
+    return s
 
 
 def strip_urls_list(l, subst=' '):
@@ -54,7 +65,8 @@ def sep_num_from_words(s):
     return _re.sub(r"([0-9]+(\.[0-9]+)?)",r" \1 ", s).strip()
 
 
-def clean(s, tolower=False, skip_txt2nr=True, replace_punctuation_with=''):
+
+def clean(s, tolower=False, skip_txt2nr=True):
     '''str, set|None
     apply multiple clean funcs to s
     '''
@@ -62,19 +74,16 @@ def clean(s, tolower=False, skip_txt2nr=True, replace_punctuation_with=''):
     if not s: return ''
     assert isinstance(s, str)
     s = non_breaking_space2space(s)
-    s = strip_urls_str(s)
+    s = HTML2Txt(s)
     s = to_ascii(s)
-    s = sep_num_from_words(s)
-    s = s.replace('`', "'")
-    s = s.replace("'", "")
-    s = s.replace('"', '')
     s = s.replace('?', '.')
     s = s.replace('!', '.')
     s = s.replace(':', '.')
     s = s.replace(';', '.')
-    s = clean_xml_reserved(s)
-    if replace_punctuation_with:
-        s = _relib.replace_all_punctuation_with_char(s, replace_punctuation_with)
+    #s = sep_num_from_words(s)
+
+    s = _relib.replace_all_punctuation_with_char(s, ' ')
+
     s = s.replace('\n ', '\n')
     s = s.replace(' \n', '\n')
     s = newline_del_multi(s)

@@ -163,6 +163,19 @@ def filter_numeric(char):
     return 48 <= ord(char) <= 57
 
 
+def filter_punctuation(s, exclude=('!', '?', '.'), replace=' '):
+    '''(str, iterable, str) -> str
+    Replace punctuation
+    s: strint to process
+    exclude: list of punctuation to retain
+    replace: replace punctuation matches with replace
+    '''
+    out = ''
+    for a in s:
+        out += a if not a in _string.punctuation or a in exclude else replace
+    return out
+
+
 # region files and paths related
 def filter_alphanumeric(char, strict=False, allow_cr=True, allow_lf=True, exclude=(), include=()):
     '''(char(1), bool, bool, bool, bool, tuple, tuple) -> bool
