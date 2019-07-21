@@ -164,7 +164,8 @@ class Ugc(Base):
     boat = Column(String(100, 'Latin1_General_CI_AS'))
     charter_port = Column(String(100, 'Latin1_General_CI_AS'))
     processed_gaz_afloat = Column(BIT, nullable=False, index=True, server_default=text("((0))"))
-
+    charter_boat_hint = Column(String(50, 'Latin1_General_CI_AS'))
+    
 
 t_v_err_species_alias_duplicate_accepted = Table(
     'v_err_species_alias_duplicate_accepted', metadata,

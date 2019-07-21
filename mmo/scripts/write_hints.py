@@ -72,6 +72,7 @@ class HintTypes():
     season_hint = 'season_hint'
     trip = 'trip' #does it look like a trip
     ground = 'ground'
+    charter_name = 'charter_name'
 
 
 class Sources():
@@ -230,6 +231,26 @@ def make_platform_hints(title, post_txt):
         ugc_hint = {'ugc_hint': baselib.dic_key_with_max_val(vote_cnts)}
 
     return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
+
+
+def make_charter_name_hints(title, post_txt):
+    '''platform stuff'''
+    hint_types = []; poss = []; source_texts = []; hints = []; speciesids = []; pos_lists = []; ns = []; sources = []; ugc_hint = {}
+    ugc_hint = {'ugc_hint':None}
+    vote_cnts = {}
+    #args after Sources.title are BYREF
+    _vc(vote_cnts, 'charter', _addit(ne.AfloatCharterBoatProperOnly.indices(title), HintTypes.charter_name, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+
+    _vc(vote_cnts, 'charter', _addit(ne.AfloatCharterBoatProperOnly.indices(post_txt), HintTypes.charter_name, Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
+    assert isinstance(vote_cnts, dict)
+    hint_types = [HintTypes.charter_name] * len(hints)
+    votes = sum([x for x in vote_cnts.values()])
+
+    #NOW Get the platform hint to write to UGC table - ie what platform do we think the post was reporting
+    if hints: ugc_hint = {'ugc_hint': source_texts[0]}
+    hints = source_texts
+    return hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint
+
 
 
 def _vc(vote_cnts, key, int_):
@@ -459,7 +480,7 @@ def main():
                 if not txt_cleaned and not settings.UgcHintSettings.TEST_MODE:
                     nr_not_cleaned += 1
                     continue
-                
+
                 #ignore processed if we want to force any individual hint_type
                 Sts = settings.UgcHintSettings
                 if any(list([getattr(Sts, attr) for attr in dir(Sts) if not callable(getattr(Sts, attr)) and attr.startswith("force")])):
@@ -536,6 +557,12 @@ def main():
                     hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_ground_hints(title, txt_cleaned)
                     write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
 
+                #CHARTER BOAT NAMES
+                if UgcHintSettings.force_run_charter_name_hints or (not row.processed and settings.UgcHintSettings.run_charter_name_hints):
+                    hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_charter_name_hints(title, txt_cleaned)
+                    row.charter_boat_hint = ugc_hint.get('ugc_hint', None)
+                    write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
+
                 #endregion
 
 
@@ -604,6 +631,9 @@ def delete_hints(ugcid):
 
     if settings.UgcHintSettings.force_run_ground_hints:
         _delete_hint(ugcid, HintTypes.ground)
+
+    if settings.UgcHintSettings.force_run_charter_name_hints:
+        _delete_hint(ugcid, HintTypes.charter_name)
 
 
 

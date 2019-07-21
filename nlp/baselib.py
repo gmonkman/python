@@ -7,7 +7,7 @@ from nltk.corpus.reader.wordnet import Synset as _Synset
 import pattern.en as _pattern
 
 import inflect as _inflect
-
+import nlp.relib as _relib
 import funclib.stringslib as _stringslib
 
 #see https://wordnet.princeton.edu/documentation/lexnames5wn
@@ -74,7 +74,7 @@ def _clean(s):
 
 def _fixitr(s, type_=list, tolower=True):
     if not s: return s
-    if isinstance(s, str): was_string = True
+    was_string = True if isinstance(s, str) else False
     if isinstance(s, (str, int, float, _Synset)):
         s = type_(s)
     if tolower and was_string:
