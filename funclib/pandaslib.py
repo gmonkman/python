@@ -339,7 +339,7 @@ def df_from_dict(d):
     0   1   1
     1   NaN 2
     '''
-    return _pd.DataFrame(dict([(k,pandas.Series(list(v))) for k,v in d.items()]))
+    return _pd.DataFrame(dict([(k, _pd.Series(list(v))) for k, v in d.items()]))
 
 
 

@@ -188,7 +188,7 @@ def main():
                 if row.board: brd = row.board.lower()
                 for ifcaid in NE.FORUM_IFCA[brd]: #loop through each ifca associated with the board given in row.board, i set this up manually
                     all_found_words = {}                       
-                    for num_key, ugc_words in sorted(list(win.items()), key=lambda x:x[0], reverse=True):  #loop over word windows in the post in reverse, 4 word matches, then three etc
+                    for num_key, ugc_words in sorted(list(win.items()), key=lambda x: x[0], reverse=True):  #loop over word windows in the post in reverse, 4 word matches, then three etc
                         assert isinstance(ugc_words, set)
                         if not ugc_words: continue
                         if not all_found_words.get(num_key): all_found_words[num_key] = [] #create dict item if doesnt exist
@@ -254,7 +254,7 @@ def main():
         if len(rows) < WINDOW_SIZE or PP.iteration >= PP.max: break
         WINDOW_IDX += 1
 
-    print('[SKIPPED: %s processed; %s platform; %s board] %s ADDED %s' % (already_processed, skipped_platform, skipped_board, added))
+    print('[SKIPPED: %s processed; %s platform; %s board]  ADDED %s' % (already_processed, skipped_platform, skipped_board, added))
 
 
 

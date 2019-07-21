@@ -82,7 +82,7 @@ def _addit(d, ifca, name, source, gazid):
 
 
 GAZ = iolib.unpickle(settings.PathsUGCGazAfloat.GAZ_WORDS_BY_WORD_COUNT)
-assert isinstance(GAZ, dict), 'Expected dict for GAZ. Use make_gaz_wordcounts.py if %s does not exists.' % settings.PathsUGCGazAfloat.GAZ_WORDS_BY_WORD_COUNT
+assert isinstance(GAZ, dict), 'Expected dict for GAZ. Use make_gaz_afloat_wordcounts.py if %s does not exists.' % settings.PathsUGCGazAfloat.GAZ_WORDS_BY_WORD_COUNT
 
 
 #GAZIDS_BY_NAME
@@ -100,11 +100,11 @@ except:
 
 if buildit:
     GAZIDS_BY_NAME = {}
-    print('Building gazetterid-name dict....')
+    print('Building gazetterid-name dict for gazetteer_afloat....')
     sql = "SELECT ifca, name_cleaned, source, gazetteer_afloatid, coast_dist_m, feature_class1 from gazetteer_afloat where isnull(name_cleaned, '') <> '' and isnull(ifca, '') <> ''"
     rs = gazetteerdb.SESSION.execute(text(sql)).fetchall()
     PP1 = PrintProgress(len(rs))
-    assert rs, 'Building gazetterid-name dict failed - No records returned'
+    assert rs, 'Building gazetterid-name dict failed for gazetteer_afloat - No records returned'
     skipped = 0
     for r in rs:
         PP1.increment()
@@ -117,9 +117,9 @@ if buildit:
              #   skipped += 1
               #  continue
         _addit(GAZIDS_BY_NAME, r[0], r[1], r[2], r[3])
-    assert GAZIDS_BY_NAME, 'gazetter_afloatid-name dict was empty. Do you need to run clean_gaz.py?'
+    assert GAZIDS_BY_NAME, 'gazetter_afloatid-name dict (gazetteer_afloat) was empty. Do you need to run clean_gaz.py?'
     iolib.pickle(GAZIDS_BY_NAME, settings.PathsUGCGazAfloat.GAZETTEERIDS_BY_NAME)
-    print('Built and saved gazetterid-name dict. Skipped %s of %s.' % (skipped, len(rs)))
+    print('Built and saved gazetterid-name dict for gazetteer_afloat. Skipped %s of %s.' % (skipped, len(rs)))
 
 
 
@@ -151,10 +151,10 @@ def main():
     while True:
         start, stop = WINDOW_SIZE * WINDOW_IDX + OFFSET, WINDOW_SIZE * (WINDOW_IDX + 1) + OFFSET
         #remember, filters don't work with slice if we are updating the records we filter on
-        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz', 'title_cleaned', 'source_platform')).order_by(Ugc.ugcid).slice(start, stop).all()
+        rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'board', 'txt_cleaned', 'processed_gaz_afloat', 'title_cleaned', 'source_platform')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
             try:
-                if row.processed_gaz and not settings.UgcGazAfloatSettings.TEST_MODE:
+                if row.processed_gaz_afloat and not settings.UgcGazAfloatSettings.TEST_MODE:
                     already_processed += 1
                     continue
 
@@ -186,14 +186,18 @@ def main():
                 if row.board: brd = row.board.lower()
                 for ifcaid in NE.FORUM_IFCA[brd]: #loop through each ifca associated with the board given in row.board, i set this up manually
                     all_found_words = {}                       
-                    for num_key, ugc_words in sorted(list(win.items()), key=lambda x:x[0], reverse=True):  #loop over word windows in the post in reverse, 4 word matches, then three etc
+                    for num_key, ugc_words in sorted(list(win.items()), key=lambda x: x[0], reverse=True):  #loop over word windows in the post in reverse, 4 word matches, then three etc
                         assert isinstance(ugc_words, set)
                         if not ugc_words: continue
                         if not all_found_words.get(num_key): all_found_words[num_key] = [] #create dict item if doesnt exist
 
+                        if ifcaid not in GAZ.keys():
+                            log('The IFCA %s is not a key in GAZ.' % (ifcaid), 'both')
+                            continue
+
                         wds = GAZ.get(ifcaid, {}).get(num_key) #get all the place names <num_key in length, ie 4, 3, 2 1...
                         if not wds:
-                            log('Failed to get places for ifca "%s", num_key "%s"' % (ifcaid, num_key), 'both')    
+                            log('No places for ifca "%s", num_key "%s"' % (ifcaid, num_key), 'both')    
                             continue
 
                         #we now want to loop through all previously found word windows of greater kernel size

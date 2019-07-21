@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Index, Integer, SmallInteger, LargeBinary, NCHAR, String, TEXT, Table, Unicode, text
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Index, Integer, SmallInteger, LargeBinary, NCHAR, String, TEXT, Table, Unicode, text, Float
 from sqlalchemy.dialects.mssql import BIT
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -30,7 +30,7 @@ class Cb(Base):
     harbour = Column(String(50, 'Latin1_General_CI_AS'))
     skipper = Column(String(50, 'Latin1_General_CI_AS'))
     website = Column(String(50, 'Latin1_General_CI_AS'))
-    boat_size = Column(String(50, 'Latin1_General_CI_AS'))
+    boat_size_m = Column(String(50, 'Latin1_General_CI_AS'))
     passengers = Column(Integer)
     type_of_fishing = Column(String(336, 'Latin1_General_CI_AS'))
     species_targetted = Column(String(902, 'Latin1_General_CI_AS'))
@@ -52,6 +52,9 @@ class Cb(Base):
     distance = Column(Integer)
     date_added = Column(DateTime, nullable=False, server_default='text("(getdate())")')
     date_modified = Column(DateTime)
+    boat_size_m = Column(Float)
+    passengers_imputed = Column(Integer)
+    distance_imputed = Column(Integer)
 
 
 class Ifca(Base):
@@ -160,6 +163,7 @@ class Ugc(Base):
     source_platform = Column(String(20, 'Latin1_General_CI_AS'))
     boat = Column(String(100, 'Latin1_General_CI_AS'))
     charter_port = Column(String(100, 'Latin1_General_CI_AS'))
+    processed_gaz_afloat = Column(BIT, nullable=False, index=True, server_default=text("((0))"))
 
 
 t_v_err_species_alias_duplicate_accepted = Table(
@@ -335,7 +339,8 @@ class UgcGaz(Base):
     ifca = relationship('Ifca')
     ugc = relationship('Ugc')
     gazetteer_afloatid = Column(BigInteger)
-
+    coast_dist = Column(Float)
+    is_outlier = Column(BIT, nullable=False, server_default=text("((0))"))
 
 
 class Species(Base):

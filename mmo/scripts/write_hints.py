@@ -613,7 +613,7 @@ def _delete_hint(ugcid, hint_type):
     '''
     assert hint_type in list([getattr(HintTypes, attr) for attr in dir(HintTypes) if not callable(getattr(HintTypes, attr)) and not attr.startswith("__")]), 'hint_type %s not a member of HintTypes' % hint_type
     #sql = 'delete from ugc_hint where ugcid=%s and hint_type=%s' % (ugcid, hint_type)
-    mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid==ugcid, UgcHint.hint_type == hint_type).delete()
+    mmodb.SESSION.query(UgcHint).filter(UgcHint.ugcid == ugcid, UgcHint.hint_type == hint_type).delete()
 
 
 

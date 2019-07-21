@@ -639,7 +639,7 @@ Session = NEBLists(
     adjectives=['early', 'late'],
     nouns_common=['session', 'trip', "hour", "minute", "hour", 'morning', 'afternoon', 'noon', 'midday', 'flood', 'ebb'],
     phrases=["before low", "after low", "to low", "after high", "to high", "before high", "either side", 'upto low', 'upto high', 'the flood', 'the ebb', 'incoming tide',
-             "around high", "around low", "tide out", "tide down", "tide in", "tide up", "packed up", "went home", "p.m.", "a.m.", 'pm', 'a.m', 'p.m', "hrs", "mins", "pound mark","way back"],
+             "around high", "around low", "tide out", "tide down", "tide in", "tide up", "packed up", "went home", "p.m.", "a.m.", 'pm', 'a.m', 'p.m', "hrs", "mins", "pound mark", "way back"],
     verbs=['angling', 'arrived', 'casting', 'catch', 'ended', 'fishing', 'hook', 'land', 'leave', 'leave', 'release', 'start', 'stop', 'trolling', 'unhook', 'blanked', 'ebb', 'flood'],
     typos=None,
     simple_expansion=True
@@ -653,6 +653,31 @@ MackerelAsBait = NEBLists(
     nouns_common=['fillet', 'side', 'head', 'belly', 'chunk', 'sliver', 'bait', 'flapper', 'strip', 'cocktail', 'head'],
     phrases=['on mackerel', 'on mack', 'on mackeral', 'on mackie', 'on mackey', 'on macky', 'whole mackerel', 'whole mackie', 'whole macky', 'whole mackey', '0.5 mackerel', '0.5 mackey',
                 '0.5 macky', '0.5 mackie', 'loaded with mackerel', 'loaded with mackie', 'loaded with mack', 'loaded with macky'],
+    typos=None,
+    add_similiar=False,
+    simple_expansion=True
+    )
+
+
+HerringAsBait = NEBLists(
+    dump_name='HerringAsBait',
+    adjectives=['frozen'],
+    verbs=['baited', 'livebaited', 'deadbaited', 'tipped', 'using'], 
+    nouns_common=['fillet', 'side', 'head', 'belly', 'chunk', 'sliver', 'bait', 'flapper', 'strip', 'cocktail', 'head'],
+    phrases=['on herring', 'whole herring', '0.5 herring',
+                'loaded with herring'],
+    typos=None,
+    add_similiar=False,
+    simple_expansion=True
+    )
+
+
+HaddockAsException = NEBLists(
+    adjectives='battered',
+    dump_name='HaddockAsException',
+    verbs=['fried'], 
+    nouns_common=['chips', 'capn', 'captain', 'cap', 'quota'],
+    phrases=['haddock and chips'],
     typos=None,
     add_similiar=False,
     simple_expansion=True
@@ -688,13 +713,13 @@ BaitSpecies = NEBLists(
 #Grounds
 AfloatAnglingMethod = NEBDicts(
     nouns_dict={'wreck':['wreck', 'wrecking'],
-                'ground':['anchor', 'ground', 'general', 'anchored', 'inshore', 'clean ground',  'clear ground'],
+                'ground':['anchor', 'ground', 'general', 'anchored', 'inshore', 'clean ground', 'clear ground'],
                 'banks':['banks', 'sand bank', 'sandbank', 'bank'],
                 'rough':['reef', 'pinnacle', 'patchy ground', 'rough ground', 'broken ground', 'hard ground'],
                 'shark':['shark'],
                 'estuary':['estuary', 'mudflat', 'mud flats', 'mud flats', 'esturine', 'estuarine', 'river']},  #river e.g. mersey
-    dump_name='AfloatAnglingMethod'
-    ,typos=False)
+    dump_name='AfloatAnglingMethod',
+    typos=False)
 
 
 DateTimeDayOfWeek = NEBDicts(
@@ -726,7 +751,7 @@ DateTimeSeason.get_season = _get_season
 
 
 #common words to exclude
-exclude = ['turbo', 'turbos', 'dog', 'dogs', 'coner', 'cobers', 'cober', 'ba', 'bases', 'black bras']
+exclude = ['turbo', 'turbos', 'dog', 'dogs', 'coner', 'cobers', 'cober', 'ba', 'bases', 'black bras', 'sea eagle', 'sea eagles', 'makes', 'solent', 'solents', 'smelt']
 
 d = _species.get_species_as_dict_all()
 assert d, '_species.get_species_as_dict_all() failed'
