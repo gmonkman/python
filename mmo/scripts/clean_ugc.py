@@ -90,7 +90,7 @@ def main():
         rows = mmodb.SESSION.query(Ugc).options(load_only('ugcid', 'title', 'txt', 'txt_cleaned', 'title_cleaned', 'source_platform')).order_by(Ugc.ugcid).slice(start, stop).all()
         for row in rows:
             try:
-                #if row.txt_cleaned: continue
+                if row.txt_cleaned: continue
 
                 if row.source_platform and args.platforms:
                     sp = set(ast.literal_eval(row.source_platform))
