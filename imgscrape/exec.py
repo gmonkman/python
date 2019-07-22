@@ -40,7 +40,10 @@ process = CrawlerProcess(get_project_settings())
 #c = wirralseafishing.WirralSeaFishingVenuesSpider()
 #c = cbuk.CharterBoatUKReportsSpider()
 #c = cbuk.CharterBoatUKBoatDetailsSpider()
-c = cbuk.CharterBoatUKBoatTextSpider()
+#c = cbuk.CharterBoatUKBoatTextSpider()
+#c = cbuk.CharterBoatUKBoatDetailsWalesScotlandSpider()
+c = cbuk.CharterBoatUKBoatWalesScotlandTextSpider()
+
 
 process.crawl(c, chkdup=True)
 process.start()

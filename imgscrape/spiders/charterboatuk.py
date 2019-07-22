@@ -9,7 +9,7 @@ import imgscrape.items as _items
 from gazetteerdb.model import Gazetteer
 import gazetteerdb
 from funclib import stringslib
-
+import imgscrape.pipelines as pipelines
 
 
 class CharterBoatUKReportsSpider(Spider):
@@ -176,6 +176,89 @@ class CharterBoatUKBoatDetailsSpider(Spider):
 
 
 
+
+class CharterBoatUKBoatDetailsWalesScotlandSpider(Spider):
+    '''scrape specific boat details and add/edit to cb table.
+    THIS USES A DIFFERENT PIPELINE. IT DOESNT GO INTO ugc
+    '''
+    name = "charterboatukdetails-wales-scotland"
+    source = 'www.charterboats-uk.co.uk'
+    allowed_domains = ['www.charterboats-uk.co.uk']
+    start_urls = ['http://www.charterboats-uk.co.uk/wales/'] #just a place holder to kick stuff off
+    base_url = 'https://www.charterboats-uk.co.uk'
+
+    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter', 'ITEM_PIPELINES': {'imgscrape.pipelines.CBWriter': 10}}
+    pipelines.CBWriter.country = 'wales-scotland'
+
+    def parse(self, response):
+        '''generate links to pages in a board        '''
+        assert isinstance(response, scrapy.http.response.html.HtmlResponse)
+
+        URLS = ['https://www.charterboats-uk.co.uk/wales?page=1', 'https://www.charterboats-uk.co.uk/wales?page=2', 'https://www.charterboats-uk.co.uk/wales?page=3', 'https://www.charterboats-uk.co.uk/wales?page=4', 'https://www.charterboats-uk.co.uk/scotland?page=1', 'https://www.charterboats-uk.co.uk/scotland?page=2']
+
+        for url in URLS:
+            yield scrapy.Request(url, callback=self.crawl_boats, dont_filter=True, meta={'curboard':'charterboatuk boat details wales-scotland'})
+
+
+
+    def crawl_boats(self, response):
+        '''each page with links to 10 boats details
+        '''
+        curboard = response.meta.get('curboard')
+        boats = response.selector.xpath('//div[@id="boat_list"]/table/tbody/tr')
+        for boat in boats:
+            url = boat.xpath('./td[@class="first"]/a/@href').extract()
+            url = response.urljoin(url[0])
+            boat_name = boat.xpath('./td[@class="first"]/a/text()').extract()[0]
+            location = boat.xpath('(.//div[@class="port_and_location"]/a)[1]/text()').extract()[0]
+            location = get_port_name(location)
+            yield scrapy.Request(url, callback=self.boat_details, dont_filter=True, meta={'curboard':curboard, 'boat_name':boat_name, 'location':location})
+
+
+    def boat_details(self, response):
+        '''crawl'''
+        curboard = response.meta.get('curboard')
+        location = response.meta.get('location')
+        location = get_port_name(location)
+
+        boat_name = response.meta.get('boat_name')
+        assert isinstance(response, scrapy.http.response.html.HtmlResponse)
+        
+        l = _items.CBUKBoatLdr(item=_items.CBUKBoat(), response=response)
+
+        l.add_value('harbour', location)
+        l.add_value('boat', boat_name)
+        try:
+            distance = response.selector.xpath('(//div[@id="boat_additional_info"]/div)[2]/text()').extract()[0]
+        except:
+            distance = ''
+        ns = stringslib.numbers_in_str(distance, int) #this will be nautical miles, a nautical mile of 1852 metres
+        if ns:
+            if ns[0] > 2: #3 is smallest
+                ns = ns[0]
+            else:
+                ns = None
+        else:
+            ns = None
+        l.add_value('distance', ns)
+
+        try:
+            passengers = response.selector.xpath('(//div[@id="boat_additional_info"]/div)[1]/text()').extract()[0]
+        except:
+            passengers = ''
+        if 'passengers' in passengers:
+            ns = stringslib.numbers_in_str(passengers, int)
+            passengers = ns[0] if ns else None
+        else:
+            passengers = None
+        l.add_value('passengers', passengers)
+
+
+        I = l.load_item()
+        yield I
+
+
+
 def get_port_name(port_):
     '''try and get the port name'''
     ext = ['harbour', 'marina', 'moorings']
@@ -257,6 +340,80 @@ class CharterBoatUKBoatTextSpider(Spider):
         l.add_value('board', curboard)
 
         l.add_value('source', CharterBoatUKBoatTextSpider.source)
+        l.add_value('url', response.url)
+        l.add_value('title', '')
+        l.add_value('platform_hint', 'charter')
+
+        pub_date = '01/01/1900'
+        l.add_value('published_date', pub_date)
+
+        l.add_value('charter_port', location)
+
+        txt = response.selector.xpath('//section[@id="details-tab"]//text()').extract()
+        txt = ['\n'.join(txt)]
+
+        l.add_value('txt', txt)
+
+        author = 'charterboatuk'
+        l.add_value('who', author)
+        l.add_value('source_platform', '["charter"]')
+
+        I = l.load_item()
+        yield I
+
+
+
+
+
+class CharterBoatUKBoatWalesScotlandTextSpider(Spider):
+    '''scrape all the text in on the boat details tab to write to ugc
+    '''
+    name = "charterboatukboatwalesscotlanttext"
+    source = 'www.charterboats-uk.co.uk'
+    allowed_domains = ['www.charterboats-uk.co.uk']
+    start_urls = ['http://www.charterboats-uk.co.uk/england/'] #just a place holder to kick stuff off
+    base_url = 'https://www.charterboats-uk.co.uk'
+
+    custom_settings = {'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter', 'ITEM_PIPELINES': {'imgscrape.pipelines.UGCWriter': 10}}
+    pipelines.UGCWriter.country = 'wales-scotland'
+
+    def parse(self, response):
+        '''generate links to pages in a board        '''
+        assert isinstance(response, scrapy.http.response.html.HtmlResponse)
+
+        URLS = ['https://www.charterboats-uk.co.uk/wales?page=1', 'https://www.charterboats-uk.co.uk/wales?page=2', 'https://www.charterboats-uk.co.uk/wales?page=3', 'https://www.charterboats-uk.co.uk/wales?page=4', 'https://www.charterboats-uk.co.uk/scotland?page=1', 'https://www.charterboats-uk.co.uk/scotland?page=2']
+        #URLS = ['https://www.charterboats-uk.co.uk/wales?page=1']
+        for url in URLS:
+            yield scrapy.Request(url, callback=self.crawl_boats, dont_filter=True, meta={'curboard':'cbuk boat detail text wales-scotland'})
+
+
+    def crawl_boats(self, response):
+        '''each page with links to 10 boats details
+        '''
+        curboard = response.meta.get('curboard')
+        boats = response.selector.xpath('//div[@id="boat_list"]/table/tbody/tr')
+        for boat in boats:
+            url = boat.xpath('./td[@class="first"]/a/@href').extract()
+            url = response.urljoin(url[0])
+            boat_name = boat.xpath('./td[@class="first"]/a/text()').extract()[0]
+            location = boat.xpath('(.//div[@class="port_and_location"]/a)[1]/text()').extract()[0]
+            location = get_port_name(location)
+            yield scrapy.Request(url, callback=self.boat_details, dont_filter=True, meta={'curboard':curboard, 'boat_name':boat_name, 'location':location})
+
+
+    def boat_details(self, response):
+        '''crawl'''
+        location = response.meta.get('location')
+        
+        l = _items.CharterBoatUKLdr(item=_items.ForumUGC(), response=response)
+
+        boat_name = response.meta.get('boat_name')
+        l.add_value('boat', boat_name)
+        
+        curboard = response.meta.get('curboard')
+        l.add_value('board', curboard)
+
+        l.add_value('source', CharterBoatUKBoatWalesScotlandTextSpider.source)
         l.add_value('url', response.url)
         l.add_value('title', '')
         l.add_value('platform_hint', 'charter')

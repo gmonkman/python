@@ -62,7 +62,7 @@ def lookup(name, ifca='', as_str=False, include_any_ifca=False, include_name_in_
 
 
 
-def add(source, name, x, y, feature_class='', feature_class1='', unique_only=False):
+def add(source, name, x, y, feature_class='', feature_class1='', unique_only=False, country=''):
     '''(str, str, str, float, float, bool) -> int|None
     add an entry to the gazetteer, returns the added id
     otherwise returns none if nothing added
@@ -83,7 +83,7 @@ def add(source, name, x, y, feature_class='', feature_class1='', unique_only=Fal
 
     row = _gazetteerdb.SESSION.execute(_text('select max(id) + 1 as id from gazetteer')).fetchall()
     
-    G = Gazetteer(source=source, name=name, feature_class=feature_class, feature_class1=feature_class1, x=x, y=y, x_rnd=_rnd(x, 1), y_rnd=_rnd(y, 1), id=row[0][0], name_cleaned=cln)
+    G = Gazetteer(source=source, name=name, feature_class=feature_class, feature_class1=feature_class1, x=x, y=y, x_rnd=_rnd(x, 1), y_rnd=_rnd(y, 1), id=row[0][0], name_cleaned=cln, country=country)
     _gazetteerdb.SESSION.add(G)
     try:
         _gazetteerdb.SESSION.commit()

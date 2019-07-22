@@ -12,7 +12,7 @@ class Gazetteer(Base):
     __table_args__ = {'implicit_returning':False}
     gazetteerid = Column(BigInteger, primary_key=True)
     id = Column(BigInteger, nullable=False)
-    source = Column(String(15, 'Latin1_General_CI_AS'), nullable=False)
+    source = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
     name = Column(Unicode(255))
     feature_class = Column(Unicode(50), nullable=False)
     feature_class1 = Column(String(250, 'Latin1_General_CI_AS'), nullable=False)
@@ -30,6 +30,8 @@ class Gazetteer(Base):
     intertidalfid_distance = Column(Float(53))
     mpa = Column(String(50, 'Latin1_General_CI_AS'))
     source_rank = Column(Integer)
+    country = Column(String(30, 'Latin1_General_CI_AS'))
+
 
 class GazetteerAfloat(Base):
     __tablename__ = 'gazetteer_afloat'

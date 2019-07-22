@@ -24,6 +24,11 @@ class WSFImagesPipeline():
 
 
 class UGCWriter():
+    country = 'england'
+    valid_countries = ['wales-scotland', '', 'england']
+    wales_scottish_boats = ['Blue Thunder', 'Excel 2', 'Atlantic Blue', 'Anchorman5', 'icemaiden 2', 'Escape Charters', 'Celtic Wildcat', 'Lady Jue', 'Lyn Marie', 'Ebony May', 'Tuskar  2', 'Lady Gail II', 'Susan Jayne', 'Silver Sky', 'BeeCool', 'Oceanic', 'Benjoma Too', 'Bang Tidy', 'Sagittarius']
+    wales_scottish_boats = [s.lower() for s in wales_scottish_boats]
+
     '''ugc writer'''
     def open_spider(self, spider):
         '''open'''
@@ -46,6 +51,10 @@ class UGCWriter():
         if not item.get('txt'):
             raise _DropItem('UGCWriter Warning: No body text for url "%s"' % item['url'][0])
 
+        #charterboatuk wales scottish boat details scraper only - kludge
+        if not item['boat'].lower() in UGCWriter.wales_scottish_boats and CBWriter.country == 'wales-scotland':
+            raise _DropItem('UGCWriter Pipeline: Welsh/Scottish boat "%s" dropped.' % item['boat'])
+
         if len(item['txt']) < _settings.MIN_BODY_LENGTH:
             raise _DropItem('UGCWriter Pipeline: Dropped item, body length < %s' % _settings.MIN_BODY_LENGTH)
 
@@ -65,6 +74,12 @@ class UGCWriter():
 
 class CBWriter():
     '''cbwriter'''
+    country = 'england'
+    valid_countries = ['wales-scotland', '', 'england']
+    wales_scotland = ['Penarth', 'Milford Haven', 'Eyemouth', 'Penarth', 'Swansea', 'Saundersfoot', 'Penarth', 'Milford Haven', 'Saundersfoot', 'Penarth', 'Swansea', 'Penarth', 'Eyemouth', 'Burry Port', 'Penarth', 'Eyemouth', 'Swansea', 'Swansea', 'Eyemouth', 'Swansea', 'Milford Haven', 'Milford Haven', 'Penarth', 'Milford Haven', 'Penarth', 'Swansea', 'Milford Haven', 'Milford Haven']
+    wales_scotland = set([s.lower() for s in wales_scotland])
+
+
     def open_spider(self, spider):
         '''open'''
         pass
@@ -75,7 +90,8 @@ class CBWriter():
 
     def process_item(self, item, spider):
         '''process'''
-
+        assert CBWriter.country in CBWriter.valid_countries, 'Invalid value %s for CBWriter.country' % CBWriter.country
+        
         if _settings.MSSQL_DUPLICATE_CHECK:
             if item.get('url'):
                 if check_for_dup(item['url']):
@@ -85,6 +101,10 @@ class CBWriter():
 
         assert isinstance(item, _items.CBUKBoat)
         CB = _mmodb.SESSION.query(_Cb).filter_by(boat=item['boat']).first()
+        
+        if not item['harbour'].lower() in CBWriter.wales_scotland and CBWriter.country == 'wales-scotland':
+            raise _DropItem('Custom CBWriter Pipeline: Welsh/Scottish harbour "%s" dropped.' % item['harbour'])
+
         if CB:
             CB.passengers = item['passengers'] if isinstance(item.get('passengers'), (int,float)) else CB.passengers
             CB.distance = item['distance'] if isinstance(item.get('distance'), (int,float)) else CB.distance

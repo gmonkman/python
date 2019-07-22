@@ -101,7 +101,7 @@ except:
 if buildit:
     GAZIDS_BY_NAME = {}
     print('Building gazetterid-name dict....')
-    sql = "SELECT ifca, name_cleaned, source, gazetteerid, coast_dist_m, feature_class1 from gazetteer where isnull(name_cleaned, '') <> '' and isnull(ifca, '') <> ''"
+    sql = "SELECT ifca, name_cleaned, source, gazetteerid, coast_dist_m, feature_class1 from gazetteer where isnull(name_cleaned, '') <> '' and isnull(ifca, '') <> '' and country not in (select 'wales' union select 'scotland')"
     rs = gazetteerdb.SESSION.execute(text(sql)).fetchall()
     PP1 = PrintProgress(len(rs))
     assert rs, 'Building gazetterid-name dict failed - No records returned'

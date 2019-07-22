@@ -55,6 +55,7 @@ class Cb(Base):
     boat_size_m = Column(Float)
     passengers_imputed = Column(Integer)
     distance_imputed = Column(Integer)
+    country = Column(String(30, 'Latin1_General_CI_AS'))
 
 
 class Ifca(Base):
