@@ -45,7 +45,7 @@ class UgcHintSettings():
     force_run_date_hints = False
     force_run_species_hints = False
     force_run_ground_hints = False
-    force_run_charter_name_hints = True
+    force_run_charter_name_hints = False
 
     run_species_catch_hints = False     #very slow
     run_month_hints = True
