@@ -56,6 +56,13 @@ class Cb(Base):
     passengers_imputed = Column(Integer)
     distance_imputed = Column(Integer)
     country = Column(String(30, 'Latin1_General_CI_AS'))
+    gazetteerid = Column(BigInteger)
+    days_week = Column(Float)
+    days_mth = Column(Float)
+    mths_yr = Column(Float)
+    operation_mth_factor  = Column(Float)
+    operation_yr_factor = Column(Float)
+    days_yrs_est = Column(Float)
 
 
 class Ifca(Base):
