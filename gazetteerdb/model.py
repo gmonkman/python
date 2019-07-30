@@ -7,6 +7,28 @@ Base = declarative_base()
 metadata = Base.metadata
 
 
+class Facilities(Base):
+    __tablename__ = 'facilities'
+    __table_args__ = {'implicit_returning':False}
+
+    facilitiesid = Column(BigInteger, primary_key=True)
+    name = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
+    geogtxt = Column(String(2147483647, 'Latin1_General_CI_AS'), nullable=False)
+    boatnr = Column(Integer, nullable=False)
+    capacity = Column(Integer, nullable=False)
+    facility_type = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
+    ifca = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
+    mpa = Column(String(50, 'Latin1_General_CI_AS'), nullable=False)
+    x = Column(Float(53))
+    y = Column(Float(53))
+    sail = Column(Integer)
+    commercial = Column(Integer)
+    other = Column(Integer)
+    fish = Column(Integer)
+    rnk = Column(Integer)
+    prop = Column(Float)
+
+
 class Gazetteer(Base):
     __tablename__ = 'gazetteer'
     __table_args__ = {'implicit_returning':False}

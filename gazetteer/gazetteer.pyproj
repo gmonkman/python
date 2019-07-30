@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{c7826950-ee7b-4ccd-aa9f-7b202702e661}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>scripts\add_places.py</StartupFile>
+    <StartupFile>scripts\kml_write_facilities.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -13,10 +13,10 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/backup/facilities_all.kml" -d</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <Environment>kml_lookup.py "C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/backup/charter_mmo.kml" -a</Environment>
+    <Environment>kml_lookup.py "C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/backup/facilities_all.kml" -a
+kml_write_facilities.py "C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/backup/facilities_all.kml" -</Environment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -34,6 +34,7 @@
     <Compile Include="scripts\add_places.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts\kml_write_facilities.py" />
     <Compile Include="scripts\kml_lookup.py">
       <SubType>Code</SubType>
     </Compile>

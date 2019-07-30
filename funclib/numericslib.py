@@ -58,3 +58,19 @@ def round_normal(x, y=0):
     if i >= 5:
         c += 1
     return c/m
+
+
+
+def hex2rgb(v):
+    '''(iter|str) -> list of tuples
+    convert hex to decimal
+    '''
+    if isinstance(v, str):
+        v = [v]
+    v = [s.lstrip('#') for s in v]
+    out = []
+    for h in v:
+        out.append((tuple(int(h[i:i+2], 16) for i in (0, 2, 4))))
+    return out
+
+

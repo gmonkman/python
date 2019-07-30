@@ -16,6 +16,9 @@ from funclib.iolib import PrintProgress as _PrintProgress
 import funclib.iolib as _iolib
 from funclib.to_precision import std_notation as _std_notation
 from dblib import mssql
+import funclib.statslib as _statslib
+
+
 
 # region Pandas
 
@@ -48,6 +51,7 @@ class GroupBy():
     '''
 
     PRECISION = 2
+    ALPHA = 95 #percentages, 95 is a 0.05 alpha - it is this was so that the final df output col headings are ok
 
     def __init__(self, df, groupflds, valueflds, *funcs):
         self.df = df
@@ -68,6 +72,7 @@ class GroupBy():
             d[v] = self._funcs
 
         self.result = self.df.groupby(self._groupflds).agg(d)
+        #return self.result.reset_index()
         return self.result
 
 
@@ -169,10 +174,92 @@ class GroupBy():
     @staticmethod
     def fMeanSD_str(data):
         d = _np.array(data)
-        m, sd = _np.mean(a), _np.std(a)
+        m, sd = _np.mean(d), _np.std(d)
         s = '%s %s%s' % (_std_notation(m, GroupBy.PRECISION), _plus_minus(), _std_notation(sd, GroupBy.PRECISION))
         return s
 
+    @staticmethod
+    def fCIUpperFinite(group_N, two_tailed=True):
+        last = 0
+        #https://www.statisticshowto.datasciencecentral.com/finite-population-correction-factor/
+        '''group_N is an iter of length equal the number of groups.
+        
+        Each value in group_N is equal to the population number from which the aggregate
+        sample was drawn.
+
+        The order of group_N must match the sort order
+        of the groups (which is the order groups appear as variable data below.
+        
+        The order of data will be a standard ordered sort on orignal dataframe's aggregate groups.
+
+        See test_pandaslib for a worked example.
+        '''
+        def CIUpperFinite_(data):
+            interval = (100 - GroupBy.ALPHA) * 0.01 #pass interval as 95 so cols have nice names
+            nonlocal last
+            n = group_N[last] #the population nr
+            last += 1
+            d = _np.array(data)
+            m, se, ciabs, ci_lower, ci_upper = _statslib.finite_population_stats(d, n, interval, two_tailed)
+            return ci_upper
+        CIUpperFinite_.__name__ = 'CIUpperFinite_%s' % GroupBy.ALPHA
+        return CIUpperFinite_
+
+    
+    @staticmethod
+    def fCILowerFinite(group_N, two_tailed=True):
+        last = 0
+        #https://www.statisticshowto.datasciencecentral.com/finite-population-correction-factor/
+        '''group_N is an iter of length equal the number of groups.
+        
+        Each value in group_N is equal to the population number from which the aggregate
+        sample was drawn.
+
+        The order of group_N must match the sort order
+        of the groups (which is the order groups appear as variable data below.
+        
+        The order of data will be a standard ordered sort on orignal dataframe's aggregate groups.
+
+        See test_pandaslib for a worked example.
+        '''
+        def CILowerFinite_(data):
+            nonlocal last
+            interval = (100 - GroupBy.ALPHA) * 0.01 #pass interval as 95 so cols have nice names
+            n = group_N[last] #the population nr
+            last += 1
+            d = _np.array(data)
+            m, se, ciabs, ci_lower, ci_upper = _statslib.finite_population_stats(d, n, interval, two_tailed)
+            return ci_lower
+        CILowerFinite_.__name__ = 'CILowerFinite_%s' % GroupBy.ALPHA
+        return CILowerFinite_
+
+
+    @staticmethod
+    def fSEFinite(group_N, two_tailed=True):
+        last = 0
+        #https://www.statisticshowto.datasciencecentral.com/finite-population-correction-factor/
+        '''group_N is an iter of length equal the number of groups.
+        
+        Each value in group_N is equal to the population number from which the aggregate
+        sample was drawn.
+
+        The order of group_N must match the sort order
+        of the groups (which is the order groups appear as variable data below.
+        
+        The order of data will be a standard ordered sort on orignal dataframe's aggregate groups.
+
+        See test_pandaslib for a worked example.
+        '''
+        def SELowerFinite_(data):
+            nonlocal last
+            interval = (100 - GroupBy.ALPHA) * 0.01 #pass interval as 95 so cols have nice names
+            n = group_N[last] #the population nr
+            last += 1
+            d = _np.array(data)
+            m, se, ciabs, ci_lower, ci_upper = _statslib.finite_population_stats(d, n, interval, two_tailed)
+            return ci_lower
+        SELowerFinite_.__name__ = 'SELowerFinite_%s' % GroupBy.ALPHA
+        return SELowerFinite_
 
 
 def pd_df_to_ndarray(df):

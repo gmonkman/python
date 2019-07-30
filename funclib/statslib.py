@@ -499,8 +499,6 @@ def stddev(data, ddof=0):
     return pvar**0.5
 
 
-
-
 def _mean(data):
     """Return the sample arithmetic mean of data."""
     n = len(data)
@@ -514,3 +512,28 @@ def _ss(data):
     c = _mean(data)
     ss = sum((x-c)**2 for x in data)
     return ss
+
+
+def finite_population_stats(A, N, alpha=0.05, two_tailed=True):
+    '''(iter, int, float, bool) -> tuple
+    return finite population stats estimates
+    
+    A: iterable, np.array(A) compatible
+    N: The population sample size
+    Alpha: alpha value
+    two_tailed: bool indicating 1 or 2-tailed test
+
+    Returns finite population adjusted estimates of:
+    mean, SE, Absolute Confidence, CI Lower, CI Upper
+
+    Example:
+    >>>finite_population_stats([4,3,6,2,3], 10)
+        
+    '''
+    B = _np.array(A)
+    SE = (_np.std(B) / _np.sqrt(B.size)) *  _np.sqrt((N - B.size)/(N - 1))
+    CIAbs = _stats.t.ppf((1 - (alpha / 2)) if two_tailed else (1 - (alpha)), B.size) * SE
+    CILower = _np.mean(B) - CIAbs
+    CIUpper = _np.mean(B) + CIAbs
+    return _np.mean(B), SE, CIAbs, CILower, CIUpper
+   

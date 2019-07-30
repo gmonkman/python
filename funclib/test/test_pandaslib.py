@@ -26,18 +26,24 @@ class Test(unittest.TestCase):
         f = _path.normpath(_path.join(self.bin_path, 'fish.xlsx'))
         self.df = pd.read_excel(f, 'fish', header=0)
 
+        f = _path.normpath(_path.join(self.bin_path, 'test_finite.xlsx'))
+        self.df_test_finite = pd.read_excel(f, 'finite', header=0)
 
 
-    @unittest.skip("Temporaily disabled while debugging")
+    #@unittest.skip("Temporaily disabled while debugging")
     def test_GroupBy(self):
         '''test'''
         pdl.GroupBy.PRECISION = 5
-        GB = pdl.GroupBy(self.df, ['fish', 'sex'], ['length', 'weight'], np.mean, np.median, pdl.GroupBy.fCI_str(95), pdl.GroupBy.fCI(95), pdl.GroupBy.fPercentile(25))
+        
+        #GB = pdl.GroupBy(self.df, ['fish', 'sex'], ['length', 'weight'], np.mean, np.median, pdl.GroupBy.fCI_str(95), pdl.GroupBy.fCI(95), pdl.GroupBy.fPercentile(25))        
+        pop_N = (7, 8, 9, 10)
+        #GB = pdl.GroupBy(self.df_test_finite, ['grp'], ['cost'], pdl.GroupBy.fCILowerFinite(pop_N, 95, False), pdl.GroupBy.fCIUpperFinite(pop_N, 95, False))
+        GB = pdl.GroupBy(self.df_test_finite, ['grp'], ['cost'], pdl.GroupBy.fCIUpperFinite(pop_N))
         out = _path.join(self.bin_path, 'fish_tmp.xlsx')
         GB.to_excel(out, fail_if_exists=False)
         print(GB.result)
 
-    #@unittest.skip("Temporaily disabled while debugging")
+    @unittest.skip("Temporaily disabled while debugging")
     def test_df_fromstring(self):
         '''test'''
         s = """col1,col2,col3\n1,4.4,99\n2,4.5,200\n3,4.7,65\n4,3.2,140"""

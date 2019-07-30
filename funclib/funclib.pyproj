@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ec8e1821-0c22-445e-af07-22bbe247f71e}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test\test_stringslib.py</StartupFile>
+    <StartupFile>test\test_pandaslib.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -83,6 +83,9 @@
     <Compile Include="to_precision.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="xmllib.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
@@ -91,6 +94,9 @@
   <ItemGroup>
     <Content Include="pylintrc" />
     <Content Include="requirements.txt" />
+    <Content Include="test\bin\fish.xlsx" />
+    <Content Include="test\bin\fish_tmp.xlsx" />
+    <Content Include="test\bin\test_finite.xlsx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="test\" />

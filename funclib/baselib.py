@@ -330,6 +330,27 @@ def list_index(list_, val):
     return list_.index(x) if x in list_ else None
 
 
+def list_get_dups(l, thresh=3):
+    '''(list, int) -> dict
+
+    Get a dictionary containing dups in list where
+    the key is the duplicate value, and the value is the
+    duplicate nr.
+
+    Example:
+    >>>list_get_dups(1,1,2,3,4,4,4)
+    {4:3}
+    '''
+    my_dict = {i:l.count(i) for i in l}
+    out = dict(my_dict)
+    for k, v in my_dict.items():
+        if v < thresh:
+            del(out[k])
+    return out
+
+
+
+
 def list_add_elementwise(lsts):
     '''lists->list
     Add lists elementwise.
@@ -643,3 +664,12 @@ def is_int(s):
         return n == f
     except:
         return False
+
+
+
+    
+
+if __name__ == "__main__":
+    out = list_get_dups([1,1,2,3,4,4,4], 3)
+    x = 1
+    
