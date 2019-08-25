@@ -5,10 +5,10 @@ import random
 import funclib.pandaslib as pandaslib
 import funclib.iolib as iolib
 import funclib.baselib as baselib
-CSV = 'C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/survey/_results/survey_validate_overall.py.csv'
+CSV = 'C:/temp/survey_validate_overall.py.csv'
 
 
-TEST_NR = 10
+TEST_NR = 1000000
 IFCA = ['northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'northumberland', 'north east', 'north east', 'north east', 'north east', 'north east', 'north east', 'north west', 'isles of scilly', 'isles of scilly', 'isles of scilly', 'isles of scilly', 'eastern', 'eastern', 'eastern', 'eastern', 'eastern', 'devon and severn', 'devon and severn', 'devon and severn', 'devon and severn', 'devon and severn', 'devon and severn', 'cornwall', 'cornwall', 'cornwall', 'cornwall', 'cornwall', 'north west', 'north west', 'sussex', 'sussex', 'sussex', 'sussex', 'sussex', 'kent and essex', 'kent and essex', 'kent and essex', 'kent and essex', 'kent and essex', 'kent and essex', 'kent and essex', 'kent and essex', 'southern', 'southern', 'southern', 'southern', 'southern', 'southern', 'north west', 'north west', 'north east', 'north east', 'north east', 'north east', 'north east', 'north east']
 OUR_RANK = [3, 2, 3, 2, 2, 3, 2, 2, 2, 2, 3, 2, 3, 2, 2, 2, 3, 3, 1, 3, 1, 2, 3, 2, 3, 3, 3, 3, 3, 3, 3, 1, 3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 3, 3, 3, 3, 3, 2, 1, 3, 3, 3, 3, 1, 3, 1, 2]
 SURVEY_RANK = [3, 2, 3, 3, 2, 2, 3, 3, 3, 2, 2, 2, 3, 3, 3, 1, 1, 3, 1, 3, 1, 2, 3, 2, 1, 1, 1, 3, 2, 3, 3, 3, 3, 1, 3, 2, 1, 3, 1, 3, 3, 3, 3, 3, 1, 2, 3, 3, 3, 3, 3, 3, 2, 1, 2, 2, 2, 3, 2, 3, 3, 3, 3, 3, 3, 1, 3, 3, 2, 3, 1, 2]
