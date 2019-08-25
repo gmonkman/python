@@ -516,7 +516,7 @@ def main():
                     write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #endregion
 
-
+                raise ImportError('Debug this. Lots of records werent getting date hint written')
                 #region DATE HINTS - was disabled
                 if UgcHintSettings.force_run_date_hints or (not row.processed and settings.UgcHintSettings.run_date_hints):
                     hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_date_hints(title, txt_cleaned)

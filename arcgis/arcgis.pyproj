@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f860303e-b407-4bab-9df5-60583551bc8e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test.py</StartupFile>
+    <StartupFile>read_wkt.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -25,6 +25,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="rasterlib.py" />
+    <Compile Include="read_wkt.py" />
     <Compile Include="test.py">
       <SubType>Code</SubType>
     </Compile>
