@@ -1,6 +1,5 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 '''This scripts calculates probability of getting survey results as extreme as those observed'''
-from sklearn.metrics import mean_squared_error
 import numpy as np
 import random
 import funclib.pandaslib as pandaslib
