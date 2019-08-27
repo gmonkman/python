@@ -56,7 +56,8 @@ def main():
         PP.increment()
     #expected_mean_distance is 3/9*0 + 4/9*1 + 2/9*2 = 0.889
     output = [['ifca', 'actual_mean_distance', 'expected_mean_distance', 'empirical_mean_distance', 'n', 'closer_n', 'p']]
-
+    #the empirical mean distances differ do not converge to the theoretical because the disttribution of the distances of the original sequence
+    #is dependent on the sequence itself.
     for k, v in ifca_closer_agreement.items():
         output.append([k, actual_mean_distances[actual_ifcas.index(k)], 0.889, sum(ifca_raw[k])/len(ifca_raw[k]), TEST_NR, v.count(1), v.count(1)/TEST_NR])
 

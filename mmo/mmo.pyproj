@@ -33,6 +33,7 @@
     <Compile Include="scripts\gaz_subst.py" />
     <Compile Include="scripts\clean_gaz.py" />
     <Compile Include="scripts\make_gaz_afloat_wordcounts.py" />
+    <Compile Include="scripts\survey_validate_spp.py" />
     <Compile Include="scripts\survey_validate_overall.py" />
     <Compile Include="scripts\write_ugc_gaz_afloat.py" />
     <Compile Include="scripts\write_ugc_gaz.py" />
