@@ -8,7 +8,7 @@ import funclib.baselib as baselib
 CSV = 'C:/temp/survey_validate_spp.py.csv'
 
 
-TEST_NR = 5
+TEST_NR = 1000000
 #select * from v_survey_spp where not rank is null and not our_rank is null order by ifca,respondent,intertidal_name
 #see survey_work.sql in project Toshiba#MMOMapping
 
