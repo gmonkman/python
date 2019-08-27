@@ -8,7 +8,7 @@ import funclib.baselib as baselib
 CSV = 'C:/temp/survey_validate_spp.py.csv'
 
 
-TEST_NR = 1000000
+TEST_NR = 5
 #select * from v_survey_spp where not rank is null and not our_rank is null order by ifca,respondent,intertidal_name
 #see survey_work.sql in project Toshiba#MMOMapping
 
@@ -63,7 +63,10 @@ def main():
     #the empirical mean distances differ do not converge to the theoretical because the disttribution of the distances of the original sequence
     #is dependent on the sequence itself.
     for k, v in ifca_closer_agreement.items():
-        output.append([k, actual_mean_distances[actual_ifcas.index(k)], 0.889, sum(ifca_raw[k])/len(ifca_raw[k]), TEST_NR, v.count(1), v.count(1)/TEST_NR])
+        if k in actual_ifcas:
+            output.append([k, actual_mean_distances[actual_ifcas.index(k)], 0.889, sum(ifca_raw[k])/len(ifca_raw[k]), TEST_NR, v.count(1), v.count(1)/TEST_NR])
+        else:
+            output.append([k, 0, 0, 0, TEST_NR, 0, 0])
 
     #add the overall record
     f = all_closer_agreement.count(1)
