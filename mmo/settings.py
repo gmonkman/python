@@ -38,7 +38,7 @@ class PathsUGCGazAfloat():
 class UgcHintSettings():
     '''control what hints to run'''
     force_species_catch_hints = False     #very slow
-    force_run_month_hints = False
+    force_run_month_hints = True
     force_run_season_hints = False
     force_run_platform_hints = False
     force_run_trip_hints = False
@@ -49,13 +49,13 @@ class UgcHintSettings():
 
     run_species_catch_hints = False     #very slow
     run_month_hints = True
-    run_season_hints = True
-    run_platform_hints = True
-    run_trip_hints = True
-    run_date_hints = True
-    run_species_hints = True
-    run_ground_hints = True
-    run_charter_name_hints = True
+    run_season_hints = False
+    run_platform_hints = False
+    run_trip_hints = False
+    run_date_hints = False
+    run_species_hints = False
+    run_ground_hints = False
+    run_charter_name_hints = False
 
     TEST_MODE = False #no deletes or writes or processed checks
 

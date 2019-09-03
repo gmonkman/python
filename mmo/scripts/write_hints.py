@@ -314,7 +314,7 @@ def make_month_hints(title, post_text):
     
     vote_cnts = {}
 
-    for monthid in ne.DateTimeMonth.nouns_dict_all.keys(): #addit processes the list of species under each key
+    for monthid in ne.DateTimeMonth.nouns_dict_all.keys():
         _vc(vote_cnts, monthid, _addit(ne.DateTimeMonth.indices(title, monthid), monthid, Sources.title, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
         _vc(vote_cnts, monthid, _addit(ne.DateTimeMonth.indices(post_text, monthid), monthid, Sources.post_text, hints, source_texts, poss, pos_lists, sources, ns, speciesids))
 
@@ -516,7 +516,7 @@ def main():
                     write_hints(row.ugcid, hint_types, hints, sources, source_texts, poss, speciesids, pos_lists, ns)
                 #endregion
 
-                raise ImportError('Debug this. Lots of records werent getting date hint written')
+                #raise ImportError('Debug this. Lots of records werent getting date hint written')
                 #region DATE HINTS - was disabled
                 if UgcHintSettings.force_run_date_hints or (not row.processed and settings.UgcHintSettings.run_date_hints):
                     hint_types, poss, source_texts, hints, speciesids, pos_lists, ns, sources, ugc_hint = make_date_hints(title, txt_cleaned)
