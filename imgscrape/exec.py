@@ -20,8 +20,9 @@ from scrapy.utils.project import get_project_settings
 #import imgscrape.spiders.nesa as nesa
 #import imgscrape.spiders.anglersnet as anglersnet
 #import imgscrape.spiders.solentfishingforums as solentfishingforums
-import imgscrape.spiders.charterboatuk as cbuk
-
+#import imgscrape.spiders.charterboatuk as cbuk
+#import imgscrape.spiders.archive_mame as archive_mame
+import imgscrape.spiders.worldofspectrum as wos
 
 process = CrawlerProcess(get_project_settings())
 
@@ -42,8 +43,9 @@ process = CrawlerProcess(get_project_settings())
 #c = cbuk.CharterBoatUKBoatDetailsSpider()
 #c = cbuk.CharterBoatUKBoatTextSpider()
 #c = cbuk.CharterBoatUKBoatDetailsWalesScotlandSpider()
-c = cbuk.CharterBoatUKBoatWalesScotlandTextSpider()
-
+#c = cbuk.CharterBoatUKBoatWalesScotlandTextSpider()
+#c = archive_mame.ArchiveDownloadSpider()
+c = wos.WOSDataOnly()
 
 process.crawl(c, chkdup=True)
 process.start()

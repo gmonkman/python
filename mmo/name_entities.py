@@ -243,7 +243,7 @@ class _NamedEntityBase():
 
     def _get(self):
 
-        if self._dump_load():
+        if self._dump_load() and not self.force_load:
             assert self.allwords, 'allwords loaded from file system, but it is empty'
             print('Loaded words for %s from file' % self.dump_name)
             return
@@ -377,7 +377,7 @@ class NEBLists(_NamedEntityBase):
     add_similiar: use wordnet to find similiar words and pluralise and conjugate
     typos: add typos for words, typos in('nouns', 'verbs', 'phrases', 'others')
     '''
-    def __init__(self, dump_name, nouns_proper=None, nouns_common=None, verbs=None, phrases=None, adjectives=None, simple_expansion=False, add_similiar=False, typos=('nouns_common', 'nouns_proper', 'verbs', 'phrases', 'adjectives')):
+    def __init__(self, dump_name, nouns_proper=None, nouns_common=None, verbs=None, phrases=None, adjectives=None, simple_expansion=False, add_similiar=False, typos=('nouns_common', 'nouns_proper', 'verbs', 'phrases', 'adjectives'), force_load=False):
         ld = lambda v: set(v) if v else set()
         assert not (simple_expansion and add_similiar), 'simple_expansion and add_similiar should not both be true'
         self.nouns_common = ld(nouns_common)
@@ -389,6 +389,7 @@ class NEBLists(_NamedEntityBase):
         self.add_similiar = add_similiar
         self.typos = typos
         self.simple_expansion = simple_expansion
+        self.force_load = force_load
         super().__init__()
 #endregion
 

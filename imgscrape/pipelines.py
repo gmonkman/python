@@ -3,6 +3,7 @@
 from warnings import warn as _warn
 from scrapy.http import Request
 from scrapy.exceptions import DropItem as _DropItem
+from scrapy.pipelines.files import FilesPipeline as _FilesPipeline
 
 import imgscrape.settings as _settings
 import imgscrape.items as _items
@@ -23,7 +24,24 @@ class WSFImagesPipeline():
 
 
 
+class DownloadsArchivePipeline(_FilesPipeline):
+    '''Pipeline to download files from archive.org
+    '''
+    HEADERS = {}
+
+    def get_media_requests(self, item, info):
+        for it in zip(item['file_urls'], item['filenames']):
+            fname = it[1]
+            url = it[0]
+            yield Request(url, meta={'filename':fname})
+
+    def file_path(self, request, response=None, info=None):
+        image_name = request.meta['filename']
+        return image_name
+
+
 class UGCWriter():
+    '''writer'''
     country = 'england'
     valid_countries = ['wales-scotland', '', 'england']
     wales_scottish_boats = ['Blue Thunder', 'Excel 2', 'Atlantic Blue', 'Anchorman5', 'icemaiden 2', 'Escape Charters', 'Celtic Wildcat', 'Lady Jue', 'Lyn Marie', 'Ebony May', 'Tuskar  2', 'Lady Gail II', 'Susan Jayne', 'Silver Sky', 'BeeCool', 'Oceanic', 'Benjoma Too', 'Bang Tidy', 'Sagittarius']
@@ -77,7 +95,7 @@ class CBWriter():
     country = 'england'
     valid_countries = ['wales-scotland', '', 'england']
     wales_scotland = ['Penarth', 'Milford Haven', 'Eyemouth', 'Penarth', 'Swansea', 'Saundersfoot', 'Penarth', 'Milford Haven', 'Saundersfoot', 'Penarth', 'Swansea', 'Penarth', 'Eyemouth', 'Burry Port', 'Penarth', 'Eyemouth', 'Swansea', 'Swansea', 'Eyemouth', 'Swansea', 'Milford Haven', 'Milford Haven', 'Penarth', 'Milford Haven', 'Penarth', 'Swansea', 'Milford Haven', 'Milford Haven']
-    wales_scotland = set([s.lower() for s in wales_scotland])
+    wales_scotland = {s.lower() for s in wales_scotland}
 
 
     def open_spider(self, spider):
@@ -106,8 +124,8 @@ class CBWriter():
             raise _DropItem('Custom CBWriter Pipeline: Welsh/Scottish harbour "%s" dropped.' % item['harbour'])
 
         if CB:
-            CB.passengers = item['passengers'] if isinstance(item.get('passengers'), (int,float)) else CB.passengers
-            CB.distance = item['distance'] if isinstance(item.get('distance'), (int,float)) else CB.distance
+            CB.passengers = item['passengers'] if isinstance(item.get('passengers'), (int, float)) else CB.passengers
+            CB.distance = item['distance'] if isinstance(item.get('distance'), (int, float)) else CB.distance
             CB.harbour = item['harbour']
         else:
             CB = _Cb(**dict(item))
@@ -123,6 +141,8 @@ class CBWriter():
             except:
                 pass
         return item
+
+
 
 
 

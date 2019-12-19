@@ -134,7 +134,7 @@ def filter_alphanumeric1(s, encoding='ascii', strict=False, allow_cr=True, allow
 
 
 
-def filter_numeric1(s, encoding='ascii'):
+def filter_numeric1(s, encoding='ascii', is_numeric=('.')):
     '''(str, str) -> str
     Filter out everything but digits from s
 
@@ -144,11 +144,11 @@ def filter_numeric1(s, encoding='ascii'):
     '''
     if isinstance(s, bytes):
         s = s.decode(encoding, 'ignore')
-    out = [c for c in s if filter_numeric(c)]
+    out = [c for c in s if filter_numeric(c, is_numeric=is_numeric)]
     return ''.join(out)
 
 
-def filter_numeric(char):
+def filter_numeric(char, is_numeric=('.')):
     '''(char(1)) -> bool
     As filter_alphanumeric, but just digits.
     Expects a length 1 string
@@ -160,7 +160,7 @@ def filter_numeric(char):
     >>>filter_numeric('a')
     False
     '''
-    return 48 <= ord(char) <= 57
+    return 48 <= ord(char) <= 57 or char in is_numeric
 
 
 def filter_punctuation(s, exclude=('!', '?', '.'), replace=' '):
@@ -381,16 +381,42 @@ def index_all(s, substr, overlap=False):
 def numbers_in_str(s, type_=float):
     '''(str) -> list
 
-    Return list of numbers in s
+    Return list of numbers in s, PROVIDED numbers are positive integers
     s: the string
     type_: type to convert number to (e.g. float)
     
     Example:
-    >>>numbers_in_str('asda 1.23 ssad', type_=float)
-    1.23
+    >>>numbers_in_str('asda 1 ssad', type_=float)
+    [1.0]
 
     >>>numbers_in_str('asda 1.23 ssad', type_=int)
-    1
+    []   #i.e. doesnt get floats
     '''
     if not s: return []
+    s = filter_numeric1(s, is_numeric=('.', ' '))
     return [type_(ss) for ss in s.split() if ss.isdigit()]
+
+
+def numbers_in_str2(s, type_=float):
+    '''(str) -> list
+
+    Return list of numbers in s, works with floats
+    s: the string
+    type_: type to convert number to (e.g. float)
+    
+    Example:
+    >>>numbers_in_str('asda 1.23 ssad 2.1', type_=float)
+    [1.23, 2.1]
+
+    >>>numbers_in_str('asda ssad', type_=int)
+    []
+    '''
+    l = []
+    if not s: return []
+    s = filter_numeric1(s, is_numeric=('.', ' '))
+    for t in s.split():
+        try:
+            l.append(float(t))
+        except ValueError:
+            pass
+    return l

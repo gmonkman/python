@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ec8e1821-0c22-445e-af07-22bbe247f71e}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test\test_pandaslib.py</StartupFile>
+    <StartupFile>test\test_stringslib.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

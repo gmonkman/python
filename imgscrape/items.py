@@ -18,6 +18,18 @@ class PostedImages(_Item):
     images = _Field()
 
 
+class Downloads(_Item):
+    '''postedimages item'''
+    file_urls = _Field()
+    files = _Field()
+    filenames = _Field()
+
+
+class DownloadsLdr(_loader.ItemLoader):
+    '''ldr'''
+    default_item_class = Downloads
+    default_output_processor = _processors.TakeFirst()
+
 
 class itmMPDetails(_Item):
     '''details'''
@@ -33,6 +45,39 @@ class Ports(_Item):
     latitude = _Field()
     longitude = _Field()
     country = _Field()
+
+ 
+
+
+#World of Spectrum
+class WOSGame(_Item):
+    '''item'''
+    full_title = _Field()
+    year_released = _Field()
+    publisher = _Field()
+    machine_type = _Field()
+    language = _Field()
+    original_publication = _Field()
+    memory = _Field()
+    game_type = _Field()
+    score = _Field()
+    votes = _Field()
+    availability = _Field()
+    letter = _Field()
+    download_weight = _Field()
+    rom_type = _Field()
+    is_mod = _Field()
+    url = _Field()
+    origin = _Field()
+    score_weight = _Field()
+
+class WOSGameLdr(_loader.ItemLoader):
+    '''item loader
+    '''
+    default_input_processor = _myprocs.ListToValue() #always a lst, unless we takefirst
+    default_output_processor = _myprocs.ListToValue()
+
+
 
 
 
@@ -76,7 +121,7 @@ class CBUKBoatLdr(_loader.ItemLoader):
     title_in = _myprocs.Clean2Ascii()
     title_out = _myprocs.ListToValue()
 
-
+ 
 
 class AnglingAddictsMMOLdr(_loader.ItemLoader):
     '''item loader
@@ -243,8 +288,6 @@ class CharterBoatUKLdr(_loader.ItemLoader):
     title_out = _myprocs.ListToValue()
     
 
-
-
 class NESALdr(_loader.ItemLoader):
     '''item loader
     '''
@@ -261,6 +304,8 @@ class NESALdr(_loader.ItemLoader):
     who_out = _myprocs.ListToValue()
     title_in = _myprocs.Clean2Ascii()
     title_out = _myprocs.ListToValue()
+
+
 
 
 #Fox Stuff

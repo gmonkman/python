@@ -29,7 +29,11 @@ class Test(unittest.TestCase):
         out = stringslib.filter_alphanumeric1(s, remove_single_quote=True, remove_double_quote=True, allow_cr=False, allow_lf=False).strip()
         x = 1
 
-
+    def test_numbersinstring(self):
+        s = '\n12.23'
+        out = stringslib.numbers_in_str(s)
+        s = 'aas 12.23 sdf 12 sf 1'
+        out = stringslib.numbers_in_str2(s, int)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
