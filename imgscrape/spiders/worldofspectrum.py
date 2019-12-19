@@ -146,14 +146,16 @@ class WOSDataOnly(Spider):
             G.score = stringslib.numbers_in_str2(readstr_(response.selector.xpath('(//body/table)[3]/tr[td//text()[contains(., "Score")]]/td[2]//text()').extract()[0]))[0]
         except:
             G.score = -1
-        if not isinstance(G.score, float): G.score = -1
+        if not isinstance(G.score, (float,int)): G.score = -1
 
         try:
             G.votes = stringslib.numbers_in_str(readf(response.selector.xpath('(//body/table)[3]/tr[td//text()[contains(., "Score")]]/td[2]//text()').extract()[1]), type_=int)[0]
         except:
             G.votes = -1
         if not isinstance(G.votes, (float, int)): G.votes = -1
-
+        
+        set_score_weight(G)
+        
         try:
             G.year_released = stringslib.numbers_in_str(readstr_(response.selector.xpath('(//body/table)[3]/tr[td//text()[contains(., "Year of release")]]/td[2]//text()').extract()[0]), type_=int)[0]
         except:
@@ -186,7 +188,7 @@ class WOSDataOnly(Spider):
                 G.download_weight = 0
             elif G.year_released > 1993 or not G.year_released:
                 G.download_weight = 0
-
+            
             if G.download_weight == 0:
                 G.url = 'n/a'
                 G.rom_type = 'n/a'
@@ -201,7 +203,6 @@ class WOSDataOnly(Spider):
                         Gs[i].origin = readf(r.xpath('./td[6]//text()').extract())
                         set_download_weight(Gs[i], z80_bonus)
                         Gs[i].download_weight = Gs[i].download_weight if Gs[i].url else 0 #if we havent got a link, force score to 0
-                        set_score_weight(Gs[i])
                 else:
                     G.download_weight = 0
                     G.url = 'No links'
