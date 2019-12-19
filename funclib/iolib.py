@@ -260,12 +260,67 @@ def write_to_eof(filename, thetext):
         pass
 
 
-def readcsv(filename, cols=1, startrow=0, numericdata=True):
-    '''(_string, int, bool, int, bool) -> list
-    Reads a _csv file into a list and returns the list
-    Set cols to the number of cols in the _csv.
+def readcsv_as_dict(filename, first_row_as_key=True, error_on_dup_key=False):
+    '''(str,bool) -> dict
+    read a csv file as a dict
+    
+    filename: file path
 
-    If you want to skip the first row (eg if you have a header row, set startrow to 1.
+    first_row_as_key: 
+        True: first row contains dict keys. Subsequent rows are the values
+        False: the first column  contains keys, subsequent columns contain values, no header row is assumed.
+                if the key column (first) contains duplicate values, rows containing the duplicate key
+                will be skipped
+
+
+    Example:
+    '''   
+    result = {}
+    filename = _os.path.normpath(filename)
+    with open(filename) as csvfile:
+        reader = csv.DictReader(csvfile, skipinitialspace=True)
+        if first_row_as_key:
+
+            if error_on_dup_key and len(reader.fieldnames) > len(set(reader.fieldnames)):
+                raise ValueError('First row had duplicate values, which is a duplicate key condition')
+
+            result = {name: [] for name in reader.fieldnames}
+            for row in reader:
+                for name in reader.fieldnames:
+                    result[name].append(row[name]) 
+        else:
+            csv_list = [[val.strip() for val in r.split(",")] for r in csvfile.readlines()]
+            (_, *header), *data = csv_list
+            for row in data:
+                key, *values = row
+                if key not in result:  
+                    result[key] = {key: value for key, value in zip(header, values)}
+                else:
+                    if error_on_dup_key: raise ValueError('First column had duplicate values, which is a duplicate key condition')
+    return result
+
+
+
+def readcsv(filename, cols=1, startrow=0, numericdata=False):
+    '''(_string, int, bool, int, bool) -> list
+    Reads a _csv file into a list.
+    
+    cols:Number of columns to retrieve, DOES NOT support any fancy indexing
+    start_row: row to start reading from. 0 is the first row
+    numericdata: force all data to be a number, raises error if any non-numeric encountered
+
+    Example:
+    a,  b,  c
+    1,  2,  3
+    10, 11, 12
+    readcsv(fname, 1, 1)
+    [[1, 10]]
+
+    a,  b,  c
+    1,  2,  3
+    10, 11, 12
+    readcsv(fname, 2, 0)
+    [[a, 1, 10], [b, 2, 11]]
     '''
     data = [0] * (cols)
     for i in range(cols):

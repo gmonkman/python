@@ -70,6 +70,7 @@ class WOSGame(_Item):
     url = _Field()
     origin = _Field()
     score_weight = _Field()
+    game_url = _Field()
 
 class WOSGameLdr(_loader.ItemLoader):
     '''item loader

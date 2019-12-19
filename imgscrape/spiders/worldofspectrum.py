@@ -8,10 +8,15 @@ from copy import deepcopy
 import scrapy
 from scrapy.spiders import Spider
 from scrapy.utils.response import open_in_browser
+import pandas as pd
+
 import imgscrape.items as _items
 import imgscrape.pipelines as pipelines
 import imgscrape.settings as settings
 from funclib import stringslib
+import funclib.iolib as iolib
+import funclib.pandaslib as pdlib
+
 
 U = 'unknown'
 
@@ -47,10 +52,12 @@ LETTERS = settings.WorldOfSpectrumSettings.letters
 
 class Game():
     '''game cls'''
-    def __init__(self, full_title, year_released=U, publisher=U, machine_type=U, language=U, game_type=U, score=0, votes=0, availability=U, original_publication=U, letter=U, download_weight=None, rom_type='', is_mod=0, url='', origin=U):
+    def __init__(self, game_url, full_title, year_released=U, publisher=U, machine_type=U, language=U, game_type=U, score=0, votes=0, availability=U, original_publication=U, letter=U, download_weight=None, rom_type='', is_mod=0, url='', origin=U):
         assert isinstance(full_title, str)
         if not isinstance(full_title, str): raise ValueError('Full title was not a string')
         if full_title is None: raise ValueError('Full title was None')
+        if game_url is None: raise ValueError('game_url was None')
+        self.game_url = game_url
         self.full_title = full_title.lower()
         self.year_released = year_released
         self.publisher = publisher.lower()
@@ -68,6 +75,7 @@ class Game():
         self.url = url
         self.origin = origin
         self.score_weight = 0
+
 
 
 class WOSDataOnly(Spider):
@@ -101,8 +109,9 @@ class WOSDataOnly(Spider):
         '''crawl'''
         readstr_ = lambda x: x.lower() if x else ''
         letter = response.meta.get('letter')
-         
-        G = Game(response.selector.xpath('(//body/table)[3]/tr[td//text()[contains(., "Full title")]]/td[2]//text()').extract()[0])
+        assert isinstance(response, scrapy.http.response.html.HtmlResponse)
+        
+        G = Game(response.url, response.selector.xpath('(//body/table)[3]/tr[td//text()[contains(., "Full title")]]/td[2]//text()').extract()[0])
         if G.full_title.lower() == '[mod]':
             G.full_title = response.selector.xpath('(//body/table)[3]/tr[td//text()[contains(., "Full title")]]/td[2]//text()').extract()[1]
         
@@ -225,6 +234,26 @@ class WOSDataOnly(Spider):
             yield I
 
 
+class WOSFiles(CrawlSpider):
+    '''spider'''
+    name = "WOSFiles"
+    allowed_domains = ['archive.org']
+    fname = settings.FEED_URI
+    df = pd.read_csv('C:/temp/test1.csv')
+    #df = df.sort_values('count').drop_duplicates(['game_url']
+    
+    start_urls = D['url']
+
+    def parse(self, response):
+        '''handler of generated urls'''
+        #links = LinkExtractor(restrict_xpaths=('//a[contains(@href, "7z")]')).extract_links(response)
+        links = iolib.unpickle(PKL)
+        for link in links:
+            dl = Downloads()
+            dl['file_urls'] = [link.url]
+            dl['files'] = [link.text]
+            dl['filenames'] = [link.text]
+            yield dl
 
 
 
