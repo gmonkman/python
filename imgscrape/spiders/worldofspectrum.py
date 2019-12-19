@@ -10,6 +10,7 @@ from scrapy.spiders import Spider
 from scrapy.utils.response import open_in_browser
 import imgscrape.items as _items
 import imgscrape.pipelines as pipelines
+import imgscrape.settings as settings
 from funclib import stringslib
 
 U = 'unknown'
@@ -37,7 +38,7 @@ GAME_TYPES_ALL = {x.lower() for x in ["Adventure: Dungeon Crawl", "Adventure: Gr
 GAME_TYPES_KEEP = {x.lower() for x in ["Adventure: Dungeon Crawl", "Adventure: Graphic", "Adventure: RPG", "Adventure: Text", "Arcade: Action", "Arcade: Adventure", "Arcade: Gang beat-em-up", "Arcade: Solo beat-em-up", "Arcade: Maze", "Arcade: Pinball", "Arcade: Platform", "Arcade: Race 'n' Chase", "Arcade: Shoot-em-up", "Arcade: Vehicle", "Board Game", "Card Game", "Gambling: Games", "Gambling: Utilities", "Puzzle", "Quiz", "Simulation", "Sport: Action", "Sport: Management", "Strategy: Management", "Strategy: War", "Tactical Combat"]}
 
 
-LETTERS = '%s%s' % ('#', string.ascii_lowercase)
+LETTERS = settings.WorldOfSpectrumSettings.letters
 
 
 
@@ -75,14 +76,14 @@ class WOSDataOnly(Spider):
     source = 'www.worldofspectrum.org'
     allowed_domains = ['www.worldofspectrum.org']
     base_url = 'https://www.worldofspectrum.org'
-    start_urls = ['%s%s.html' % ('https://www.worldofspectrum.org/games/', x) for x in '%s%s' % ('1', string.ascii_lowercase)]    
+    start_urls = ['%s%s.html' % ('https://www.worldofspectrum.org/games/', x) for x in LETTERS]    
 
     def parse(self, response):
         '''generate links to pages in a board        '''
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
         assert len(LETTERS) == len(WOSDataOnly.start_urls), 'Setup list lengths DO NOT match'  
         for i, url in enumerate(WOSDataOnly.start_urls):
-            yield scrapy.Request(url, callback=self.crawl_letters, dont_filter=True, meta={'letter':LETTERS[i]})
+            yield scrapy.Request(url, callback=self.crawl_letters, dont_filter=False, meta={'letter':LETTERS[i]})
 
 
     def crawl_letters(self, response):
@@ -90,10 +91,8 @@ class WOSDataOnly(Spider):
         letter = response.meta.get('letter')
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
 
-        hrefs = response.selector.xpath('.//pre/a/@href').extract()
+        hrefs = response.selector.xpath('.//pre//a/@href').extract()
         hrefs = [response.urljoin(x) for x in hrefs]
-        #line_texts = response.selector.xpath('.//pre/a/following-sibling::text()[1]').extract()
-
         for i, href in enumerate(hrefs):
             yield scrapy.Request(href, callback=self.crawl_game, dont_filter=True, meta={'letter':letter})
 
@@ -108,9 +107,10 @@ class WOSDataOnly(Spider):
             G.full_title = response.selector.xpath('(//body/table)[3]/tr[td//text()[contains(., "Full title")]]/td[2]//text()').extract()[1]
         
         try:
-            G.is_mod = any(readstr_(response.selector.xpath('//*[text()[contains(., "[MOD]")]]')))
+            G.is_mod = any(response.selector.xpath('//*[text()[contains(., "[MOD]")]]'))
         except:
             G.is_mod = False
+        G.is_mod = int(G.is_mod)
 
         try:
             G.availability = readstr_(response.selector.xpath('(//body/table)[3]/tr[td//text()[contains(., "Availability")]]/td[2]//text()').extract()[0])
@@ -180,7 +180,7 @@ class WOSDataOnly(Spider):
                 G.download_weight = 0
             elif G.language not in ('english', '', U):
                 G.download_weight = 0
-            elif G.is_mod:
+            elif bool(G.is_mod):
                 G.download_weight = 0
             elif G.original_publication != 'commercial':
                 G.download_weight = 0
@@ -234,7 +234,7 @@ def readf(v):
     if isinstance(v, str):
         return v.lower()
 
-    if isinstance(v, (int, float)):
+    if isinstance(v, (int, float, bool)):
         return v
 
     if isinstance(v, (list, tuple, set)):
@@ -245,7 +245,7 @@ def readf(v):
         if isinstance(r, str):
             return r.lower()
 
-        if isinstance(r, (int, float)):
+        if isinstance(r, (int, float, bool)):
             return r
 
     return ''
