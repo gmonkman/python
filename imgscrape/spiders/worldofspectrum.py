@@ -52,7 +52,7 @@ LETTERS = settings.WorldOfSpectrumSettings.letters
 
 class Game():
     '''game cls'''
-    def __init__(self, game_url, full_title, year_released=U, publisher=U, machine_type=U, language=U, game_type=U, score=0, votes=0, availability=U, original_publication=U, letter=U, download_weight=None, rom_type='', is_mod=0, url='', origin=U):
+    def __init__(self, game_url, full_title, year_released=U, publisher=U, machine_type=U, language=U, game_type=U, score=0, votes=0, availability=U, original_publication=U, download_weight=None, rom_type='', is_mod=0, url='', origin=U):
         assert isinstance(full_title, str)
         if not isinstance(full_title, str): raise ValueError('Full title was not a string')
         if full_title is None: raise ValueError('Full title was None')
@@ -68,7 +68,6 @@ class Game():
         self.score = score
         self.votes = votes
         self.availability = availability.lower()
-        self.letter = letter.lower()
         self.download_weight = download_weight
         self.rom_type = rom_type.lower()
         self.is_mod = is_mod
@@ -85,6 +84,11 @@ class WOSDataOnly(Spider):
     allowed_domains = ['www.worldofspectrum.org']
     base_url = 'https://www.worldofspectrum.org'
     start_urls = ['%s%s.html' % ('https://www.worldofspectrum.org/games/', x) for x in LETTERS]    
+    custom_settings = {
+        'ITEM_PIPELINES': {'scrapy.pipelines.files.FilesPipeline': 1},
+        'FEED_FORMAT': 'csv',
+        'FEED_URI': 'file:.c:/temp/world_of_spectrum_games.csv'
+        }
 
     def parse(self, response):
         '''generate links to pages in a board        '''
@@ -155,7 +159,7 @@ class WOSDataOnly(Spider):
             G.score = stringslib.numbers_in_str2(readstr_(response.selector.xpath('(//body/table)[3]/tr[td//text()[contains(., "Score")]]/td[2]//text()').extract()[0]))[0]
         except:
             G.score = -1
-        if not isinstance(G.score, (float,int)): G.score = -1
+        if not isinstance(G.score, (float, int)): G.score = -1
 
         try:
             G.votes = stringslib.numbers_in_str(readf(response.selector.xpath('(//body/table)[3]/tr[td//text()[contains(., "Score")]]/td[2]//text()').extract()[1]), type_=int)[0]
@@ -199,7 +203,7 @@ class WOSDataOnly(Spider):
                 G.download_weight = 0
             
             if G.download_weight == 0:
-                G.url = 'n/a'
+                G.url = ''
                 G.rom_type = 'n/a'
                 G.origin = 'n/a'
                 Gs.append(deepcopy(G))
@@ -207,14 +211,14 @@ class WOSDataOnly(Spider):
                 if rows:
                     for i, r in enumerate(rows[1:]):  #first row is header
                         Gs.append(deepcopy(G))
-                        Gs[i].url = response.urljoin(readf(r.xpath('./td[3]//@href').extract()[0]))
+                        Gs[i].url = response.urljoin(readf(r.xpath('./td[3]//@href').extract()[0], lower=False))  #site downloads are case sensitive
                         Gs[i].rom_type = readf(r.xpath('./td[5]//text()').extract()[0])
                         Gs[i].origin = readf(r.xpath('./td[6]//text()').extract())
                         set_download_weight(Gs[i], z80_bonus)
                         Gs[i].download_weight = Gs[i].download_weight if Gs[i].url else 0 #if we havent got a link, force score to 0
                 else:
                     G.download_weight = 0
-                    G.url = 'No links'
+                    G.url = ''
                     G.rom_type = 'No links'
                     G.origin = 'No links'
                     Gs.append(deepcopy(G))
@@ -227,42 +231,53 @@ class WOSDataOnly(Spider):
             attrs = [attr for attr in dir(Gg) if not callable(getattr(Gg, attr)) and not attr.startswith("__")]
             for a in attrs:
                 s = getattr(Gg, a)
-                print('%s %s' % (a,s))
+                print('%s %s' % (a, s))
                 L.add_value(a, getattr(Gg, a))
         
             I = L.load_item()
             yield I
 
 
-#class WOSFiles(CrawlSpider):
-#    '''spider'''
-#    name = "WOSFiles"
-#    allowed_domains = ['archive.org']
-#    fname = settings.FEED_URI
-#    df = pd.read_csv('C:/temp/test1.csv')
-#    #df = df.sort_values('count').drop_duplicates(['game_url']
-    
-#    start_urls = D['url']
+class WOSFiles(CrawlSpider):
+    '''spider'''
+    name = "WOSFiles"
+    allowed_domains = ['archive.org']
+    start_urls = ['https://www.worldofspectrum.org/games/'] #just to kick it off
+    custom_settings = {
+            'ITEM_PIPELINES': {'imgscrape.pipelines.DownloadsArchivePipeline': 1},
+            'FILES_STORE': 'C:/temp/wos/downloads'
+            }
 
-#    def parse(self, response):
-#        '''handler of generated urls'''
-#        #links = LinkExtractor(restrict_xpaths=('//a[contains(@href, "7z")]')).extract_links(response)
-#        links = iolib.unpickle(PKL)
-#        for link in links:
-#            dl = Downloads()
-#            dl['file_urls'] = [link.url]
-#            dl['files'] = [link.text]
-#            dl['filenames'] = [link.text]
-#            yield dl
 
+    def parse(self, response):
+        '''handler of generated urls'''
+        #raise ValueError('Set the pipeline in settings.py')
+        df = pd.read_csv(settings.WorldOfSpectrumSettings.csv_file_feed_uri)
+        df.query('download_weight > 10', inplace=True)
+        df.query('score_weight > 280', inplace=True)
+        df.query('score > 7.5', inplace=True)
+        df.query('url != ""', inplace=True)
+
+
+        df = df.sort_values('download_weight').drop_duplicates(['game_url'], keep='last') #keep record with highest download weight
+        urls = df['url'].to_list()
+        filenames = [iolib.get_file_parts(x)[1] for x in urls]
+        for i, url in enumerate(urls):
+            if url is None: continue
+            dl = _items.Downloads()
+            dl['file_urls'] = [url]
+            dl['filenames'] = filenames[i]
+            yield dl
+            
 
 
 
 #HELPER  FUNCS
-def readf(v):
+def readf(v, lower=True):
     '''readf'''
+    l = lambda x: x.lower() if lower else x
     if isinstance(v, str):
-        return v.lower()
+        return l(v)
 
     if isinstance(v, (int, float, bool)):
         return v
@@ -273,7 +288,7 @@ def readf(v):
 
         r = v[0]
         if isinstance(r, str):
-            return r.lower()
+            return l(r)
 
         if isinstance(r, (int, float, bool)):
             return r
@@ -296,6 +311,9 @@ def set_score_weight(G):
     '''how good is the game'''
     assert isinstance(G, Game)
     try:
-        G.score_weight = G.score * G.votes
+        if G.score > -1 and G.votes > -1:
+            G.score_weight = G.score * G.votes
+        else:
+            G.score_weight = -1
     except:
         G.score_weight = -1

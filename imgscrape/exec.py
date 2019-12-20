@@ -46,6 +46,7 @@ process = CrawlerProcess(get_project_settings())
 #c = cbuk.CharterBoatUKBoatWalesScotlandTextSpider()
 #c = archive_mame.ArchiveDownloadSpider()
 c = wos.WOSDataOnly()
+#c = wos.WOSFiles()
 
 process.crawl(c, chkdup=True)
 process.start()

@@ -41,7 +41,6 @@ class ArchiveDownloadSpider(CrawlSpider):
         for link in links:
             dl = Downloads()
             dl['file_urls'] = [link.url]
-            dl['files'] = [link.text]
             dl['filenames'] = [link.text]
             yield dl
 
