@@ -234,26 +234,26 @@ class WOSDataOnly(Spider):
             yield I
 
 
-class WOSFiles(CrawlSpider):
-    '''spider'''
-    name = "WOSFiles"
-    allowed_domains = ['archive.org']
-    fname = settings.FEED_URI
-    df = pd.read_csv('C:/temp/test1.csv')
-    #df = df.sort_values('count').drop_duplicates(['game_url']
+#class WOSFiles(CrawlSpider):
+#    '''spider'''
+#    name = "WOSFiles"
+#    allowed_domains = ['archive.org']
+#    fname = settings.FEED_URI
+#    df = pd.read_csv('C:/temp/test1.csv')
+#    #df = df.sort_values('count').drop_duplicates(['game_url']
     
-    start_urls = D['url']
+#    start_urls = D['url']
 
-    def parse(self, response):
-        '''handler of generated urls'''
-        #links = LinkExtractor(restrict_xpaths=('//a[contains(@href, "7z")]')).extract_links(response)
-        links = iolib.unpickle(PKL)
-        for link in links:
-            dl = Downloads()
-            dl['file_urls'] = [link.url]
-            dl['files'] = [link.text]
-            dl['filenames'] = [link.text]
-            yield dl
+#    def parse(self, response):
+#        '''handler of generated urls'''
+#        #links = LinkExtractor(restrict_xpaths=('//a[contains(@href, "7z")]')).extract_links(response)
+#        links = iolib.unpickle(PKL)
+#        for link in links:
+#            dl = Downloads()
+#            dl['file_urls'] = [link.url]
+#            dl['files'] = [link.text]
+#            dl['filenames'] = [link.text]
+#            yield dl
 
 
 
