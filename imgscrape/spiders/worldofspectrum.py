@@ -6,7 +6,7 @@ import string
 from copy import deepcopy
 
 import scrapy
-from scrapy.spiders import Spider
+from scrapy.spiders import Spider, CrawlSpider
 from scrapy.utils.response import open_in_browser
 import pandas as pd
 
