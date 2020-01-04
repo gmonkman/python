@@ -62,8 +62,9 @@ def unpkl_links():
 def main():
 
     '''execute if script was entry point'''
-    browser = webdriver.Firefox()
-    wait = WebDriverWait(browser, 10)
+    #browser = webdriver.Firefox()
+    browser = webdriver.Chrome()
+    wait = WebDriverWait(browser, 20)
 
 
     class ElementHasChanged():
@@ -124,7 +125,7 @@ def main():
     PP = iolib.PrintProgress(unprocessed_urls)
     for url in unprocessed_urls:
         try:
-            sleep(random.uniform(1, 3) + 1)
+            sleep(random.uniform(0.5, 2) + 1)
             browser.get(url)
         
             #wait = WebDriverWait(browser, 2)
