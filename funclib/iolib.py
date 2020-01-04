@@ -712,6 +712,16 @@ def get_drive_from_uuid(uuid, strip=['-']):
     return None
 
 
+def folder_copy(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = _os.path.join(src, item)
+        d = _os.path.join(dst, item)
+        if _os.path.isdir(s):
+            _shutil.copytree(s, d, symlinks, ignore)
+        else:
+            _shutil.copy2(s, d)
+
+
 def folder_generator(paths):
     '''
     (str|iterable)->yield str
@@ -819,8 +829,8 @@ def file_list_generator_dfe(paths, wildcards, recurse=False):
 
 
     Example syntax:
-    >>>for folder, filename, extension, fullname in file_list_generator1('C:/temp', '*.txt', recurse=False):
-    >>>for folder, filename, extension, fullname in file_list_generator1(['C:/temp', 'C:/windows'], ['.bat', '.cmd'], recurse=True):
+    >>>for folder, filename, extension, fullname in file_list_generator_dfe('C:/temp', '*.txt', recurse=False):
+    >>>for folder, filename, extension, fullname in file_list_generator_dfe(['C:/temp', 'C:/windows'], ['.bat', '.cmd'], recurse=True):
     '''
     for fname in file_list_generator1(paths, wildcards, recurse):
         yield (*get_file_parts2(fname), fname)
