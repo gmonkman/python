@@ -1195,7 +1195,12 @@ class PrintProgress():
 
     def __init__(self, maximum=0, bar_length=30, init_msg='\n'):
         print(init_msg)
-        self.max = maximum
+
+        if isinstance(maximum, (int, float)):
+            self.max = int(maximum)
+        else:
+            self.max= len(maximum)
+
         self.bar_length = bar_length
         self.iteration = 1
         self.StopWatch = _StopWatch(event_name=init_msg)

@@ -23,7 +23,10 @@ _ERR_LIST = []
 _STALE_CNT = 0
 
 
+class Game():
+    score
 
+URLS = ['https://www.lemon64.com/?mainurl=https%3A//www.lemon64.com/games/details.php%3FID%3D' + ('000%s' % x)[-4:] for x in range(6, 4198)]
 def get_links(elements):
     '''get the four page links'''
     out = []

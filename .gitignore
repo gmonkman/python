@@ -461,8 +461,11 @@ pgnet-master/results/VOC2012/Main/_dummy
 pgnet-master/results/VOC2012/Layout/_dummy
 pgnet/scripts/session/*
 
-#PROJECT INIs
 
+#sea_angler_scrape
+sea_angler_scrape/config.py
+
+#PROJECT INIs
 mmodb/mmodb.ini
 pgnet/pgnet.ini
 

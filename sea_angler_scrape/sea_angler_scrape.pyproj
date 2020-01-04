@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{5a67df41-0498-4fa1-b3c7-c51cc2202a84}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>pdf2img.py</StartupFile>
+    <StartupFile>get_lemonc64.py</StartupFile>
     <SearchPath>..\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -24,9 +24,13 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="config.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="get_pdfs.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="get_lemonc64.py" />
     <Compile Include="get_pdf_links.py">
       <SubType>Code</SubType>
     </Compile>

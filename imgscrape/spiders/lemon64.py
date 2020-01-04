@@ -20,7 +20,7 @@ import funclib.pandaslib as pdlib
 
 U = 'unknown'
 
-ROM_TYPES = {'(perfect tzx tape image)':200, '((non-tzx) tap tape image)':100, '((non-tzx) z80 snapshot image)':50, '(tr-dos disk image)':25, '(zx interface 2 cartridge rom image dump)':13, '(+3 disk image)':12, U:1}
+#ROM_TYPES = {'(perfect tzx tape image)':200, '((non-tzx) tap tape image)':100, '((non-tzx) z80 snapshot image)':50, '(tr-dos disk image)':25, '(zx interface 2 cartridge rom image dump)':13, '(+3 disk image)':12, U:1}
 GAME_STATUS = {'':1, 'bugfix':100}
 AVAILABILITY = {'missing in action!':0, 'available':1, 'distribution denied':0, 'never released':0, U:0}
 ORIGIN_ALL = {'':0, 'original release':200, 're-release':50, U:0}
@@ -43,7 +43,7 @@ GAME_TYPES_ALL = {x.lower() for x in ["Adventure: Dungeon Crawl", "Adventure: Gr
 GAME_TYPES_KEEP = {x.lower() for x in ["Adventure: Dungeon Crawl", "Adventure: Graphic", "Adventure: RPG", "Adventure: Text", "Arcade: Action", "Arcade: Adventure", "Arcade: Gang beat-em-up", "Arcade: Solo beat-em-up", "Arcade: Maze", "Arcade: Pinball", "Arcade: Platform", "Arcade: Race 'n' Chase", "Arcade: Shoot-em-up", "Arcade: Vehicle", "Board Game", "Card Game", "Gambling: Games", "Gambling: Utilities", "Puzzle", "Quiz", "Simulation", "Sport: Action", "Sport: Management", "Strategy: Management", "Strategy: War", "Tactical Combat"]}
 
 
-LETTERS = settings.WorldOfSpectrumSettings.letters
+LETTERS = settings.Lemon64Settings.letters
 
 
 
@@ -77,24 +77,27 @@ class Game():
 
 
 
-class WOSDataOnly(Spider):
+class Lemon64DataOnly(Spider):
     '''spider'''
-    name = "WOSData"
-    source = 'www.worldofspectrum.org'
-    allowed_domains = ['www.worldofspectrum.org']
-    base_url = 'https://www.worldofspectrum.org'
-    start_urls = ['%s%s.html' % ('https://www.worldofspectrum.org/games/', x) for x in LETTERS]    
+    name = "lemon64data"
+    source = 'www.lemon64.org'
+    allowed_domains = ['www.lemon64.com']
+    base_url = 'https://www.lemon64.com'
+    start_urls = ['%s%s' % ('https://www.lemon64.com/?mainurl=https%3A//www.lemon64.com/games/list.php%3Ftitle%3D', x) for x in LETTERS]
+    #https://www.lemon64.com/?mainurl=https%3A//www.lemon64.com/games/list.php%3Ftitle%3DA%26page%3D3
+
+
     custom_settings = {
         'ITEM_PIPELINES': {'scrapy.pipelines.files.FilesPipeline': 1},
         'FEED_FORMAT': 'csv',
-        'FEED_URI': 'file:.c:/temp/world_of_spectrum_games.csv'
+        'FEED_URI': settings.Lemon64Settings.csv_file_feed_uri
         }
 
     def parse(self, response):
         '''generate links to pages in a board        '''
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
-        assert len(LETTERS) == len(WOSDataOnly.start_urls), 'Setup list lengths DO NOT match'  
-        for i, url in enumerate(WOSDataOnly.start_urls):
+        assert len(LETTERS) == len(Lemon64DataOnly.start_urls), 'Setup list lengths DO NOT match'  
+        for i, url in enumerate(Lemon64DataOnly.start_urls):
             yield scrapy.Request(url, callback=self.crawl_letters, dont_filter=False, meta={'letter':LETTERS[i]})
 
 
@@ -103,7 +106,7 @@ class WOSDataOnly(Spider):
         letter = response.meta.get('letter')
         assert isinstance(response, scrapy.http.response.html.HtmlResponse)
 
-        hrefs = response.selector.xpath('.//pre//a/@href').extract()
+        hrefs = response.selector.xpath('.//frame[@name="content"]//ul[@class="games"]/li/div[@class="gpic"]/a/@href').extract()
         hrefs = [response.urljoin(x) for x in hrefs]
         for i, href in enumerate(hrefs):
             yield scrapy.Request(href, callback=self.crawl_game, dont_filter=True, meta={'letter':letter})

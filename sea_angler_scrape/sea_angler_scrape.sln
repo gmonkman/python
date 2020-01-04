@@ -15,6 +15,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "dblib", "..\dblib\dblib.pyp
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "pytesseract", "..\pytesseract\pytesseract.pyproj", "{5A5C4B57-F03B-4E73-8508-8569C751613F}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "imgscrape", "..\imgscrape\imgscrape.pyproj", "{1D9B1083-600C-4118-83FD-DE48F0FD0B3B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,8 @@ Global
 		{357F2F6C-B6BF-4BB9-B3A3-E6B0130467A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A5C4B57-F03B-4E73-8508-8569C751613F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5A5C4B57-F03B-4E73-8508-8569C751613F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D9B1083-600C-4118-83FD-DE48F0FD0B3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D9B1083-600C-4118-83FD-DE48F0FD0B3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
