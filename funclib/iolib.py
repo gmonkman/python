@@ -5,6 +5,7 @@ Also for general IO to the console'''
 from __future__ import print_function as _print_function
 from warnings import warn as _warn
 from enum import Enum as _enum
+import errno as _errno
 
 import csv as _csv
 import glob as _glob
@@ -708,18 +709,32 @@ def get_drive_from_uuid(uuid, strip=['-']):
         return drives[uuid]
     if uuid.lower() in drives:
         return drives[uuid]
-
     return None
 
 
-def folder_copy(src, dst, symlinks=False, ignore=None):
-    for item in os.listdir(src):
-        s = _os.path.join(src, item)
-        d = _os.path.join(dst, item)
-        if _os.path.isdir(s):
-            _shutil.copytree(s, d, symlinks, ignore)
+def folder_copy(src, dest, ignore=()):
+    '''(str, str, list|tuple|None) -> None
+
+    Recursive copy of folder src to folder dest.
+    
+    Will fail if dest already exists.
+
+    This copies all files and folders BELOW dest.
+    '''
+    src = _os.path.normpath(src)
+    dest = _os.path.normpath(dest)
+    try:
+        if ignore:
+            _shutil.copytree(src, dest, ignore=_shutil.ignore_patterns(*ignore))
         else:
-            _shutil.copy2(s, d)
+            _shutil.copytree(src, dest)
+    except OSError as e:
+        # If the error was caused because the source wasn't a directory
+        if e.errno == _errno.ENOTDIR:
+            _shutil.copy(src, dest)
+        else:
+            print('Directory not copied. Error: %s' % e)
+
 
 
 def folder_generator(paths):

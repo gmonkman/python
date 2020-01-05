@@ -179,12 +179,12 @@ def dic_key_with_max_val(d):
 
 
 def dic_sort_by_val(d):
-    '''(dict) -> list
+    '''(dict, bool) -> list
     Sort a dictionary by the values,
     returning as a list
 
-    d:
-        dictionary
+    d: dictionary
+    as_dict: return as dictionary rather than list
 
     returns:
         list of tuples
@@ -193,7 +193,9 @@ def dic_sort_by_val(d):
         >>>dic_sort_by_val({1:1, 2:10, 3:22, 4:1.03})
         [(1, 1), (4, 1.03), (2, 10), (3, 22)]
     '''
-    return sorted(d.items(), key=_operator.itemgetter(1))
+    l = sorted(d.items(), key=_operator.itemgetter(1))
+    return l    
+    
 
 
 def dic_sort_by_key(d):

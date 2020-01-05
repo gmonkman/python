@@ -19,7 +19,7 @@ from sea_angler_scrape.config import Settings
 _LOG_FILE = 'c:/temp/get_lemon64.log'
 _ERR_FILE = 'c:/temp/get_lemon64.log'
 _GAMES_PKL = 'c:/temp/get_lemon64.pkl'
-
+_GAMES_ALL_PKL = 'c:/temp/c64games.pkl'
 
 
 
