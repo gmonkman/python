@@ -20,7 +20,7 @@ import funclib.pandaslib as pdlib
 
 U = 'unknown'
 
-ROM_TYPES = {'(perfect tzx tape image)':200, '((non-tzx) tap tape image)':100, '((non-tzx) z80 snapshot image)':50, '(tr-dos disk image)':25, '(zx interface 2 cartridge rom image dump)':13, '(+3 disk image)':12, U:1}
+ROM_TYPES = {'((non-tzx) z80 snapshot image)':200, '((non-tzx) tap tape image)':150, '(zx interface 2 cartridge rom image dump)':100, '(+3 disk image)':99, '(microdrive cartridge image)':90, '((non-tzx) slt snapshot image)':40, '(perfect tzx tape image)':25, '(tzx tape image)':10}
 GAME_STATUS = {'':1, 'bugfix':100}
 AVAILABILITY = {'missing in action!':0, 'available':1, 'distribution denied':0, 'never released':0, U:0}
 ORIGIN_ALL = {'':0, 'original release':200, 're-release':50, U:0}
@@ -255,8 +255,8 @@ class WOSFiles(CrawlSpider):
         df = pd.read_csv(settings.WorldOfSpectrumSettings.csv_file_feed_uri)
         #df.query('download_weight > 10', inplace=True)
         df.query('download_weight != download_weight', inplace=True)  #select nan hack https://stackoverflow.com/questions/26535563/querying-for-nan-and-other-names-in-pandas/26535887
-        df.query('score_weight > 280', inplace=True)
-        df.query('score > 7.5', inplace=True)
+        df.query('score_weight > 250', inplace=True)
+        df.query('score > 7', inplace=True)
         df.query('url != url', inplace=True)
         df.query('language == "english"', inplace=True)
         df.query('original_publication == "commercial"', inplace=True)
