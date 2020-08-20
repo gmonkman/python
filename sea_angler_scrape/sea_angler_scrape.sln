@@ -1,8 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29920.165
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{50A8900C-61E4-454B-BC04-25F85CA5DEB7}"
+	ProjectSection(SolutionItems) = preProject
+		..\.gitignore = ..\.gitignore
+	EndProjectSection
+EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "sea_angler_scrape", "sea_angler_scrape.pyproj", "{5A67DF41-0498-4FA1-B3C7-C51CC2202A84}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "funclib", "..\funclib\funclib.pyproj", "{EC8E1821-0C22-445E-AF07-22BBE247F71E}"
@@ -16,11 +21,6 @@ EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "pytesseract", "..\pytesseract\pytesseract.pyproj", "{5A5C4B57-F03B-4E73-8508-8569C751613F}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "imgscrape", "..\imgscrape\imgscrape.pyproj", "{1D9B1083-600C-4118-83FD-DE48F0FD0B3B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{50A8900C-61E4-454B-BC04-25F85CA5DEB7}"
-	ProjectSection(SolutionItems) = preProject
-		..\.gitignore = ..\.gitignore
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,5 +45,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8F675581-930E-4443-8384-40313F787430}
 	EndGlobalSection
 EndGlobal
