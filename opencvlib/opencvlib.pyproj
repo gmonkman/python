@@ -16,8 +16,7 @@
     </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
-    <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
-    <InterpreterVersion>3.5</InterpreterVersion>
+    <InterpreterId>Global|PythonCore|3.5</InterpreterId>
     <Environment>watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/lobster" -l "C:/development/python/opencvlib/bin/watershedhisto" -p LOBSTER
 watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/angler" -l "C:/development/python/opencvlib/bin/watershedhistobass" -p BASS
 watershed.py "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/crab-edible" -l "C:/development/python/opencvlib/bin/watershedhistocrab" -p CRAB
@@ -75,7 +74,6 @@ text_detect.py -i C:/temp/sa6.jpg -o C:/temp/sa6blocks.jpg -t   !#!# crap, use E
   </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
-    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="aruco.py">
@@ -456,10 +454,8 @@ text_detect.py -i C:/temp/sa6.jpg -o C:/temp/sa6blocks.jpg -t   !#!# crap, use E
     <Content Include="test\bin\movie\test-mpeg_512kb.mp4" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="{9a7a9026-48c1-4688-9d5d-e5699d47d074}\3.5" />
+    <InterpreterReference Include="Global|PythonCore|3.5" />
   </ItemGroup>
-  <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />
-  <Import Condition="!Exists($(PtvsTargetsFile))" Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
        Visual Studio and specify your pre- and post-build commands in
        the BeforeBuild and AfterBuild targets below. -->
@@ -468,4 +464,5 @@ text_detect.py -i C:/temp/sa6.jpg -o C:/temp/sa6blocks.jpg -t   !#!# crap, use E
   </Target>
   <Target Name="AfterBuild">
   </Target>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

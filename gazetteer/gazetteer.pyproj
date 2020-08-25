@@ -11,8 +11,6 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId />
-    <InterpreterVersion />
     <CommandLineArguments>"C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/backup/facilities_all.kml" -d</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <Environment>kml_lookup.py "C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/backup/facilities_all.kml" -a
@@ -22,7 +20,6 @@ kml_write_facilities.py "C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/b
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <PropertyGroup>
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
-    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="gazlib.py">
@@ -52,6 +49,5 @@ kml_write_facilities.py "C:/Users/Graham Monkman/OneDrive/Documents/MMOMapping/b
     <Folder Include="test\" />
     <Folder Include="test\bin\" />
   </ItemGroup>
-  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>
