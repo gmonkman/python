@@ -159,9 +159,9 @@ class DictList(dict):
 # endregion
 
 
-def dic_merge_two(x, y):
+def dic_merge_two(x_, y):
     '''Given two dicts, merge them into a new dict as a shallow copy.'''
-    z = x.copy()
+    z = x_.copy()
     z.update(y)
     return z
 # endregion
@@ -213,8 +213,8 @@ def dic_sort_by_key(d):
     >>>dic_sort_by_key({1:1, 4:10, 3:22, 2:1.03})
     [(1,1), (2,1.03), (3,22), (4,10)]
     '''
-    out = sorted(d.items(), key=_operator.itemgetter(0))
-    return out
+    out_ = sorted(d.items(), key=_operator.itemgetter(0))
+    return out_
 
 
 def dic_match(a, b):
@@ -329,7 +329,7 @@ def list_index(list_, val):
     >>>list_index([1,2,3], 5)
     None
     '''
-    return list_.index(x) if x in list_ else None
+    return list_.index(val) if val in list_ else None
 
 
 def list_get_dups(l, thresh=3):
@@ -344,11 +344,11 @@ def list_get_dups(l, thresh=3):
     {4:3}
     '''
     my_dict = {i:l.count(i) for i in l}
-    out = dict(my_dict)
+    out_ = dict(my_dict)
     for k, v in my_dict.items():
         if v < thresh:
-            del(out[k])
-    return out
+            del(out_[k])
+    return out_
 
 
 
@@ -518,10 +518,10 @@ def list_get_unique(list_in):
     If order is not important sets can be used
     #https://stackoverflow.com/questions/7961363/removing-duplicates-in-lists
     '''
-    out = []
-    for x in list_in:
-        list_append_unique(out, x)
-    return out
+    out_ = []
+    for x_ in list_in:
+        list_append_unique(out_, x_)
+    return out_
 
 
 def list_flatten(items, seqtypes=(list, tuple)):
@@ -601,8 +601,8 @@ def isIterable(i, strIsIter=False, numpyIsIter=False):
 
     if isinstance(i, _np.ndarray) and numpyIsIter is False:
         return False
-    out = isinstance(i, _collections.Iterable)
-    return out
+    out_ = isinstance(i, _collections.Iterable)
+    return out_
 
 
 def item_from_iterable_by_type(iterable, match_type):
@@ -615,20 +615,19 @@ def item_from_iterable_by_type(iterable, match_type):
             if isinstance(iterable, match_type):
                 return i
             return None
-    out = iterable if isinstance(iterable, match_type) else None
-    return out
+    return iterable if isinstance(iterable, match_type) else None
 
 
-def isempty(x):
+def isempty(x_):
     '''(something)->bool
     Check of a variable looks empty
     '''
     try:
-        if isinstance(x, _np.ndarray):
-            return x.size == 0
-        if x is None: return True
-        if x == '': return True
-        if not x: return True
+        if isinstance(x_, _np.ndarray):
+            return x_.size == 0
+        if x_ is None: return True
+        if x_ == '': return True
+        if not x_: return True
     except Exception:
         assert False #how did we get here?
         return True
@@ -672,6 +671,6 @@ def is_int(s):
     
 
 if __name__ == "__main__":
-    out = list_get_dups([1,1,2,3,4,4,4], 3)
+    out__ = list_get_dups([1,1,2,3,4,4,4], 3)
     x = 1
     

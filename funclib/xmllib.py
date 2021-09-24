@@ -45,7 +45,7 @@ class XML():
             text = t.text.strip()
             if children or t.attrib:
                 if text:
-                  d[t.tag]['#text'] = text
+                    d[t.tag]['#text'] = text
             else:
                 d[t.tag] = text
         return d

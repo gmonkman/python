@@ -7,7 +7,7 @@ import os.path as _path
 
 import funclib.iolib as iolib
 
-import numpy as np
+
 import pandas as pd
 import funclib.pandaslib as pdl
 import funclib

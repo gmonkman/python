@@ -344,7 +344,7 @@ def _time_pretty(seconds):
     sign_string = '-' if seconds < 0 else ''
     
     if seconds < 10:
-       return format(seconds, '.2f') + 's'
+        return format(seconds, '.2f') + 's'
 
     seconds = abs(_rndnorm(seconds))
     days, seconds = divmod(seconds, 86400)

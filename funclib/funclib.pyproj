@@ -5,18 +5,21 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ec8e1821-0c22-445e-af07-22bbe247f71e}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>test\test_stringslib.py</StartupFile>
-    <SearchPath>..\</SearchPath>
+    <StartupFile>scripts\path_export.py</StartupFile>
+    <SearchPath>..\..\python</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>Global|PythonCore|3.5</InterpreterId>
     <IsWindowsApplication>False</IsWindowsApplication>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>"S:\SPECIAL-ACL\ERAMMP2 Survey Restricted" C:\TEMP\folder_list.csv</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <Environment>del_blank_lines.py "F:/VOC2012/cropped/ts.csv" ts_emptyless.csv</Environment>
+    <Environment>del_blank_lines.py "F:/VOC2012/cropped/ts.csv" ts_emptyless.csv
+path_export C:\TEMP C:\TEMP\folder_list.csv</Environment>
+    <SuppressEnvironmentCreationPrompt>True</SuppressEnvironmentCreationPrompt>
+    <TestFramework>unittest</TestFramework>
+    <SuppressPackageInstallationPrompt>True</SuppressPackageInstallationPrompt>
+    <InterpreterId>Global|PythonCore|3.7</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -64,6 +67,13 @@
     <Compile Include="scripts\del_blank_lines.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="scripts\img_merge.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripts\path_export.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="scripts\pdf_merge.py" />
     <Compile Include="shell_lib.py" />
     <Compile Include="statslib.py" />
     <Compile Include="stopwatch.py" />
@@ -87,9 +97,6 @@
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="Global|PythonCore|3.5" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="pylintrc" />
     <Content Include="requirements.txt" />
     <Content Include="test\bin\fish.xlsx" />
@@ -100,6 +107,10 @@
     <Folder Include="test\" />
     <Folder Include="scripts\" />
     <Folder Include="test\bin\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.7" />
+    <InterpreterReference Include="Global|VisualStudio|arcgispro-py3" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

@@ -45,7 +45,7 @@ class CSVIo():
 
     def read(self, val_funct=lambda val: val):
         '''use val_funct to operate on all the values before as they are read in'''
-        with open(self.filepath, 'rU') as f:
+        with open(self.filepath, 'rU', encoding='utf-8') as f:
             raw_csv = _csv.DictReader(f)
             for row in raw_csv:
                 row = {key: val_funct(val) for key, val in row.items()}
@@ -57,7 +57,7 @@ class CSVIo():
         '''save'''
         if not filepath:
             filepath = self.filepath
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             writer = _csv.DictWriter(f, self.rows[0].keys())
             writer.writeheader()
             for row in self.rows:
@@ -255,7 +255,7 @@ def write_to_eof(filename, thetext):
     Write thetext to the end of the file given in filename.
     '''
     try:
-        with open(filename, 'a+') as fid:
+        with open(filename, 'a+', encoding='utf-8') as fid:
             fid.write(thetext)
     except Exception as _:
         pass
@@ -278,7 +278,7 @@ def readcsv_as_dict(filename, first_row_as_key=True, error_on_dup_key=False):
     '''   
     result = {}
     filename = _os.path.normpath(filename)
-    with open(filename) as csvfile:
+    with open(filename, encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile, skipinitialspace=True)
         if first_row_as_key:
 
@@ -303,7 +303,7 @@ def readcsv_as_dict(filename, first_row_as_key=True, error_on_dup_key=False):
 
 
 def readcsv(filename, cols=1, startrow=0, numericdata=False):
-    '''(_string, int, bool, int, bool) -> list
+    '''(string, int, bool, int, bool) -> list
     Reads a _csv file into a list.
     
     cols:Number of columns to retrieve, DOES NOT support any fancy indexing
@@ -340,7 +340,7 @@ def readcsv(filename, cols=1, startrow=0, numericdata=False):
                     else:
                         data[items].append(row[items])
     elif _sys.version_info.major == 3:
-        with open(filename, newline='') as csvfile:  # open the file, and iterate over its data
+        with open(filename, newline='', encoding='utf-8') as csvfile:  # open the file, and iterate over its data
             csvdata = _csv.reader(csvfile)  # tell python that the file is a _csv
             for i in range(0, startrow):  # skip to the startrow
                 next(csvdata)
@@ -359,7 +359,7 @@ def readcsv(filename, cols=1, startrow=0, numericdata=False):
 
 
 def writecsv(filename, datalist, header=[], inner_as_rows=True, append=False, skip_first_row_if_file_exists=False):
-    '''(_string, list, list, bool, bool) -> Void
+    '''(string, list, list, bool, bool) -> Void
     Writes a list to filename.
     ---
     inner_as_rows == True
@@ -380,10 +380,10 @@ def writecsv(filename, datalist, header=[], inner_as_rows=True, append=False, sk
 
     try:
         if append:
-            csvfile = open(filename, 'a', newline='')
+            csvfile = open(filename, 'a', newline='', encoding='utf-8')
         else:
-            csvfile = open(filename, 'w', newline='')
-    except FileNotFoundError as e:
+            csvfile = open(filename, 'w', newline='', encoding='utf-8')
+    except FileNotFoundError as _:
         print("Could not create file %s, check the file's folder exists." % filename)
         return
     except Exception as e:
@@ -831,7 +831,7 @@ def file_list_generator1(paths, wildcards, recurse=False):
 def file_list_generator_dfe(paths, wildcards, recurse=False):
     '''(str|iterable, str|iterable, bool) -> yields str, str, str, str
     Takes path(s) and wildcard(s), yielding the
-    directorty, filename and extension.
+    directory, filename and extension.
 
     paths:
         Single path or list/tuple of paths
@@ -1011,7 +1011,7 @@ def write_to_file(results, prefix='', open_in_npp=True, full_file_path='', sep='
 
    # n = '\r\n' if _get_platform() == 'windows' else '\n'
 
-    with open(filename, 'w+') as f:
+    with open(filename, 'w+', encoding='utf-8') as f:
         if isinstance(results, str):
             f.write(results)
         else:
@@ -1224,8 +1224,8 @@ class PrintProgress():
         if isinstance(maximum, (int, float)):
             self.max = int(maximum)
         else:
-            self.max= len(maximum)
-
+            self.max = len(maximum)
+        self.suffix = ''
         self.bar_length = bar_length
         self.iteration = 1
         self.StopWatch = _StopWatch(event_name=init_msg)
@@ -1310,7 +1310,7 @@ def quite(stdout=True, stderr=True):
     '''(bool, bool) -> void
     Stop messages and errors being sent to the console
     '''
-    with open(_os.devnull, "w") as devnull:
+    with open(_os.devnull, "w", encoding="utf-8") as devnull:
         old_stdout = _sys.stdout
         old_stderr = _sys.stderr
         if stdout:
