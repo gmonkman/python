@@ -19,5 +19,5 @@ def load(filepath, dicttype=dict):
     Custom dictionary classes are in baselib
     '''
     pth = _path.normpath(filepath)
-    with open(pth) as data_file:
+    with open(pth, encoding="utf-8") as data_file:
         return dicttype(_json.load(data_file))

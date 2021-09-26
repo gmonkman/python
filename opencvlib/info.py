@@ -378,3 +378,36 @@ def check(img, enum_types):
             image_enums.append(eImgType.COLOR_UNKNOWN)
 
     return not bool(_list_not(enum_types, image_enums))
+
+
+def isbright(image, dim=20, thresh=0.5):
+    '''(ndarray, int, float) -> bool
+    Check if an image is bright
+    image: ndarray
+    dim: resize dimensions to reduce computation
+    thresh: 0-1, threshhold to test if image is bright.
+
+    Returns: bool,  1 is bright. 0 is not
+    '''
+
+    # Resize image to 10x10
+    image = _cv2.resize(image, (dim, dim))
+
+    # Convert color space to LAB format and extract L channel
+    L, A, B = _cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2LAB))
+
+    # Normalize L channel by dividing all pixel values with maximum pixel value
+    L = L/np.max(L)
+    # Return True if mean is greater than thresh else False
+    return np.mean(L) > thresh
+
+
+def isblurry(image, thresh=100):
+    '''(ndarray, float) -> bool
+    Detect if an image is blurry.
+    image: ndarray
+    thresh: float
+    Returns: bool, true if the laplacian is less than thresh.
+    '''
+    l = _cv2.Laplacian(image, _cv2.CV_64F).var()
+    return l < thresh

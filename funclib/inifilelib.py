@@ -77,8 +77,7 @@ class ConfigFile():
             if force_create:
                 if isinstance(value_on_create, dict):
                     self._config.set(section, option, str(value_on_create))
-                else:
-                    value_on_create = value_on_create
+
                 self.save()
                 return astype(value_on_create)
 
@@ -112,7 +111,7 @@ class ConfigFile():
 
     def save(self):
         '''save the config to disk'''
-        with open(self.ini_file, 'w') as tmp:
+        with open(self.ini_file, 'w', encoding='utf-8') as tmp:
             self._config.write(tmp)
 
 

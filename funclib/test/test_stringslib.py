@@ -1,8 +1,8 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, unused-variable
 
 '''unit tests for features'''
 import unittest
-import time
+
 
 from inspect import getsourcefile as _getsourcefile
 import os.path as _path
@@ -27,7 +27,7 @@ class Test(unittest.TestCase):
         '''testfunc'''
         s = 'EVERY FRIDAY - FOURPENCE \nPrinted & published at Newspaper House, Broadway. Peterborougli \n'
         out = stringslib.filter_alphanumeric1(s, remove_single_quote=True, remove_double_quote=True, allow_cr=False, allow_lf=False).strip()
-        x = 1
+        print(out)
 
     def test_numbersinstring(self):
         s = '\n12.23'

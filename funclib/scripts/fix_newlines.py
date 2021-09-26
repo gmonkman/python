@@ -50,8 +50,8 @@ def main():
                                    1] + suffix + _get_file_parts(f)[2])
                 copyfile(f, backup)
 
-            fileContents = open(f, "r").read()
-            with open(f, 'w', newline=None) as myfile:
+            fileContents = open(f, "r", encoding="utf-8").read()
+            with open(f, 'w', newline=None, encoding="utf-8") as myfile:
                 myfile.write(fileContents)
         except Exception as e:
             print('Newline fix for file %s failed. The error was %s' % (f, str(e)))

@@ -36,7 +36,7 @@ def main():
     msg = 'Opening file %s\n' % fname
     P = PPF(ticks=None, msg=msg)
     if path.isfile(fname):
-        with open(fname, 'r') as infile, open(outname, 'w') as outfile:
+        with open(fname, 'r', encoding="utf-8") as infile, open(outname, 'w') as outfile:
             for line in infile:
                 P.update()
                 if not line.isspace() and not line == '\n':
