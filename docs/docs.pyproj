@@ -10,6 +10,7 @@
     <OutputPath>.</OutputPath>
     <Name>docs</Name>
     <RootNamespace>docs</RootNamespace>
+    <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,6 +21,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="scripts\img2pdf.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="topdf.py" />
     <Compile Include="test\test_docs.py">
       <SubType>Code</SubType>
@@ -29,6 +33,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="scripts\" />
     <Folder Include="test\" />
     <Folder Include="test\bin\" />
     <Folder Include="test\bin\images\" />

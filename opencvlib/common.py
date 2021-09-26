@@ -31,6 +31,9 @@ IMAGE_EXTENSIONS_DOTTED = ['.bmp', '.jpg', '.jpeg',
 IMAGE_EXTENSIONS_SANS_DOT = ['bmp', 'jpg', 'jpeg',
                     'png', 'tif', 'tiff', 'pbm', 'pgm', 'ppm']
 
+IMAGE_EXTENSIONS_WILDCARDED = ['*.bmp', '*.jpg', '*.jpeg',
+                    '*.png', '*.tif', '*.tiff', '*.pbm', '*.pgm', '*.ppm']
+
 class Bunch(object):
     def __init__(self, **kw):
         self.__dict__.update(kw)

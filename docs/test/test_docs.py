@@ -26,28 +26,20 @@ class Test(unittest.TestCase):
         img2pdf_layout = img2pdf.get_layout_fun((img2pdf.mm_to_pt(210), img2pdf.mm_to_pt(297)))
 
 
-        pth = _path.normpath('%s/%s' % (self.test_images_path, 'x1_image.pdf'))
-        with open(pth, "wb") as f:
-            f.write(img2pdf.convert(self.x1_image_path, layout_fun=img2pdf_layout))
-        
-        pth = _path.normpath('%s/%s' % (self.test_images_path, 'x5_image.pdf'))
-        with open(pth ,"wb") as f:
-            f.write(img2pdf.convert(self.x5_image_path, layout_fun=img2pdf_layout))
-
-        pth = _path.normpath('%s/%s' % (self.test_images_path, 'x1_x5_image.pdf'))
-        with open(pth, "wb") as f:
-            f.write(img2pdf.convert([self.x1_image_path, self.x5_image_path], layout_fun=img2pdf_layout))
 
 
 
     #@unittest.skip("Temporaily disabled while debugging")
-    def test_basic(self):
-        '''test cropping stacks'''
-        x = 1
+    def test_merge_image(self):
+        rootdir = 'C:/temp/imgs'
+        pdf, tmpdir, files = topdf.merge_img(rootdir,label_with_file=True, keep_tmp_images=True, overwrite=True)
+        
+
+    #@unittest.skip("Temporaily disabled while debugging")
+    def test_merge_pdfs(self):
+        rootdir = 'C:/temp/pdfs'
+        pdfname = topdf.merge_pdf(rootdir,recurse=False,outfile='C:/temp/pdfs/all.pdf')
         pass
-
-
-
 
 
 if __name__ == '__main__':

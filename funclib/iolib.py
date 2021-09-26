@@ -908,9 +908,12 @@ def files_delete(folder, delsubdirs=False):
             print('Could not clear summary file(s). They are probably being used by tensorboard')
 
 
-def get_temp_fname(suffix='', prefix=''):
+def get_temp_fname(suffix='', prefix='', name_only=False):
     '''get a temp filename'''
-    return _tempfile.mktemp(suffix, prefix)
+    f = _tempfile.mktemp(suffix, prefix)
+    if name_only:
+        _, f, _ = get_file_parts2(f)
+    return f
 
 
 def get_file_name2(fld, ext, length=3):
@@ -929,7 +932,7 @@ def get_file_name2(fld, ext, length=3):
         if not file_exists(s):
             break
         n += 1
-        if n > 100:
+        if n > 20:
             raise StopIteration('Too many iterations creating unique filename')
     return s
 
@@ -1026,6 +1029,28 @@ def write_to_file(results, prefix='', open_in_npp=True, full_file_path='', sep='
         else:
             print('Option to open in NPP only available on Windows.')
     return filename
+
+
+def file_count2(pth, match='*'):
+    '''(str, str|iter) -> int
+    Get count of files in a folder.
+
+    pth: The folder to count
+    match: string or list of strings to feed into the glob (i.e. only count files which match the wildcard
+
+    Example:
+    file_count('C:\temp', '*.txt')
+    file_count('C:\temp', ['*.txt', '*.csv'])
+    '''
+    cnt = 0
+    if type(match) is str:
+        f = _os.path.normpath('%s/%s' % (pth, match))
+        cnt = sum(1 for _ in _os.path.glob(f))
+    else:
+        for s in match:
+            f = _os.path.normpath('%s/%s' % (pth, s))
+            cnt += sum(1 for _ in _glob.glob(f)) 
+    return cnt
 
 
 def file_copy(src, dest, rename=False, create_dest=True, dest_is_folder=False):
