@@ -63,6 +63,8 @@ tf_obj_det.py -r 30 -v -x 10 -f -p charter -c fujifilm -o detection_ssdlite_mobi
 tf_detect_fld.py -x -s -v INFO "C:/Users/Graham Monkman/OneDrive/Documents/PHD/images/bass/fiducial/train/negs_tf" "C:/tf/pretrained/bass/ssdlite_mobilenet_v2/run2/frozen_inference_graph.pb" "C:/tf/bass/bass_label_map.pbtxt"
 
 text_detect.py -i C:/temp/sa6.jpg -o C:/temp/sa6blocks.jpg -t   !#!# crap, use EAST package !#!#</Environment>
+    <SuppressEnvironmentCreationPrompt>True</SuppressEnvironmentCreationPrompt>
+    <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

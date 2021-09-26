@@ -1,7 +1,5 @@
 # pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument, too-many-nested-blocks
 '''Write facilities to SQL
-Example:
-kml_lookup.py "C:/temp.kml"
 '''
 import argparse
 import os.path as path
