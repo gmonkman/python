@@ -553,8 +553,8 @@ def crop(img, region, eRegfmt=eRegionFormat.RCHW, around_point=None, allow_crop_
     return i
 
 
-def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
-    '''(ndarray|str, int, int, constant)->ndarray
+def resize(image, width=None, height=None, inter=_cv2.INTER_AREA, do_not_grow=False):
+    '''(ndarray|str, int, int, constant, bool)->ndarray
     Resize an image, to width or height, maintaining the aspect.
 
     image:
@@ -565,6 +565,8 @@ def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
         height of image
     inter:
         interpolation method
+    do_not_grow:
+        do not increase the image size
 
     Returns:
         An image
@@ -573,13 +575,23 @@ def resize(image, width=None, height=None, inter=_cv2.INTER_AREA):
         Returns original image if width and height are None.
         If width or height or provided then the image is resized
         to width or height and the aspect ratio is kept.
+
+        If both width and height are provided, then the image is resized to that width & height
     '''
     image = _getimg(image)
     dim = None
     (h, w) = image.shape[:2]
-    image = _getimg(image)
+
     if width is None and height is None:
         return image
+
+    if do_not_grow:
+        if height and width:
+            if h <= height and w <= width: return image
+        if height and not width:
+            if h <= height: return image
+        if width and w <= width: return image
+
 
     if width is not None and height is not None:
         dim = (width, height)

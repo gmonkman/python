@@ -4,13 +4,19 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>01604238-485a-4352-b33d-fea5aed3bff8</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test\test_docs.py</StartupFile>
+    <StartupFile>scripts\pdf_chunk_merge.py</StartupFile>
     <SearchPath>..\..\python</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>docs</Name>
     <RootNamespace>docs</RootNamespace>
     <TestFramework>unittest</TestFramework>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <CommandLineArguments>C:\TEMP\pdfs C:\TEMP 3 -o</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <Environment>imgmerge C:\TEMP\images -r -o
+imgmerge '\\nercwlctdb\Projects\PROJECTS1\NEC06941_LTS-S_UK-SCaPE_WP1.3_WP1.4_Field_Survey\WP1.3 &amp; 1.4_Field_Survey\Year 3 2021\Square document packs Winter 2021\Not yet visited\Photos'
+pdf_chunk_merge C:\TEMP\pdfs C:\TEMP 3 -o</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +27,8 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="scripts\img2pdf.py">
+    <Compile Include="scripts\pdf_chunk_merge.py" />
+    <Compile Include="scripts\imgmerge.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="topdf.py" />

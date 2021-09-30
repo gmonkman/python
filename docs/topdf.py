@@ -4,6 +4,7 @@ __doc__ = ('Routines for the manipulation of various documents')
 
 import os.path as _path
 import shutil as _shutil
+from warnings import warn as _warn
 
 #from PyPDF2 import PdfFileMerger as _pdfmerge
 import numpy as _np
@@ -24,15 +25,17 @@ _cInfo = _info.ImageInfo()
 
 
 class a4():
+    #x,y
     dpi72 = (595, 842)
+    dpi150 = (1240, 1754)
     dpi300 = (2480, 3508)
     dpi600 = (4960, 7016)
     size_cm = (21.0, 29.7)
     size_inches = (8.3, 11.7)
     layout = _img2pdf.get_layout_fun((_img2pdf.mm_to_pt(210), _img2pdf.mm_to_pt(297)))
+    layout_margin = _img2pdf.get_layout_fun((_img2pdf.mm_to_pt(168), _img2pdf.mm_to_pt(238)))
 
-
-
+    
 def _rotate_img(im):
     '''(ndarray) -> ndarry
     helper routine, rotate image so it fits on portrait a4
@@ -90,9 +93,32 @@ def merge_pdf(rootdir, find='', out_file='', recurse=False):
     return out_file
     
 
+def merge_pdf_by_list(pdfs, out_file):
+    '''(iter, str, str) -> void
+    Finding and merge all pdfs in the iterable pdfs
 
-def merge_img(rootdir, find='', pdf_file_name='', overwrite=False, label_with_file=False, label_with_fld=False, keep_tmp_images=False):
-    '''(str, str|iter, str, bool, bool,bool, bool) -> str, str, list
+    pdfs: iterable of fully qualified pdf file names
+    out_file: full qualified name to call the merged pdf
+
+    Returns: None
+
+    Example:
+    pdfs = ('c:\temp\1.pdf', 'c:\temp\2.pdf', 'c:\temp\3.pdf')
+    merge_pdf_by_list(pdfs, 'c:\temp\1_2_3.pdf')
+    '''
+
+    rootdir = _path.normpath(rootdir)
+    basefld = _path.basename(rootdir)
+
+    merger = PdfFileMerger()
+    _ = (merger.append(open(_path.normpath(pdf), 'rb')) for pdf in pdfs)
+
+    with open(_path.normpath(out_file), 'wb') as fout:
+        merger.write(fout)
+
+
+def merge_img(rootdir, find='', save_to_folder='', pdf_file_name='', overwrite=False, label_with_file=False, label_with_fld=False, keep_tmp_images=False):
+    '''(str, str|iter, str, bool, bool,bool, bool, int, int) -> str|None, str|None, list|None
     Find all images in rootdir then merge into a single pdf.
 
     rootdir: root folder
@@ -104,32 +130,46 @@ def merge_img(rootdir, find='', pdf_file_name='', overwrite=False, label_with_fi
     keep_tmp_images: do not delete the temporary images folder
 
     Returns: pdf file name, temporary folder used to save adjusted images to, list of matched images
+
+    Example:
+    _, _, _ = merge_img('C:\temp\images', 'C:\temp', ('IMG','PIC'), 'merged.pdf')
     '''
     files = []
     rootdir = _path.normpath(rootdir)
+
+    n = _iolib.file_count2(rootdir, _common.IMAGE_EXTENSIONS_WILDCARDED)
+    if n == 0:
+        print('No images in folder %s.' % rootdir )
+        return None, None, None
+
     base_fld = _path.basename(rootdir)
     tmp_fld = _iolib.temp_folder() #get temp folder now so we can use it later
     _iolib.create_folder(tmp_fld)
     fp = _gen.FromPaths(rootdir)
-    n = _iolib.file_count2(rootdir, _common.IMAGE_EXTENSIONS_WILDCARDED)
+
     PP = _iolib.PrintProgress(maximum = n)
     for img, pth, _ in fp.generate(recurse=False):
         img = _rotate_img(img)
+
+        w, h = a4.dpi72
+        img = _transforms.resize(img, height=h, do_not_grow=True)
+        img = _transforms.resize(img, width=w, do_not_grow=True)
+
         fld, fname, ext = _iolib.get_file_parts(pth)
 
-        if find != '':
+        if find:
             if not find.lower() in fname.lower():
                 PP.increment()
                 continue
 
-        img = _transforms.equalize_hist(img)
+        #img = _transforms.histeq_color(img)
 
         lbl = []
         if label_with_fld: lbl.append(base_fld)
         if label_with_file: lbl.append(_build_lbl(fname))
 
         if lbl:
-            s = ' '.join(label)
+            s = ' '.join(lbl)
             _common.draw_str(img, 10, 10, s, color = (0, 0, 0), scale=1.2, box_background=(255,255,255))
         
         fname = _path.normpath(tmp_fld + '/' + _iolib.get_temp_fname(suffix='.png', name_only=True)) #png expected to give better results
@@ -141,15 +181,19 @@ def merge_img(rootdir, find='', pdf_file_name='', overwrite=False, label_with_fi
 
        
     #now make the pdf
-    if pdf_file_name == '':
-        pdf_file_name = '%s/%s' % (rootdir, base_fld + '.pdf')
+    if not pdf_file_name:
+        if save_to_folder:
+            pdf_file_name = '%s/%s' % (save_to_folder, base_fld + '.pdf')
+        else:
+            pdf_file_name = '%s/%s' % (rootdir, base_fld + '.pdf')
+
     pdf_file_name = _path.normpath(pdf_file_name)
 
     if not overwrite and _iolib.file_exists(pdf_file_name):
         raise FileExistsError('PDF file %s exists.' % pdf_file_name)
 
     with open(pdf_file_name, "wb") as f:
-        f.write(_img2pdf.convert(files, layout_fun=a4.layout))
+        f.write(_img2pdf.convert(files, layout_fun=a4.layout_margin))
     
     if not keep_tmp_images:
         _shutil.rmtree(tmp_fld, ignore_errors=True)

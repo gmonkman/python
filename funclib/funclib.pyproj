@@ -11,7 +11,6 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>Global|PythonCore|3.5</InterpreterId>
     <IsWindowsApplication>False</IsWindowsApplication>
     <CommandLineArguments>
     </CommandLineArguments>
@@ -87,9 +86,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="__init__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <InterpreterReference Include="Global|PythonCore|3.5" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="pylintrc" />

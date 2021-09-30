@@ -747,7 +747,7 @@ def folder_generator(paths):
 
     paths = [_os.path.normpath(p) for p in paths]
     for pth in paths:
-        for fld, dummy, dummy1 in _os.walk(pth):
+        for fld, _, _ in _os.walk(pth):
             yield fld
 
 
