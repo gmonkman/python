@@ -8,11 +8,6 @@ import funclib.iolib as _iolib
 import funclib.stringslib as _stringslib
 
 
-def _clean(lst):
-    '''clean list'''
-    return  [_stringslib.filter_alphanumeric1(s, strict=True, remove_double_quote=True, remove_single_quote=True).lower() for s in lst]
-
-
 def get_species_as_dict_all():
     '''get species as a dict
     where the keys are the "proper" name
@@ -98,10 +93,23 @@ def get_species_bream_unspecified():
 
 
 
-
+def _clean(lst):
+    '''clean list'''
+    return  [_stringslib.filter_alphanumeric1(s, strict=True, remove_double_quote=True, remove_single_quote=True).lower() for s in lst]
 
 def _read_rows(rows):
-    '''read rows'''
+    '''(2-list)->dict
+    Read list (row) returned from sqlalchemy.execute
+    into a dict, where first col has just keys and
+    second row is the key values
+
+    rows: 2-n list
+
+    Example
+    >>> rows = [['a',1],['a',2],['c',10]]
+    >>> _read_rows(rows)
+    >>> {'a':[1,2], 'c':[10]}
+    '''
     out = {}
     for r in rows:
         key = r[0].lower()
