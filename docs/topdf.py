@@ -1,5 +1,4 @@
-# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use,
-# unused-argument
+# pylint: disable=C0103, too-few-public-methods, locally-disabled, no-self-use, unused-argument
 __doc__ = ('Routines for the manipulation of various documents')
 
 import os.path as _path

@@ -184,8 +184,8 @@ class FileProcessTracker():
             ignore_item_exists: adds the status to the list
             status: The status to set
             err: error to add (if required)
-            ignore_item_exists: raises ValueError if the item already exists
-            save_: picke the list after item adde
+            ignore_item_exists: raises ValueError if the item already exists and this is false
+            save_: picke the list after item added
         '''
         file_path = _os.path.normpath(file_path)
         if self.get_file_status(file_path) == FileProcessTracker.eFileProcessStatus.NotProcessed:
@@ -524,7 +524,7 @@ def get_file_count(paths, recurse=False):
 
 
 def hasext(path, ext):
-    '''(str, str|list)->bool
+    '''(str, str|iter)->bool
     Does the file have extension ext
     ext can be a list of extensions
     '''
@@ -773,7 +773,7 @@ def file_list_generator(paths, wildcards):
         yield _os.path.normpath(vals)
 
 
-def file_count(paths, wildcards, recurse=False):
+def file_count(paths, wildcards='.*', recurse=False):
     '''(iterable|str, iterable|str, bool) -> int
 
     Counts files in paths matching wildcards
@@ -781,7 +781,7 @@ def file_count(paths, wildcards, recurse=False):
     paths:
         tuple of list of paths
     wildcards:
-        tuple or list of wildcards
+        tuple or list of wildcards, e.g. ['.bat','.jpg']
     recurse:
         recurse down folders if true
     '''
@@ -1053,6 +1053,28 @@ def file_count2(pth, match='*'):
     return cnt
 
 
+def file_count_to_list(pth, out='', match='.*'):
+    '''(str, str, bool) -> 2-list
+    Get a list 2-deep list of file counts in a root directory
+
+    pth: root folder to count
+    out: Optional file to dume csv results to
+    match: iterable of starred matches, e.g. ('*.jpg','*.gif')
+    recurse: root only or recurse through subfolders
+
+    Example:
+    >>> file_count_to_list('c:/temp','c:/out.csv', match=('.jpg','.gif')
+    [['c:\temp',10],['c:\temp\subfld',12]]
+    '''
+    #TODO Debug this, might be issues with the wildcarding
+    R = []
+    for d, _, _ in folder_generator(_os.path.normpath(pth)):
+        i = file_count2(d, match=match)
+        R.append([d, i])
+    iolib.writecsv(r'C:\temp\hefs\file_counts.csv', R, inner_as_rows=False, header=['dir','n'])
+    return R
+
+
 def file_copy(src, dest, rename=False, create_dest=True, dest_is_folder=False):
     '''(str, str, bool, bool, bool) -> str
     Copy a file from src to dest. Optionally
@@ -1111,7 +1133,6 @@ def file_create(file_name, s=''):
     if it doesnt exist
     '''
     if not _os.path.isfile(file_name):
-
         write_to_eof(file_name, s)
 
 
@@ -1126,6 +1147,7 @@ def file_exists(file_name):
     '''(str) -> bool
     Returns true if file exists
     '''
+    file_name = _os.path.normpath(file_name)
     if isinstance(file_name, str):
         return _os.path.isfile(fixp(file_name))
 
@@ -1134,6 +1156,7 @@ def file_exists(file_name):
 
 def folder_exists(folder_name):
     '''check if folder exists'''
+    folder_name = _os.path.normpath(folder_name)
     if isinstance(folder_name, str):
         return _os.path.exists(fixp(folder_name))
 
@@ -1144,6 +1167,7 @@ def create_folder(folder_name):
     '''(str) -> void
     creates a folder
     '''
+    folder_name = _os.path.normpath(folder_name)
     if not _os.path.exists(folder_name):
         _os.makedirs(folder_name)
 # endregion
@@ -1226,9 +1250,6 @@ class PrintProgressFlash():
         else:
             n = int(self.ticks*(secs/60))
             s = '#' * n  + ' ' * (self.ticks - n) #print spaces at end
-
-
-
         _sys.stdout.write('%s\r' % s)
         _sys.stdout.flush()
 
@@ -1242,6 +1263,7 @@ class PrintProgress():
         pp.iteration = 1
         pp.increment
     '''
+    get_file_count = file_count #expose this function here as PP frequently needs file counts
 
     def __init__(self, maximum=0, bar_length=30, init_msg='\n'):
         print(init_msg)
@@ -1283,7 +1305,7 @@ class PrintProgress():
             self.max = max
         self.iteration = 1
         self.StopWatch.reset()
-
+ 
 
     def _get_suffix(self, suffix):
         '''get padded suffix so we overwrite end chars'''
@@ -1291,7 +1313,6 @@ class PrintProgress():
         if len(suffix) > self._max_suffix_len:
             self._max_suffix_len = len(suffix)
         return suffix.ljust(self._max_suffix_len, ' ')
-
 # endregion
 
 
@@ -1398,3 +1419,4 @@ def unpickle(path):
             return _pickle.load(myfile)
     else:
         return None
+

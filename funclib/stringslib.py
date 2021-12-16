@@ -46,6 +46,21 @@ class Visible():
         return dic
 
 
+def iter_member_in_str(s, match, ignore_case=False):
+    '''(str, str|iter, bool) -> bool
+    Check if any member of an iterable is IN s
+    '''
+    if not match: return true #everything is a match if we have nothing to match to
+    if type(match) is str:
+           return match in s
+    if ignore_case: s = s.lower()
+    for m in match:
+        if ignore_case:
+            m = m.lower()
+        if m in s: return True
+    return False
+
+
 def datetime_stamp(datetimesep=''):
     '''(str) -> str
     Returns clean date-time stamp for file names etc

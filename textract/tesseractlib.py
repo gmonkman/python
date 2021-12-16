@@ -45,8 +45,8 @@ def to_paragraphs(img, override_page_nr=None, conf_thresh=70, psm=1):
     s = s.replace("'", "")
     df = _pdl.df_fromstring(s, sep='\t')
     df.sort_values(['page_num', 'block_num', 'par_num', 'line_num', 'word_num'], inplace=True, ascending=True)
-    #our key is page_num, block_num, par_num
-    #ipage_num, iblock_num, ipar_num, iline_num = pdl.cols_get_indexes_from_names(df, 'page_num', 'block_num', 'par_num', 'line_num')
+    # our key is page_num, block_num, par_num
+    # ipage_num, iblock_num, ipar_num, iline_num = pdl.cols_get_indexes_from_names(df, 'page_num', 'block_num', 'par_num', 'line_num')
     for row in df.iterrows():
         row = row[1]
         key = override_page_nr if isinstance(override_page_nr, int) else row.page_num, row.block_num, row.par_num

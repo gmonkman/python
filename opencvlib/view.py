@@ -105,7 +105,7 @@ def pad_image(img, border_sz, pad_color=_color.CVColors.black , pad_mode=ePadCol
     '''
     img = _getimg(img)
 
-    if len(border_sz) == 1:
+    if isinstance(border_sz, (int, float)) or len(border_sz) == 1:
         border_sz = (border_sz, border_sz)
     h, w = border_sz
 

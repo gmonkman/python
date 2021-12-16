@@ -1,11 +1,11 @@
 #pylint: skip-file
 #Dont remove any functions from here
-'''
+"""
 From opencv demos
 This module contains some common routines used by other opencv demos.
 
 Also check view.py and transforms.py for some other common img manipulation tasks.
-'''
+"""
 
 # Python 2/3 compatibility
 import sys as _sys
@@ -26,13 +26,13 @@ from opencvlib.geom import centroid #leave as is
 from opencvlib.geom import order_points as _order_points
 
 IMAGE_EXTENSIONS_DOTTED = ['.bmp', '.jpg', '.jpeg',
-                    '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
+                    '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm', '.gif']
 
 IMAGE_EXTENSIONS_SANS_DOT = ['bmp', 'jpg', 'jpeg',
-                    'png', 'tif', 'tiff', 'pbm', 'pgm', 'ppm']
+                    'png', 'tif', 'tiff', 'pbm', 'pgm', 'ppm', 'gif']
 
 IMAGE_EXTENSIONS_WILDCARDED = ['*.bmp', '*.jpg', '*.jpeg',
-                    '*.png', '*.tif', '*.tiff', '*.pbm', '*.pgm', '*.ppm']
+                    '*.png', '*.tif', '*.tiff', '*.pbm', '*.pgm', '*.ppm', '*.gif']
 
 class Bunch(object):
     def __init__(self, **kw):
@@ -64,7 +64,7 @@ def homotrans(H, x, y):
 
 
 def overlay(l_img, s_img, x_offset, y_offset, s_img_alpha_px=(255, 255, 255)):
-    '''(ndarray, ndarray, int, int, 3-tuple) -> ndarray
+    """(ndarray, ndarray, int, int, 3-tuple) -> ndarray
     Give two 3 channel images, overlay s_img
     onto l_img.
 
@@ -79,7 +79,7 @@ def overlay(l_img, s_img, x_offset, y_offset, s_img_alpha_px=(255, 255, 255)):
 
     Returns:
         l_img, overlayed with s_img
-    '''
+    """
     y1, y2 = y_offset, y_offset + s_img.shape[0]
     x1, x2 = x_offset, x_offset + s_img.shape[1]
     assert isinstance(l_img, _np.ndarray)
@@ -141,7 +141,7 @@ def mtx2rvec(R):
 
 
 def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_cv2.FONT_HERSHEY_COMPLEX_SMALL, bottom_left_origin=False, box_background=None, box_pad=5, centre_box_at_xy=False):
-    '''(byref:ndarray, int, int, str, 3:tuple, float, int, bool, 3-tuple|int|None) -> void
+    """(byref:ndarray, int, int, str, 3:tuple, float, int, bool, 3-tuple|int|None) -> void
     Draw text on dst
 
     dst:
@@ -160,7 +160,7 @@ def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_c
         color of box background in which to draw text,
         e.g. (255, 255, 255), otherwise no
         background is used around text.
-    '''
+    """
     if isinstance(box_background, int):
         box_background = (box_background, ) * 3
 
@@ -205,6 +205,7 @@ def draw_str(dst, x, y, s, color=(255, 255, 255), scale=1.0, thickness=1, fnt=_c
 
 
 class Sketcher:
+    """sketch on an image"""
     def __init__(self, windowname, dests, colors_func):
         self.prev_pt = None
         self.windowname = windowname
@@ -264,10 +265,10 @@ def nothing(*dummy1, **dummy2):
 
 
 def clock():
-    '''
+    """
     returns absolute time in seconds since
     ticker started (usually when OS started
-    '''
+    """
     return _cv2.getTickCount() / _cv2.getTickFrequency()
 
 
@@ -334,7 +335,7 @@ class RectSelector:
 
 
 def grouper(n, iterable, fillvalue=None):
-    '''grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx'''
+    """grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"""
     args = [iter(iterable)] * n
     if PY3:
         output = _it.zip_longest(fillvalue=fillvalue, *args)
@@ -344,7 +345,7 @@ def grouper(n, iterable, fillvalue=None):
 
 
 def chessboard(patch_sz=100, col_first_patch=(0, 0, 0), col_second_patch=(255, 255, 255), cols=9, rows=6):
-    '''(int, 3-tuple, 3-tuple, int, int, bool) -> ndarray
+    """(int, 3-tuple, 3-tuple, int, int, bool) -> ndarray
     Returns a chessboard pattern.
     The nr. of vertices = (cols-1) * (rows-1)
 
@@ -358,7 +359,7 @@ def chessboard(patch_sz=100, col_first_patch=(0, 0, 0), col_second_patch=(255, 2
         number of patch columns
     rows:
         number of patch rows
-    '''
+    """
     patch_sz = int(patch_sz)
     cols = int(cols)
     rows = int(rows)
@@ -375,7 +376,7 @@ def chessboard(patch_sz=100, col_first_patch=(0, 0, 0), col_second_patch=(255, 2
 
 
 def draw_scale(img, x_break=50, y_break=50, tick_colour=(0, 0, 0), tick_length=10, x_offset=0, y_offset=0):
-    '''(ndarray, int, int, 3-tuple, int, int) -> ndarray
+    """(ndarray, int, int, 3-tuple, int, int) -> ndarray
     Draw scale on on image
 
     x_break:
@@ -390,7 +391,7 @@ def draw_scale(img, x_break=50, y_break=50, tick_colour=(0, 0, 0), tick_length=1
         start drawing at y_offset
     Returns:
         the image with ticks
-    '''
+    """
     x = x_offset
     y = y_offset
     label_pad = 4
@@ -415,7 +416,7 @@ def draw_scale(img, x_break=50, y_break=50, tick_colour=(0, 0, 0), tick_length=1
 
 
 def draw_grid(img, line_color=(0, 255, 0), thickness=1, type_=_cv2.LINE_AA, pxstep=50):
-    '''(ndarray, 3-tuple, int, int) -> void
+    """(ndarray, 3-tuple, int, int) -> void
     draw gridlines on img
     line_color:
         BGR representation of colour
@@ -425,7 +426,7 @@ def draw_grid(img, line_color=(0, 255, 0), thickness=1, type_=_cv2.LINE_AA, pxst
         8, 4 or CV_AA
     pxstep:
         grid line frequency in pixels
-    '''
+    """
     x = pxstep
     y = pxstep
     while x < img.shape[1]:
@@ -438,7 +439,7 @@ def draw_grid(img, line_color=(0, 255, 0), thickness=1, type_=_cv2.LINE_AA, pxst
 
 
 def draw_line(pts, img, line_color=(0, 0, 0), label=False, label_color=(0, 0, 0)):
-    '''(ndarray, 3-tuple, bool, 3-tuple) -> ndarray
+    """(ndarray, 3-tuple, bool, 3-tuple) -> ndarray
     Plots a line, defined by a two points.
 
     pts:
@@ -452,7 +453,7 @@ def draw_line(pts, img, line_color=(0, 0, 0), label=False, label_color=(0, 0, 0)
 
     Returns:
         image (ndarray)
-    '''
+    """
     poly_pts = _np.array(pts, dtype='int32')
     poly_pts = poly_pts.reshape((-1, 1, 2))
     _cv2.polylines(img, [poly_pts], True, line_color)
@@ -465,9 +466,9 @@ def draw_line(pts, img, line_color=(0, 0, 0), label=False, label_color=(0, 0, 0)
 
 
 def draw_polygon(img, points, color=(0, 255,0), thickness=1):
-    '''(ndarray, tuple|list) -> ndarray
+    """(ndarray, tuple|list) -> ndarray
     Draw a polygon
-    '''
+    """
     #[10,5],[20,30],[70,20],[50,10]
     assert isinstance(img, _np.ndarray)
     cp = img.copy()
@@ -478,7 +479,7 @@ def draw_polygon(img, points, color=(0, 255,0), thickness=1):
 
 
 def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0), thickness=1, show_labels=True, label_color=(0, 0, 0), padding=0, add_scale=True,  radius=6, plot_centroid=False):
-    '''(array, ndarray|str, int, int, bool, 3-tuple, bool, int) -> ndarray
+    """(array, ndarray|str, int, int, bool, 3-tuple, bool, int) -> ndarray
     Show roi points largely for debugging purposes
 
     pts:
@@ -506,7 +507,7 @@ def draw_points(pts, img=None, x=None, y=None, join=False, line_color=(0, 0, 0),
 
     Returns:
         The image (or blank canvas) with points plotted
-    '''
+    """
     if isinstance(pts, _np.ndarray):
         pts = pts.squeeze()
         pts = pts.squeeze()
