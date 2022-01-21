@@ -907,7 +907,7 @@ def sharpen(img):
 
 def similiarity_matrices(A, B, filter_invalid_pairs=True):
     '''(ndarray|list|tuple, ndarray|list|tuple, bool) -> ndarray
-    Given to lists of points, get
+    Given two lists of points, get
     the rotation and translation matrix
 
     filter_invalid_pairs:
@@ -1038,3 +1038,28 @@ def HSVtoGrey(img):
     converting HSV
     '''
     return img[:, :, 2:3].squeeze()
+
+
+def perspective_transform(image, pts_orig, pts_trans, **kwargs):
+    """
+    Do a perspective transform on an image
+    Args:
+        image: numpy array or file path
+        pts_orig: 2d-iterable of 4 points [[0,0], [1,0], ...]
+        pts_trans: 2d-iterable of 4 points [[0,0], [1,0], ...] to which pts_orig are transformed in transformed image
+        **kwargs: keywords to pass to cv2.warpPerspective
+
+    Notes:
+        Points are matched by their list index
+
+    Returns: numpy.ndarray: The image
+
+    Examples
+        >>> img = perspective_transform('c:/img.jpg', [[0,0], [0,100], [100,100], [100,0]], [[0,0], [10,100], [90,100], [100,0]])
+
+    """
+
+    img = _getimg(image)
+    M = _cv2.getPerspectiveTransform(pts_orig, pts_trans)
+    out = _cv2.warpPerspective(img, M, (img.shape[1], img.shape[0]), **kwargs)
+    return out

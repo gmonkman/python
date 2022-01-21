@@ -36,8 +36,8 @@ def main():
     #get a list from comma delimited args
     
     #see https://stackoverflow.com/questions/15753701/argparse-option-for-passing-a-list-as-option
-    f = lambda s: [int(itme) for item in s.split(',')]
-    parser.add_argument('-l', '--list', type=f, help='delimited list input, eg -l 12,13,14')
+    f = lambda s: [int(item) for item in s.split(',')]
+    cmdline.add_argument('-l', '--list', type=f, help='delimited list input, eg -l 12,13,14')
     #mylist = args.list
     
     #multiple positional arguments: e.g. script.py -files_in 'c:/' 'd:/'

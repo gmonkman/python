@@ -429,6 +429,25 @@ def df_from_dict(d):
     return _pd.DataFrame(dict([(k, _pd.Series(list(v))) for k, v in d.items()]))
 
 
+def pandas_join(from_: _pd.DataFrame, to_: _pd.DataFrame, from_key: str, to_key: str, drop_wildcard: str = '__', how='left', **kwargs) -> _pd.DataFrame:
+    """
+
+    Args:
+        from_: Datafrome
+        to_: left join to this dataframe 
+        from_key: key in "from" table
+        to_key: key in "to" table
+        drop_wildcard: matched cols will be dropped
+        kwargs: Keyword args to pass to pandas join func
+        
+    Returns:
+        pandas dataframe from the join
+    """
+    join = from_.set_index(from_key).join(to_.set_index(from_key), how=how, rsuffix=drop_wildcard, **kwargs)  # join on sq_id, left join as sanity check
+    if drop_wildcard:
+        join.drop(list(join.filter(regex=drop_wildcard)), axis=1, inplace=True)  # drop duplicate cols
+    return join
+
 
 
 def _list_flatten(items, seqtypes=(list, tuple)):
