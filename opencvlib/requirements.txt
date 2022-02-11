@@ -19,7 +19,7 @@ Augmentor==0.2.3
 Pillow==6.0.0
 beautifulsoup4==4.7.1
 funclib==2.1.6
-protobuf==3.7.1
+protobuf==3.15.0
 object_detection==0.0.3
 plotlib==0.3
 skimage==0.0
