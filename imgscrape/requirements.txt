@@ -1,5 +1,5 @@
 selenium==3.141.0
-setuptools==39.1.0
+setuptools==65.5.1
 pandas==0.24.2
 Scrapy==1.6.0
 requests==2.21.0
